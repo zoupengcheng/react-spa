@@ -1,0 +1,8 @@
+node_modules
+npm-debug.*
+.idea/
+.DS_Store
+.jshintrc
+.eslintignore
+.eslintrc
+.jshintignore
