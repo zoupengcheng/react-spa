@@ -1,13 +1,15 @@
 'use strict'
 
+import $ from 'jquery'
+import _ from 'underscore'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
+import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { Form, Input, message, Transfer } from 'antd'
-import $ from 'jquery'
-import api from "../../api/api"
-import UCMGUI from "../../api/ucmgui"
-import Title from '../../../views/title'
 
 const FormItem = Form.Item
 
@@ -17,6 +19,7 @@ class ExtensionGroupItem extends Component {
         this.state = {
             targetKeys: [],
             accountList: [],
+            groupNameList: [],
             extensionGroupItem: {}
         }
     }
@@ -42,14 +45,36 @@ class ExtensionGroupItem extends Component {
     _getInitData = () => {
         let targetKeys = []
         let accountList = []
+        let groupNameList = []
         let extensionGroup = {}
         const { formatMessage } = this.props.intl
         const extensionGroupId = this.props.params.id
+        const extensionGroupName = this.props.params.name
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
-            data: { action: 'getAccountList' },
+            data: {
+                action: 'getExtensionGroupNameList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const response = res.response || {}
+
+                groupNameList = response.group_name || []
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getAccountList'
+            },
             type: 'json',
             async: false,
             success: function(res) {
@@ -94,9 +119,14 @@ class ExtensionGroupItem extends Component {
             })
         }
 
+        if (extensionGroupName) {
+            groupNameList = _.without(groupNameList, extensionGroupName)
+        }
+
         this.setState({
             targetKeys: targetKeys,
             accountList: accountList,
+            groupNameList: groupNameList,
             extensionGroupItem: extensionGroup
         })
     }
@@ -135,7 +165,7 @@ class ExtensionGroupItem extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
         errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG128"}).toLowerCase()
+                    0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
         this.props.form.validateFieldsAndScroll((err, values) => {
@@ -241,10 +271,18 @@ class ExtensionGroupItem extends Component {
                             )}
                         >
                             { getFieldDecorator('group_name', {
-                                rules: [
-                                    { required: true, message: formatMessage({id: "LANG2150"}) },
-                                    { validator: this._checkName }
-                                ],
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
+                                }],
                                 initialValue: name
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG135"}) } />

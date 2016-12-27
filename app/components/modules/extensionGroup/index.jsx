@@ -4,10 +4,10 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
+import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
 
 const confirm = Modal.confirm
 
@@ -242,7 +242,6 @@ class ExtensionGroup extends Component {
                         </Button>
                     </div>
                     <Table
-                        bordered
                         rowKey="group_id"
                         columns={ columns }
                         pagination={ pagination }
