@@ -20,16 +20,39 @@ class ResourceUsage extends Component {
         }
     }
     componentDidMount() {
-        this._showChart()
+        this._getResourceUsage()
     }
     componentWillUnmount() {
     }
-    _showChart = () => {
+    _getResourceUsage = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: { 
+                action: 'getResourceUsage' 
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                let data = res.response
+
+                if (data) {
+                    let resourceUsage = data.body
+                    this._showChart(resourceUsage)
+                }
+            }.bind(this),
+            error: function(e) {
+                console.log(e.toString())
+            }
+        }) 
+    }
+    _showChart = (resourceUsage) => {
         let resourceUsageChart = echarts.init(document.getElementById('resourceUsage'))
-        let memoryUsageData = [80, 10, 5, 30, 60, 40, 20],
-            cpuUsageData = [70, 20, 50, 80, 40, 60, 100],
-            timesData = ['0s', '10s', '20s', '30s', '40s', '50s', '60s']
-                    const option = {
+        if (resourceUsage) {
+            let memoryUsageData = resourceUsage["memory-usage"],
+                cpuUsageData = resourceUsage["cpu-usage"],
+                timesData = ['0s', '10s', '20s', '30s', '40s', '50s', '60s']
+            const option = {
                 title: {
                 },
                 tooltip: {
@@ -180,44 +203,50 @@ class ResourceUsage extends Component {
                     }
                 ]
             }   
-        // setInterval(function() {
-        //     for (let i = timesData.length - 1; i >= 0; i--) {
-        //         let timesDataIndex = timesData[i]
-        //         timesData[i] = Number(timesDataIndex.match(/^\d+/)[0]) + 5 + "s"
-        //     }
-        //     memoryUsageData = memoryUsageData.slice(1).concat(parseInt(Math.random() * 100))
-        //     cpuUsageData = cpuUsageData.slice(1).concat(parseInt(Math.random() * 100))
+            // setInterval(function() {
+            //     for (let i = timesData.length - 1; i >= 0; i--) {
+            //         let timesDataIndex = timesData[i]
+            //         timesData[i] = Number(timesDataIndex.match(/^\d+/)[0]) + 5 + "s"
+            //     }
+            //     memoryUsageData = memoryUsageData.slice(1).concat(parseInt(Math.random() * 100))
+            //     cpuUsageData = cpuUsageData.slice(1).concat(parseInt(Math.random() * 100))
 
-        //     for (let i = memoryUsageData.length - 1; i >= 0; i--) {
-        //         let memoryUsageDataIndex = memoryUsageData[i]
+            //     for (let i = memoryUsageData.length - 1; i >= 0; i--) {
+            //         let memoryUsageDataIndex = memoryUsageData[i]
 
-        //         if (memoryUsageDataIndex >= 100) {
-        //             memoryUsageData[i] = 50
-        //         }
-        //     }
+            //         if (memoryUsageDataIndex >= 100) {
+            //             memoryUsageData[i] = 50
+            //         }
+            //     }
 
-        //     for (let i = cpuUsageData.length - 1; i >= 0; i--) {
-        //         let cpuUsageDataIndex = cpuUsageData[i]
+            //     for (let i = cpuUsageData.length - 1; i >= 0; i--) {
+            //         let cpuUsageDataIndex = cpuUsageData[i]
 
-        //         if (cpuUsageDataIndex >= 100) {
-        //             cpuUsageData[i] = 50
-        //         }
-        //     }
+            //         if (cpuUsageDataIndex >= 100) {
+            //             cpuUsageData[i] = 50
+            //         }
+            //     }
 
-        //     resourceUsageChart.setOption({
-        //         xAxis: {
-        //             data: timesData
-        //         },
-        //         series: [{
-        //             name: 'Memory Usage',
-        //             data: memoryUsageData
-        //         }, {
-        //             name: 'CPU Usage',
-        //             data: cpuUsageData
-        //         }]
-        //     })
-        // }, 5000)
-        resourceUsageChart.setOption(option)         
+            //     resourceUsageChart.setOption({
+            //         xAxis: {
+            //             data: timesData
+            //         },
+            //         series: [{
+            //             name: 'Memory Usage',
+            //             data: memoryUsageData
+            //         }, {
+            //             name: 'CPU Usage',
+            //             data: cpuUsageData
+            //         }]
+            //     })
+            // }, 5000)
+            resourceUsageChart.setOption(option)
+            this.setState({
+                "cpu-percent": resourceUsage["cpu-usage"][resourceUsage["cpu-usage"].length - 1],
+                "memory-percent": resourceUsage["memory-usage"][resourceUsage["memory-usage"].length - 1],
+                "memory-total": resourceUsage["memory-total"]
+            })  
+        }       
     }
     render() {
         return (
@@ -235,13 +264,13 @@ class ResourceUsage extends Component {
                                             <span>CPU Usage</span>
                                         </div>
                                         <div>
-                                            <font className="usage-rate-percent">76%</font>
+                                            <font className="usage-rate-percent">{this.state["cpu-percent"] + "%"}</font>
                                             <span className="sprite sprite-resurce-up"></span>
                                         </div>
-                                        <div>
-                                            <font className="usage-rate-space">1024MB</font>
+                                        {/* <div>
+                                            <font className="usage-rate-space">{this.state["cpu-usage"]}</font>
                                             <font className="usage-rate-total">Total</font>
-                                        </div>
+                                        </div> */}
                                     </Col>
                                 </div>
                             </Row>
@@ -253,11 +282,11 @@ class ResourceUsage extends Component {
                                             <span>Memory Usage</span>
                                         </div>
                                         <div>
-                                            <font className="usage-rate-percent">56%</font>
+                                            <font className="usage-rate-percent">{this.state["memory-percent"] + "%"}</font>
                                             <span className="sprite sprite-resurce-down"></span>
                                         </div>
                                         <div>
-                                            <font className="usage-rate-space">1024MB</font>
+                                            <font className="usage-rate-space">{this.state["memory-total"] + "M"}</font>
                                             <font className="usage-rate-total">Total</font>
                                         </div>
                                     </Col>

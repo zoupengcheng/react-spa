@@ -61,7 +61,9 @@ class PBXStatus extends Component {
                     total = pbxStatus.queue_count
                 }
                 percent = (Number(inUse) / Number(total)) * 100
-
+                if (isNaN(percent)) {
+                    percent = 0
+                }
                 return (<div>
                             <Col className="gutter-row" xs={{ span: 24}} sm={{ span: 12}} md={{ span: 12}} lg={{ span: 12}}>
                                 <span>

@@ -6,15 +6,21 @@ import { Modal, message } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
 import CDRSearch from './CDRSearch'
 import CDRList from './CDRList'
 import Title from '../../../views/title'
+import _ from 'underscore'
 
 class CDR extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            cdrData: []
+            isDisplay: 'display-block-filter',
+            isDisplaySearch: 'hidden',
+            cdrData: [],
+            cdrSettings: {},
+            cdrSearchDownload: {}
         }
     }
     componentDidMount () {
@@ -25,8 +31,6 @@ class CDR extends Component {
             url: api.apiHost,
             data: {
                 action: 'listCDRDB',
-                item_num: 10000,
-                page: 1,
                 sidx: 'start',
                 sord: 'desc'
             },
@@ -99,133 +103,112 @@ class CDR extends Component {
             onCancel() {}
         })
     }
+    _hideSearch = () => {
+        this.setState({
+            isDisplay: 'display-block-filter',
+            isDisplaySearch: 'hidden'
+        })
+    }
+    _handleSearch = () => {
+        this.setState({
+            isDisplay: 'display-block',
+            isDisplaySearch: 'display-block'
+        })
+    }
     _handleCancel = () => {
         browserHistory.push('/cdr/cdr')
     }
     _handleSubmit = () => {
-        var cdrData = [],
+        const { formatMessage } = this.props.intl
+
+        message.loading(formatMessage({ id: "LANG3773" }), 0)
+
+        let cdrData = [],
             acctid = [],
-            dataPost = {
+            dataPost = {},
+            cdrSearchData = {
                 action: 'listCDRDB',
-                item_num: 10000,
-                page: 1,
                 sidx: 'start',
                 sord: 'desc'
             },
-            fromtime = $('#startfrom').val(),
-            totime = $('#startto').val(),
-            src = $('#CallerNumber').val(),
-            caller_name = $('#CallerName').val(),
-            dst = $('#CalledNumber').val(),
-            srcTrunks = $('#src_trunk_name'),
-            dstTrunks = $('#dst_trunk_name'),
-            disposition = $('#disposition'),
-            actionType = $('#action_type'),
-            accountCode = $('#accountcode'),
-            userfield = $('#userfield'),
-            srcTrunksNameList = [],
-            dstTrunksNameList = [],
-            dispositionNameList = [],
-            actionTypeNameList = [],
-            accountCodeNameList = [],
-            userfieldNameList = []
+            flag = false
 
-        if (fromtime) {
-            dataPost.fromtime = fromtime
-        }
-        if (totime) {
-            dataPost.totime = totime
-        }
-        if (src) {
-            dataPost.src = src
-        }
-        if (caller_name) {
-            dataPost.caller_name = caller_name
-        }
-        if (dst) {
-            dataPost.dst = dst
-        }
-
-        // Srouce Trunks
-        if (srcTrunks.find('option:selected').length > 0) {
-            srcTrunks.find('option:selected').each(function() {
-                srcTrunksNameList.push(this.title)
-            })
-
-            dataPost.src_trunk_name = srcTrunksNameList.join()
-        }
-
-        // Destination Trunks
-        if (dstTrunks.find('option:selected').length > 0) {
-            dstTrunks.find('option:selected').each(function() {
-                dstTrunksNameList.push(this.title)
-            })
-
-            dataPost.dst_trunk_name = dstTrunksNameList.join()
-        }
-
-        // Action Types
-        if (actionType.find('option:selected').length > 0) {
-            actionType.find('option:selected').each(function() {
-                actionTypeNameList.push(this.value)
-            })
-
-            dataPost.action_type = actionTypeNameList.join()
-        }
-
-        // Account Codes
-        if (accountCode.find('option:selected').length > 0) {
-            accountCode.find('option:selected').each(function() {
-                accountCodeNameList.push(this.value)
-            })
-
-            dataPost.accountcode = accountCodeNameList.join()
-        }
-
-        // Status
-        disposition.find('option:selected').each(function() {
-            dispositionNameList.push(this.value)
+        _.each(this.state.cdrSettings, function(item, key) {
+            if (_.isObject(item)) {
+                if (item.errors === undefined) {
+                    if (item.name.match(/fromtime|totime/)) {
+                        if (item.value) {
+                            dataPost[key] = item.value.format('YYYY-MM-DD HH:mm')
+                        } else {
+                            delete dataPost[key]
+                        }
+                    } else if (item.name.match(/src|caller_name|dst/)) {
+                        if (item.value) {
+                            dataPost[key] = item.value
+                        } else {
+                            delete dataPost[key]
+                        }
+                    } else {
+                        if (item.value.length) {
+                            dataPost[key] = item.value.join()
+                        } else {
+                            delete dataPost[key]
+                        } 
+                    }
+                } else {
+                    flag = true
+                    return
+                }
+            } else {
+                dataPost[key] = item
+            }
         })
 
-        dataPost.disposition = dispositionNameList.join()
+        if (flag) {
+            return
+        }
 
-        // Call Types
-        userfield.find('option:selected').each(function() {
-            userfieldNameList.push(this.value)
+        this.setState({
+            cdrSearchDownload: dataPost
         })
 
-        dataPost.userfield = userfieldNameList.join()
+        _.extend(cdrSearchData, dataPost)
 
         $.ajax({
             url: api.apiHost,
-            data: dataPost,
+            data: cdrSearchData,
             type: 'POST',
             dataType: 'json',
-            async: false,
-            success: function(res) {
-                acctid = res.response.acctid || []
-
-                for (let i = 0; i < acctid.length; i++) {
-                    cdrData.push({
-                        key: i,
-                        status: acctid[i].disposition,
-                        callFrom: acctid[i].clid,
-                        callTo: acctid[i].dst,
-                        actionType: acctid[i].action_type,
-                        startTime: acctid[i].start,
-                        talkTime: acctid[i].billsec,
-                        password: acctid[i].accountcode,
-                        recordingFile: acctid[i].recordfiles
-                    })
-                }
-
-                this.setState({
-                    cdrData: cdrData
-                })
-            }.bind(this),
             error: function(e) {
                 message.error(e.toString())
-            }
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+
+                    acctid = data.response.acctid || []
+
+                    for (let i = 0; i < acctid.length; i++) {
+                        cdrData.push({
+                            key: i,
+                            status: acctid[i].disposition,
+                            callFrom: acctid[i].clid,
+                            callTo: acctid[i].dst,
+                            actionType: acctid[i].action_type,
+                            startTime: acctid[i].start,
+                            talkTime: acctid[i].billsec,
+                            password: acctid[i].accountcode,
+                            recordingFile: acctid[i].recordfiles
+                        })
+                    }
+
+                    this.setState({
+                        cdrData: cdrData
+                    })
+                }
+            }.bind(this)
         })
     }
     render() {
@@ -236,9 +219,12 @@ class CDR extends Component {
 
         return (
             <div className="app-content-main app-content-cdr">
-                <Title headerTitle={ formatMessage({id: "LANG7"}) } onSubmit={ this._handleSubmit } onCancel={ this._handleCancel } isDisplay='display-block-filter' />
-                <CDRSearch />
-                <CDRList cdrData={ this.state.cdrData } deleteAll={ this._deleteAll } />
+                <Title headerTitle={ formatMessage({id: "LANG7"}) } onSubmit={ this._handleSubmit }
+                    onCancel={ this._handleCancel } onSearch = { this._handleSearch } isDisplay= { this.state.isDisplay }/>
+                <CDRSearch dataSource = { this.state.cdrSettings } isDisplaySearch={ this.state.isDisplaySearch }
+                    _hideSearch={ this._hideSearch } />
+                <CDRList cdrData={ this.state.cdrData } deleteAll={ this._deleteAll }
+                    dataSource = { this.state.cdrSearchDownload } />
             </div>
         )
     }

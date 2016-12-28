@@ -6,14 +6,271 @@ import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
+import Validator from "../../api/validator"
+import _ from 'underscore'
 
 const FormItem = Form.Item
+
+const CustomizedForm = injectIntl(Form.create({
+    onFieldsChange(props, changedFields) {
+        props.onChange(changedFields)
+    }
+})((props) => {
+    const { formatMessage } = props.intl
+    const { getFieldDecorator } = props.form
+
+    const formItemLayout = {
+        labelCol: { span: 6 },
+        wrapperCol: { span: 12 }
+    }
+
+    const formItemLayoutCheckGroup = {
+        labelCol: { span: 3 },
+        wrapperCol: { span: 12 }
+    }
+
+    const Option = Select.Option
+    const CheckboxGroup = Checkbox.Group
+
+    const callTypeOptions = [
+        {label: formatMessage({id: "LANG193"}), value: 'Inbound'},
+        {label: formatMessage({id: "LANG194"}), value: 'Outbound'},
+        {label: formatMessage({id: "LANG195"}), value: 'Internal'},
+        {label: formatMessage({id: "LANG196"}), value: 'External'}
+    ]
+    const statusOptions = [
+        {label: formatMessage({id: "LANG4863"}), value: 'ANSWERED'},
+        {label: formatMessage({id: "LANG4864"}), value: 'NO ANSWER'},
+        {label: formatMessage({id: "LANG2237"}), value: 'BUSY'},
+        {label: formatMessage({id: "LANG2405"}), value: 'FAILED'}
+    ]
+
+    const actionTypeList = props.actionTypeList,
+          accountCodes = props.accountCodes,
+          all_trunks = props.all_trunks,
+          actionTypeListChildren = [],
+          accountCodesChildren = [],
+          allTrunksChildren = []
+
+    for (let i = 0; i < actionTypeList.length; i++) {
+        actionTypeListChildren.push(<Option value={actionTypeList[i]} key={i}>{actionTypeList[i]}</Option>)
+    }
+
+    for (let i = 0; i < accountCodes.length; i++) {
+        accountCodesChildren.push(<Option value={accountCodes[i]} key={i}>{accountCodes[i]}</Option>)
+    }
+
+    for (let i = 0; i < all_trunks.length; i++) {
+        allTrunksChildren.push(<Option value={'trunk_' + all_trunks[i].trunk_index} key={i}>{all_trunks[i].trunk_name}</Option>)
+    }
+
+    return (
+        <Form id="cdr-form" className={ props.isDisplaySearch }>
+            <Row>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG1048"})}>
+                                    <span>{formatMessage({id: "LANG1048"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('fromtime')(
+                            <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                        )}
+                    </FormItem>
+                </Col>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG1049"})}>
+                                    <span>{formatMessage({id: "LANG1049"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('totime')(
+                            <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                        )}
+                    </FormItem>
+                </Col>
+            </Row>
+
+            <Row>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG4021"})}>
+                                    <span>{formatMessage({id: "LANG2216"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('src')(
+                            <Input />
+                        )}
+                    </FormItem>
+                </Col>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG2234"})}>
+                                    <span>{formatMessage({id: "LANG2234"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('caller_name')(
+                            <Input />
+                        )}
+                    </FormItem>
+                </Col>
+            </Row>
+
+            <Row>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG2793"})}>
+                                    <span>{formatMessage({id: "LANG2793"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('dst')(
+                            <Input />
+                        )}
+                    </FormItem>
+                </Col>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG4569"})}>
+                                    <span>{formatMessage({id: "LANG4569"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('accountcode')(
+                            <Select multiple>
+                                {accountCodesChildren}
+                            </Select>
+                        )}
+                    </FormItem>
+                </Col>
+            </Row>
+
+            <Row>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG5132"})}>
+                                    <span>{formatMessage({id: "LANG5132"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('src_trunk_name')(
+                            <Select multiple>
+                                {allTrunksChildren}
+                            </Select>
+                        )}
+                    </FormItem>
+                </Col>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG5133"})}>
+                                    <span>{formatMessage({id: "LANG5133"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('dst_trunk_name')(
+                            <Select multiple>
+                                {allTrunksChildren}
+                            </Select>
+                        )}
+                    </FormItem>
+                </Col>
+            </Row>
+
+            <Row>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={formatMessage({id: "LANG5134"})}>
+                                    <span>{formatMessage({id: "LANG5134"})}</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        {getFieldDecorator('action_type')(
+                            <Select multiple>
+                                { actionTypeListChildren }
+                            </Select>
+                        )}
+                    </FormItem>
+                </Col>
+            </Row>
+
+            <FormItem
+                { ...formItemLayoutCheckGroup }
+                label={(
+                    <span>
+                        <Tooltip title={formatMessage({id: "LANG4783"})}>
+                            <span>{formatMessage({id: "LANG2235"})}</span>
+                        </Tooltip>
+                    </span>
+                )}
+            >
+                {getFieldDecorator('userfield')(
+                    <CheckboxGroup options={callTypeOptions} />
+                )}
+            </FormItem>
+
+            <FormItem
+                { ...formItemLayoutCheckGroup }
+                label={(
+                    <span>
+                        <Tooltip title={formatMessage({id: "LANG186"})}>
+                            <span>{formatMessage({id: "LANG186"})}</span>
+                        </Tooltip>
+                    </span>
+                )}
+            >
+                {getFieldDecorator('disposition')(
+                    <CheckboxGroup options={statusOptions} />
+                )}
+            </FormItem>
+            <div className="hide_search sprite sprite-slide-bar" onClick={ props._hideSearch }></div>
+        </Form>
+    )
+}))
 
 class CDRSearch extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            cdrData: [],
             actionTypeList: [],
             accountCodes: [],
             all_trunks: []
@@ -152,266 +409,18 @@ class CDRSearch extends Component {
             callback('no match')
         }
     }
-    _hideSearch = () => {
-        $('.display-block').removeClass('display-block').addClass('display-block-filter')
-        $('#cdr-form').addClass('hidden')
+    _handleFormChange = (changedFields) => {
+        _.extend(this.props.dataSource, changedFields)
     }
     render() {
-        const { formatMessage } = this.props.intl
-        const { getFieldDecorator } = this.props.form
-
-        const formItemLayout = {
-            labelCol: { span: 6 },
-            wrapperCol: { span: 12 }
-        }
-
-        const formItemLayoutCheckGroup = {
-            labelCol: { span: 3 },
-            wrapperCol: { span: 12 }
-        }
-
-        const Option = Select.Option
-        const CheckboxGroup = Checkbox.Group
-
-        const callTypeOptions = [
-            {label: formatMessage({id: "LANG193"}), value: 'Inbound'},
-            {label: formatMessage({id: "LANG194"}), value: 'Outbound'},
-            {label: formatMessage({id: "LANG195"}), value: 'Internal'},
-            {label: formatMessage({id: "LANG196"}), value: 'External'}
-        ]
-        const statusOptions = [
-            {label: formatMessage({id: "LANG4863"}), value: 'ANSWERED'},
-            {label: formatMessage({id: "LANG4864"}), value: 'NO ANSWER'},
-            {label: formatMessage({id: "LANG2237"}), value: 'BUSY'},
-            {label: formatMessage({id: "LANG2405"}), value: 'FAILED'}
-        ]
-
-        const actionTypeList = this.state.actionTypeList,
-              accountCodes = this.state.accountCodes,
-              all_trunks = this.state.all_trunks,
-              actionTypeListChildren = [],
-              accountCodesChildren = [],
-              allTrunksChildren = []
-
-        for (let i = 0; i < actionTypeList.length; i++) {
-            actionTypeListChildren.push(<Option value={actionTypeList[i]} key={i}>{actionTypeList[i]}</Option>)
-        }
-
-        for (let i = 0; i < accountCodes.length; i++) {
-            accountCodesChildren.push(<Option value={accountCodes[i]} key={i}>{accountCodes[i]}</Option>)
-        }
-
-        for (let i = 0; i < all_trunks.length; i++) {
-            allTrunksChildren.push(<Option value={'trunk_' + all_trunks[i].trunk_index} key={i}>{all_trunks[i].trunk_name}</Option>)
-        }
+        let cdrSettings = this.props.dataSource
 
         return (
-            <Form id="cdr-form" className="hidden">
-                <Row>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG1048"})}>
-                                        <span>{formatMessage({id: "LANG1048"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('startfrom')(
-                                <DatePicker showTime format="YYYY-MM-DD HH:mm" />
-                            )}
-                        </FormItem>
-                    </Col>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG1049"})}>
-                                        <span>{formatMessage({id: "LANG1049"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('startto')(
-                                <DatePicker showTime format="YYYY-MM-DD HH:mm" />
-                            )}
-                        </FormItem>
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG4021"})}>
-                                        <span>{formatMessage({id: "LANG2216"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('CallerNumber', {
-                                rules: [
-                                    {required: true, message: 'Please enter your password'},
-                                    {validator: this.validateCallerNumFormate}
-                                ]
-                            })(
-                                <Input />
-                            )}
-                        </FormItem>
-                    </Col>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG2234"})}>
-                                        <span>{formatMessage({id: "LANG2234"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('CallerName')(
-                                <Input />
-                            )}
-                        </FormItem>
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG2793"})}>
-                                        <span>{formatMessage({id: "LANG2793"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('CalledNumber')(
-                                <Input />
-                            )}
-                        </FormItem>
-                    </Col>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG4569"})}>
-                                        <span>{formatMessage({id: "LANG4569"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('accountcode')(
-                                <Select multiple>
-                                    {accountCodesChildren}
-                                </Select>
-                            )}
-                        </FormItem>
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG5132"})}>
-                                        <span>{formatMessage({id: "LANG5132"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('src_trunk_name')(
-                                <Select multiple>
-                                    {allTrunksChildren}
-                                </Select>
-                            )}
-                        </FormItem>
-                    </Col>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG5133"})}>
-                                        <span>{formatMessage({id: "LANG5133"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('dst_trunk_name')(
-                                <Select multiple>
-                                    {allTrunksChildren}
-                                </Select>
-                            )}
-                        </FormItem>
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col span={12}>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={formatMessage({id: "LANG5134"})}>
-                                        <span>{formatMessage({id: "LANG5134"})}</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            {getFieldDecorator('action_type')(
-                                <Select multiple>
-                                    { actionTypeListChildren }
-                                </Select>
-                            )}
-                        </FormItem>
-                    </Col>
-                </Row>
-
-                <FormItem
-                    { ...formItemLayoutCheckGroup }
-                    label={(
-                        <span>
-                            <Tooltip title={formatMessage({id: "LANG4783"})}>
-                                <span>{formatMessage({id: "LANG2235"})}</span>
-                            </Tooltip>
-                        </span>
-                    )}
-                >
-                    {getFieldDecorator('userfield')(
-                        <CheckboxGroup options={callTypeOptions} />
-                    )}
-                </FormItem>
-
-                <FormItem
-                    { ...formItemLayoutCheckGroup }
-                    label={(
-                        <span>
-                            <Tooltip title={formatMessage({id: "LANG186"})}>
-                                <span>{formatMessage({id: "LANG186"})}</span>
-                            </Tooltip>
-                        </span>
-                    )}
-                >
-                    {getFieldDecorator('disposition')(
-                        <CheckboxGroup options={statusOptions} />
-                    )}
-                </FormItem>
-                <div className="hide_search sprite sprite-slide-bar" onClick={ this._hideSearch }></div>
-            </Form>
+            <CustomizedForm onChange={ this._handleFormChange.bind(this) } dataSource={ cdrSettings }
+            actionTypeList = { this.state.actionTypeList } accountCodes = { this.state.actionTypeList }
+            all_trunks = { this.state.all_trunks } _hideSearch = { this.props._hideSearch } isDisplaySearch={ this.props.isDisplaySearch } />
         )
     }
 }
 
-export default Form.create()(injectIntl(CDRSearch))
+export default injectIntl(CDRSearch)

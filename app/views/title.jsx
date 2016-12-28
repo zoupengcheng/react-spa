@@ -12,8 +12,7 @@ class Title extends Component {
         this.props.onSubmit()
     }
     _triggerSearch =(e) => {
-        $('.display-block-filter').removeClass('display-block-filter').addClass('display-block')
-        $('#cdr-form').removeClass('hidden')
+        this.props.onSearch()
     }
     render() {
         return (

@@ -333,6 +333,7 @@ li {
     line-height: 30px;
     text-align: center;
     margin-top: -30px;
+    background-color: #FFF;
 }
 
 
@@ -463,6 +464,10 @@ li {
 
 .app-content-main .content {
     padding: 14px;
+}
+
+.ant-tabs-content .app-content-main .content {
+    padding: 0 14px 14px;
 }
 
 .app-content-main .top-button {
@@ -644,6 +649,11 @@ li {
     border-bottom: 1px solid #e6ebf0;
 }
 
+.app-wrapper .ant-tabs-bar {
+    margin-bottom: 14px;
+    background-color: #FFF;
+}
+
 .ant-form .ant-form-explain {
     position: absolute;
     background-color: red;
@@ -725,6 +735,7 @@ li {
 
     .ant-table-placeholder {
         padding: 8px;
+        border-top: 1px solid #e9e9e9;
     }
 
     .ant-table-thead > tr > th {
@@ -748,11 +759,13 @@ li {
     .ant-table-tbody > tr > td {
         padding: 8px;
         text-align: center;
+        border-right: 0;
     }
 }
 
-.ant-table-empty {
-    border-top: 0;
+.ant-table-bordered .ant-table-header > table, .ant-table-bordered .ant-table-body > table,
+.ant-table-bordered .ant-table-fixed-left table, .ant-table-bordered .ant-table-fixed-right table {
+    border: 0;
 }
 
 

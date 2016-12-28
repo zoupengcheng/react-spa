@@ -97,16 +97,46 @@ import WakeupService from '../components/modules/wakeupService/index'
 import FAXSending from '../components/modules/faxSending/index'
 import AnnouncementCenter from '../components/modules/announcementCenter/index'
 import WebRTC from '../components/modules/webrtc/index'
+import cookie from 'react-cookie'
+import SubscribeEvent from '../components/api/subscribeEvent'
 
 const routes = (state, currentLocaleData) => {
+    function subscribeEvent(data) {
+        if (data && data.location && data.location.pathname) {
+            let arr = data.location.pathname.split("/")
+            let path = arr[arr.length - 1]
+
+            if (path && SubscribeEvent[path] && SubscribeEvent[path].subscribe) {
+                SubscribeEvent[path].subscribe.map(function(item) {
+                    window.socket.send(JSON.stringify(item))
+                    console.log(JSON.stringify(item))
+                })
+            }
+            window.LEAVEPAGE = path
+        }
+    }
+
+    function unSubscribeEvent(data, LEAVEPAGE) {
+        if (data && data.location && data.location.pathname) {
+            if (LEAVEPAGE && SubscribeEvent[LEAVEPAGE] && SubscribeEvent[LEAVEPAGE].unsubscribe) {
+                SubscribeEvent[LEAVEPAGE].unsubscribe.map(function(item) {
+                    window.socket.send(JSON.stringify(item))
+                    console.log(JSON.stringify(item))
+                })
+            }
+            subscribeEvent(data)
+        }
+    }
     // Validate logon
-    function requireAuth() {
+    function requireAuth(data) {
         if (!localStorage.getItem('adminId')) {
             browserHistory.push('/login')
             return false
         }
+        // unSubscribeEvent(data, window.LEAVEPAGE)
         // return state.isLogin
     }
+
     return (
         <div>
             <Route path="/" component={ Login }>

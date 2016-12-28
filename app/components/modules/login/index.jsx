@@ -94,9 +94,6 @@ const Login = React.createClass({
             success: function(res) {
                 if ((typeof res === 'object') && res.hasOwnProperty('status')) {
                     if (res.status === 0) {
-                        cookie.save('adminId', res.response.user.user_id)
-                        cookie.save('username', username)
-
                         localStorage.setItem('adminId', res.response.user.user_id)
                         localStorage.setItem('username', username)
 
@@ -121,6 +118,15 @@ const Login = React.createClass({
                             browserHistory.push('/system-status/dashboard')
                         }, 2000)
 
+                        // window.socket.send({
+                        //     "type": "request",
+                        //     "message": {
+                        //         "transactionid": "123456789zxa",
+                        //         "action": "login",
+                        //         "username": cookie.load("username"),
+                        //         "cookie": cookie.load("session-identify")
+                        //     }
+                        // })
                         // $(".errorInfo").css("visibility", "hidden")
 
                         // $P.lang(doc, true, true)
