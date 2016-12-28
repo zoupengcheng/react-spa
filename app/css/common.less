@@ -652,7 +652,7 @@ li {
     z-index: 10;
     border-radius: 5px;
     right: 0;
-    top: -36px;
+    bottom: 40px;
 }
 
 .ant-btn {
@@ -715,10 +715,12 @@ li {
 
 .ant-table {
     color: #10131a;
+    border-radius: 0;
+    border: 1px solid #e8e2ef;
+    border-bottom: 0;
 
     table {
         background: #fff;
-        border-collapse: collapse;
     }
 
     .ant-table-placeholder {
@@ -727,12 +729,6 @@ li {
 
     .ant-table-thead > tr > th {
         background-color: #f3f7fa;
-    }
-
-    .ant-table-tbody {
-        border: 2px solid #e2e8ef;
-        border-left-width: 1px;
-        border-top-width: 1px;
     }
 
     .ant-table-tbody > tr {
@@ -744,11 +740,19 @@ li {
         background: #fff;
     }
 
+    .ant-table-tbody > tr > td {
+        border-bottom: 1px solid #e2e8ef;
+    }
+
     .ant-table-thead > tr > th,
     .ant-table-tbody > tr > td {
         padding: 8px;
         text-align: center;
     }
+}
+
+.ant-table-empty {
+    border-top: 0;
 }
 
 

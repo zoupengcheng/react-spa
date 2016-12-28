@@ -29,12 +29,10 @@ class ExtensionGroupItem extends Component {
         this._getInitData()
     }
     _checkName = (rule, value, callback) => {
-        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const len = form.getFieldValue('gs_jblen')
 
-        if (value && len && value < len) {
-            callback(formatMessage({id: "LANG2142"}, { 0: formatMessage({id: "LANG1655"}), 1: formatMessage({id: "LANG2460"}) }))
+        if (value && _.indexOf(this.state.groupNameList, value) > -1) {
+            callback(formatMessage({id: "LANG2137"}))
         } else {
             callback()
         }
@@ -276,12 +274,14 @@ class ExtensionGroupItem extends Component {
                                     message: formatMessage({id: "LANG2150"})
                                 }, {
                                     validator: (data, value, callback) => {
-                                        Validator.minlength(data, value, callback, formatMessage)
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
                                     }
                                 }, {
                                     validator: (data, value, callback) => {
                                         Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
                                     }
+                                }, {
+                                    validator: this._checkName
                                 }],
                                 initialValue: name
                             })(

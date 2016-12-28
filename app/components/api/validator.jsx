@@ -74,23 +74,26 @@ Validator.prototype = {
         minValue: "LANG2164",
         calleridSip: "LANG5031"
     },
+    minlength: function(data, value, callback, formatMessage, minlength) {
+        if (value && minlength && value.length < minlength) {
+            callback(formatMessage({id: "LANG2161"}, {0: minlength}))
+        } else {
+            callback()
+        }
+    },
     letterswithbasicpunc: function(data, value, callback, formatMessage) {
-        if (!/^[a-zA-Z0-9\-.,()'"\s]+$/i.test(value)) {
+        if (value && !/^[a-zA-Z0-9\-.,()'"\s]+$/i.test(value)) {
             callback(formatMessage({id: "LANG2183"}))
         } else {
             callback()
         }
-
-        return false
     },
     alphanumeric: function(data, value, callback, formatMessage) {
-        if (!/^\w+$/i.test(value)) {
+        if (value && !/^\w+$/i.test(value)) {
             callback(formatMessage({id: "LANG2184"}))
         } else {
             callback()
         }
-
-        return false
     },
     ipAddress: function(data, value, callback, formatMessage) {
         if (/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/i.test(value) ||
@@ -100,26 +103,22 @@ Validator.prototype = {
         } else {
             callback(formatMessage({id: "LANG2195"}))
         }
-
-        return false
     },
     ipv6: function(data, value, callback, formatMessage) {
-        if (/^\[?([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\]$|^\[:((:[0-9a-fA-F]{1,4}){1,6}|:)\]$|^\[[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:)\]$|^\[([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:)\]$|^\[([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:)\]$|^\[([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:)\]$|^\[([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?\]$|^\[([0-9a-fA-F]{1,4}:){6}:\]?$/.test(value)) {
-            callback()
-        } else {
-            callback(formatMessage({id: "LANG2196"}))
-        }
+        const reg = /^\[?([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\]$|^\[:((:[0-9a-fA-F]{1,4}){1,6}|:)\]$|^\[[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:)\]$|^\[([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:)\]$|^\[([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:)\]$|^\[([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:)\]$|^\[([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?\]$|^\[([0-9a-fA-F]{1,4}:){6}:\]?$/
 
-        return false
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG2196"}))
+        } else {
+            callback()
+        }
     },
     letterDigitUndHyphen: function(data, value, callback, formatMessage) {
-        if (/^[a-zA-Z0-9_\-]+$/.test(value)) {
-            callback()
-        } else {
+        if (value && !/^[a-zA-Z0-9_\-]+$/.test(value)) {
             callback(formatMessage({id: "LANG2200"}))
+        } else {
+            callback()
         }
-
-        return false
     },
     errorHandler: function(data, callback, formatMessage) {
     }
