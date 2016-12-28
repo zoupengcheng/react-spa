@@ -3,30 +3,45 @@
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Badge, Button, message, Popconfirm, Popover, Table, Tag } from 'antd'
+import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
 
-class Queue extends Component {
+const confirm = Modal.confirm
+
+class ExtensionGroup extends Component {
     constructor(props) {
         super(props)
-
         this.state = {
-            extgroupObj: {},
-            extgroupList: [],
-            callQueueList: []
+            accountList: [],
+            accountAryObj: {},
+            extensionGroups: []
         }
     }
     componentDidMount () {
-        this._getExtensionGroupList()
-        this._getCallQueue()
+        this._getAccountList()
+        this._getExtensionGroups()
     }
     _add = () => {
-        browserHistory.push('/call-features/callQueue/add')
-    }
-    _controlPanel = () => {
-        browserHistory.push('/call-features/callQueue/callcenter')
+        let confirmContent = ''
+        const { formatMessage } = this.props.intl
+
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
+
+        if (!this.state.accountList.length) {
+            confirm({
+                title: '',
+                content: confirmContent,
+                onOk() {
+                    browserHistory.push('/extension-trunk/extension')
+                },
+                onCancel() {}
+            })
+        } else {
+            browserHistory.push('/extension-trunk/extensionGroup/add')
+        }
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -42,8 +57,8 @@ class Queue extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteQueue",
-                "queue": record.extension
+                "action": "deleteExtensionGroup",
+                "extension_group": record.group_id
             },
             type: 'json',
             async: true,
@@ -54,7 +69,7 @@ class Queue extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getCallQueue()
+                    this._getExtensionGroups()
                 }
             }.bind(this),
             error: function(e) {
@@ -63,32 +78,27 @@ class Queue extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/call-features/callQueue/edit/' + record.extension)
+        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
     }
-    _getExtensionGroupList = () => {
-        let extgroupObj = {}
-        let extgroupList = []
-
+    _getAccountList = () => {
         $.ajax({
             url: api.apiHost,
             method: 'post',
-            data: {
-                action: 'getExtensionGroupList'
-            },
+            data: { action: 'getAccountList' },
             type: 'json',
             async: false,
             success: function(res) {
+                let obj = {}
                 let response = res.response || {}
+                let extension = response.extension || []
 
-                extgroupList = response.extension_groups || []
-
-                extgroupList.map(function(item) {
-                    extgroupObj[item.group_id] = item
+                extension.map(function(item) {
+                    obj[item.extension] = item
                 })
 
                 this.setState({
-                    extgroupObj: extgroupObj,
-                    extgroupList: extgroupList
+                    accountAryObj: obj,
+                    accountList: extension
                 })
             }.bind(this),
             error: function(e) {
@@ -96,25 +106,25 @@ class Queue extends Component {
             }
         })
     }
-    _getCallQueue = () => {
+    _getExtensionGroups = () => {
         const { formatMessage } = this.props.intl
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'listQueue',
-                sidx: 'extension',
+                action: 'listExtensionGroup',
+                sidx: 'group_id',
                 sord: 'asc'
             },
             type: 'json',
             async: false,
             success: function(res) {
                 const response = res.response || {}
-                const callQueueList = response.queue || []
+                const extensionGroups = response.extension_group || []
 
                 this.setState({
-                    callQueueList: callQueueList
+                    extensionGroups: extensionGroups
                 })
             }.bind(this),
             error: function(e) {
@@ -122,80 +132,20 @@ class Queue extends Component {
             }
         })
     }
-    _settings = () => {
-        browserHistory.push('/call-features/callQueue/settings')
-    }
-    _statistics = () => {
-        browserHistory.push('/call-features/callQueue/statistics')
-    }
-    _strategy = (value) => {
-        let strategy
-        const { formatMessage } = this.props.intl
-
-        switch (value) {
-            case 'ringall':
-                strategy = formatMessage({id: "LANG1197"})
-                break
-            case 'linear':
-                strategy = formatMessage({id: "LANG1198"})
-                break
-            case 'leastrecent':
-                strategy = formatMessage({id: "LANG1199"})
-                break
-            case 'fewestcalls':
-                strategy = formatMessage({id: "LANG1200"})
-                break
-            case 'random':
-                strategy = formatMessage({id: "LANG1201"})
-                break
-            case 'rrmemory':
-                strategy = formatMessage({id: "LANG1202"})
-                break
-            default:
-                strategy = ''
-                break
-        }
-
-        return strategy
-    }
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const columns = [{
-                key: 'extension',
-                dataIndex: 'extension',
-                title: formatMessage({id: "LANG85"}),
-                sorter: (a, b) => a.group_name - b.group_name
-            }, {
-                key: 'queue_name',
-                dataIndex: 'queue_name',
+                key: 'group_name',
+                dataIndex: 'group_name',
                 title: formatMessage({id: "LANG135"}),
-                sorter: (a, b) => a.queue_name.length - b.queue_name.length
-            }, {
-                key: 'strategy',
-                dataIndex: 'strategy',
-                title: formatMessage({id: "LANG1137"}),
-                sorter: (a, b) => a.strategy.length - b.strategy.length,
-                render: (text, record, index) => {
-                    return this._strategy(text)
-                }
+                sorter: (a, b) => a.group_name.length - b.group_name.length
             }, {
                 key: 'members',
                 dataIndex: 'members',
                 title: formatMessage({id: "LANG128"}),
                 render: (text, record, index) => {
-                    let members = text ? text.split(',') : []
-                    const extgroupLabel = formatMessage({id: "LANG2714"})
-
-                    members = members.map(function(value, index) {
-                            const item = this.state.extgroupObj[value]
-
-                            if (item) {
-                                return extgroupLabel + "--" + item.group_name
-                            } else {
-                                return value
-                            }
-                        }.bind(this))
+                    const members = text ? text.split(',') : []
 
                     if (members.length <= 5) {
                         return <div>
@@ -219,7 +169,9 @@ class Queue extends Component {
                         return <div>
                                 {
                                     [0, 1, 2, 3].map(function(value, index) {
-                                        return <Tag key={ members[value] }>{ members[value] }</Tag>
+                                        const item = this.state.accountAryObj[members[value]]
+
+                                        return <Tag key={ item.extension }>{ item.extension }</Tag>
                                     }.bind(this))
                                 }
                                 <Popover
@@ -257,7 +209,7 @@ class Queue extends Component {
                 }
             }]
         const pagination = {
-                total: this.state.callQueueList.length,
+                total: this.state.extensionGroups.length,
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
@@ -274,6 +226,10 @@ class Queue extends Component {
 
         return (
             <div className="app-content-main app-content-cdr">
+                <Title
+                    headerTitle={ formatMessage({id: "LANG2800"}) }
+                    isDisplay='hidden'
+                />
                 <div className="content">
                     <div className="top-button">
                         <Button
@@ -284,37 +240,13 @@ class Queue extends Component {
                         >
                             { formatMessage({id: "LANG769"}) }
                         </Button>
-                        <Button
-                            icon="bar-chart"
-                            type="primary"
-                            size='default'
-                            onClick={ this._statistics }
-                        >
-                            { formatMessage({id: "LANG8"}) }
-                        </Button>
-                        <Button
-                            icon="phone"
-                            type="primary"
-                            size='default'
-                            onClick={ this._controlPanel }
-                        >
-                            { formatMessage({id: "LANG5407"}) }
-                        </Button>
-                        <Button
-                            icon="setting"
-                            type="primary"
-                            size='default'
-                            onClick={ this._settings }
-                        >
-                            { formatMessage({id: "LANG748"}) }
-                        </Button>
                     </div>
                     <Table
-                        rowKey="extension"
+                        rowKey="group_id"
                         columns={ columns }
                         pagination={ pagination }
-                        dataSource={ this.state.callQueueList }
-                        showHeader={ !!this.state.callQueueList.length }
+                        dataSource={ this.state.extensionGroups }
+                        showHeader={ !!this.state.extensionGroups.length }
                     />
                 </div>
             </div>
@@ -322,4 +254,4 @@ class Queue extends Component {
     }
 }
 
-export default injectIntl(Queue)
+export default injectIntl(ExtensionGroup)

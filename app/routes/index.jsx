@@ -40,6 +40,10 @@ import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEma
 import RingGroup from '../components/modules/ringGroup/index'
 import PagingIntercom from '../components/modules/pagingIntercom/index'
 import CallQueue from '../components/modules/callQueue/index'
+import CallQueueItem from '../components/modules/callQueue/queueItem'
+import CallQueueStats from '../components/modules/callQueue/statistics'
+import CallQueueCallCenter from '../components/modules/callQueue/callcenter'
+import AgentLoginSettings from '../components/modules/callQueue/settings'
 import PickupGroup from '../components/modules/pickupGroup/index'
 import DialByName from '../components/modules/dialByName/index'
 import SpeedDial from '../components/modules/speedDial/index'
@@ -203,7 +207,14 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="ringGroup" onEnter={ requireAuth } component={ RingGroup } breadcrumbName={ currentLocaleData["LANG22"] } />
                     <Route path="pagingIntercom" onEnter={ requireAuth } component={ PagingIntercom } breadcrumbName={ currentLocaleData["LANG23"] } />
-                    <Route path="callQueue" onEnter={ requireAuth } component={ CallQueue } breadcrumbName={ currentLocaleData["LANG24"] } />
+                    <Route path="callQueue" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG24"] }>
+                        <IndexRoute component={ CallQueue } />
+                        <Route path="add" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="statistics" onEnter={ requireAuth } component={ CallQueueStats } breadcrumbName={ currentLocaleData["LANG8"] } />
+                        <Route path="callcenter" onEnter={ requireAuth } component={ CallQueueCallCenter } breadcrumbName={ currentLocaleData["LANG5407"] } />
+                        <Route path="settings" onEnter={ requireAuth } component={ AgentLoginSettings } breadcrumbName={ currentLocaleData["LANG748"] } />
+                    </Route>
                     <Route path="pickupGroup" onEnter={ requireAuth } component={ PickupGroup } breadcrumbName={ currentLocaleData["LANG2510"] } />
                     <Route path="dialByName" onEnter={ requireAuth } component={ DialByName } breadcrumbName={ currentLocaleData["LANG2884"] } />
                     <Route path="speedDial" onEnter={ requireAuth } component={ SpeedDial } breadcrumbName={ currentLocaleData["LANG3501"] } />
