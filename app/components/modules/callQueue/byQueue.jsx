@@ -4,7 +4,7 @@ import React, { Component, PropTypes } from 'react'
 import { injectIntl } from 'react-intl'
 import { Table } from 'antd'
 
-class DistributionByQueue extends Component {
+class ByQueue extends Component {
     constructor(props) {
         super(props)
         this.state = {}
@@ -40,4 +40,4 @@ class DistributionByQueue extends Component {
     }
 }
 
-module.exports = injectIntl(DistributionByQueue)
+module.exports = injectIntl(ByQueue)

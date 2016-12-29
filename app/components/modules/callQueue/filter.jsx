@@ -9,7 +9,7 @@ const FormItem = Form.Item
 const dateFormat = 'YYYY-MM-DD'
 const { RangePicker } = DatePicker
 
-class GenerateReport extends Component {
+class Filter extends Component {
     constructor(props) {
         super(props)
         this.state = {}
@@ -144,4 +144,4 @@ class GenerateReport extends Component {
     }
 }
 
-export default Form.create()(injectIntl(GenerateReport))
+export default Form.create()(injectIntl(Filter))

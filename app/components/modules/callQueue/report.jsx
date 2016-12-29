@@ -3,16 +3,16 @@
 import React, { Component, PropTypes } from 'react'
 import { Card, Col, Row, Table } from 'antd'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import ReportInfo from './ReportInfo'
-import TotalInfo from './TotalInfo'
-import DistributionByQueue from './DistributionByQueue'
-import DistributionByAgent from './DistributionByAgent'
-import DistributionPeerHour from './DistributionPeerHour'
-import DistributionPeerDay from './DistributionPeerDay'
-import DistributionPeerWeek from './DistributionPeerWeek'
+import ReportInfo from './reportInfo'
+import TotalInfo from './totalInfo'
+import ByQueue from './byQueue'
+import ByAgent from './byAgent'
+import ByHour from './byHour'
+import ByDay from './byDay'
+import ByWeek from './byWeek'
 import '../../../css/call-queue'
 
-class ReportGenerated extends Component {
+class Report extends Component {
     render() {
         const { formatMessage } = this.props.intl
         const generalColumns = [{
@@ -78,7 +78,7 @@ class ReportGenerated extends Component {
                 <Row style={{ margin: '10px 0' }}>
                     <Col>
                         <Card title={ formatMessage({id: "LANG5354"}, {0: formatMessage({id: "LANG5355"})}) }>
-                            <DistributionByQueue
+                            <ByQueue
                                 generalColumns={ generalColumns }
                                 QueueStatDistributionByQueue={ this.props.QueueStatDistributionByQueue }
                             />
@@ -88,7 +88,7 @@ class ReportGenerated extends Component {
                 <Row style={{ margin: '10px 0' }}>
                     <Col>
                         <Card title={ formatMessage({id: "LANG5354"}, {0: formatMessage({id: "LANG5356"})}) }>
-                            <DistributionByAgent
+                            <ByAgent
                                 QueueStatDistributionByAgent={ this.props.QueueStatDistributionByAgent }
                             />
                         </Card>
@@ -97,7 +97,7 @@ class ReportGenerated extends Component {
                 <Row style={{ margin: '10px 0' }}>
                     <Col>
                         <Card title={ formatMessage({id: "LANG5354"}, {0: formatMessage({id: "LANG201"})}) }>
-                            <DistributionPeerHour
+                            <ByHour
                                 generalColumns={ generalColumns }
                                 QueueStatDistributionByHour={ this.props.QueueStatDistributionByHour }
                             />
@@ -107,7 +107,7 @@ class ReportGenerated extends Component {
                 <Row style={{ margin: '10px 0' }}>
                     <Col>
                         <Card title={ formatMessage({id: "LANG5354"}, {0: formatMessage({id: "LANG200"})}) }>
-                            <DistributionPeerDay
+                            <ByDay
                                 generalColumns={ generalColumns }
                                 QueueStatDistributionByDay={ this.props.QueueStatDistributionByDay }
                             />
@@ -117,7 +117,7 @@ class ReportGenerated extends Component {
                 <Row style={{ margin: '10px 0' }}>
                     <Col>
                         <Card title={ formatMessage({id: "LANG5354"}, {0: formatMessage({id: "LANG5358"})}) }>
-                            <DistributionPeerWeek
+                            <ByWeek
                                 generalColumns={ generalColumns }
                                 QueueStatDistributionByWeek={ this.props.QueueStatDistributionByWeek }
                             />
@@ -129,4 +129,4 @@ class ReportGenerated extends Component {
     }
 }
 
-module.exports = injectIntl(ReportGenerated)
+module.exports = injectIntl(Report)

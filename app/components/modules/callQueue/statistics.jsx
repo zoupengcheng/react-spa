@@ -8,12 +8,12 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import GenerateReport from './GenerateReport'
-import ReportGenerated from './ReportGenerated'
+import Filter from './filter'
+import Report from './report'
 
 const TabPane = Tabs.TabPane
 
-class Stats extends Component {
+class Statistics extends Component {
     constructor(props) {
         super(props)
 
@@ -29,8 +29,6 @@ class Stats extends Component {
             startDate: current,
             selectQueues: [],
             selectAgents: [],
-            activeTabKey: '1',
-            disableReport: true,
             QueueReport: [],
             QueueStatTotal: [],
             QueueStatDistributionByQueue: [],
@@ -74,7 +72,7 @@ class Stats extends Component {
             }
         })
     }
-    _getStatsDetails = () => {
+    _getStatisticDetails = () => {
         this._getQueueReport()
         this._getQueueStatTotal()
         this._listQueueStatDistributionByQueue()
@@ -352,17 +350,11 @@ class Stats extends Component {
             }
         })
     }
-    _onAgentChange = (selectAgents, direction, moveKeys) => {
-        this.setState({
-            selectAgents: selectAgents
-        })
+
+    _handleCancel = () => {
+        browserHistory.push('/call-features/callQueue')
     }
-    _onQueueChange = (selectQueues, direction, moveKeys) => {
-        this.setState({
-            selectQueues: selectQueues
-        })
-    }
-    _onSubmit = () => {
+    _handleSubmit = () => {
         const { formatMessage } = this.props.intl
 
         message.loading(formatMessage({ id: "LANG5360" }), 0)
@@ -391,14 +383,19 @@ class Stats extends Component {
                     message.destroy()
                     message.success(formatMessage({ id: "LANG5361" }))
 
-                    this.setState({
-                        activeTabKey: '2',
-                        disableReport: false
-                    })
-
-                    this._getStatsDetails()
+                    this._getStatisticDetails()
                 }
             }.bind(this)
+        })
+    }
+    _onAgentChange = (selectAgents, direction, moveKeys) => {
+        this.setState({
+            selectAgents: selectAgents
+        })
+    }
+    _onQueueChange = (selectQueues, direction, moveKeys) => {
+        this.setState({
+            selectQueues: selectQueues
         })
     }
     _onTabsChange = (activeTabKey) => {
@@ -427,37 +424,38 @@ class Stats extends Component {
 
         return (
             <div className="app-content-main">
-                <Title headerTitle={ formatMessage({id: "LANG5359"}) } isDisplay='hidden' />
-                <Tabs activeKey={ this.state.activeTabKey } onChange={ this._onTabsChange }>
-                    <TabPane tab={ formatMessage({id: "LANG5373"}) } key="1">
-                        <GenerateReport
-                            queues={ this.state.queues }
-                            agents={ this.state.agents }
-                            endDate={ this.state.endDate }
-                            startDate={ this.state.startDate }
-                            selectQueues={ this.state.selectQueues }
-                            selectAgents={ this.state.selectAgents }
-                            onSubmit={ this._onSubmit }
-                            onTimeChange={ this._onTimeChange }
-                            onQueueChange={ this._onQueueChange }
-                            onAgentChange={ this._onAgentChange }
-                        />
-                    </TabPane>
-                    <TabPane tab={ formatMessage({id: "LANG5374"}) } disabled={ this.state.disableReport } key="2">
-                        <ReportGenerated
-                            QueueReport= { this.state.QueueReport }
-                            QueueStatTotal= { this.state.QueueStatTotal }
-                            QueueStatDistributionByQueue= { this.state.QueueStatDistributionByQueue }
-                            QueueStatDistributionByAgent= { this.state.QueueStatDistributionByAgent }
-                            QueueStatDistributionByHour= { this.state.QueueStatDistributionByHour }
-                            QueueStatDistributionByDay= { this.state.QueueStatDistributionByDay }
-                            QueueStatDistributionByWeek= { this.state.QueueStatDistributionByWeek }
-                        />
-                    </TabPane>
-                </Tabs>
+                <Title
+                    isDisplay='display-block'
+                    onCancel={ this._handleCancel }
+                    onSubmit={ this._handleSubmit }
+                    headerTitle={ formatMessage({id: "LANG5359"}) }
+                />
+                <div className="content">
+                    <Filter
+                        queues={ this.state.queues }
+                        agents={ this.state.agents }
+                        endDate={ this.state.endDate }
+                        startDate={ this.state.startDate }
+                        selectQueues={ this.state.selectQueues }
+                        selectAgents={ this.state.selectAgents }
+                        onSubmit={ this._handleSubmit }
+                        onTimeChange={ this._onTimeChange }
+                        onQueueChange={ this._onQueueChange }
+                        onAgentChange={ this._onAgentChange }
+                    />
+                    <Report
+                        QueueReport= { this.state.QueueReport }
+                        QueueStatTotal= { this.state.QueueStatTotal }
+                        QueueStatDistributionByQueue= { this.state.QueueStatDistributionByQueue }
+                        QueueStatDistributionByAgent= { this.state.QueueStatDistributionByAgent }
+                        QueueStatDistributionByHour= { this.state.QueueStatDistributionByHour }
+                        QueueStatDistributionByDay= { this.state.QueueStatDistributionByDay }
+                        QueueStatDistributionByWeek= { this.state.QueueStatDistributionByWeek }
+                    />
+                </div>
             </div>
         )
     }
 }
 
-export default Form.create()(injectIntl(Stats))
+export default Form.create()(injectIntl(Statistics))

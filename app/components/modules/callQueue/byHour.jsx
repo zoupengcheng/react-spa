@@ -4,7 +4,7 @@ import React, { Component, PropTypes } from 'react'
 import { injectIntl } from 'react-intl'
 import { Table } from 'antd'
 
-class DistributionPeerDay extends Component {
+class ByHour extends Component {
     constructor(props) {
         super(props)
         this.state = {}
@@ -12,13 +12,14 @@ class DistributionPeerDay extends Component {
     render() {
         const { formatMessage } = this.props.intl
         const generalColumns = this.props.generalColumns
-        const dayColumn = [{
-                title: formatMessage({id: "LANG242"}),
-                dataIndex: 'date',
-                key: 'date'
+        const hourColumn = [{
+                title: formatMessage({id: "LANG4545"}),
+                dataIndex: 'hour',
+                key: 'hour',
+                sorter: (a, b) => a.hour - b.hour
             }]
         const pagination = {
-                total: this.props.QueueStatDistributionByDay.length,
+                total: this.props.QueueStatDistributionByHour.length,
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
@@ -30,13 +31,13 @@ class DistributionPeerDay extends Component {
 
         return (
             <Table
-                rowKey="day"
+                rowKey="hour"
                 pagination={ pagination }
-                columns={ dayColumn.concat(generalColumns) }
-                dataSource={ this.props.QueueStatDistributionByDay }
+                columns={ hourColumn.concat(generalColumns) }
+                dataSource={ this.props.QueueStatDistributionByHour }
             />
         )
     }
 }
 
-module.exports = injectIntl(DistributionPeerDay)
+module.exports = injectIntl(ByHour)

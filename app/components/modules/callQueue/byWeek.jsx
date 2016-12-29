@@ -8,7 +8,7 @@ import 'echarts/lib/chart/bar'
 import 'echarts/lib/component/tooltip'
 import 'echarts/lib/component/title'
 
-class DistributionPeerWeek extends Component {
+class ByWeek extends Component {
     constructor(props) {
         super(props)
         this.state = {}
@@ -101,4 +101,4 @@ class DistributionPeerWeek extends Component {
     }
 }
 
-module.exports = injectIntl(DistributionPeerWeek)
+module.exports = injectIntl(ByWeek)

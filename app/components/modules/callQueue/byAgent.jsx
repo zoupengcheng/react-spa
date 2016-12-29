@@ -4,7 +4,7 @@ import React, { Component, PropTypes } from 'react'
 import { injectIntl } from 'react-intl'
 import { Table } from 'antd'
 
-class DistributionByAgent extends Component {
+class ByAgent extends Component {
     constructor(props) {
         super(props)
         this.state = {}
@@ -79,4 +79,4 @@ class DistributionByAgent extends Component {
     }
 }
 
-module.exports = injectIntl(DistributionByAgent)
+module.exports = injectIntl(ByAgent)
