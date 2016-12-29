@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import {Row, Col } from 'antd'
-
+import { FormattedMessage, injectIntl } from 'react-intl'
 import EquipmentCapacity from './equipmentCapacity'
 import ResourceUsage from './resourceUsage'
 import DiskCapacity from './diskCapacity'
@@ -23,6 +23,14 @@ class Dashboard extends Component {
     componentWillUnmount() {
     }
     render() {
+        const { formatMessage } = this.props.intl
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 
+            1: formatMessage({id: "LANG5261"})
+        })
         return (
             <div className="dashboard">
                 <div className="app-content-main" id="app-content-main">
@@ -52,4 +60,4 @@ class Dashboard extends Component {
     }
 }
 
-export default Dashboard
+export default injectIntl(Dashboard)

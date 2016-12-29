@@ -13,6 +13,7 @@ import cookie from 'react-cookie'
 
 const FormItem = Form.Item
 const Option = Select.Option
+import SubscribeEvent from '../../api/subscribeEvent'
 
 // const UCMGUI = new Ucmgui()
 
@@ -114,19 +115,10 @@ const Login = React.createClass({
                         }
 
                         // UCMGUI.loginFunction.checkTrigger()
-                        setTimeout(function() {
-                            browserHistory.push('/system-status/dashboard')
-                        }, 2000)
-
-                        // window.socket.send({
-                        //     "type": "request",
-                        //     "message": {
-                        //         "transactionid": "123456789zxa",
-                        //         "action": "login",
-                        //         "username": cookie.load("username"),
-                        //         "cookie": cookie.load("session-identify")
-                        //     }
-                        // })
+                        if (window.socket) {
+                            window.socket.send(SubscribeEvent.login)
+                        }
+                        browserHistory.push('/system-status/dashboard')
                         // $(".errorInfo").css("visibility", "hidden")
 
                         // $P.lang(doc, true, true)

@@ -289,8 +289,14 @@ class SipSettings extends Component {
         })
     }
     render() {
-        const {formatMessage} = this.props.intl
-        
+        const { formatMessage } = this.props.intl
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 
+            1: formatMessage({id: "LANG39"})
+        })
         return (
             <div className="app-content-main" id="app-content-main">
                 <Title 

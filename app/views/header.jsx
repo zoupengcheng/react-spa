@@ -3,6 +3,7 @@
 import React from 'react'
 import { browserHistory } from 'react-router'
 import { Icon, Menu, Dropdown, Select } from 'antd'
+import SubscribeEvent from '../components/api/subscribeEvent'
 
 const Option = Select.Option
 
@@ -30,6 +31,9 @@ let Header = React.createClass({
     // 跳转登录页
     handleLogin: function(e) {
         e && e.preventDefault()
+        if (window.socket) {
+            window.socket.send(SubscribeEvent.logout)
+        }
         browserHistory.push('/login')
     },
     handleLogout: function(e) {
@@ -39,7 +43,9 @@ let Header = React.createClass({
         localStorage.removeItem('username')
         localStorage.removeItem('password')
         // localStorage.clear()
-
+        if (window.socket) {
+            window.socket.send(SubscribeEvent.logout)
+        }
         browserHistory.push('/login')
     },
     triggerParentCollapseChange() {

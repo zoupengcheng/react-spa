@@ -14,7 +14,6 @@ import zh from 'react-intl/locale-data/zh'
 import es from 'react-intl/locale-data/es'
 import fr from 'react-intl/locale-data/fr'
 import it from 'react-intl/locale-data/it'
-import startSocket from './socket'
 import localeData from './locales/data.json'
 addLocaleData([...en, ...zh, ...es, ...fr, ...it])
 import Socketjs from './socket.js' 
@@ -22,7 +21,8 @@ import 'antd/dist/antd.less'
 import './css/index'
 import cookie from 'react-cookie'
 const store = createStore()
-// startSocket(store)
+import {handleResponse, handleRequest} from './components/api/handleMessage'
+import actions from './actions/'
 
 const chooseLocale = () => {
     // Try full locale, try locale without region code, fallback to 'en'
@@ -160,41 +160,46 @@ if (!language || !localeData[language]) {
 }
 
 let currentLocaleData = chooseLocale()
+
+const startSocket = () => {
     // make sure socket.js is supported
-// if (Socketjs.isSupported()) {
-    // connect to the server
-    // const socket = Socketjs.connect(`${location.protocol}//${location.hostname}:7681`)
-    // const socket = Socketjs.connect("192.168.124.185:7681")
-    // window.socket = socket
-    // let LEAVEPAGE = "login"
-    // window.LEAVEPAGE = LEAVEPAGE
-    // // log messages as they arrive
-    // socket.receive('response', function(msg) {
-    //     console.log(JSON.stringify(msg))
-    //     // store.dispatch(actions.addResponse(msg))
-    // })
-    // socket.receive('request', function(msg) {
-    //     console.log(JSON.stringify(msg))
-    //     // store.dispatch(actions.addResponse(msg))
-    // })
-    // // log a message if we get disconnected
-    // socket.disconnect(function() {
-    //   console.log('Temporarily disconnected.')
-    // })
-    // // log a message when we reconnect
-    // socket.reconnect(function() {
-    //   console.log('Reconnected.')
-    //   // whatever we return here is sent back to the server
-    //   return 'reconnected'
-    // })
-    // // if the server disconnects, stop sending messages to it
-    // socket.close(function() {
-    //   console.log('Connection closed.')
-    // })
-    // } else {
-    // // let the user know that socket.js is not supported
-    // alert('Your browser does not support WebSockets.')
-    // }
+    if (Socketjs.isSupported()) {
+        // connect to the server
+        // const socket = io(`${location.protocol}//${location.hostname}:7681`)
+        const socket = Socketjs.connect("192.168.124.185:7681")
+        window.socket = socket
+        let LEAVEPAGE = "login"
+        window.LEAVEPAGE = LEAVEPAGE
+        // log messages as they arrive
+        socket.receive('response', function(msg) {
+            handleResponse(msg, store)
+            // store.dispatch(actions.addResponse(msg))
+        })
+        socket.receive('request', function(msg) {
+            handleRequest(msg, store)
+            console.log(JSON.stringify(msg))
+        })
+        // log a message if we get disconnected
+        socket.disconnect(function() {
+          console.log('Temporarily disconnected.')
+        })
+        // log a message when we reconnect
+        socket.reconnect(function() {
+          console.log('Reconnected.')
+          // whatever we return here is sent back to the server
+          return 'reconnected'
+        })
+        // if the server disconnects, stop sending messages to it
+        socket.close(function() {
+          console.log('Connection closed.')
+        })
+    } else {
+        // let the user know that socket.js is not supported
+        alert('Your browser does not support WebSockets.')
+    }    
+}
+// startSocket()
+
 ReactDOM.render(
     <Provider store={store}>
         <IntlProvider locale={ language } messages={ currentLocaleData }>

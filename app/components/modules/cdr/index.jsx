@@ -45,7 +45,7 @@ class CDR extends Component {
                     cdrData.push({
                         key: i,
                         status: acctid[i].disposition,
-                        callFrom: acctid[i].clid,
+                        callFrom: acctid[i].src,
                         callTo: acctid[i].dst,
                         actionType: acctid[i].action_type,
                         startTime: acctid[i].start,

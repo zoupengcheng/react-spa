@@ -25,9 +25,6 @@ class Queue extends Component {
     _add = () => {
         browserHistory.push('/call-features/callQueue/add')
     }
-    _controlPanel = () => {
-        browserHistory.push('/call-features/callQueue/callcenter')
-    }
     _delete = (record) => {
         let loadingMessage = ''
         let successMessage = ''
@@ -157,6 +154,9 @@ class Queue extends Component {
         }
 
         return strategy
+    }
+    _switchboard = () => {
+        browserHistory.push('/call-features/callQueue/switchboard')
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -296,7 +296,7 @@ class Queue extends Component {
                             icon="phone"
                             type="primary"
                             size='default'
-                            onClick={ this._controlPanel }
+                            onClick={ this._switchboard }
                         >
                             { formatMessage({id: "LANG5407"}) }
                         </Button>

@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import {GET_STORAGEUSAGE, GET_PBXSTATUS, LISTAllTRUNK, GET_INTERFACESTATUS} from '../actions/'
+import {GET_STORAGEUSAGE, GET_RESOURCEUSAGE, DIFF_RESOURCEUSAGE, GET_PBXSTATUS, LISTAllTRUNK, GET_INTERFACESTATUS} from '../actions/'
 import msg from './message'
 import systemInfo from '../components/modules/systemInfo/reducers/getNetworkInformation'
 import systemGeneralStatus from '../components/modules/systemInfo/reducers/getSystemGeneralStatus'
@@ -12,6 +12,17 @@ const storageUsage = (state = {}, action) => {
     switch (action.type) {
         case GET_STORAGEUSAGE:
             return action.storageUsage
+        default:
+            return state
+    }
+}
+
+const resourceUsage = (state = {}, action) => {
+    switch (action.type) {
+        case GET_RESOURCEUSAGE:
+            return action.resourceUsage
+        case DIFF_RESOURCEUSAGE:
+            return action.resourceUsage
         default:
             return state
     }
@@ -53,6 +64,7 @@ const rootReducer = combineReducers({
     // ctiServer,
     // serviceCheck,
     storageUsage,
+    resourceUsage,
     pbxStatus,
     trunksData,
     account,

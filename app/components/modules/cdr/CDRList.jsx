@@ -7,12 +7,14 @@ import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
+import _ from 'underscore'
 
 class CDRList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            visible: false
+            visible: false,
+            recordFiles: []
         }
     }
     _sendDownloadRequest = () => {
@@ -65,9 +67,10 @@ class CDRList extends Component {
             }.bind(this)
         })
     }
-    _showRecordFile = () => {
+    _showRecordFile = (list) => {
         this.setState({
-            visible: true
+            visible: true,
+            recordFiles: list
         })
     }
     _handleCancel = () => {
@@ -95,6 +98,37 @@ class CDRList extends Component {
 
         return status
     }
+    _createTalkTime = (text, record, index) => {
+        let s = parseInt(text, 10),
+            h = Math.floor(s / 3600)
+
+        s = s % 3600
+
+        let m = Math.floor(s / 60)
+
+        s = s % 60
+
+        return h + ":" + (m < 10 ? ("0" + m) : m) + ":" + (s < 10 ? ("0" + s) : s)
+    }
+    _createRecordFile = (text, record, index) => {
+        const {formatMessage} = this.props.intl
+
+        let record_list = text,
+            options = ''
+
+        if (record_list.length > 0) {
+            let list = record_list.split('@')
+            list.pop()
+            options = <div>
+                        <span className="sprite sptite-record-icon" onClick={ this._showRecordFile.bind(this, list) }></span>
+                        <span className="record-num">{ list.length }</span>
+                      </div>
+        } else {
+            options = formatMessage({id: "LANG2317"}, {0: formatMessage({id: "LANG2640"})})
+        }
+
+        return options
+    }
     render() {
         const {formatMessage} = this.props.intl
 
@@ -120,16 +154,19 @@ class CDRList extends Component {
                 sorter: (a, b) => a > b
             }, {
                 title: formatMessage({id: "LANG2238"}),
-                dataIndex: 'talkTime'
+                dataIndex: 'talkTime',
+                render: (text, record, index) => (
+                    this._createTalkTime(text, record, index)
+                )
             }, {
                 title: formatMessage({id: "LANG4569"}),
                 dataIndex: 'password'
             }, {
                 title: formatMessage({id: "LANG4096"}),
                 dataIndex: 'recordingFile',
-                render: (text, row, index) => {
-                    return <span onClick={ this._showRecordFile }>{ text }</span>
-                }
+                render: (text, record, index) => (
+                    this._createRecordFile(text, record, index)
+                )
             }
         ]
 
@@ -169,9 +206,15 @@ class CDRList extends Component {
                 />
                 <Modal title={ formatMessage({id: "LANG2640"}) } visible={ this.state.visible } onCancel={ this._handleCancel } footer={ false }>
                     <div>
-                        <Icon type="play-circle-o" />
-                        <Icon type="download" />
-                        <Icon type="delete" />
+                        { this.state.recordFiles.map(function(value, index) {
+                            return <div>
+                                    <span></span>
+                                    <span>{ value }</span>
+                                    <span className="sprite sprite-play"></span>
+                                    <span className="sprite sprite-download"></span>
+                                    <span className="sprite sprite-del"></span>
+                               </div>
+                        }) }
                     </div>
                 </Modal>
             </div>

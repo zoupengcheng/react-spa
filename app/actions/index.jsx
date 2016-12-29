@@ -1,4 +1,6 @@
 export const GET_STORAGEUSAGE = 'GET_STORAGEUSAGE'
+export const GET_RESOURCEUSAGE = 'GET_RESOURCEUSAGE'
+export const DIFF_RESOURCEUSAGE = 'DIFF_RESOURCEUSAGE'
 export const GET_PBXSTATUS = 'GET_PBXSTATUS'
 export const LISTAllTRUNK = 'LISTAllTRUNK'
 export const GET_INTERFACESTATUS = 'GET_INTERFACESTATUS'
@@ -123,6 +125,29 @@ export const getStorageUsage = () => (dispatch) => {
                     usbPartition: usbObj
                 }
                 dispatch({type: 'GET_STORAGEUSAGE', storageUsage: storageUsage}) 
+            }
+        }.bind(this),
+        error: function(e) {
+            console.log(e.toString())
+        }
+    })  
+}
+
+export const getResourceUsage = () => (dispatch) => {
+    $.ajax({
+        url: api.apiHost,
+        method: 'post',
+        data: { 
+            action: 'getResourceUsage' 
+        },
+        type: 'json',
+        async: true,
+        success: function(res) {
+            let data = res.response
+
+            if (data) {
+                let resourceUsage = data.body
+                dispatch({type: 'GET_RESOURCEUSAGE', resourceUsage: resourceUsage}) 
             }
         }.bind(this),
         error: function(e) {

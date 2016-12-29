@@ -74,9 +74,38 @@ Validator.prototype = {
         minValue: "LANG2164",
         calleridSip: "LANG5031"
     },
+    required: function(data, value, callback, formatMessage, associate, otherInputValue) {
+        if (associate) {
+            if ((otherInputValue && !value)) {
+                callback(formatMessage({id: "LANG2150"}))
+            } else {
+                callback()
+            }
+        } else {
+            if (!value) {
+                callback(formatMessage({id: "LANG2150"}))
+            } else {
+                callback()
+            }
+        }
+    },
+    maxlength: function(data, value, callback, formatMessage, maxlength) {
+        if (value && maxlength && value.length > maxlength) {
+            callback(formatMessage({id: "LANG2160"}, {0: maxlength}))
+        } else {
+            callback()
+        }
+    },
     minlength: function(data, value, callback, formatMessage, minlength) {
         if (value && minlength && value.length < minlength) {
             callback(formatMessage({id: "LANG2161"}, {0: minlength}))
+        } else {
+            callback()
+        }
+    },
+    notEqualTo: function(data, value, callback, formatMessage, otherInputValue, otherInputLabel) {
+        if (value && otherInputValue && (value === otherInputValue)) {
+            callback(formatMessage({id: "LANG2172"}, {0: otherInputLabel}))
         } else {
             callback()
         }
@@ -116,6 +145,13 @@ Validator.prototype = {
     letterDigitUndHyphen: function(data, value, callback, formatMessage) {
         if (value && !/^[a-zA-Z0-9_\-]+$/.test(value)) {
             callback(formatMessage({id: "LANG2200"}))
+        } else {
+            callback()
+        }
+    },
+    numeric_pound_star: function(data, value, callback, formatMessage) {
+        if (value && !/^[0-9#\*]+$/i.test(value)) {
+            callback(formatMessage({id: "LANG2171"}))
         } else {
             callback()
         }

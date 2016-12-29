@@ -17,10 +17,13 @@ class AgentLoginSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            targetKeys: [],
-            accountList: [],
-            groupNameList: [],
-            agentLoginSettings: {}
+            queueList: [],
+            pureNumberList: [],
+            agentLoginSettings: {},
+            otherInput: {
+                queuelogin: 'queuelogout',
+                queuelogout: 'queuelogin'
+            }
         }
     }
     componentWillMount() {
@@ -28,39 +31,56 @@ class AgentLoginSettings extends Component {
     componentDidMount() {
         this._getInitData()
     }
-    _checkName = (rule, value, callback) => {
+    _checkNumber = (rule, value, callback) => {
+        let result = true
         const { formatMessage } = this.props.intl
 
-        if (value && _.indexOf(this.state.groupNameList, value) > -1) {
-            callback(formatMessage({id: "LANG2137"}))
+        if (value && (value !== this.state.agentLoginSettings[rule.field])) {
+            $.each(this.state.queueList, function(index, data) {
+                if (($.inArray((data + value), this.state.pureNumberList) > -1)) {
+                    result = false
+                    return true
+                }
+            }.bind(this))
+        }
+
+        if (!result) {
+            callback(formatMessage({id: "LANG2126"}))
         } else {
             callback()
         }
     }
-    _filterTransferOption = (inputValue, option) => {
-        return (option.title.indexOf(inputValue) > -1)
+    _checkRequired = (rule, value, callback) => {
+        let otherInputValue = ''
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
+
+        otherInputValue = form.getFieldValue(this.state.otherInput[rule.field])
+
+        if (otherInputValue && !value) {
+            callback(formatMessage({id: "LANG2150"}))
+        } else {
+            callback()
+        }
     }
     _getInitData = () => {
-        let targetKeys = []
-        let accountList = []
-        let groupNameList = []
-        let extensionGroup = {}
+        let queueList = []
+        let pureNumberList = []
+        let agentLoginSettings = {}
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
-        const extensionGroupName = this.props.params.name
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'getExtensionGroupNameList'
+                action: 'getQueueSettings'
             },
             type: 'json',
             async: false,
             success: function(res) {
                 const response = res.response || {}
 
-                groupNameList = response.group_name || []
+                agentLoginSettings = response.queue_settings || {}
             }.bind(this),
             error: function(e) {
                 message.error(e.toString())
@@ -71,23 +91,16 @@ class AgentLoginSettings extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'getAccountList'
+                action: 'getNumberList'
             },
             type: 'json',
             async: false,
             success: function(res) {
                 const response = res.response || {}
-                const extension = response.extension || []
+                const numberList = response.number || []
 
-                accountList = extension.map(function(item) {
-                    return {
-                            key: item.extension,
-                            out_of_service: item.out_of_service,
-                            // disabled: (item.out_of_service === 'yes'),
-                            title: (item.extension +
-                                (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                (item.out_of_service === 'yes' ? ' <' + formatMessage({id: "LANG273"}) + '>' : ''))
-                        }
+                pureNumberList = $.grep(numberList, function(n, i) {
+                    return !isNaN(Number(n))
                 })
             }.bind(this),
             error: function(e) {
@@ -95,37 +108,31 @@ class AgentLoginSettings extends Component {
             }
         })
 
-        if (extensionGroupId) {
-            $.ajax({
-                url: api.apiHost,
-                method: 'post',
-                data: {
-                    action: 'getExtensionGroup',
-                    extension_group: extensionGroupId
-                },
-                type: 'json',
-                async: false,
-                success: function(res) {
-                    const response = res.response || {}
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getQueueList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const response = res.response || {}
+                const queues = response.queues || []
 
-                    extensionGroup = res.response.extension_group || {}
-                    targetKeys = extensionGroup.members.split(',') || []
-                }.bind(this),
-                error: function(e) {
-                    message.error(e.toString())
-                }
-            })
-        }
-
-        if (extensionGroupName) {
-            groupNameList = _.without(groupNameList, extensionGroupName)
-        }
+                queues.map(function(item) {
+                    queueList.push(item.extension)
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
 
         this.setState({
-            targetKeys: targetKeys,
-            accountList: accountList,
-            groupNameList: groupNameList,
-            extensionGroupItem: extensionGroup
+            queueList: queueList,
+            pureNumberList: pureNumberList,
+            agentLoginSettings: agentLoginSettings
         })
     }
     _handleCancel = () => {
@@ -134,7 +141,6 @@ class AgentLoginSettings extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
@@ -142,32 +148,16 @@ class AgentLoginSettings extends Component {
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
-                })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
-
-                if (!this.state.targetKeys.length) {
-                    message.error(errorMessage)
-
-                    return
-                }
 
                 message.loading(loadingMessage)
 
                 let action = values
 
-                action.members = this.state.targetKeys.join()
-
-                if (extensionGroupId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = extensionGroupId
-                } else {
-                    action.action = 'addExtensiongroup'
-                }
+                action.action = 'updateQueueSettings'
 
                 $.ajax({
                     url: api.apiHost,
@@ -191,14 +181,24 @@ class AgentLoginSettings extends Component {
             }
         })
     }
+    _onFocus = (e) => {
+        e.preventDefault()
+
+        const form = this.props.form
+
+        form.validateFields([e.target.id], { force: true })
+    }
     render() {
+        let loginContent
+        let logoutContent
+        const form = this.props.form
         const { formatMessage } = this.props.intl
         const title = formatMessage({id: "LANG748"})
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const formItemLayout = {
-            labelCol: { span: 3 },
-            wrapperCol: { span: 6 }
+            labelCol: { span: 4 },
+            wrapperCol: { span: 8 }
         }
 
         const agentLoginSettings = this.state.agentLoginSettings || {}
@@ -209,6 +209,9 @@ class AgentLoginSettings extends Component {
                     0: model_info.model_name,
                     1: title
                 })
+
+        loginContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG1193" })}}></span>
+        logoutContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG1195" })}}></span>
 
         return (
             <div className="app-content-main">
@@ -226,7 +229,7 @@ class AgentLoginSettings extends Component {
                                 <span>
                                     <Popover
                                         title={ formatMessage({id: "LANG1192"}) }
-                                        content={ formatMessage({id: "LANG1193"}) }
+                                        content={ loginContent }
                                     >
                                         <span>{ formatMessage({id: "LANG1192"}) }</span>
                                     </Popover>
@@ -234,12 +237,33 @@ class AgentLoginSettings extends Component {
                             )}
                         >
                             { getFieldDecorator('queuelogin', {
-                                rules: [
-                                    { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                                ],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        const otherInputValue = form.getFieldValue('queuelogout')
+
+                                        Validator.required(data, value, callback, formatMessage, true, otherInputValue)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.maxlength(data, value, callback, formatMessage, 10)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.numeric_pound_star(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        const otherInputValue = form.getFieldValue('queuelogout')
+                                        const otherInputLabel = formatMessage({id: "LANG1194"})
+
+                                        Validator.notEqualTo(data, value, callback, formatMessage, otherInputValue, otherInputLabel)
+                                    }
+                                }, {
+                                    validator: this._checkNumber
+                                }],
                                 initialValue: queuelogin
                             })(
-                                <Input />
+                                <Input onFocus={ this._onFocus } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -248,7 +272,7 @@ class AgentLoginSettings extends Component {
                                 <span>
                                     <Popover
                                         title={ formatMessage({id: "LANG1194"}) }
-                                        content={ formatMessage({id: "LANG1195"}) }
+                                        content={ logoutContent }
                                     >
                                         <span>{ formatMessage({id: "LANG1194"}) }</span>
                                     </Popover>
@@ -256,12 +280,33 @@ class AgentLoginSettings extends Component {
                             )}
                         >
                             { getFieldDecorator('queuelogout', {
-                                rules: [
-                                    { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                                ],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        const otherInputValue = form.getFieldValue('queuelogin')
+
+                                        Validator.required(data, value, callback, formatMessage, true, otherInputValue)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.maxlength(data, value, callback, formatMessage, 10)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.numeric_pound_star(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        const otherInputValue = form.getFieldValue('queuelogin')
+                                        const otherInputLabel = formatMessage({id: "LANG1192"})
+
+                                        Validator.notEqualTo(data, value, callback, formatMessage, otherInputValue, otherInputLabel)
+                                    }
+                                }, {
+                                    validator: this._checkNumber
+                                }],
                                 initialValue: queuelogout
                             })(
-                                <Input />
+                                <Input onFocus={ this._onFocus } />
                             ) }
                         </FormItem>
                         <FormItem

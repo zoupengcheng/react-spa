@@ -1,5 +1,5 @@
 import cookie from 'react-cookie'
-
+import SubscribeEvent from './components/api/subscribeEvent'
 var socketjs = (function() {
     'use strict'
 
@@ -82,15 +82,7 @@ var socketjs = (function() {
                 }
 
                 // let the server know we reconnected from a previously severed connection
-                // outgoingQueue.push({
-                //     type: "request",
-                //     message: {
-                //         cookie: cookie.load("session-identify"),
-                //         action: "login",
-                //         transactionid: "123456789zxa",
-                //         username: cookie.load("username")
-                //     }
-                // })
+                // outgoingQueue.push(SubscribeEvent.login)
             }
 
             // send any messages in the queue
@@ -181,15 +173,7 @@ var socketjs = (function() {
 
             // let the server know this is the first connection (we aren't
             // reconnecting from a temporary network failure)
-            // outgoingQueue.push({
-            //       type: "request",
-            //       message: {
-            //           cookie: cookie.load("session-identify"),
-            //           action: "login",
-            //           transactionid: "123456789zxa",
-            //           username: cookie.load("username")
-            //       }
-            //   })
+            // outgoingQueue.push(SubscribeEvent.login)
             // flushOutgoingQueue()
 
             return {

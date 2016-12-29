@@ -41,8 +41,8 @@ import RingGroup from '../components/modules/ringGroup/index'
 import PagingIntercom from '../components/modules/pagingIntercom/index'
 import CallQueue from '../components/modules/callQueue/index'
 import CallQueueItem from '../components/modules/callQueue/queueItem'
-import CallQueueStats from '../components/modules/callQueue/statistics'
-import CallQueueCallCenter from '../components/modules/callQueue/callcenter'
+import CallQueueStatistics from '../components/modules/callQueue/statistics'
+import CallQueueSwitchboard from '../components/modules/callQueue/switchboard'
 import AgentLoginSettings from '../components/modules/callQueue/settings'
 import PickupGroup from '../components/modules/pickupGroup/index'
 import DialByName from '../components/modules/dialByName/index'
@@ -112,7 +112,7 @@ const routes = (state, currentLocaleData) => {
 
             if (path && SubscribeEvent[path] && SubscribeEvent[path].subscribe) {
                 SubscribeEvent[path].subscribe.map(function(item) {
-                    window.socket.send(JSON.stringify(item))
+                    window.socket.send(item)
                     console.log(JSON.stringify(item))
                 })
             }
@@ -124,7 +124,7 @@ const routes = (state, currentLocaleData) => {
         if (data && data.location && data.location.pathname) {
             if (LEAVEPAGE && SubscribeEvent[LEAVEPAGE] && SubscribeEvent[LEAVEPAGE].unsubscribe) {
                 SubscribeEvent[LEAVEPAGE].unsubscribe.map(function(item) {
-                    window.socket.send(JSON.stringify(item))
+                    window.socket.send(item)
                     console.log(JSON.stringify(item))
                 })
             }
@@ -137,7 +137,9 @@ const routes = (state, currentLocaleData) => {
             browserHistory.push('/login')
             return false
         }
-        // unSubscribeEvent(data, window.LEAVEPAGE)
+        if (window.socket) {
+            unSubscribeEvent(data, window.LEAVEPAGE)
+        }
         // return state.isLogin
     }
 
@@ -148,9 +150,9 @@ const routes = (state, currentLocaleData) => {
                 <Route path="login" component={ Login } />
             </Route>
 
-            <Route path="/" onEnter={ requireAuth } component={ App }>
+            <Route path="/" component={ App }>
                 {/* System Status */}
-                <Route path="system-status" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG585"] }>
+                <Route path="system-status" breadcrumbName={ currentLocaleData["LANG585"] }>
                     <IndexRoute component={ Dashboard } />
                     <Route path="dashboard" onEnter={ requireAuth } component={ Dashboard } breadcrumbName={ currentLocaleData["LANG5261"] } />
                     <Route path="systemInformation" onEnter={ requireAuth } component={ SystemInformation } breadcrumbName={ currentLocaleData["LANG586"] } />
@@ -159,7 +161,7 @@ const routes = (state, currentLocaleData) => {
                 </Route>
 
                 {/* Extension / Trunk */}
-                <Route path="extension-trunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG5263"] }>
+                <Route path="extension-trunk" breadcrumbName={ currentLocaleData["LANG5263"] }>
                     <IndexRoute component={ Extension } />
                     <Route path="extension" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG87"] }>
                         <IndexRoute component={ Extension } />
@@ -211,9 +213,9 @@ const routes = (state, currentLocaleData) => {
                         <IndexRoute component={ CallQueue } />
                         <Route path="add" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG738"] } />
-                        <Route path="statistics" onEnter={ requireAuth } component={ CallQueueStats } breadcrumbName={ currentLocaleData["LANG8"] } />
-                        <Route path="callcenter" onEnter={ requireAuth } component={ CallQueueCallCenter } breadcrumbName={ currentLocaleData["LANG5407"] } />
                         <Route path="settings" onEnter={ requireAuth } component={ AgentLoginSettings } breadcrumbName={ currentLocaleData["LANG748"] } />
+                        <Route path="statistics" onEnter={ requireAuth } component={ CallQueueStatistics } breadcrumbName={ currentLocaleData["LANG8"] } />
+                        <Route path="switchboard" onEnter={ requireAuth } component={ CallQueueSwitchboard } breadcrumbName={ currentLocaleData["LANG5407"] } />
                     </Route>
                     <Route path="pickupGroup" onEnter={ requireAuth } component={ PickupGroup } breadcrumbName={ currentLocaleData["LANG2510"] } />
                     <Route path="dialByName" onEnter={ requireAuth } component={ DialByName } breadcrumbName={ currentLocaleData["LANG2884"] } />

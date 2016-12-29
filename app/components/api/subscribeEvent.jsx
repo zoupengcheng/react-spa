@@ -2,34 +2,38 @@ import cookie from 'react-cookie'
 
 module.exports = {
     login: {
-        "subscribe": [{
-            "type": "request",
-            "message": {
-                "transactionid": "123456789zxa",
-                "action": "login",
-                "username": cookie.load("username"),
-                "cookie": cookie.load("session-identify")
-            }
-        }],
-        "unsubscribe": []
+        "type": "request",
+        "message": {
+            "transactionid": "123456789zxa",
+            "action": "login",
+            "username": cookie.load("username"),
+            "cookie": cookie.load("session-identify")
+        }
     },
-    logout: [{
+    logout: {
         "type": "request",
         "message": {
             "transactionid": "123456789zxb",
             "action": "logout"
         }
-    }],
+    },
     dashboard: {
         "subscribe": [{
             "type": "request",
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "subscribe",
-                "eventnames": ["InterfaceStatus"]
+                "eventnames": ["TrunkStatus", "InterfaceStatus", "ResourceUsageStatus", "EquipmentCapacityStatus"]
             }
         }],
-        "unsubscribe": []
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["TrunkStatus", "InterfaceStatus", "ResourceUsageStatus", "EquipmentCapacityStatus"]
+            }
+        }]
     },
     extension: {
         "subscribe": [{
