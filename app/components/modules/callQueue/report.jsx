@@ -62,14 +62,14 @@ class Report extends Component {
                 <Row gutter={ 32 }>
                     <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
                         <Card title={ formatMessage({id: "LANG5352"}) }>
-                            <ReportInfo
+                            <ReportInformation
                                 QueueReport={ this.props.QueueReport }
                             />
                         </Card>
                     </Col>
                     <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
                         <Card title={ formatMessage({id: "LANG5353"}) }>
-                            <TotalInfo
+                            <TotalInformation
                                 QueueStatTotal={ this.props.QueueStatTotal }
                             />
                         </Card>

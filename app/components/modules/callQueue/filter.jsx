@@ -3,7 +3,7 @@
 import moment from 'moment'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Button, DatePicker, Form, message, Popover, Transfer } from 'antd'
+import { Button, Col, DatePicker, Form, message, Popover, Row, Tooltip, Select, Transfer } from 'antd'
 
 const FormItem = Form.Item
 const dateFormat = 'YYYY-MM-DD'
@@ -61,18 +61,86 @@ class Filter extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
         const formItemLayout = {
-            labelCol: { span: 3 },
-            wrapperCol: { span: 6 }
-        }
-        const formItemTransferLayout = {
-            labelCol: { span: 3 },
+            labelCol: { span: 6 },
             wrapperCol: { span: 12 }
         }
 
         return (
             <div className="app-content-main">
-                <Form onSubmit={ this._handleSubmit }>
-                    <FormItem
+                <Form>
+                    <Row>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ formatMessage({id: "LANG1048"}) }>
+                                            <span>{ formatMessage({id: "LANG1048"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('fromtime')(
+                                    <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ formatMessage({id: "LANG1049"}) }>
+                                            <span>{ formatMessage({id: "LANG1049"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('totime')(
+                                    <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                                ) }
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={formatMessage({id: "LANG5132"})}>
+                                            <span>{formatMessage({id: "LANG5132"})}</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                {getFieldDecorator('src_trunk_name')(
+                                    <Select multiple>
+                                        { [] }
+                                    </Select>
+                                )}
+                            </FormItem>
+                        </Col>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={formatMessage({id: "LANG5133"})}>
+                                            <span>{formatMessage({id: "LANG5133"})}</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                {getFieldDecorator('dst_trunk_name')(
+                                    <Select multiple>
+                                        { [] }
+                                    </Select>
+                                )}
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    {/* <FormItem
                         { ...formItemTransferLayout }
                         label={(
                             <span>
@@ -132,12 +200,7 @@ class Filter extends Component {
                                 placeholder={[ formatMessage({id: "LANG1048"}), formatMessage({id: "LANG1049"}) ]}
                             />
                         ) }
-                    </FormItem>
-                    <FormItem
-                        wrapperCol={{ span: 6, offset: 3 }}
-                    >
-                        <Button type="primary" htmlType="submit">{ formatMessage({id: "LANG729"}) }</Button>
-                    </FormItem>
+                    </FormItem> */}
                 </Form>
             </div>
         )
