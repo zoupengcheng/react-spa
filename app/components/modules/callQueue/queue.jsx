@@ -273,7 +273,7 @@ class Queue extends Component {
                 })
 
         return (
-            <div className="app-content-main app-content-cdr">
+            <div className="app-content-main">
                 <div className="content">
                     <div className="top-button">
                         <Button
@@ -290,7 +290,7 @@ class Queue extends Component {
                             size='default'
                             onClick={ this._statistics }
                         >
-                            { formatMessage({id: "LANG8"}) }
+                            { formatMessage({id: "LANG5359"}) }
                         </Button>
                         <Button
                             icon="phone"

@@ -225,8 +225,7 @@ const CustomizedForm = injectIntl(Form.create({
                             <span>{ formatMessage({id: "LANG4578"}) }</span>
                         </Popover>
                     </span>
-                )}
-            >
+                )}>
                 { getFieldDecorator('enable_diversion', {
                     rules: [],
                     valuePropName: 'checked',

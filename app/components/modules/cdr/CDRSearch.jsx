@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { Form, Select, DatePicker, Button, Row, Col, Input, Checkbox, Tooltip, Icon, message } from 'antd'
-import { FormattedMessage, injectIntl} from 'react-intl'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -72,7 +72,7 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={formatMessage({id: "LANG1048"})}>
+                                <Tooltip title={formatMessage({id: "LANG1048"})} >
                                     <span>{formatMessage({id: "LANG1048"})}</span>
                                 </Tooltip>
                             </span>
@@ -88,7 +88,10 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={formatMessage({id: "LANG1049"})}>
+                                <Tooltip title={<FormattedHTMLMessage
+                                    id="LANG1049"
+                                    defaultMessage="LANG1049" />
+                                }>
                                     <span>{formatMessage({id: "LANG1049"})}</span>
                                 </Tooltip>
                             </span>
@@ -107,7 +110,10 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={formatMessage({id: "LANG4021"})}>
+                                <Tooltip title={<FormattedHTMLMessage
+                                    id="LANG4021"
+                                    defaultMessage="LANG4021" />
+                                }>
                                     <span>{formatMessage({id: "LANG2216"})}</span>
                                 </Tooltip>
                             </span>
@@ -237,7 +243,10 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayoutCheckGroup }
                 label={(
                     <span>
-                        <Tooltip title={formatMessage({id: "LANG4783"})}>
+                        <Tooltip title={<FormattedHTMLMessage
+                            id="LANG4783"
+                            defaultMessage="LANG4783" />
+                        }>
                             <span>{formatMessage({id: "LANG2235"})}</span>
                         </Tooltip>
                     </span>

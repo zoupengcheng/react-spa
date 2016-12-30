@@ -3,10 +3,10 @@
  * Copyright (C) 2016 Grandstream Networks, Inc.
  *
  */
-
+import React from 'react'
 import $ from 'jquery'
 import { message } from 'antd'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl'
 import { browserHistory } from 'react-router'
 import _ from 'underscore'
 
@@ -373,6 +373,13 @@ UCMGUI.prototype = {
             }
             return true
         }
+    },
+    renderHtmlTooltip: function(str) {
+        let content = <FormattedHTMLMessage
+            id={str}
+            defaultMessage={str}
+        />
+        return content
     }
 }
 

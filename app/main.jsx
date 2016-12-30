@@ -198,7 +198,7 @@ const startSocket = () => {
         alert('Your browser does not support WebSockets.')
     }    
 }
-// startSocket()
+startSocket()
 
 ReactDOM.render(
     <Provider store={store}>

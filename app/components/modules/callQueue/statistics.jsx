@@ -1,36 +1,41 @@
 'use strict'
 
-import { browserHistory } from 'react-router'
-import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, message, Tabs } from 'antd'
 import $ from 'jquery'
+import moment from 'moment'
+import Filter from './filter'
+import Report from './report'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import Filter from './filter'
-import Report from './report'
+import Validator from "../../api/validator"
+import { browserHistory } from 'react-router'
+import React, { Component, PropTypes } from 'react'
+import { FormattedMessage, injectIntl } from 'react-intl'
+import { Button, Card, Col, DatePicker, Form, message, Row, Select, Tooltip } from 'antd'
 
-const TabPane = Tabs.TabPane
+const NewDate = new Date()
+const FormItem = Form.Item
+const Option = Select.Option
+const DateFormat = 'YYYY-MM-DD'
+const CurrentDate = NewDate.getFullYear() + '-' + (NewDate.getMonth() + 1) + '-' + NewDate.getDate()
 
 class Statistics extends Component {
     constructor(props) {
         super(props)
 
-        const date = new Date()
-        const current = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
-
         this.state = {
             accounts: {},
             queues: [],
             agents: [],
-            period: 1,
-            endDate: current,
-            startDate: current,
+            period: '1',
+            extgroupObj: {},
+            extgroupList: [],
             selectQueues: [],
             selectAgents: [],
             QueueReport: [],
             QueueStatTotal: [],
+            endDate: CurrentDate,
+            startDate: CurrentDate,
             QueueStatDistributionByQueue: [],
             QueueStatDistributionByAgent: [],
             QueueStatDistributionByHour: [],
@@ -39,37 +44,174 @@ class Statistics extends Component {
         }
     }
     componentWillMount() {
-        this._getAccountList()
+        this._getInitData()
     }
     componentDidMount() {
-        this._listQueue()
+    }
+    _checkTimeFormat = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        value = value.format(DateFormat)
+
+        if (value && !/^\d{4}\-\d{2}\-\d{2}$/.test(value)) {
+            callback(formatMessage({id: "LANG2767"}))
+        } else {
+            callback()
+        }
     }
     _daysBetween(start, end) {
         return Math.round((end - start) / (1000 * 60 * 60 * 24))
     }
-    _getAccountList = () => {
+    _getInitData = () => {
+        let queues = []
+        let agents = []
+        let accounts = {}
+        let queueReport = {}
+        let extgroupObj = {}
+        let extgroupList = []
+        const { formatMessage } = this.props.intl
+
         $.ajax({
             url: api.apiHost,
             method: 'post',
-            data: { action: 'getAccountList' },
+            data: {
+                action: 'getAccountList'
+            },
             type: 'json',
             async: false,
             success: function(res) {
                 const response = res.response || {}
                 const accountList = response.extension || []
-                let accounts = {}
 
                 accountList.map(function(item) {
                     accounts[item.extension] = item
-                })
-
-                this.setState({
-                    accounts: accounts
                 })
             }.bind(this),
             error: function(e) {
                 message.error(e.toString())
             }
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getExtensionGroupList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                let response = res.response || {}
+
+                extgroupList = response.extension_groups || []
+
+                extgroupList.map(function(item) {
+                    extgroupObj[item.group_id] = item
+                })
+
+                this.setState({
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listQueue',
+                sidx: 'extension',
+                sord: 'asc'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                let obj = {}
+                let members = []
+                let agentKeys = []
+                const response = res.response || {}
+                const queueList = response.queue || []
+                const disabled = formatMessage({id: "LANG273"})
+                const extgroupLabel = formatMessage({id: "LANG2714"})
+
+                queueList.map(function(item) {
+                    if (item.extension) {
+                        queues.push({
+                            key: item.extension,
+                            title: item.extension
+                        })
+                    }
+
+                    if (item.members) {
+                        members = item.members.split(',')
+
+                        members.map(function(member) {
+                            if (agentKeys.indexOf(member) === -1) {
+                                obj = extgroupObj[member] || accounts[member] || {}
+
+                                if (obj.out_of_service) {
+                                    agents.push({
+                                        key: member,
+                                        out_of_service: obj.out_of_service,
+                                        title: (obj.extension +
+                                                (obj.fullname ? ' "' + obj.fullname + '"' : '') +
+                                                (obj.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                                    })
+                                } else {
+                                    agents.push({
+                                        key: member,
+                                        title: extgroupLabel + " -- " + obj.group_name
+                                    })
+                                }
+
+                                agentKeys.push(member)
+                            }
+                        })
+                    }
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getQueueReport'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const response = res.response || {}
+
+                queueReport = response.queue_report_info || {}
+
+                queueReport.start_date = queueReport.start_date ? queueReport.start_date : CurrentDate
+                queueReport.end_date = queueReport.end_date ? queueReport.end_date : CurrentDate
+                queueReport.period = queueReport.period ? queueReport.period : '1'
+                queueReport.queue = queueReport.queue ? queueReport.queue.split(',') : []
+                queueReport.agent = queueReport.agent ? queueReport.agent.split(',') : []
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
+
+        this.setState({
+            queues: queues,
+            agents: agents,
+            accounts: accounts,
+            extgroupObj: extgroupObj,
+            extgroupList: extgroupList,
+            period: queueReport.period,
+            endDate: queueReport.end_date,
+            selectQueues: queueReport.queue,
+            selectAgents: queueReport.agent,
+            startDate: queueReport.start_date
         })
     }
     _getStatisticDetails = () => {
@@ -294,112 +436,48 @@ class Statistics extends Component {
             }
         })
     }
-    _listQueue = () => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'listQueue',
-                sidx: 'extension',
-                sord: 'asc'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const response = res.response || {}
-                const queueList = response.queue || []
-                const accounts = this.state.accounts || {}
-                let queues = []
-                let agents = []
-                let members = []
-                let obj = {}
-
-                queueList.map(function(item) {
-                    if (item.extension) {
-                        queues.push({
-                            key: item.extension,
-                            title: item.extension
-                        })
-                    }
-
-                    if (item.members) {
-                        members = item.members.split(',')
-
-                        members.map(function(member) {
-                            if (agents.indexOf(member) === -1) {
-                                obj = accounts[member] || {}
-
-                                agents.push({
-                                    key: member,
-                                    title: (obj.extension + (obj.fullname ? ' "' + obj.fullname + '"' : ''))
-                                })
-                            }
-                        })
-                    }
-                })
-
-                this.setState({
-                    queues: queues,
-                    agents: agents
-                })
-            }.bind(this),
-            error: function(e) {
-                message.error(e.toString())
-            }
-        })
-    }
-
     _handleCancel = () => {
         browserHistory.push('/call-features/callQueue')
     }
     _handleSubmit = () => {
         const { formatMessage } = this.props.intl
 
-        message.loading(formatMessage({ id: "LANG5360" }), 0)
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
 
-        let action = {
-            action: 'updateQueueReport',
-            end_date: this.state.endDate,
-            start_date: this.state.startDate,
-            queue: this.state.selectQueues.join(),
-            agent: this.state.selectAgents.join(),
-            period: this.state.period
-        }
+                message.loading(formatMessage({ id: "LANG5360" }), 0)
 
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: action,
-            type: 'json',
-            error: function(e) {
-                message.error(e.toString())
-            },
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    message.destroy()
-                    message.success(formatMessage({ id: "LANG5361" }))
-
-                    this._getStatisticDetails()
+                let action = {
+                    action: 'updateQueueReport',
+                    end_date: this.state.endDate,
+                    start_date: this.state.startDate,
+                    queue: this.state.selectQueues.join(),
+                    agent: this.state.selectAgents.join(),
+                    period: this.state.period
                 }
-            }.bind(this)
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.toString())
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(formatMessage({ id: "LANG5361" }))
+
+                            this._getStatisticDetails()
+                        }
+                    }.bind(this)
+                })
+            }
         })
-    }
-    _onAgentChange = (selectAgents, direction, moveKeys) => {
-        this.setState({
-            selectAgents: selectAgents
-        })
-    }
-    _onQueueChange = (selectQueues, direction, moveKeys) => {
-        this.setState({
-            selectQueues: selectQueues
-        })
-    }
-    _onTabsChange = (activeTabKey) => {
-        this.setState({ activeTabKey })
     }
     _onTimeChange = (date, dateString) => {
         this.setState({
@@ -411,16 +489,32 @@ class Statistics extends Component {
             ))
         })
     }
+    _onFocus = (e) => {
+        e.preventDefault()
+
+        const form = this.props.form
+
+        form.validateFields([e.target.id], { force: true })
+    }
     _parseDate = (str) => {
         const ymd = str.split('-')
 
         return new Date(ymd[0], ymd[1] - 1, ymd[2])
     }
     render() {
+        const form = this.props.form
         const { formatMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+        const formItemLayout = {
+            labelCol: { span: 6 },
+            wrapperCol: { span: 12 }
+        }
 
-        document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG5359"})})
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: model_info.model_name,
+                    1: formatMessage({id: "LANG5359"})
+                })
 
         return (
             <div className="app-content-main">
@@ -430,8 +524,153 @@ class Statistics extends Component {
                     onSubmit={ this._handleSubmit }
                     headerTitle={ formatMessage({id: "LANG5359"}) }
                 />
-                <div className="content">
-                    <Filter
+                <Form>
+                    <Row>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ formatMessage({id: "LANG1048"}) }>
+                                            <span>{ formatMessage({id: "LANG1048"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('start_date', {
+                                    rules: [{
+                                        type: 'object',
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: this._checkTimeFormat
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            const thisLabel = formatMessage({id: "LANG1048"})
+                                            const otherInputValue = form.getFieldValue('end_date')
+                                            const otherInputLabel = formatMessage({id: "LANG1049"})
+
+                                            Validator.smallerTime(data, value, callback,
+                                                    formatMessage, thisLabel, otherInputValue, otherInputLabel)
+                                        }
+                                    }],
+                                    initialValue: moment(this.state.startDate, DateFormat)
+                                })(
+                                    <DatePicker
+                                        allowClear={ false }
+                                        format={ DateFormat }
+                                        style={{ 'width': '100%' }}
+                                        placeholder={ formatMessage({id: "LANG5373"}) }
+                                    />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ formatMessage({id: "LANG1049"}) }>
+                                            <span>{ formatMessage({id: "LANG1049"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('end_date', {
+                                    rules: [{
+                                        type: 'object',
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: this._checkTimeFormat
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            const thisLabel = formatMessage({id: "LANG1049"})
+                                            const otherInputValue = form.getFieldValue('start_date')
+                                            const otherInputLabel = formatMessage({id: "LANG1048"})
+
+                                            Validator.biggerTime(data, value, callback,
+                                                    formatMessage, thisLabel, otherInputValue, otherInputLabel)
+                                        }
+                                    }],
+                                    initialValue: moment(this.state.endDate, DateFormat)
+                                })(
+                                    <DatePicker
+                                        allowClear={ false }
+                                        format={ DateFormat }
+                                        style={{ 'width': '100%' }}
+                                        placeholder={ formatMessage({id: "LANG5373"}) }
+                                    />
+                                ) }
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ formatMessage({id: "LANG91"}) }>
+                                            <span>{ formatMessage({id: "LANG91"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('queue', {
+                                    rules: [{
+                                        type: 'array',
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
+                                    initialValue: this.state.selectQueues
+                                })(
+                                    <Select
+                                        multiple
+                                        notFoundContent={ formatMessage({id: "LANG133"}) }
+                                    >
+                                        { this.state.queues.map(function(item, index) {
+                                            return <Option key={ item.key }>{ item.title }</Option>
+                                        }) }
+                                    </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ formatMessage({id: "LANG143"}) }>
+                                            <span>{ formatMessage({id: "LANG143"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('agent', {
+                                    rules: [{
+                                        type: 'array',
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
+                                    initialValue: this.state.selectAgents
+                                })(
+                                    <Select
+                                        multiple
+                                        notFoundContent={ formatMessage({id: "LANG133"}) }
+                                    >
+                                        { this.state.agents.map(function(item, index) {
+                                            return <Option
+                                                        key={ item.key }
+                                                        className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }
+                                                    >{ item.title }</Option>
+                                        }) }
+                                    </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    {/* <Filter
                         queues={ this.state.queues }
                         agents={ this.state.agents }
                         endDate={ this.state.endDate }
@@ -442,16 +681,20 @@ class Statistics extends Component {
                         onTimeChange={ this._onTimeChange }
                         onQueueChange={ this._onQueueChange }
                         onAgentChange={ this._onAgentChange }
-                    />
-                    <Report
-                        QueueReport= { this.state.QueueReport }
-                        QueueStatTotal= { this.state.QueueStatTotal }
-                        QueueStatDistributionByQueue= { this.state.QueueStatDistributionByQueue }
-                        QueueStatDistributionByAgent= { this.state.QueueStatDistributionByAgent }
-                        QueueStatDistributionByHour= { this.state.QueueStatDistributionByHour }
-                        QueueStatDistributionByDay= { this.state.QueueStatDistributionByDay }
-                        QueueStatDistributionByWeek= { this.state.QueueStatDistributionByWeek }
-                    />
+                    /> */}
+                </Form>
+                <div className="content">
+                    <Card title={ formatMessage({id: "LANG5374"}) }>
+                        <Report
+                            QueueReport= { this.state.QueueReport }
+                            QueueStatTotal= { this.state.QueueStatTotal }
+                            QueueStatDistributionByQueue= { this.state.QueueStatDistributionByQueue }
+                            QueueStatDistributionByAgent= { this.state.QueueStatDistributionByAgent }
+                            QueueStatDistributionByHour= { this.state.QueueStatDistributionByHour }
+                            QueueStatDistributionByDay= { this.state.QueueStatDistributionByDay }
+                            QueueStatDistributionByWeek= { this.state.QueueStatDistributionByWeek }
+                        />
+                    </Card>
                 </div>
             </div>
         )

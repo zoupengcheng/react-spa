@@ -82,7 +82,7 @@ Validator.prototype = {
                 callback()
             }
         } else {
-            if (!value) {
+            if (!value || !value.length) {
                 callback(formatMessage({id: "LANG2150"}))
             } else {
                 callback()
@@ -152,6 +152,34 @@ Validator.prototype = {
     numeric_pound_star: function(data, value, callback, formatMessage) {
         if (value && !/^[0-9#\*]+$/i.test(value)) {
             callback(formatMessage({id: "LANG2171"}))
+        } else {
+            callback()
+        }
+    },
+    smallerTime: function(data, value, callback, formatMessage, thisLabel, otherInputValue, otherInputLabel) {
+        if (value && otherInputValue) {
+            if (value._d.getTime() > otherInputValue._d.getTime()) {
+                callback(formatMessage({id: "LANG2165"}, {
+                        0: thisLabel,
+                        1: otherInputLabel
+                    }))
+            } else {
+                callback()
+            }
+        } else {
+            callback()
+        }
+    },
+    biggerTime: function(data, value, callback, formatMessage, thisLabel, otherInputValue, otherInputLabel) {
+        if (value && otherInputValue) {
+            if (value._d.getTime() < otherInputValue._d.getTime()) {
+                callback(formatMessage({id: "LANG2142"}, {
+                        0: thisLabel,
+                        1: otherInputLabel
+                    }))
+            } else {
+                callback()
+            }
         } else {
             callback()
         }

@@ -78,6 +78,7 @@ class ExtensionGroupItem extends Component {
             success: function(res) {
                 const response = res.response || {}
                 const extension = response.extension || []
+                const disabled = formatMessage({id: "LANG273"})
 
                 accountList = extension.map(function(item) {
                     return {
@@ -85,8 +86,8 @@ class ExtensionGroupItem extends Component {
                             out_of_service: item.out_of_service,
                             // disabled: (item.out_of_service === 'yes'),
                             title: (item.extension +
-                                (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                (item.out_of_service === 'yes' ? ' <' + formatMessage({id: "LANG273"}) + '>' : ''))
+                                    (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                    (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
                         }
                 })
             }.bind(this),

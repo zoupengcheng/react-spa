@@ -8,8 +8,8 @@ import Title from '../../../views/title'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Input, message, Popover, Transfer } from 'antd'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Form, Input, message, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 
@@ -210,8 +210,14 @@ class AgentLoginSettings extends Component {
                     1: title
                 })
 
-        loginContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG1193" })}}></span>
-        logoutContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG1195" })}}></span>
+        loginContent = <FormattedHTMLMessage
+                    id="LANG1193"
+                    defaultMessage="LANG1193"
+                />
+        logoutContent = <FormattedHTMLMessage
+                    id="LANG1195"
+                    defaultMessage="LANG1195"
+                />
 
         return (
             <div className="app-content-main">
@@ -227,12 +233,9 @@ class AgentLoginSettings extends Component {
                             { ...formItemLayout }
                             label={(
                                 <span>
-                                    <Popover
-                                        title={ formatMessage({id: "LANG1192"}) }
-                                        content={ loginContent }
-                                    >
+                                    <Tooltip title={ loginContent }>
                                         <span>{ formatMessage({id: "LANG1192"}) }</span>
-                                    </Popover>
+                                    </Tooltip>
                                 </span>
                             )}
                         >
@@ -270,12 +273,9 @@ class AgentLoginSettings extends Component {
                             { ...formItemLayout }
                             label={(
                                 <span>
-                                    <Popover
-                                        title={ formatMessage({id: "LANG1194"}) }
-                                        content={ logoutContent }
-                                    >
+                                    <Tooltip title={ logoutContent }>
                                         <span>{ formatMessage({id: "LANG1194"}) }</span>
-                                    </Popover>
+                                    </Tooltip>
                                 </span>
                             )}
                         >
@@ -313,11 +313,16 @@ class AgentLoginSettings extends Component {
                             { ...formItemLayout }
                             label={(
                                 <span>
-                                    { formatMessage({id: "LANG261"}) }
+                                    <Tooltip title={ formatMessage({id: "LANG261"}) }>
+                                        <span>{ formatMessage({id: "LANG261"}) }</span>
+                                    </Tooltip>
                                 </span>
                             )}
                         >
-                            <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG1196" })}}></span>
+                            <FormattedHTMLMessage
+                                id="LANG1196"
+                                defaultMessage="LANG1196"
+                            />
                         </FormItem>
                     </Form>
                 </div>

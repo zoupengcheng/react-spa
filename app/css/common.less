@@ -637,14 +637,25 @@ li {
     border-radius: 4px;
     margin-bottom: 20px;
 }
+.section-title {
+    clear: both;
+    font-size: 13px;
+    font-weight: bold;
+    color: #3B3B3B;
+    background-color: #d3d3d3;
+    padding: 5px 5px 5px 20px;
+}
 
+.section-body {
+    margin-top: 12px;
+}
 
 /*
  * Custom Ant Design Style
  */
 .app-wrapper .ant-form {
     position: relative;
-    padding: 30px 18px 30px 52px;
+    padding: 30px 18px 20px 52px;
     background-color: #FFF;
     border-bottom: 1px solid #e6ebf0;
 }
@@ -663,6 +674,19 @@ li {
     border-radius: 5px;
     right: 0;
     bottom: 40px;
+
+    &:after {
+        width: 0;
+        height: 0;
+        right: 16px;
+        bottom: -5px;
+        content: ' ';
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 5px 0;
+        border-color: transparent;
+        border-top-color: red;
+    }
 }
 
 .ant-btn {
@@ -793,11 +817,11 @@ li {
 }
 
 .app-wrapper .ant-form .hide_search {
+    left: 50%;
     width: 54px;
     height: 18px;
-    position: absolute;
     bottom: -18px;
-    left: 50%;
+    position: absolute;
     margin-left: -27px;
 }
 
