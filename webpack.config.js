@@ -15,12 +15,12 @@ module.exports = {
         proxy: {
             '/locale*': {
                 changeOrigin: true,
-                target: 'https://192.168.124.207:8089/',
+                target: 'http://192.168.124.105:8089/',
                 secure: false
             },
             '/cgi?*': {
                 changeOrigin: true,
-                target: 'https://192.168.124.207:8089/',
+                target: 'http://192.168.124.105:8089/',
                 secure: false
             }
         }
