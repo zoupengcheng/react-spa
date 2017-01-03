@@ -1,9 +1,10 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import {injectIntl} from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Popover, Select, Tabs } from 'antd'
+import { FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
 const FormItem = Form.Item
+const Option = Select.Option
 import _ from 'underscore'
 
 const CustomizedForm = injectIntl(Form.create({
@@ -22,17 +23,9 @@ const CustomizedForm = injectIntl(Form.create({
     const { formatMessage } = props.intl
     const sipTcpSettings = props.dataSource
     const formItemLayout = {
-        labelCol: { span: 3 },
+        labelCol: { span: 6 },
         wrapperCol: { span: 6 }
     }
-
-    let tcpenable = sipTcpSettings.tcpenable
-
-    // if (tcpenable == "yes") {
-    //     tcpenable = true
-    // } else {
-    //     tcpenable = false
-    // }
 
     return (
         <Form>
@@ -40,17 +33,134 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1853"}) } 
-                            content={ formatMessage({id: "LANG1854"}) }>
-                            <span>{ formatMessage({id: "LANG1853"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1854" />}>
+                            <span>{formatMessage({id: "LANG1853"})}</span>
+                        </Tooltip>
                     </span>
-                )}
-            >
+                )}>
                 { getFieldDecorator('tcpenable', {
+                    rules: [],
                     valuePropName: 'checked',
-                    initialValue: (tcpenable === "yes") ? true : false
+                    initialValue: sipTcpSettings.tcpenable === "yes" ? true : false
+                })(
+                    <Checkbox />
+                ) }
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1854" />}>
+                            <span>{formatMessage({id: "LANG1851"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tcpbindaddr', {
+                    rules: [],
+                    initialValue: sipTcpSettings.tcpbindaddr
+                })(
+                    <Input type="text" maxLength="127" />
+                )}
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG5126" />}>
+                            <span>{formatMessage({id: "LANG5125"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tcpbindaddr6', {
+                    rules: [],
+                    initialValue: sipTcpSettings.tcpbindaddr6
+                })(
+                    <Input type="text" />
+                )}
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1867" />}>
+                            <span>{formatMessage({id: "LANG1868"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tlsenable', {
+                    rules: [],
+                    valuePropName: 'checked',
+                    initialValue: sipTcpSettings.tlsenable === "yes" ? true : false
+                })(
+                    <Checkbox />
+                ) }
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1855" />}>
+                            <span>{formatMessage({id: "LANG5204"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tlsbindaddr', {
+                    rules: [],
+                    initialValue: sipTcpSettings.tlsbindaddr
+                })(
+                    <Input type="text" maxLength="127" />
+                )}
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG5128" />}>
+                            <span>{formatMessage({id: "LANG5127"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tlsbindaddr6', {
+                    rules: [],
+                    initialValue: sipTcpSettings.tlsbindaddr6
+                })(
+                    <Input type="text" maxLength="127" />
+                )}
+            </FormItem>
+            <FormItem
+                className="hidden"
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1865" />}>
+                            <span>{formatMessage({id: "LANG1866"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tlsclientmethod', {
+                    rules: [],
+                    initialValue: sipTcpSettings.tlsclientmethod
+                })(
+                    <Select defaultValue="tlsv1" style={{ width: 200 }}>
+                        <Option value="tlsv1">TLSv1</Option>
+                        <Option value="sslv3">SSLv3</Option>
+                        <Option value="sslv2">SSLv2</Option>
+                    </Select>
+                )}
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1869" />}>
+                            <span>{formatMessage({id: "LANG1870"})}</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('tlsdontverifyserver', {
+                    rules: [],
+                    valuePropName: 'checked',
+                    initialValue: sipTcpSettings.tlsdontverifyserver === "yes" ? true : false
                 })(
                     <Checkbox />
                 ) }

@@ -6,8 +6,8 @@ module.exports = {
         "message": {
             "transactionid": "123456789zxa",
             "action": "login",
-            "username": cookie.load("username"),
-            "cookie": cookie.load("session-identify")
+            "username": "username",
+            "cookie": "session-identify"
         }
     },
     logout: {

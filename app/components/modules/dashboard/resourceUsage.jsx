@@ -1,8 +1,5 @@
 'use strict'
 
-import { bindActionCreators } from 'redux'
-import { connect } from 'react-redux'
-import * as Actions from '../../../actions/'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import { Card, Row, Col} from 'antd'
@@ -23,9 +20,31 @@ class ResourceUsage extends Component {
         }
     }
     componentDidMount() {
-        this.props.getResourceUsage()
+        this._getResourceUsage()
     }
     componentWillUnmount() {
+    }
+    _getResourceUsage = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: { 
+                action: 'getResourceUsage' 
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                let data = res.response
+
+                if (data) {
+                    let resourceUsage = data.body
+                    this._showChart(resourceUsage)
+                }
+            }.bind(this),
+            error: function(e) {
+                console.log(e.toString())
+            }
+        }) 
     }
     _showChart = (resourceUsage) => {
         let resourceUsageChart = echarts.init(document.getElementById('resourceUsage'))
@@ -184,46 +203,52 @@ class ResourceUsage extends Component {
                     }
                 ]
             }   
-            // for (let i = timesData.length - 1; i >= 0; i--) {
-            //     let timesDataIndex = timesData[i]
-            //     timesData[i] = Number(timesDataIndex.match(/^\d+/)[0]) + 10 + "s"
-            // }
+            // setInterval(function() {
+            //     for (let i = timesData.length - 1; i >= 0; i--) {
+            //         let timesDataIndex = timesData[i]
+            //         timesData[i] = Number(timesDataIndex.match(/^\d+/)[0]) + 5 + "s"
+            //     }
+            //     memoryUsageData = memoryUsageData.slice(1).concat(parseInt(Math.random() * 100))
+            //     cpuUsageData = cpuUsageData.slice(1).concat(parseInt(Math.random() * 100))
 
+            //     for (let i = memoryUsageData.length - 1; i >= 0; i--) {
+            //         let memoryUsageDataIndex = memoryUsageData[i]
+
+            //         if (memoryUsageDataIndex >= 100) {
+            //             memoryUsageData[i] = 50
+            //         }
+            //     }
+
+            //     for (let i = cpuUsageData.length - 1; i >= 0; i--) {
+            //         let cpuUsageDataIndex = cpuUsageData[i]
+
+            //         if (cpuUsageDataIndex >= 100) {
+            //             cpuUsageData[i] = 50
+            //         }
+            //     }
+
+            //     resourceUsageChart.setOption({
+            //         xAxis: {
+            //             data: timesData
+            //         },
+            //         series: [{
+            //             name: 'Memory Usage',
+            //             data: memoryUsageData
+            //         }, {
+            //             name: 'CPU Usage',
+            //             data: cpuUsageData
+            //         }]
+            //     })
+            // }, 5000)
             resourceUsageChart.setOption(option)
-            resourceUsageChart.setOption({
-                xAxis: {
-                    data: timesData
-                },
-                series: [{
-                    name: 'Memory Usage',
-                    data: memoryUsageData
-                }, {
-                    name: 'CPU Usage',
-                    data: cpuUsageData
-                }]
-            })
+            this.setState({
+                "cpu-percent": resourceUsage["cpu-usage"][resourceUsage["cpu-usage"].length - 1],
+                "memory-percent": resourceUsage["memory-usage"][resourceUsage["memory-usage"].length - 1],
+                "memory-total": resourceUsage["memory-total"]
+            })  
         }       
     }
-    _renderPercent = (resourceUsage, attr) => {
-        if (resourceUsage) {
-            if (attr === "cpu-percent" && resourceUsage["cpu-usage"]) {
-                return <font className="usage-rate-percent">{resourceUsage["cpu-usage"][resourceUsage["cpu-usage"].length - 1] + "%"}</font>
-            } else if (attr === "memory-percent" && resourceUsage["memory-usage"]) {
-                return <font className="usage-rate-percent">{resourceUsage["memory-usage"][resourceUsage["memory-usage"].length - 1] + "%"}</font>
-            } else if (attr === "memory-total") {
-                return <font className="usage-rate-space">{resourceUsage["memory-total"]}</font>
-            }
-        }
-    }
     render() {
-        const me = this
-        let resourceUsage = this.props.resourceUsage
-
-        if (resourceUsage) {
-            setTimeout(() => {
-                me._showChart(resourceUsage)
-            }, 200) 
-        }
         return (
             <div className="resource-usage">
                 <Card title="Resource Usage" bordered={true}>
@@ -236,16 +261,16 @@ class ResourceUsage extends Component {
                                 <div className="usage-rate usage-rate-cpu">
                                     <Col className="gutter-row" xs={{ span: 24}} sm={{ span: 24}} md={{ span: 24}} lg={{ span: 24}}>
                                         <div>
-                                            <span>CPU Usage</span>
+                                            <span>Memory Usage</span>
                                         </div>
                                         <div>
-                                            {this._renderPercent(resourceUsage, "cpu-percent")}
-                                            <span className="sprite sprite-resurce-up"></span>
+                                            <font className="usage-rate-percent">{this.state["memory-percent"] + "%"}</font>
+                                            <span className="sprite sprite-resurce-down"></span>
                                         </div>
-                                        {/* <div>
-                                            <font className="usage-rate-space">{this.state["cpu-usage"]}</font>
+                                        <div>
+                                            <font className="usage-rate-space">{this.state["memory-total"] + "M"}</font>
                                             <font className="usage-rate-total">Total</font>
-                                        </div> */}
+                                        </div>
                                     </Col>
                                 </div>
                             </Row>
@@ -254,16 +279,16 @@ class ResourceUsage extends Component {
                                 <div className="usage-rate">
                                     <Col className="gutter-row" xs={{ span: 24}} sm={{ span: 24}} md={{ span: 24}} lg={{ span: 24}}>
                                         <div>
-                                            <span>Memory Usage</span>
+                                            <span>CPU Usage</span>
                                         </div>
                                         <div>
-                                            {this._renderPercent(resourceUsage, "memory-percent")}
-                                            <span className="sprite sprite-resurce-down"></span>
+                                            <font className="usage-rate-percent">{this.state["cpu-percent"] + "%"}</font>
+                                            <span className="sprite sprite-resurce-up"></span>
                                         </div>
-                                        <div>
-                                            {this._renderPercent(resourceUsage, "memory-total")}
+                                        {/* <div>
+                                            <font className="usage-rate-space">{this.state["cpu-usage"]}</font>
                                             <font className="usage-rate-total">Total</font>
-                                        </div>
+                                        </div> */}
                                     </Col>
                                 </div>
                             </Row>
@@ -275,15 +300,4 @@ class ResourceUsage extends Component {
     }
 }
 
-ResourceUsage.defaultProps = {
-}
-
-const mapStateToProps = (state) => ({
-    resourceUsage: state.resourceUsage
-})
-
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(Actions, dispatch)
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(ResourceUsage))
+export default injectIntl(ResourceUsage)

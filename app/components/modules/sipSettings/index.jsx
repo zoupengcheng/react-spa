@@ -23,14 +23,18 @@ class SipSettings extends Component {
             SIPGenSettings: {},
             sipMiscSettings: {},
             sipSessiontimerSettings: {},
-            sipTcpSettings: {}
+            sipTcpSettings: {},
+            sipNatSettings: {},
+            siptosSettings: {}
         }
     }
     componentDidMount() {
         this._getSIPGenSettings()
         this._getSIPMiscSettings()
-        this._getSIPSSTimerSettings()
+        this._getSIPSTimerSettings()
         this._getSIPTCPSettings()
+        this._getSIPNATSettings()
+        this._getTOSSettings()
     }
     componentWillUnmount() {
 
@@ -86,7 +90,7 @@ class SipSettings extends Component {
             }.bind(this)
         })        
     }
-    _getSIPSSTimerSettings = () => {
+    _getSIPSTimerSettings = () => {
         $.ajax({
             url: api.apiHost,
             method: "post",
@@ -125,6 +129,50 @@ class SipSettings extends Component {
                         sipTcpSettings = res.sip_tcp_settings
                     this.setState({
                         sipTcpSettings: sipTcpSettings
+                    })
+                }
+            }.bind(this)
+        })        
+    }
+    _getSIPNATSettings = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getSIPNATSettings' },
+            type: 'json',
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let res = data.response,
+                        sipNatSettings = res.sip_nat_settings
+                    this.setState({
+                        sipNatSettings: sipNatSettings
+                    })
+                }
+            }.bind(this)
+        })        
+    }
+    _getTOSSettings = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getTOSSettings' },
+            type: 'json',
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let res = data.response,
+                        siptosSettings = res.siptos_settings
+                    this.setState({
+                        siptosSettings: siptosSettings
                     })
                 }
             }.bind(this)

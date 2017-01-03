@@ -16,7 +16,7 @@ const CustomizedForm = injectIntl(Form.create({
         props.onChange(changedFields)
     }
 })((props) => {
-    const { formatMessage } = props.intl
+    const { formatMessage, formatHTMLMessage } = props.intl
     const { getFieldDecorator } = props.form
 
     const formItemLayout = {
@@ -88,10 +88,7 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={<FormattedHTMLMessage
-                                    id="LANG1049"
-                                    defaultMessage="LANG1049" />
-                                }>
+                                <Tooltip title={<FormattedHTMLMessage id="LANG1049" />}>
                                     <span>{formatMessage({id: "LANG1049"})}</span>
                                 </Tooltip>
                             </span>
@@ -110,10 +107,7 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={<FormattedHTMLMessage
-                                    id="LANG4021"
-                                    defaultMessage="LANG4021" />
-                                }>
+                                <Tooltip title={<FormattedHTMLMessage id="LANG4021" />}>
                                     <span>{formatMessage({id: "LANG2216"})}</span>
                                 </Tooltip>
                             </span>
@@ -243,10 +237,7 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayoutCheckGroup }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage
-                            id="LANG4783"
-                            defaultMessage="LANG4783" />
-                        }>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG4783" />}>
                             <span>{formatMessage({id: "LANG2235"})}</span>
                         </Tooltip>
                     </span>

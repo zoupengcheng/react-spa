@@ -95,6 +95,8 @@ const Login = React.createClass({
             success: function(res) {
                 if ((typeof res === 'object') && res.hasOwnProperty('status')) {
                     if (res.status === 0) {
+                        cookie.save('adminId', res.response.user.user_id)
+                        cookie.save('username', username)
                         localStorage.setItem('adminId', res.response.user.user_id)
                         localStorage.setItem('username', username)
 
@@ -116,7 +118,11 @@ const Login = React.createClass({
 
                         // UCMGUI.loginFunction.checkTrigger()
                         if (window.socket) {
-                            window.socket.send(SubscribeEvent.login)
+                            let loginSubscribe = SubscribeEvent.login
+                            loginSubscribe.message.username = cookie.load("username")
+                            loginSubscribe.message.cookie = cookie.load("session-identify")
+                            
+                            window.socket.send(loginSubscribe)
                         }
                         browserHistory.push('/system-status/dashboard')
                         // $(".errorInfo").css("visibility", "hidden")

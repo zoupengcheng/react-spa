@@ -82,7 +82,10 @@ var socketjs = (function() {
                 }
 
                 // let the server know we reconnected from a previously severed connection
-                // outgoingQueue.push(SubscribeEvent.login)
+                // let loginSubscribe = SubscribeEvent.login
+                // loginSubscribe.message.username = cookie.load("username")
+                // loginSubscribe.message.cookie = cookie.load("session-identify")
+                // outgoingQueue.push(loginSubscribe)
             }
 
             // send any messages in the queue
@@ -173,7 +176,10 @@ var socketjs = (function() {
 
             // let the server know this is the first connection (we aren't
             // reconnecting from a temporary network failure)
-            // outgoingQueue.push(SubscribeEvent.login)
+            // let loginSubscribe = SubscribeEvent.login
+            // loginSubscribe.message.username = cookie.load("username")
+            // loginSubscribe.message.cookie = cookie.load("session-identify")
+            // outgoingQueue.push(loginSubscribe)
             // flushOutgoingQueue()
 
             return {

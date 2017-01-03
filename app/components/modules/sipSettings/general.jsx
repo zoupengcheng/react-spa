@@ -1,8 +1,8 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import {injectIntl} from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Popover, Select, Tabs } from 'antd'
+import { FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
@@ -23,7 +23,7 @@ const CustomizedForm = injectIntl(Form.create({
     const { formatMessage } = props.intl
     const SIPGenSettings = props.dataSource
     const formItemLayout = {
-        labelCol: { span: 3 },
+        labelCol: { span: 6 },
         wrapperCol: { span: 6 }
     }
 
@@ -34,11 +34,9 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Popover 
-                                title={ formatMessage({id: "LANG1751"}) } 
-                                content={ formatMessage({id: "LANG1766"}) }>
-                                <span>{ formatMessage({id: "LANG1751"}) }</span>
-                            </Popover>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG1766" />}>
+                                <span>{formatMessage({id: "LANG1751"})}</span>
+                            </Tooltip>
                         </span>
                     )}>
                     { getFieldDecorator('context', {
@@ -49,11 +47,10 @@ const CustomizedForm = injectIntl(Form.create({
                             validator: (data, value, callback) => {
                                 Validator.letterswithbasicpunc(data, value, callback, formatMessage)
                             }
-                        }
-                        ],
+                        }],
                         initialValue: SIPGenSettings.context
                     })(
-                        <Input type="text" />
+                        <Input type="text" maxLength="20" />
                     ) }
                 </FormItem>
             </div>
@@ -61,11 +58,9 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1765"}) } 
-                            content={ formatMessage({id: "LANG1766"}) }>
-                            <span>{ formatMessage({id: "LANG1765"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1766" />}>
+                            <span>{formatMessage({id: "LANG1765"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('realm', {
@@ -80,18 +75,16 @@ const CustomizedForm = injectIntl(Form.create({
                     ],
                     initialValue: SIPGenSettings.realm
                 })(
-                    <Input type="text" />
+                    <Input type="text" maxLength="30" />
                 ) }
             </FormItem>
             <FormItem
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1768"}) } 
-                            content={ formatMessage({id: "LANG1767"}) }>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1767" />}>
                             <span>{ formatMessage({id: "LANG1768"}) }</span>
-                        </Popover>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('bindport', {
@@ -102,18 +95,16 @@ const CustomizedForm = injectIntl(Form.create({
                     }],
                     initialValue: SIPGenSettings.bindport
                 })(
-                    <InputNumber min={1} max={65535} />
+                    <InputNumber min={1} max={65535} maxLength="6" />
                 ) }
             </FormItem>
             <FormItem
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1759"}) } 
-                            content={ formatMessage({id: "LANG1760"}) }>
-                            <span>{ formatMessage({id: "LANG1759"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1760" />}>
+                            <span>{formatMessage({id: "LANG1759"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('bindaddr', {
@@ -127,18 +118,16 @@ const CustomizedForm = injectIntl(Form.create({
                         }],
                     initialValue: SIPGenSettings.bindaddr
                 })(
-                    <Input type="text" />
+                    <Input type="text" maxLength="40" />
                 ) }
             </FormItem>
             <FormItem
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG5123"}) } 
-                            content={ formatMessage({id: "LANG5124"}) }>
-                            <span>{ formatMessage({id: "LANG5123"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG5124" />}>
+                            <span>{formatMessage({id: "LANG5123"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('bindaddr6', {
@@ -152,18 +141,16 @@ const CustomizedForm = injectIntl(Form.create({
                         }],
                     initialValue: SIPGenSettings.bindaddr6
                 })(
-                    <Input type="text" />
+                    <Input type="text" maxLength="44" />
                 ) }
             </FormItem>
             <FormItem
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1745"}) } 
-                            content={ formatMessage({id: "LANG1746"}) }>
-                            <span>{ formatMessage({id: "LANG1745"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1746" />}>
+                            <span>{formatMessage({id: "LANG1745"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('allowguest', {
@@ -178,11 +165,9 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1747"}) } 
-                            content={ formatMessage({id: "LANG1748"}) }>
-                            <span>{ formatMessage({id: "LANG1747"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1748" />}>
+                            <span>{formatMessage({id: "LANG1747"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('allowtransfer', {
@@ -197,11 +182,9 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG1761"}) } 
-                            content={ formatMessage({id: "LANG1762"}) }>
-                            <span>{ formatMessage({id: "LANG1761"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1762" />}>
+                            <span>{formatMessage({id: "LANG1761"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('mwi_from', {
@@ -212,18 +195,16 @@ const CustomizedForm = injectIntl(Form.create({
                         }],
                     initialValue: SIPGenSettings.mwi_from
                 })(
-                    <Input type="text" />
+                    <Input type="text" maxLength="30" />
                 ) }
             </FormItem>
             <FormItem
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Popover 
-                            title={ formatMessage({id: "LANG4578"}) } 
-                            content={ formatMessage({id: "LANG4579"}) }>
-                            <span>{ formatMessage({id: "LANG4578"}) }</span>
-                        </Popover>
+                        <Tooltip title={<FormattedHTMLMessage id="LANG4579" />}>
+                            <span>{formatMessage({id: "LANG4578"})}</span>
+                        </Tooltip>
                     </span>
                 )}>
                 { getFieldDecorator('enable_diversion', {

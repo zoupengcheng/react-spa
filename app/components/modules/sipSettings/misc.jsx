@@ -1,10 +1,11 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import {injectIntl} from 'react-intl'
+import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
+import Validator from "../../api/validator"
 
 class Misc extends Component {
     constructor(props) {
@@ -53,7 +54,7 @@ const CustomizedForm = injectIntl(Form.create({
     const { formatMessage } = props.intl
     const sipMiscSettings = props.dataSource
     const formItemLayout = {
-        labelCol: { span: 3 },
+        labelCol: { span: 6 },
         wrapperCol: { span: 6 }
     }
     
@@ -67,40 +68,32 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={ formatMessage({id: "LANG1894"}) }>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG1894" />}>
                                 <span>{formatMessage({id: "LANG1893"})}</span>
                             </Tooltip>
                         </span>
                     )}>
                     { getFieldDecorator('registertimeout', {
-                        rules: [{ 
-                                required: true, 
-                                message: formatMessage({id: "LANG2150"})
-                            }
-                        ],
+                        rules: [],
                         initialValue: sipMiscSettings.registertimeout
                     })(
-                        <Input type="text" />
+                        <Input type="text" maxLength="8" />
                     )}
                 </FormItem>
                 <FormItem
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={ formatMessage({id: "LANG1894"}) }>
-                                <span>{formatMessage({id: "LANG1893"})}</span>
+                            <Tooltip title={ formatMessage({id: "LANG1891"}) }>
+                                <span>{formatMessage({id: "LANG1890"})}</span>
                             </Tooltip>
                         </span>
                     )}>
-                    { getFieldDecorator('registertimeout', {
-                        rules: [{ 
-                                required: true, 
-                                message: formatMessage({id: "LANG2150"})
-                            }
-                        ],
-                        initialValue: sipMiscSettings.registertimeout
+                    { getFieldDecorator('registerattempts', {
+                        rules: [],
+                        initialValue: sipMiscSettings.registerattempts
                     })(
-                        <Input type="text" />
+                        <Input type="text" maxLength="4" />
                     )}
                 </FormItem>
             </div>
@@ -112,20 +105,50 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={ formatMessage({id: "LANG1894"}) }>
-                                <span>{formatMessage({id: "LANG1893"})}</span>
+                            <Tooltip title={ formatMessage({id: "LANG1887"}) }>
+                                <span>{formatMessage({id: "LANG1886"})}</span>
                             </Tooltip>
                         </span>
                     )}>
-                    { getFieldDecorator('registertimeout', {
-                        rules: [{ 
-                                required: true, 
-                                message: formatMessage({id: "LANG2150"})
-                            }
-                        ],
-                        initialValue: sipMiscSettings.registertimeout
+                    { getFieldDecorator('maxcallbitrate', {
+                        rules: [],
+                        initialValue: sipMiscSettings.maxcallbitrate
                     })(
-                        <Input type="text" />
+                        <Input type="text" maxLength="8" />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={(
+                        <span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG1746" />}>
+                                <span>{formatMessage({id: "LANG1745"})}</span>
+                            </Tooltip>
+                        </span>
+                    )}>
+                    { getFieldDecorator('videosupport', {
+                        rules: [],
+                        valuePropName: 'checked',
+                        initialValue: sipMiscSettings.videosupport === "yes" ? true : false
+                    })(
+                        <Checkbox />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={(
+                        <span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG1897" />}>
+                                <span>{formatMessage({id: "LANG1896"})}</span>
+                            </Tooltip>
+                        </span>
+                    )}>
+                    { getFieldDecorator('alwaysauthreject', {
+                        rules: [],
+                        valuePropName: 'checked',
+                        initialValue: sipMiscSettings.alwaysauthreject === "yes" ? true : false
+                    })(
+                        <Checkbox />
                     )}
                 </FormItem>
             </div>
@@ -137,20 +160,17 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={ formatMessage({id: "LANG1894"}) }>
-                                <span>{formatMessage({id: "LANG1893"})}</span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG4551" />}>
+                                <span>{formatMessage({id: "LANG4552"})}</span>
                             </Tooltip>
                         </span>
                     )}>
-                    { getFieldDecorator('registertimeout', {
-                        rules: [{ 
-                                required: true, 
-                                message: formatMessage({id: "LANG2150"})
-                            }
-                        ],
-                        initialValue: sipMiscSettings.registertimeout
+                    { getFieldDecorator('attr_passthrough', {
+                        rules: [],
+                        valuePropName: 'checked',
+                        initialValue: sipMiscSettings.attr_passthrough === "yes" ? true : false
                     })(
-                        <Input type="text" />
+                        <Checkbox />
                     )}
                 </FormItem>
             </div>
@@ -162,20 +182,17 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={ formatMessage({id: "LANG1894"}) }>
-                                <span>{formatMessage({id: "LANG1893"})}</span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG4775" />}>
+                                <span>{formatMessage({id: "LANG4776"})}</span>
                             </Tooltip>
                         </span>
                     )}>
-                    { getFieldDecorator('registertimeout', {
-                        rules: [{ 
-                                required: true, 
-                                message: formatMessage({id: "LANG2150"})
-                            }
-                        ],
-                        initialValue: sipMiscSettings.registertimeout
+                    { getFieldDecorator('use_final_sdp', {
+                        rules: [],
+                        valuePropName: 'checked',
+                        initialValue: sipMiscSettings.use_final_sdp === "yes" ? true : false
                     })(
-                        <Input type="text" />
+                        <Checkbox />
                     )}
                 </FormItem>
             </div>
@@ -187,18 +204,30 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={ formatMessage({id: "LANG1894"}) }>
-                                <span>{formatMessage({id: "LANG1893"})}</span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5042" />}>
+                                <span>{formatMessage({id: "LANG5043"})}</span>
                             </Tooltip>
                         </span>
                     )}>
-                    { getFieldDecorator('registertimeout', {
-                        rules: [{ 
-                                required: true, 
-                                message: formatMessage({id: "LANG2150"})
-                            }
-                        ],
-                        initialValue: sipMiscSettings.registertimeout
+                    { getFieldDecorator('rtp_proxy', {
+                        rules: [],
+                        initialValue: sipMiscSettings.rtp_proxy
+                    })(
+                        <Input type="text" />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={(
+                        <span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG1889" />}>
+                                <span>{formatMessage({id: "LANG1888"})}</span>
+                            </Tooltip>
+                        </span>
+                    )}>
+                    { getFieldDecorator('g726nonstandard', {
+                        rules: [],
+                        initialValue: sipMiscSettings.g726nonstandard
                     })(
                         <Input type="text" />
                     )}

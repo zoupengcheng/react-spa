@@ -1,7 +1,7 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import {injectIntl} from 'react-intl'
+import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 
 class Nat extends Component {
     constructor(props) {
