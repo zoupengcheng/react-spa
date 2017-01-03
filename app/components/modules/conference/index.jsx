@@ -1,27 +1,63 @@
 'use strict'
 
-import React from 'react'
+import { browserHistory } from 'react-router'
+import React, { Component, PropTypes } from 'react'
+import { FormattedMessage, injectIntl } from 'react-intl'
+import { Form, message, Tabs } from 'antd'
+import $ from 'jquery'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
+import Room from './room'
+import Schedule from './schedule'
+import GoogleSettings from './googleSettings'
+import ConferenceRecord from './conferenceRecord'
 
-const ActivityCalls = React.createClass({
-    getDefaultProps() {
+const TabPane = Tabs.TabPane
 
-    },
-    getInitialState() {
-        return {
+class Conference extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            activeTabKey: '1'
         }
-    },
+    }
+    componentWillMount() {
+    }
     componentDidMount() {
-
-    },
-    componentWillReceiveProps(nextProps) {
-
-    },
+    }
+    _onTabsChange = (activeTabKey) => {
+        this.setState({ activeTabKey })
+    }
     render() {
+        const { formatMessage } = this.props.intl
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: model_info.model_name,
+                    1: formatMessage({id: "LANG18"})
+                })
+
         return (
-            <div>
+            <div className="app-content-main">
+                <Title headerTitle={ formatMessage({id: "LANG18"}) } isDisplay='hidden' />
+                <Tabs activeKey={ this.state.activeTabKey } onChange={ this._onTabsChange }>
+                    <TabPane tab={ formatMessage({id: "LANG18"}) } key="1">
+                        <Room />
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG3775"}) } key="2">
+                        <Schedule />
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG3513"}) } key="3">
+                        <GoogleSettings />
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG1038"}) } key="4">
+                        <ConferenceRecord />
+                    </TabPane>
+                </Tabs>
             </div>
         )
     }
-})
+}
 
-module.exports = ActivityCalls
+export default Form.create()(injectIntl(Conference))

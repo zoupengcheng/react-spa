@@ -13,14 +13,14 @@ class Queue extends Component {
         super(props)
 
         this.state = {
-            extgroupObj: {},
-            extgroupList: [],
-            callQueueList: []
+            // extgroupObj: {},
+            // extgroupList: [],
+            // callQueueList: []
         }
     }
     componentDidMount () {
-        this._getExtensionGroupList()
-        this._getCallQueue()
+        // this._getExtensionGroupList()
+        // this._getCallQueue()
     }
     _add = () => {
         browserHistory.push('/call-features/callQueue/add')
@@ -51,7 +51,7 @@ class Queue extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getCallQueue()
+                    this.props.refreshCallQueue()
                 }
             }.bind(this),
             error: function(e) {
@@ -188,7 +188,7 @@ class Queue extends Component {
                     const extgroupLabel = formatMessage({id: "LANG2714"})
 
                     members = members.map(function(value, index) {
-                            const item = this.state.extgroupObj[value]
+                            const item = this.props.extgroupObj[value]
 
                             if (item) {
                                 return extgroupLabel + "--" + item.group_name
@@ -257,7 +257,7 @@ class Queue extends Component {
                 }
             }]
         const pagination = {
-                total: this.state.callQueueList.length,
+                total: this.props.callQueueList.length,
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
@@ -313,8 +313,8 @@ class Queue extends Component {
                         rowKey="extension"
                         columns={ columns }
                         pagination={ pagination }
-                        dataSource={ this.state.callQueueList }
-                        showHeader={ !!this.state.callQueueList.length }
+                        dataSource={ this.props.callQueueList }
+                        showHeader={ !!this.props.callQueueList.length }
                     />
                 </div>
             </div>

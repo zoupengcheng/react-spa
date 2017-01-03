@@ -639,11 +639,12 @@ li {
 }
 .section-title {
     clear: both;
-    font-size: 13px;
+    color: #596680;
+    font-size: 16px;
     font-weight: bold;
-    color: #3B3B3B;
-    background-color: #d3d3d3;
-    padding: 5px 5px 5px 20px;
+    margin-bottom: 15px;
+    padding: 5px 5px 10px 0;
+    border-bottom: 1px dashed #ddd;
 }
 
 .section-body {
@@ -837,6 +838,21 @@ li {
     top: -2px;
 }
 
+#cdr-record .record-list {
+    background: #f3f7fa;
+    padding: 5px 20px 5px 15px;
+    margin-bottom: 10px;
+}
+
+#cdr-record .record-item {
+    position: relative;
+    bottom: 6px;
+}
+
+#cdr-record .record-btn {
+    float: right;
+}
+
 /*
  * Sprite
  */
@@ -850,7 +866,7 @@ li {
 .sprite-menu {
     background-position: -1px -33px;
     width: 22px;
-    height: 13px;   
+    height: 13px;
 }
 
 .sprite-menu:hover {
@@ -1205,7 +1221,7 @@ li {
     background-position: -358px 0;
 }
 
-.sprit-cdr-answer {
+.sprite-cdr-answer {
     background-position: -194px -52px;
     width: 19px;
     height: 19px;
@@ -1229,13 +1245,13 @@ li {
     height: 19px;
 }
 
-.sptite-record-icon {
+.sprite-record-icon {
     background-position: -426px -55px;
     width: 19px;
     height: 13px;
 }
 
-.sptite-record-icon:hover {
+.sprite-record-icon:hover {
     background-position: -446px -55px;
     width: 19px;
     height: 13px;
@@ -1264,4 +1280,11 @@ li {
     background-position: -63px -85px;
     width: 20px;
     height: 20px;
+}
+
+.sprite-record {
+    background-position: -273px 0;
+    width: 30px;
+    height: 20px;
+    margin-right: 12px;
 }

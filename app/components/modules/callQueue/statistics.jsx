@@ -40,13 +40,16 @@ class Statistics extends Component {
             QueueStatDistributionByAgent: [],
             QueueStatDistributionByHour: [],
             QueueStatDistributionByDay: [],
-            QueueStatDistributionByWeek: []
+            QueueStatDistributionByWeek: [],
+            QueueStatDistributionByMonth: [],
+            QueueStatDistributionByDayOfWeek: []
         }
     }
     componentWillMount() {
         this._getInitData()
     }
     componentDidMount() {
+        this._getStatisticDetails()
     }
     _checkTimeFormat = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
@@ -222,6 +225,8 @@ class Statistics extends Component {
         this._listQueueStatDistributionByHour()
         this._listQueueStatDistributionByDay()
         this._listQueueStatDistributionByWeek()
+        this._listQueueStatDistributionByMonth()
+        this._listQueueStatDistributionByDayOfWeek()
     }
     _getQueueReport = () => {
         const { formatMessage } = this.props.intl
@@ -268,43 +273,55 @@ class Statistics extends Component {
                 let QueueStatTotal = [{
                         key: '1',
                         name: formatMessage({id: "LANG5362"}),
-                        value: total.answered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                        value: total.received_calls + ' ' + formatMessage({id: "LANG5409"}).toLowerCase()
                     }, {
                         key: '2',
+                        name: formatMessage({id: "LANG5362"}),
+                        value: total.answered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                    }, {
+                        key: '3',
                         name: formatMessage({id: "LANG5363"}),
                         value: total.unanswered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
                     }, {
-                        key: '3',
+                        key: '4',
                         name: formatMessage({id: "LANG5364"}),
                         value: total.abandoned_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
                     }, {
-                        key: '4',
+                        key: '5',
+                        name: formatMessage({id: "LANG5364"}),
+                        value: total.transferred_calls + ' ' + formatMessage({id: "LANG5410"}).toLowerCase()
+                    }, {
+                        key: '6',
                         name: formatMessage({id: "LANG5365"}),
                         value: total.answered_rate + ' %'
                     }, {
-                        key: '5',
+                        key: '7',
                         name: formatMessage({id: "LANG5366"}),
                         value: total.unanswered_rate + ' %'
                     }, {
-                        key: '6',
+                        key: '8',
                         name: formatMessage({id: "LANG5367"}),
                         value: total.abandoned_rate + ' %'
                     }, {
-                        key: '7',
+                        key: '9',
+                        name: formatMessage({id: "LANG5411"}),
+                        value: total.transferred_rate + ' %'
+                    }, {
+                        key: '10',
                         name: formatMessage({id: "LANG5368"}),
                         value: total.agent_login
                     }, {
-                        key: '8',
+                        key: '11',
                         name: formatMessage({id: "LANG5369"}),
                         value: total.agent_logoff
                     }, {
-                        key: '9',
+                        key: '12',
                         name: formatMessage({id: "LANG5370"}),
-                        value: total.avg_talk + ' ' + formatMessage({id: "LANG5372"}).toLowerCase()
+                        value: UCMGUI.formatSeconds(total.avg_talk)
                     }, {
-                        key: '10',
+                        key: '13',
                         name: formatMessage({id: "LANG5371"}),
-                        value: total.avg_wait + ' ' + formatMessage({id: "LANG5372"}).toLowerCase()
+                        value: UCMGUI.formatSeconds(total.avg_wait)
                     }]
 
                 this.setState({
@@ -369,9 +386,7 @@ class Statistics extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'listQueueStatDistributionByHour',
-                sidx: 'hour',
-                sord: 'asc'
+                action: 'listQueueStatDistributionByHour'
             },
             type: 'json',
             // async: false,
@@ -393,9 +408,7 @@ class Statistics extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'listQueueStatDistributionByDay',
-                sidx: 'date',
-                sord: 'asc'
+                action: 'listQueueStatDistributionByDay'
             },
             type: 'json',
             // async: false,
@@ -412,14 +425,34 @@ class Statistics extends Component {
             }
         })
     }
+    _listQueueStatDistributionByDayOfWeek = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listQueueStatDistributionByDayOfWeek'
+            },
+            type: 'json',
+            // async: false,
+            success: function(res) {
+                const response = res.response || {}
+                const QueueStatDistributionByDayOfWeek = response.distribution_by_day_of_week || []
+
+                this.setState({
+                    QueueStatDistributionByDayOfWeek: QueueStatDistributionByDayOfWeek
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
+    }
     _listQueueStatDistributionByWeek = () => {
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'listQueueStatDistributionByWeek',
-                sidx: 'week',
-                sord: 'asc'
+                action: 'listQueueStatDistributionByWeek'
             },
             type: 'json',
             // async: false,
@@ -429,6 +462,28 @@ class Statistics extends Component {
 
                 this.setState({
                     QueueStatDistributionByWeek: QueueStatDistributionByWeek
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.toString())
+            }
+        })
+    }
+    _listQueueStatDistributionByMonth = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listQueueStatDistributionByMonth'
+            },
+            type: 'json',
+            // async: false,
+            success: function(res) {
+                const response = res.response || {}
+                const QueueStatDistributionByMonth = response.distribution_by_month || []
+
+                this.setState({
+                    QueueStatDistributionByMonth: QueueStatDistributionByMonth
                 })
             }.bind(this),
             error: function(e) {
@@ -448,13 +503,30 @@ class Statistics extends Component {
 
                 message.loading(formatMessage({ id: "LANG5360" }), 0)
 
+                const selectQueues = values.queue
+                const selectAgents = values.agent
+                const endDate = this._parseDateToString(values.end_date._d)
+                const startDate = this._parseDateToString(values.start_date._d)
+                const period = (1 + this._daysBetween(
+                            values.start_date._d,
+                            values.end_date._d
+                        ))
+
+                this.setState({
+                    period: period,
+                    endDate: endDate,
+                    startDate: startDate,
+                    selectQueues: selectQueues,
+                    selectAgents: selectAgents
+                })
+
                 let action = {
-                    action: 'updateQueueReport',
-                    end_date: this.state.endDate,
-                    start_date: this.state.startDate,
-                    queue: this.state.selectQueues.join(),
-                    agent: this.state.selectAgents.join(),
-                    period: this.state.period
+                    period: period,
+                    end_date: endDate,
+                    start_date: startDate,
+                    queue: selectQueues.join(),
+                    agent: selectAgents.join(),
+                    action: 'updateQueueReport'
                 }
 
                 $.ajax({
@@ -479,16 +551,6 @@ class Statistics extends Component {
             }
         })
     }
-    _onTimeChange = (date, dateString) => {
-        this.setState({
-            endDate: dateString[1],
-            startDate: dateString[0],
-            period: (1 + this._daysBetween(
-                this._parseDate(dateString[0]),
-                this._parseDate(dateString[1])
-            ))
-        })
-    }
     _onFocus = (e) => {
         e.preventDefault()
 
@@ -496,10 +558,13 @@ class Statistics extends Component {
 
         form.validateFields([e.target.id], { force: true })
     }
-    _parseDate = (str) => {
+    _parseStringToDate = (str) => {
         const ymd = str.split('-')
 
         return new Date(ymd[0], ymd[1] - 1, ymd[2])
+    }
+    _parseDateToString = (date) => {
+        return (date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
     }
     render() {
         const form = this.props.form
@@ -693,6 +758,8 @@ class Statistics extends Component {
                             QueueStatDistributionByHour= { this.state.QueueStatDistributionByHour }
                             QueueStatDistributionByDay= { this.state.QueueStatDistributionByDay }
                             QueueStatDistributionByWeek= { this.state.QueueStatDistributionByWeek }
+                            QueueStatDistributionByMonth= { this.state.QueueStatDistributionByMonth }
+                            QueueStatDistributionByDayOfWeek= { this.state.QueueStatDistributionByDayOfWeek }
                         />
                     </Card>
                 </div>

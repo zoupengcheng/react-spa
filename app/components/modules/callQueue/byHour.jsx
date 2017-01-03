@@ -32,6 +32,7 @@ class ByHour extends Component {
         return (
             <Table
                 rowKey="hour"
+                scroll={{ x: 2000 }}
                 pagination={ pagination }
                 columns={ hourColumn.concat(generalColumns) }
                 dataSource={ this.props.QueueStatDistributionByHour }

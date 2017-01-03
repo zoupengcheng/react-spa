@@ -32,6 +32,7 @@ class ByQueue extends Component {
         return (
             <Table
                 rowKey="queue"
+                scroll={{ x: 2000 }}
                 pagination={ pagination }
                 columns={ queueColumn.concat(generalColumns) }
                 dataSource={ this.props.QueueStatDistributionByQueue }

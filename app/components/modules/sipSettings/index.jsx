@@ -25,7 +25,7 @@ class SipSettings extends Component {
             sipSessiontimerSettings: {},
             sipTcpSettings: {},
             sipNatSettings: {},
-            siptosSettings: {}
+            sipTosSettings: {}
         }
     }
     componentDidMount() {
@@ -170,9 +170,9 @@ class SipSettings extends Component {
 
                 if (bool) {
                     let res = data.response,
-                        siptosSettings = res.siptos_settings
+                        sipTosSettings = res.siptos_settings
                     this.setState({
-                        siptosSettings: siptosSettings
+                        sipTosSettings: sipTosSettings
                     })
                 }
             }.bind(this)
@@ -335,6 +335,81 @@ class SipSettings extends Component {
                 }
             }.bind(this)
         })
+        
+        let sipNatSettingsAction = {}
+        sipNatSettingsAction["action"] = "updateSIPNATSettings"
+
+        _.each(this.state.sipNatSettings, function(num, key) {
+            if (_.isObject(num)) {
+                if (typeof (num.errors) === "undefined") {
+                    if (num.value === true) {
+                        sipNatSettingsAction[key] = "yes"  
+                    } else if (num.value === false) {
+                        sipNatSettingsAction[key] = "no" 
+                    } else {
+                        sipNatSettingsAction[key] = num.value
+                    } 
+                } else {
+                    return
+                }
+            } else {
+                sipNatSettingsAction[key] = num
+            }
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: sipNatSettingsAction,
+            type: 'json',
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                }
+            }.bind(this)
+        })
+        let sipTosSettingsAction = {}
+        sipTosSettingsAction["action"] = "updateTOSSettings"
+
+        _.each(this.state.sipTcpSettings, function(num, key) {
+            if (_.isObject(num)) {
+                if (typeof (num.errors) === "undefined") {
+                    if (num.value === true) {
+                        sipTosSettingsAction[key] = "yes"  
+                    } else if (num.value === false) {
+                        sipTosSettingsAction[key] = "no" 
+                    } else {
+                        sipTosSettingsAction[key] = num.value
+                    } 
+                } else {
+                    return
+                }
+            } else {
+                sipTosSettingsAction[key] = num
+            }
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: sipTosSettingsAction,
+            type: 'json',
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                }
+            }.bind(this)
+        })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -375,10 +450,14 @@ class SipSettings extends Component {
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG44"})} key="5">
-                        <Nat />
+                        <Nat 
+                            dataSource={this.state.sipNatSettings}
+                        />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG45"})} key="6">
-                        <Tos />
+                        <Tos 
+                            dataSource={this.state.sipTosSettings}
+                        />
                     </TabPane>
                 </Tabs>
             </div>

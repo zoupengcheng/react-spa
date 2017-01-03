@@ -87,6 +87,7 @@ class ByWeek extends Component {
             <div>
                 <Table
                     rowKey="week"
+                    scroll={{ x: 2000 }}
                     pagination={ pagination }
                     columns={ weekColumn.concat(generalColumns) }
                     dataSource={ this.props.QueueStatDistributionByWeek }

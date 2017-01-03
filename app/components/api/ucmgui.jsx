@@ -91,16 +91,32 @@ UCMGUI.prototype = {
             "6": "LANG2985" // CGICODE_FILE_OP_ERR_PRE_CHECK
         }
     },
-    makeSyncRequest: function(params) { // for making synchronus requests
-        // usage ::  UCMGUI.makeSyncRequest ( { action :'getconfig', filename: 'something.conf' } ) // no need for call back function
-        let s = $.ajax({
-            type: 'POST',
-            url: this.initConfig.paths.baseServerURl,
-            data: params,
-            async: false
-        })
+    addZero: function(num) {
+        const number = Math.floor(num)
 
-        return s.responseText
+        return ((number <= 9) ? ("0" + number) : number)
+    },
+    formatSeconds: function(value) { // xxx seconds to 00:00:00 format
+        let second = parseInt(value)
+        
+        if (!isNaN(second)) {
+            let minute = 0
+            let hour = 0
+
+            if (second > 60) {
+                minute = parseInt(second / 60)
+                second = parseInt(second % 60)
+
+                if (minute > 60) {
+                    hour = parseInt(minute / 60)
+                    minute = parseInt(minute % 60)
+                }
+            }
+
+            return this.addZero(hour) + ':' + this.addZero(minute) + ':' + this.addZero(second)
+        } else {
+            return '00:00:00'
+        }
     },
     errorHandler: function(data, callback, formatMessage) {
         let bool = true
@@ -374,11 +390,20 @@ UCMGUI.prototype = {
             return true
         }
     },
+    makeSyncRequest: function(params) { // for making synchronus requests
+        // usage ::  UCMGUI.makeSyncRequest ( { action :'getconfig', filename: 'something.conf' } ) // no need for call back function
+        let s = $.ajax({
+            type: 'POST',
+            url: this.initConfig.paths.baseServerURl,
+            data: params,
+            async: false
+        })
+
+        return s.responseText
+    },
     renderHtmlTooltip: function(str) {
-        let content = <FormattedHTMLMessage
-            id={str}
-            defaultMessage={str}
-        />
+        let content = <FormattedHTMLMessage id={ str } defaultMessage={ str } />
+
         return content
     }
 }

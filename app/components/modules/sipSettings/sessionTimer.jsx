@@ -31,7 +31,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG4266" />}>
-                            <span>{formatMessage({id: "LANG4265"})}</span>
+                            {formatMessage({id: "LANG4265"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -47,7 +47,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG4268" />}>
-                            <span>{formatMessage({id: "LANG4267"})}</span>
+                            {formatMessage({id: "LANG4267"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -63,7 +63,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1872" />}>
-                            <span>{formatMessage({id: "LANG1871"})}</span>
+                            {formatMessage({id: "LANG1871"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -71,7 +71,7 @@ const CustomizedForm = injectIntl(Form.create({
                     rules: [],
                     initialValue: sipSessiontimerSettings.session_expires
                 })(
-                    <Input type="text" maxLength="15" />
+                    <Input maxLength="15" />
                 )}
             </FormItem>                
             <FormItem
@@ -79,7 +79,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1874" />}>
-                            <span>{formatMessage({id: "LANG1873"})}</span>
+                            {formatMessage({id: "LANG1873"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -87,7 +87,7 @@ const CustomizedForm = injectIntl(Form.create({
                     rules: [],
                     initialValue: sipSessiontimerSettings.session_minse
                 })(
-                    <Input type="text" maxLength="15" />
+                    <Input maxLength="15" />
                 )}
             </FormItem>
         </Form>

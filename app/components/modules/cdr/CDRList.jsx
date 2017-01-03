@@ -87,7 +87,7 @@ class CDRList extends Component {
         let status
 
         if (text.indexOf("ANSWERED") > -1) {
-            status = <span className="sprite sprit-cdr-answer" title={ formatMessage({ id: "LANG4863" }) }></span>
+            status = <span className="sprite sprite-cdr-answer" title={ formatMessage({ id: "LANG4863" }) }></span>
         } else if (text.indexOf("NO ANSWER") > -1) {
             status = <span className="sprite sprite-cdr-no-answer" title={ formatMessage({ id: "LANG4864" }) }></span>
         } else if (text.indexOf("FAILED") > -1) {
@@ -120,7 +120,7 @@ class CDRList extends Component {
             let list = record_list.split('@')
             list.pop()
             options = <div>
-                        <span className="sprite sptite-record-icon" onClick={ this._showRecordFile.bind(this, list) }></span>
+                        <span className="sprite sprite-record-icon" onClick={ this._showRecordFile.bind(this, list) }></span>
                         <span className="record-num">{ list.length }</span>
                       </div>
         } else {
@@ -128,6 +128,110 @@ class CDRList extends Component {
         }
 
         return options
+    }
+    _checkFileErrorHandler = (data) => {
+        var response = data.response || {},
+            result = response.result
+
+        if (typeof result === 'number') {
+        } else {
+        }
+    }
+    _playRecord = (value) => {
+        var filename = value,
+            type
+
+        if (filename.indexOf("auto-") > -1) {
+            type = 'voice_recording'
+        } else {
+            type = 'conference_recording'
+        }
+
+        $.ajax({
+            type: "post",
+            url: api.apiHost,
+            data: {
+                "action": "checkFile",
+                "type": type,
+                "data": filename
+            },
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                if (data && data.hasOwnProperty("status") && (data.status === 0)) {
+                    window.location = "/cgi?action=playFile&type=" + type + "&data=" +
+                                        encodeURIComponent(filename) + "&_=" + (new Date().getTime())
+                } else {
+                    this._checkFileErrorHandler(data)
+                }
+            }.bind(this)
+        })
+    }
+    _downloadRecord = (value) => {
+        var file = value, 
+            type
+
+        if (file.indexOf("auto-") > -1) {
+            type = 'voice_recording'
+        } else {
+            type = 'conference_recording'
+        }
+
+        $.ajax({
+            type: "post",
+            url: api.apiHost,
+            data: {
+                "action": "checkFile",
+                "type": type,
+                "data": file
+            },
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                if (data && data.hasOwnProperty("status") && (data.status === 0)) {
+                    top.window.open("/cgi?action=downloadFile&type=" + type + "&data=" +
+                                    encodeURIComponent(file) + "&_=" + (new Date().getTime()), '_self')
+                } else {
+                    this._checkFileErrorHandler(data)
+                }
+            }.bind(this)
+        })
+    }
+    _deleteRecord = (value, index) => {
+        var file = value, 
+            type
+
+        if (file.indexOf("auto-") > -1) {
+            type = 'voice_recording'
+        } else {
+            type = 'conference_recording'
+        }
+
+        $.ajax({
+            type: "post",
+            url: api.apiHost,
+            data: {
+                "action": "removeFile",
+                "type": type,
+                "data": file
+            },
+            error: function(e) {
+                message.error(e.toString())
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let recordFiles = this.state.recordFiles
+                    recordFiles.splice(index, 1)
+                    this.setState({
+                        recordFiles: recordFiles
+                    })
+                }
+            }.bind(this)
+        })
     }
     render() {
         const {formatMessage} = this.props.intl
@@ -205,16 +309,20 @@ class CDRList extends Component {
                     showHeader={ !!this.props.cdrData.length } 
                 />
                 <Modal title={ formatMessage({id: "LANG2640"}) } visible={ this.state.visible } onCancel={ this._handleCancel } footer={ false }>
-                    <div>
-                        { this.state.recordFiles.map(function(value, index) {
-                            return <div>
-                                    <span></span>
-                                    <span>{ value }</span>
-                                    <span className="sprite sprite-play"></span>
-                                    <span className="sprite sprite-download"></span>
-                                    <span className="sprite sprite-del"></span>
-                               </div>
-                        }) }
+                    <div id="cdr-record">
+                        { 
+                            this.state.recordFiles.map(function(value, index) {
+                                return <div className="record-list" key={ index }>
+                                            <span className="sprite sprite-record"></span>
+                                            <span className="record-item">{ value }</span>
+                                            <div className="record-btn">
+                                                <span className="sprite sprite-play" onClick={ this._playRecord.bind(this, value) }></span>
+                                                <span className="sprite sprite-download" onClick={ this._downloadRecord.bind(this, value) }></span>
+                                                <span className="sprite sprite-del" onClick={ this._deleteRecord.bind(this, value, index) }></span>
+                                            </div>
+                                       </div>
+                            }.bind(this))
+                        }
                     </div>
                 </Modal>
             </div>

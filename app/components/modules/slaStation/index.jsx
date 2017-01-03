@@ -1,13 +1,14 @@
 'use strict'
 
 import $ from 'jquery'
+import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
+import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
 
 const confirm = Modal.confirm
 
@@ -17,7 +18,7 @@ class SLAStation extends Component {
         this.state = {
             accountList: [],
             SLAStations: [],
-            selectedRows: [],
+            // selectedRows: [],
             selectedRowKeys: [],
             slaTrunkNameList: []
         }
@@ -50,25 +51,16 @@ class SLAStation extends Component {
         }
     }
     _batchDelete = () => {
-        let idList = []
-        let nameList = []
         let __this = this
         let modalContent = ''
         let loadingMessage = ''
         let successMessage = ''
+        let idList = this.state.selectedRowKeys
         const { formatMessage } = this.props.intl
-
-        this.state.selectedRows.map(function(item) {
-            idList.push(item.station)
-            nameList.push(item.station_name)
-        })
 
         modalContent = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG3512"})}}></span>
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG821"}, {
-                    0: nameList.join('  '),
-                    1: formatMessage({id: "LANG2471"})
-                })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5414"})}}></span>
 
         confirm({
             title: '',
@@ -93,6 +85,10 @@ class SLAStation extends Component {
                             message.success(successMessage)
 
                             __this._getSLAStations()
+
+                            __this.setState({
+                                selectedRowKeys: []
+                            })
                         }
                     },
                     error: function(e) {
@@ -130,6 +126,10 @@ class SLAStation extends Component {
                     message.success(successMessage)
 
                     this._getSLAStations()
+
+                    this.setState({
+                        selectedRowKeys: _.without(this.state.selectedRowKeys, record.station)
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -204,8 +204,6 @@ class SLAStation extends Component {
                 const response = res.response || {}
 
                 this.setState({
-                    selectedRows: [],
-                    selectedRowKeys: [],
                     SLAStations: response.sla_station || []
                 })
             }.bind(this),
@@ -216,9 +214,9 @@ class SLAStation extends Component {
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
-        console.log('selectedRow changed: ', selectedRows)
+        // console.log('selectedRow changed: ', selectedRows)
 
-        this.setState({ selectedRowKeys, selectedRows })
+        this.setState({ selectedRowKeys })
     }
     render() {
         const { formatMessage } = this.props.intl

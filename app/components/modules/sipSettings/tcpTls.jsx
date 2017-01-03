@@ -34,7 +34,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1854" />}>
-                            <span>{formatMessage({id: "LANG1853"})}</span>
+                            {formatMessage({id: "LANG1853"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -51,7 +51,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1854" />}>
-                            <span>{formatMessage({id: "LANG1851"})}</span>
+                            {formatMessage({id: "LANG1851"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -67,7 +67,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG5126" />}>
-                            <span>{formatMessage({id: "LANG5125"})}</span>
+                            {formatMessage({id: "LANG5125"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -83,7 +83,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1867" />}>
-                            <span>{formatMessage({id: "LANG1868"})}</span>
+                            {formatMessage({id: "LANG1868"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -100,7 +100,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1855" />}>
-                            <span>{formatMessage({id: "LANG5204"})}</span>
+                            {formatMessage({id: "LANG5204"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -116,7 +116,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG5128" />}>
-                            <span>{formatMessage({id: "LANG5127"})}</span>
+                            {formatMessage({id: "LANG5127"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -133,7 +133,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1865" />}>
-                            <span>{formatMessage({id: "LANG1866"})}</span>
+                            {formatMessage({id: "LANG1866"})}
                         </Tooltip>
                     </span>
                 )}>
@@ -153,7 +153,7 @@ const CustomizedForm = injectIntl(Form.create({
                 label={(
                     <span>
                         <Tooltip title={<FormattedHTMLMessage id="LANG1869" />}>
-                            <span>{formatMessage({id: "LANG1870"})}</span>
+                            {formatMessage({id: "LANG1870"})}
                         </Tooltip>
                     </span>
                 )}>

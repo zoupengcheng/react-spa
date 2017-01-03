@@ -219,11 +219,21 @@ class CDR extends Component {
 
         return (
             <div className="app-content-main app-content-cdr">
-                <Title headerTitle={ formatMessage({id: "LANG7"}) } onSubmit={ this._handleSubmit }
-                    onCancel={ this._handleCancel } onSearch = { this._handleSearch } isDisplay= { this.state.isDisplay }/>
-                <CDRSearch dataSource = { this.state.cdrSettings } isDisplaySearch={ this.state.isDisplaySearch }
+                <Title
+                    headerTitle={ formatMessage({id: "LANG7"}) }
+                    onSubmit={ this._handleSubmit }
+                    onCancel={ this._handleCancel }
+                    onSearch = { this._handleSearch }
+                    isDisplay= { this.state.isDisplay} 
+                    saveTxt = { formatMessage({id: "LANG1288" }) }
+                    cancelTxt = { formatMessage({id: "LANG750" }) } />
+                <CDRSearch
+                    dataSource = { this.state.cdrSettings }
+                    isDisplaySearch={ this.state.isDisplaySearch }
                     _hideSearch={ this._hideSearch } />
-                <CDRList cdrData={ this.state.cdrData } deleteAll={ this._deleteAll }
+                <CDRList
+                    cdrData={ this.state.cdrData }
+                    deleteAll={ this._deleteAll }
                     dataSource = { this.state.cdrSearchDownload } />
             </div>
         )

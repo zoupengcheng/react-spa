@@ -15,9 +15,9 @@ import NetworkStatus from '../components/modules/networkStatus/index'
 
 // Extension / Trunk
 import Extension from '../components/modules/extension/index'
-import CreateExtension from '../components/modules/extension/createExtension'
-import EditExtension from '../components/modules/extension/editExtension'
-import EditSelectedExtension from '../components/modules/extension/editSelectedExtension'
+import ExtensionItem from '../components/modules/extension/extensionItem'
+import BatchExtensionItem from '../components/modules/extension/batchExtensionItem'
+import ImportExtension from '../components/modules/extension/importExtension'
 import ExtensionGroup from '../components/modules/extensionGroup/index'
 import ExtensionGroupItem from '../components/modules/extensionGroup/extensionGroupItem'
 import AnalogTrunk from '../components/modules/analogTrunk/'
@@ -166,9 +166,10 @@ const routes = (state, currentLocaleData) => {
                     <Route path="extension" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG87"] }>
                         <IndexRoute component={ Extension } />
                         <Route path="extension" onEnter={ requireAuth } component={ Extension } breadcrumbName={ currentLocaleData["LANG87"] } />
-                        <Route path="createExtension" onEnter={ requireAuth } component={ CreateExtension } breadcrumbName={ currentLocaleData["LANG733"] } />
-                        <Route path="editExtension" onEnter={ requireAuth } component={ EditExtension } breadcrumbName={ currentLocaleData["LANG733"] } /> 
-                        <Route path="editSelectedExtension" onEnter={ requireAuth } component={ EditSelectedExtension } breadcrumbName={ currentLocaleData["LANG733"] } />
+                        <Route path="add" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="import" onEnter={ requireAuth } component={ ImportExtension } breadcrumbName={ currentLocaleData["LANG2734"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                        <Route path="batchEdit/:id" onEnter={ requireAuth } component={ BatchExtensionItem } breadcrumbName={ currentLocaleData["LANG734"] } />
                     </Route>
                     <Route path="extensionGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2800"] }>
                         <IndexRoute component={ ExtensionGroup } />

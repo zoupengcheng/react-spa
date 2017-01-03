@@ -31,6 +31,7 @@ class ByDay extends Component {
         return (
             <Table
                 rowKey="day"
+                scroll={{ x: 2000 }}
                 pagination={ pagination }
                 columns={ dayColumn.concat(generalColumns) }
                 dataSource={ this.props.QueueStatDistributionByDay }
