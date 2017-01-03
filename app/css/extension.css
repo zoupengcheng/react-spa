@@ -1,0 +1,14 @@
+#extensionContent {
+    .top-button {
+        form {
+            padding: 0;
+            float: right;
+            border-bottom: 0 none;
+            background-color: transparent;
+
+            .ant-form-item-control {
+                line-height: 28px;
+            }
+        }
+    }
+}

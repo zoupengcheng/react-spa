@@ -3,6 +3,7 @@
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
+import '../../../css/extension'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 // import * as Actions from './actions/'
@@ -84,7 +85,7 @@ class Extension extends Component {
                 })
 
         return (
-            <div className="app-content-main" id="app-content-main">
+            <div className="app-content-main" id="extensionContent">
                 <Title
                     isDisplay='hidden'
                     headerTitle={ formatMessage({id: "LANG622"}) }
@@ -133,7 +134,7 @@ class Extension extends Component {
                         >
                             { formatMessage({id: "LANG3495"}) }
                         </Button>
-                        <Form>
+                        <Form inline>
                             <FormItem>
                                 { getFieldDecorator('group_name', {
                                     rules: [{
@@ -149,13 +150,15 @@ class Extension extends Component {
                                         }
                                     }]
                                 })(
-                                    <Input 
+                                    <Input
+                                        size="default"
                                         placeholder={ formatMessage({id: "LANG85"}) }
                                     />
                                 ) }
                             </FormItem>
                             <FormItem>
                                 <Button
+                                    size="default"
                                     type="primary"
                                     htmlType="submit"
                                 >
