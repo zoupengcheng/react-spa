@@ -36,12 +36,26 @@ class ByAgent extends Component {
                 title: '% ' + formatMessage({id: "LANG5413"}),
                 dataIndex: 'completed_rate',
                 key: 'completed_rate',
-                sorter: (a, b) => a.completed_rate - b.completed_rate
+                sorter: (a, b) => a.completed_rate - b.completed_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
             }, {
                 title: '% ' + formatMessage({id: "LANG5411"}),
                 dataIndex: 'transferred_rate',
                 key: 'transferred_rate',
-                sorter: (a, b) => a.transferred_rate - b.transferred_rate
+                sorter: (a, b) => a.transferred_rate - b.transferred_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
+            }, {
+                title: '% ' + formatMessage({id: "LANG5357"}),
+                dataIndex: 'talk_time_rate',
+                key: 'talk_time_rate',
+                sorter: (a, b) => a.talk_time_rate - b.talk_time_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
             }, {
                 title: formatMessage({id: "LANG2238"}),
                 dataIndex: 'talk_time',
@@ -50,11 +64,6 @@ class ByAgent extends Component {
                 render: (text, record, index) => {
                     return UCMGUI.formatSeconds(text)
                 }
-            }, {
-                title: '% ' + formatMessage({id: "LANG5357"}),
-                dataIndex: 'talk_time_rate',
-                key: 'talk_time_rate',
-                sorter: (a, b) => a.talk_time_rate - b.talk_time_rate
             }, {
                 title: formatMessage({id: "LANG1186"}),
                 dataIndex: 'wait_time',

@@ -47,22 +47,34 @@ class Report extends Component {
                 title: '% ' + formatMessage({id: "LANG5365"}),
                 dataIndex: 'answered_rate',
                 key: 'answered_rate',
-                sorter: (a, b) => a.answered_rate - b.answered_rate
+                sorter: (a, b) => a.answered_rate - b.answered_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
             }, {
                 title: '% ' + formatMessage({id: "LANG5366"}),
                 dataIndex: 'unanswered_rate',
                 key: 'unanswered_rate',
-                sorter: (a, b) => a.unanswered_rate - b.unanswered_rate
+                sorter: (a, b) => a.unanswered_rate - b.unanswered_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
             }, {
                 title: '% ' + formatMessage({id: "LANG5367"}),
                 dataIndex: 'abandoned_rate',
                 key: 'abandoned_rate',
-                sorter: (a, b) => a.abandoned_rate - b.abandoned_rate
+                sorter: (a, b) => a.abandoned_rate - b.abandoned_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
             }, {
                 title: '% ' + formatMessage({id: "LANG5411"}),
                 dataIndex: 'transferred_rate',
                 key: 'transferred_rate',
-                sorter: (a, b) => a.transferred_rate - b.transferred_rate
+                sorter: (a, b) => a.transferred_rate - b.transferred_rate,
+                render: (text, record, index) => {
+                    return parseFloat(text).toFixed(2)
+                }
             }, {
                 title: formatMessage({id: "LANG2238"}),
                 dataIndex: 'talk_time',

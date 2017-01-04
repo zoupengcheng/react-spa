@@ -17,7 +17,7 @@ import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popco
 
 const FormItem = Form.Item
 const Privilege = localStorage.getItem('role')
-const FeatureLimits = localStorage.getItem('featureLimits')
+const FeatureLimits = JSON.parse(localStorage.getItem('featureLimits'))
 
 class Extension extends Component {
     constructor(props) {

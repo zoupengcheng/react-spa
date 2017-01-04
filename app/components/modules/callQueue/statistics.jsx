@@ -272,8 +272,8 @@ class Statistics extends Component {
 
                 let QueueStatTotal = [{
                         key: '1',
-                        name: formatMessage({id: "LANG5362"}),
-                        value: total.received_calls + ' ' + formatMessage({id: "LANG5409"}).toLowerCase()
+                        name: formatMessage({id: "LANG5409"}),
+                        value: total.received_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
                     }, {
                         key: '2',
                         name: formatMessage({id: "LANG5362"}),
@@ -288,24 +288,24 @@ class Statistics extends Component {
                         value: total.abandoned_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
                     }, {
                         key: '5',
-                        name: formatMessage({id: "LANG5364"}),
-                        value: total.transferred_calls + ' ' + formatMessage({id: "LANG5410"}).toLowerCase()
+                        name: formatMessage({id: "LANG5410"}),
+                        value: total.transferred_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
                     }, {
                         key: '6',
                         name: formatMessage({id: "LANG5365"}),
-                        value: total.answered_rate + ' %'
+                        value: parseFloat(total.answered_rate).toFixed(2) + ' %'
                     }, {
                         key: '7',
                         name: formatMessage({id: "LANG5366"}),
-                        value: total.unanswered_rate + ' %'
+                        value: parseFloat(total.unanswered_rate).toFixed(2) + ' %'
                     }, {
                         key: '8',
                         name: formatMessage({id: "LANG5367"}),
-                        value: total.abandoned_rate + ' %'
+                        value: parseFloat(total.abandoned_rate).toFixed(2) + ' %'
                     }, {
                         key: '9',
                         name: formatMessage({id: "LANG5411"}),
-                        value: total.transferred_rate + ' %'
+                        value: parseFloat(total.transferred_rate).toFixed(2) + ' %'
                     }, {
                         key: '10',
                         name: formatMessage({id: "LANG5368"}),
