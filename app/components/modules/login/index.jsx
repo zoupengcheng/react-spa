@@ -1,30 +1,47 @@
 'use strict'
 
-import Footer from '../../../views/footer'
-import React from 'react'
-import { browserHistory } from 'react-router'
-import { message, Select, Form, Input, Button, Row, Col } from 'antd'
-import { FormattedMessage, injectIntl } from 'react-intl'
 import $ from 'jquery'
+import React from 'react'
 import md5 from "../../api/md5"
 import api from "../../api/api"
-// import Ucmgui from "./../api/ucmgui"
 import cookie from 'react-cookie'
+import UCMGUI from "../../api/ucmgui"
+import Footer from '../../../views/footer'
+import { browserHistory } from 'react-router'
+import SubscribeEvent from '../../api/subscribeEvent'
+import { FormattedMessage, injectIntl } from 'react-intl'
+import { message, Select, Form, Input, Button, Row, Col } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
-import SubscribeEvent from '../../api/subscribeEvent'
 
-// const UCMGUI = new Ucmgui()
+// const UCMGUI = new UCMGUI()
 
 const Login = React.createClass({
     getDefaultProps() {
-
     },
     getInitialState() {
         return {
             countryArr: JSON.parse(localStorage.getItem('countryArr'))
         }
+    },
+    getFeatureLimits() {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getFeatureLimits'
+            },
+            type: 'json',
+            success: function(res) {
+                const response = res.response || {}
+
+                localStorage.setItem('featureLimits', JSON.stringify(response.feature_limits))
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     },
     componentDidMount() {
         // Get cursor focus
@@ -37,7 +54,6 @@ const Login = React.createClass({
         }
     },
     componentWillReceiveProps(nextProps) {
-
     },
     handleSubmit(e) {
         const { form } = this.props
@@ -97,6 +113,7 @@ const Login = React.createClass({
                     if (res.status === 0) {
                         cookie.save('adminId', res.response.user.user_id)
                         cookie.save('username', username)
+
                         localStorage.setItem('adminId', res.response.user.user_id)
                         localStorage.setItem('username', username)
 
@@ -117,16 +134,21 @@ const Login = React.createClass({
                         }
 
                         // UCMGUI.loginFunction.checkTrigger()
+
                         if (window.socket) {
                             let loginSubscribe = SubscribeEvent.login
+
                             loginSubscribe.message.username = cookie.load("username")
                             loginSubscribe.message.cookie = cookie.load("session-identify")
                             
                             window.socket.send(loginSubscribe)
                         }
-                        browserHistory.push('/system-status/dashboard')
-                        // $(".errorInfo").css("visibility", "hidden")
 
+                        this.getFeatureLimits()
+
+                        browserHistory.push('/system-status/dashboard')
+
+                        // $(".errorInfo").css("visibility", "hidden")
                         // $P.lang(doc, true, true)
                     } else {
                         this.loginError(res)
@@ -134,7 +156,7 @@ const Login = React.createClass({
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }.bind(this)
         })
     },
@@ -191,48 +213,48 @@ const Login = React.createClass({
                 <div className="app-login clearfix">
                     <div className="login-box main-box">
                         <div className="main-box-inner">
-                            <Form horizontal={ true } onSubmit={ this.handleSubmit }>
+                            <Form
+                                horizontal={ true }
+                                onSubmit={ this.handleSubmit }
+                            >
                                 <FormItem
                                     id="username"
+                                    labelCol={{ span: 6 }}
+                                    wrapperCol={{ span: 14 }}
                                     label={ formatMessage({id: "LANG992"}) }
-                                    labelCol={{
-                                        span: 6
-                                    }}
-                                    wrapperCol={{
-                                        span: 14
-                                    }}>
-                                    {getFieldDecorator("username", {
+                                >
+                                    { getFieldDecorator("username", {
                                         initialValue: "",
                                         rules: [
                                             { required: true, message: formatMessage({id: "LANG4025"}) }
                                         ]
                                     })(
-                                        <Input type="text" placeholder={ formatMessage({id: "LANG5259"}) } />
-                                    )}
+                                        <Input
+                                            type="text"
+                                            placeholder={ formatMessage({id: "LANG5259"}) }
+                                        />
+                                    ) }
                                 </FormItem>
-
                                 <FormItem
                                     id="password"
+                                    labelCol={{ span: 6 }}
+                                    wrapperCol={{ span: 14 }}
                                     label={ formatMessage({id: "LANG993"}) }
-                                    labelCol={{
-                                        span: 6
-                                    }}
-                                    wrapperCol={{
-                                        span: 14
-                                    }}>
-                                    {getFieldDecorator("password", {
+                                >
+                                    { getFieldDecorator("password", {
                                         rules: [
                                             { required: true, message: formatMessage({id: "LANG4026"}) }
                                         ]
                                     })(
-                                        <Input type="password" placeholder={ formatMessage({id: "LANG5260"}) } />
-                                    )}
+                                        <Input
+                                            type="password"
+                                            placeholder={ formatMessage({id: "LANG5260"}) }
+                                        />
+                                    ) }
                                 </FormItem>
-
-                                <FormItem wrapperCol={{
-                                    span: 14,
-                                    offset: 6
-                                }}>
+                                <FormItem
+                                    wrapperCol={{ span: 14, offset: 6 }}
+                                >
                                     <label>
                                         <FormattedMessage
                                             id={ 'LANG4189' }
@@ -240,37 +262,36 @@ const Login = React.createClass({
                                             onclick={ this.forgetPassword }
                                         />
                                     </label>
-
-                                    <Select defaultValue={ localStorage.getItem('locale') || "en-US" } style={{ width: 100, float: "right" }} onChange={ this.handleChange }>
+                                    <Select
+                                        onChange={ this.handleChange }
+                                        style={{ width: 100, float: "right" }}
+                                        defaultValue={ localStorage.getItem('locale') || "en-US" }
+                                    >
                                         {
                                            this.state.countryArr.map(function(it) {
                                             const lang = it.languages
+
                                             return <Option key={ lang } value={ lang }>
                                                    { it.localName }
                                                 </Option>
                                         })}
                                     </Select>
                                 </FormItem>
-
                                 <Row>
                                     <Col offset="6" span="16">
                                         <Button
                                             type="primary"
                                             htmlType="submit"
                                             size="large"
-                                            style={{
-                                                width: '240px'
-                                            }}>确定</Button>
+                                            style={{ width: '240px' }}
+                                        >确定</Button>
                                     </Col>
                                 </Row>
-
                                 <Row>
                                     <Col
                                         span="24"
-                                        style={{
-                                            textAlign: 'center',
-                                            marginTop: 50
-                                        }}>
+                                        style={{ textAlign: 'center', marginTop: 50 }}
+                                    >
                                     </Col>
                                 </Row>
                             </Form>

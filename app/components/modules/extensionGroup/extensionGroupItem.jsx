@@ -63,7 +63,7 @@ class ExtensionGroupItem extends Component {
                 groupNameList = response.group_name || []
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
 
@@ -92,7 +92,7 @@ class ExtensionGroupItem extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
 
@@ -113,7 +113,7 @@ class ExtensionGroupItem extends Component {
                     targetKeys = extensionGroup.members.split(',') || []
                 }.bind(this),
                 error: function(e) {
-                    message.error(e.toString())
+                    message.error(e.statusText)
                 }
             })
         }
@@ -196,7 +196,7 @@ class ExtensionGroupItem extends Component {
                     data: action,
                     type: 'json',
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     },
                     success: function(data) {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

@@ -17,6 +17,7 @@ class ExtensionGroup extends Component {
         this.state = {
             accountList: [],
             accountAryObj: {},
+            selectedRowKeys: [],
             extensionGroups: []
         }
     }
@@ -73,7 +74,7 @@ class ExtensionGroup extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -102,7 +103,7 @@ class ExtensionGroup extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -128,9 +129,15 @@ class ExtensionGroup extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
+    }
+    _onSelectChange = (selectedRowKeys, selectedRows) => {
+        console.log('selectedRowKeys changed: ', selectedRowKeys)
+        // console.log('selectedRow changed: ', selectedRows)
+
+        this.setState({ selectedRowKeys })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -218,6 +225,10 @@ class ExtensionGroup extends Component {
                     console.log('Current: ', current)
                 }
             }
+        const rowSelection = {
+                onChange: this._onSelectChange,
+                selectedRowKeys: this.state.selectedRowKeys
+            }
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -245,6 +256,7 @@ class ExtensionGroup extends Component {
                         rowKey="group_id"
                         columns={ columns }
                         pagination={ pagination }
+                        rowSelection={ rowSelection }
                         dataSource={ this.state.extensionGroups }
                         showHeader={ !!this.state.extensionGroups.length }
                     />

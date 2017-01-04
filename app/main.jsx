@@ -54,7 +54,7 @@ const chooseLocale = () => {
             countryObj = res
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 
@@ -142,7 +142,7 @@ const chooseLocale = () => {
             }
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 })()

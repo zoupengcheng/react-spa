@@ -53,7 +53,7 @@ class SipSettings extends Component {
             data: { action: 'getSIPGenSettings' },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -75,7 +75,7 @@ class SipSettings extends Component {
             data: { action: 'getSIPMiscSettings' },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -97,7 +97,7 @@ class SipSettings extends Component {
             data: { action: 'getSIPSSTimerSettings' },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -119,7 +119,7 @@ class SipSettings extends Component {
             data: { action: 'getSIPTCPSettings' },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -141,7 +141,7 @@ class SipSettings extends Component {
             data: { action: 'getSIPNATSettings' },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -163,7 +163,7 @@ class SipSettings extends Component {
             data: { action: 'getTOSSettings' },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -210,7 +210,7 @@ class SipSettings extends Component {
             data: SIPGenSettingsAction,
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -248,7 +248,7 @@ class SipSettings extends Component {
             data: sipMiscSettingsAction,
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -286,7 +286,7 @@ class SipSettings extends Component {
             data: sipSessiontimerSettingsAction,
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -324,7 +324,7 @@ class SipSettings extends Component {
             data: sipTcpSettingsAction,
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -362,7 +362,7 @@ class SipSettings extends Component {
             data: sipNatSettingsAction,
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -399,7 +399,7 @@ class SipSettings extends Component {
             data: sipTosSettingsAction,
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

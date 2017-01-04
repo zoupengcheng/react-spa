@@ -92,7 +92,7 @@ class Network extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }
@@ -124,7 +124,7 @@ class Network extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }

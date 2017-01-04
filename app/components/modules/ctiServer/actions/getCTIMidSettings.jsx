@@ -16,7 +16,7 @@ export const getCTIMidSettings = () => (dispatch) => {
             dispatch({type: 'GET_CTIMIDSETTINGS', ctimidSettings: ctimidSettings}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }

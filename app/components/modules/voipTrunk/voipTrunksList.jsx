@@ -1,14 +1,15 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
 import { browserHistory } from 'react-router'
-import { Table, message, Popconfirm } from 'antd'
+import React, { Component, PropTypes } from 'react'
+import { Form, Icon, Table, Button, message, Modal, Menu, Dropdown } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
+import _ from 'underscore'
 
-class DataTrunksList extends Component {
+class VoipTrunksList extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -35,7 +36,7 @@ class DataTrunksList extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }
@@ -64,9 +65,15 @@ class DataTrunksList extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
+    }
+    _createVoipTrunk = (e) => {
+        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk')
+    }
+    _editVoipTrunk = (e) => {
+        browserHistory.push('/extension-trunk/voipTrunk/editVoipTrunk')
     }
     _editTrunk = (e) => {
         browserHistory.push('/extension-trunk/voipTrunk/editVoipTrunk')
@@ -74,6 +81,19 @@ class DataTrunksList extends Component {
     render() {
         const {formatMessage} = this.props.intl
 
+        const menu = (
+          <Menu>
+            <Menu.Item>
+              <span onClick={this._createVoipTrunk} >{formatMessage({id: "LANG2908"})}</span>
+            </Menu.Item>
+            <Menu.Item>
+              <span onClick={this._createVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>
+            </Menu.Item>
+            <Menu.Item>
+              <span onClick={this._editVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>
+            </Menu.Item>
+          </Menu>
+        )
         const columns = [
             {
                 title: formatMessage({id: "LANG83"}),
@@ -115,13 +135,25 @@ class DataTrunksList extends Component {
         }
 
         return (
-            <Table rowSelection={false} columns={columns} dataSource={this.state.voipTrunk} pagination={pagination} />
+            <div className="content">
+                <div className="top-button">
+                    <Dropdown overlay={menu}>
+                        <a className="ant-dropdown-link" href="#">
+                        Create Voip Trunk<Icon type="down" />
+                        </a>
+                    </Dropdown>
+                    <Button type="primary" icon="" onClick={this._deleteVoipTrunk} >
+                        {formatMessage({id: "LANG739"})}
+                    </Button>
+                </div>
+                <Table rowSelection={false} columns={columns} dataSource={this.state.voipTrunk} pagination={pagination} />
+            </div>
         )
     }
 }
 
-DataTrunksList.defaultProps = {
+VoipTrunksList.defaultProps = {
     
 }
 
-export default injectIntl(DataTrunksList)
+export default injectIntl(VoipTrunksList)

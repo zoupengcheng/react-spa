@@ -52,7 +52,7 @@ class CallQueue extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -83,7 +83,7 @@ class CallQueue extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -119,7 +119,7 @@ class CallQueue extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }

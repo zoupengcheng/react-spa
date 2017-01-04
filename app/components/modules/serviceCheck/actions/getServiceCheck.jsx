@@ -16,7 +16,7 @@ export const getServiceCheck = () => (dispatch) => {
             dispatch({type: 'GET_SERVICECHECK', serviceCheck: serviceCheck}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }

@@ -63,7 +63,7 @@ class QueueItem extends Component {
                 groupNameList = response.group_name || []
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
 
@@ -91,7 +91,7 @@ class QueueItem extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
 
@@ -112,7 +112,7 @@ class QueueItem extends Component {
                     targetKeys = extensionGroup.members.split(',') || []
                 }.bind(this),
                 error: function(e) {
-                    message.error(e.toString())
+                    message.error(e.statusText)
                 }
             })
         }
@@ -195,7 +195,7 @@ class QueueItem extends Component {
                     data: action,
                     type: 'json',
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     },
                     success: function(data) {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

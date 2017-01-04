@@ -33,20 +33,20 @@ class VoipTrunk extends Component {
     }
     render() {
         const {formatMessage} = this.props.intl
-
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 
+            1: formatMessage({id: "LANG641"})
+        })
         return (
             <div className="app-content-main" id="app-content-main">
-                <div className="content">
-                    <div className="top-button">
-                        <Button type="primary" icon="" onClick={this._createSipVoipTrunk} >
-                            {formatMessage({id: "LANG2908"})}
-                        </Button>
-                        <Button type="primary" icon="" onClick={this._createIaxVoipTrunk} >
-                            {formatMessage({id: "LANG2909"})}
-                        </Button>
-                    </div>
-                    { <VoipTrunksList /> }
-                </div>
+                <Title 
+                    headerTitle={ formatMessage({id: "LANG641"}) }  
+                    isDisplay='hidden' 
+                />
+                <VoipTrunksList />
             </div>
         )
     }

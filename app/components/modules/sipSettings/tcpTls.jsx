@@ -33,8 +33,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG1854" />}>
-                            {formatMessage({id: "LANG1853"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG1854" /> }>
+                            <span>{ formatMessage({id: "LANG1853"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -50,8 +50,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG1854" />}>
-                            {formatMessage({id: "LANG1851"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG1854" /> }>
+                            <span>{ formatMessage({id: "LANG1851"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -66,8 +66,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG5126" />}>
-                            {formatMessage({id: "LANG5125"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG5126" /> }>
+                            <span>{ formatMessage({id: "LANG5125"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -82,8 +82,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG1867" />}>
-                            {formatMessage({id: "LANG1868"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG1867" /> }>
+                            <span>{ formatMessage({id: "LANG1868"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -99,8 +99,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG1855" />}>
-                            {formatMessage({id: "LANG5204"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG1855" /> }>
+                            <span>{ formatMessage({id: "LANG5204"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -115,8 +115,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG5128" />}>
-                            {formatMessage({id: "LANG5127"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG5128" /> }>
+                            <span>{ formatMessage({id: "LANG5127"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -132,8 +132,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG1865" />}>
-                            {formatMessage({id: "LANG1866"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG1865" /> }>
+                            <span>{ formatMessage({id: "LANG1866"}) }</span>
                         </Tooltip>
                     </span>
                 )}>
@@ -152,8 +152,8 @@ const CustomizedForm = injectIntl(Form.create({
                 { ...formItemLayout }
                 label={(
                     <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG1869" />}>
-                            {formatMessage({id: "LANG1870"})}
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG1869" /> }>
+                            <span>{ formatMessage({id: "LANG1870"}) }</span>
                         </Tooltip>
                     </span>
                 )}>

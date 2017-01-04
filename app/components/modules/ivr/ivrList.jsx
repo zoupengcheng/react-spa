@@ -35,7 +35,7 @@ class IvrList extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }
@@ -64,7 +64,7 @@ class IvrList extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }

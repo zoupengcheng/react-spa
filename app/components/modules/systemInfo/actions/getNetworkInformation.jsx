@@ -17,7 +17,7 @@ export const getNetworkInformation = () => (dispatch) => {
             dispatch({type: 'GET_NETWORKINFOMATION', networkInformation: networkInformation}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }
@@ -33,7 +33,7 @@ export const getSystemStatus = () => (dispatch) => {
             dispatch({type: GET_SYSTEMSTATUS, systemStatus: systemStatus}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }
@@ -49,7 +49,7 @@ export const getSystemGeneralStatus = () => (dispatch) => {
             dispatch({type: GET_SYSTEMGENERALSTATUS, systemGeneralStatus: systemGeneralStatus}) 
         }.bind(this),
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }.bind(this)
     })
 }

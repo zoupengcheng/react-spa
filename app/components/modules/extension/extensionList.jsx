@@ -45,7 +45,7 @@ class extensionList extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }

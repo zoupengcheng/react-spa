@@ -55,7 +55,7 @@ class Queue extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -89,7 +89,7 @@ class Queue extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -115,7 +115,7 @@ class Queue extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }

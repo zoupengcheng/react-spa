@@ -128,7 +128,7 @@ export const getStorageUsage = () => (dispatch) => {
             }
         }.bind(this),
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })  
 }
@@ -151,7 +151,7 @@ export const getResourceUsage = () => (dispatch) => {
             }
         }.bind(this),
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })  
 }
@@ -174,7 +174,7 @@ export const getPbxStatus = () => (dispatch) => {
             }
         }.bind(this),
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })  
 }
@@ -191,7 +191,7 @@ export const listAllTrunk = () => (dispatch) => {
             dispatch({type: 'LISTAllTRUNK', trunksData: trunksData}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }
@@ -208,7 +208,7 @@ export const getInterfaceStatus = () => (dispatch) => {
             dispatch({type: 'GET_INTERFACESTATUS', interfaceStatus: interfaceStatus}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }

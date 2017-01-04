@@ -71,7 +71,7 @@ class Recording extends Component {
                             }
                         }.bind(this),
                         error: function(e) {
-                            message.error(e.toString())
+                            message.error(e.statusText)
                         }
                     })
                 } else {
@@ -79,7 +79,7 @@ class Recording extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -125,7 +125,7 @@ class Recording extends Component {
                         }
                     },
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     }
                 })
             },
@@ -174,7 +174,7 @@ class Recording extends Component {
                         }
                     },
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     }
                 })
             },
@@ -202,7 +202,7 @@ class Recording extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -233,7 +233,7 @@ class Recording extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -264,7 +264,7 @@ class Recording extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -292,7 +292,7 @@ class Recording extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }

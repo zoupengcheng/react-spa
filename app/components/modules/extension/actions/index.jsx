@@ -15,7 +15,7 @@ export const listAccount = () => (dispatch) => {
             dispatch({type: 'LISTACCOUNT', account: account}) 
         },
         error: function(e) {
-            console.log(e.toString())
+            console.log(e.statusText)
         }
     })
 }

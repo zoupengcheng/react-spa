@@ -60,7 +60,7 @@ class CDR extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -84,7 +84,7 @@ class CDR extends Component {
                         "acctid": '0'
                     },
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     },
                     success: function(data) {
                         self.setState({
@@ -180,7 +180,7 @@ class CDR extends Component {
             type: 'POST',
             dataType: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

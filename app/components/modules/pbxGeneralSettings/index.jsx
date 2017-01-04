@@ -49,7 +49,7 @@ class PbxGeneralSettings extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -68,7 +68,7 @@ class PbxGeneralSettings extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -107,7 +107,7 @@ class PbxGeneralSettings extends Component {
                     data: action,
                     type: 'json',
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     },
                     success: function(data) {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

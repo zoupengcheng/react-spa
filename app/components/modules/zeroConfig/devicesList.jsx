@@ -29,7 +29,7 @@ class DataTrunksList extends Component {
             },
             type: 'json',
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -69,7 +69,7 @@ class DataTrunksList extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                console.log(e.toString())
+                console.log(e.statusText)
             }
         })
     }

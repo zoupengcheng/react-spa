@@ -295,7 +295,7 @@ class CDRSearch extends Component {
             },
             async: false,
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var list = data.response.action_type
@@ -314,7 +314,7 @@ class CDRSearch extends Component {
             },
             async: false,
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var list = data.response.accountcode
@@ -337,7 +337,7 @@ class CDRSearch extends Component {
             },
             async: false,
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var list = data.response.voip_trunk
@@ -360,7 +360,7 @@ class CDRSearch extends Component {
             },
             async: false,
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var list = data.response.analogtrunk
@@ -383,7 +383,7 @@ class CDRSearch extends Component {
             },
             async: false,
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var list = data.response.digital_trunks

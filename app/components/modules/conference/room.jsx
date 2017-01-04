@@ -18,6 +18,46 @@ class Room extends Component {
     componentDidMount() {
         this._getConfoList()
     }
+    _add = () => {
+        browserHistory.push('/call-features/conference/add')
+    }
+    _delete = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deleteConference",
+                "conference": record.extension
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getConfoList()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _edit = () => {
+
+    }
     _getConfoList = () => {
         const { formatMessage } = this.props.intl
 
@@ -30,16 +70,35 @@ class Room extends Component {
             type: 'json',
             success: function(res) {
                 const response = res.response || {}
-                const confoList = response.confoList || []
+                const confoList = response.conference || []
 
                 this.setState({
                     confoList: confoList
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
+    }
+    _renderTime = (record) => {
+    }
+    _renderOptions = (record) => {
+        const { formatMessage } = this.props.intl
+
+        return (
+            <div>
+                <span className="sprite sprite-edit" onClick={ this._edit.bind(this, record) }></span>
+                <Popconfirm
+                    title={ formatMessage({id: "LANG841"}) }
+                    okText={ formatMessage({id: "LANG727"}) }
+                    cancelText={ formatMessage({id: "LANG726"}) }
+                    onConfirm={ this._delete.bind(this, record) }
+                >
+                    <span className="sprite sprite-del"></span>
+                </Popconfirm>
+            </div>
+        )
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -60,13 +119,19 @@ class Room extends Component {
                 dataIndex: 'start_time',
                 title: formatMessage({id: "LANG1048"})
             }, {
-                key: 'stime',
+                key: 'time',
                 dataIndex: 'start_time',
-                title: formatMessage({id: "LANG1048"})
+                title: formatMessage({id: "LANG1050"}),
+                render: (text, record, index) => {
+                    return this._renderTime(record)
+                }
             }, {
                 key: 'options',
                 dataIndex: 'options',
-                title: formatMessage({id: "LANG74"})
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return this._renderOptions(record)
+                }
             }]
         const pagination = {
                 total: this.state.confoList.length,
@@ -83,7 +148,7 @@ class Room extends Component {
             <div className="app-content-main">
                 <div className="content">
                     <div className="top-button">
-                        <Button icon="plus" type="primary" size="default">
+                        <Button icon="plus" type="primary" size="default" onClick={ this._add }>
                             { formatMessage({id: "LANG597"}) }
                         </Button>
                         <Button icon="setting" type="primary" size="default">

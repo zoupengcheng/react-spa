@@ -26,7 +26,9 @@ import EditAnalogTrunk from '../components/modules/analogTrunk/editAnalogTrunk'
 import DigitalTrunk from '../components/modules/digitalTrunk/index'
 import DataTrunk from '../components/modules/dataTrunk/'
 import EditDataTrunk from '../components/modules/dataTrunk/editDataTrunk'
-import VoIPTrunk from '../components/modules/voipTrunk/index'
+import VoIPTrunk from '../components/modules/voipTrunk/'
+import CreateVoipTrunk from '../components/modules/voipTrunk/createVoipTrunk'
+import EditVoipTrunk from '../components/modules/voipTrunk/editVoipTrunk'
 import SLAStation from '../components/modules/slaStation/index'
 import SLAStationItem from '../components/modules/slaStation/slaStationItem'
 import OutboundRoute from '../components/modules/outboundRoute/index'
@@ -34,6 +36,7 @@ import InboundRoute from '../components/modules/inboundRoute/index'
 
 // Call Features
 import Conference from '../components/modules/conference/index'
+import ConferenceItem from '../components/modules/conference/conferenceItem'
 import IVR from '../components/modules/ivr/index'
 import Voicemail from '../components/modules/voicemail/index'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
@@ -188,7 +191,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="dataTrunk" onEnter={ requireAuth } component={ DataTrunk } breadcrumbName={ currentLocaleData["LANG3573"] } />
                         <Route path="editDataTrunk" onEnter={ requireAuth } component={ EditDataTrunk } breadcrumbName={ currentLocaleData["LANG3573"] } />
                     </Route>
-                    <Route path="voipTrunk" onEnter={ requireAuth } component={ VoIPTrunk } breadcrumbName={ currentLocaleData["LANG13"] } />
+                    <Route path="voipTrunk" breadcrumbName={ currentLocaleData["LANG13"] }>
+                        <IndexRoute component={ VoIPTrunk } />
+                        <Route path="createVoipTrunk" onEnter={ requireAuth } component={ CreateVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editVoipTrunk" onEnter={ requireAuth } component={ EditVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
+                    </Route>
                     <Route path="slaStation" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3225"] }>
                         <IndexRoute component={ SLAStation } />
                         <Route path="add" onEnter={ requireAuth } component={ SLAStationItem } breadcrumbName={ currentLocaleData["LANG769"] } />
@@ -201,7 +208,10 @@ const routes = (state, currentLocaleData) => {
                 {/* Call Features */}
                 <Route path="call-features" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG17"] }>
                     <IndexRoute component={ Conference } />
-                    <Route path="conference" onEnter={ requireAuth } component={ Conference } breadcrumbName={ currentLocaleData["LANG18"] } />
+                    <Route path="conference" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG18"] }>
+                        <IndexRoute component={ Conference } />
+                        <Route path="add" onEnter={ requireAuth } component={ ConferenceItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                    </Route>
                     <Route path="ivr" onEnter={ requireAuth } component={ IVR } breadcrumbName={ currentLocaleData["LANG19"] } />
                     <Route path="voicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
                         <IndexRoute component={ Voicemail } />

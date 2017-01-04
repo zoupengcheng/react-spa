@@ -1,14 +1,96 @@
 #extensionContent {
     .top-button {
+        .ant-btn-group {
+            margin-right: 5px;
+            vertical-align: inherit;
+
+            .ant-btn {
+                margin-right: 0;
+                border-left: 0 none;
+                border-right: 0 none;
+            }
+        }
+
         form {
             padding: 0;
-            float: right;
             border-bottom: 0 none;
             background-color: transparent;
 
+            .ant-form-item {
+                margin-bottom: 10px;
+            }
+
             .ant-form-item-control {
                 line-height: 28px;
+
+                .ant-input[disabled] {
+                    width: 300px;
+                    border-color: #e1e1e1;
+                }
             }
+        }
+
+        @media screen and (min-width: 1280px) {
+            form {
+                padding: 0;
+                float: right;
+                border-bottom: 0 none;
+                background-color: transparent;
+
+                .ant-form-item {
+                    margin: 0 0 14px 10px;
+                }
+
+                .ant-form-item-control {
+                    line-height: 28px;
+
+                    .ant-input {
+                        width: 300px;
+                    }
+
+                    .ant-btn {
+                        margin-right: 0;
+                    }
+                }
+            }
+        }
+    }
+
+    .status-container {
+        &.unavailable {
+            color: #c0c5cc;
+        }
+
+        &.idle {
+            color: #48dc6b;
+        }
+
+        &.inuse, &.busy {
+            color: #fe980e;
+        }
+
+        &.ringing {
+            color: #3f7bf2;
+        }
+
+        &.email-status-sent {
+            color: #48dc6b;
+
+            span {
+                float: left;
+            }
+        }
+
+        &.email-status-disabled {
+            color: #c0c5cc;
+
+            span {
+                float: left;
+            }
+        }
+
+        .sprite {
+            margin-right: 10px;
         }
     }
 }

@@ -27,7 +27,7 @@ class OperLogUsrList extends Component {
             type: "GET",
             url: "/cgi?action=reloadCDRRecordFile&reflush_Record=all",
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -55,7 +55,7 @@ class OperLogUsrList extends Component {
             url: api.apiHost,
             data: action,
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

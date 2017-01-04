@@ -27,6 +27,47 @@ class SLAStation extends Component {
         this._getInitData()
         this._getSLAStations()
     }
+    _createMember = (text, record, index) => {
+        const members = text ? text.split(',') : []
+
+        if (members.length <= 5) {
+            return <div>
+                    {
+                        members.map(function(value, index) {
+                            return <Tag key={ value }>{ value }</Tag>
+                        }.bind(this))
+                    }
+                </div>
+        } else {
+            const content = <div>
+                        {
+                            members.map(function(value, index) {
+                                if (index >= 4) {
+                                    return <Tag key={ value }>{ value }</Tag>
+                                }
+                            }.bind(this))
+                        }
+                    </div>
+
+            return <div>
+                    {
+                        [0, 1, 2, 3].map(function(value, index) {
+                            return <Tag key={ members[value] }>{ members[value] }</Tag>
+                        }.bind(this))
+                    }
+                    <Popover
+                        title=""
+                        content={ content }
+                    >
+                        <Badge
+                            overflowCount={ 10 }
+                            count={ members.length - 4 }
+                            style={{ backgroundColor: '#87d068', cursor: 'pointer' }}
+                        />
+                    </Popover>
+                </div>
+        }
+    }
     _add = () => {
         let confirmContent = ''
         let warningMessage = ''
@@ -92,7 +133,7 @@ class SLAStation extends Component {
                         }
                     },
                     error: function(e) {
-                        message.error(e.toString())
+                        message.error(e.statusText)
                     }
                 })
             },
@@ -133,7 +174,7 @@ class SLAStation extends Component {
                 }
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -159,7 +200,7 @@ class SLAStation extends Component {
                 slaTrunkNameList = response.trunk_name || []
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
 
@@ -177,7 +218,7 @@ class SLAStation extends Component {
                 accountList = response.extension || []
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
 
@@ -208,7 +249,7 @@ class SLAStation extends Component {
                 })
             }.bind(this),
             error: function(e) {
-                message.error(e.toString())
+                message.error(e.statusText)
             }
         })
     }
@@ -236,45 +277,7 @@ class SLAStation extends Component {
                 dataIndex: 'trunks',
                 title: formatMessage({id: "LANG3230"}),
                 render: (text, record, index) => {
-                    const members = text ? text.split(',') : []
-
-                    if (members.length <= 5) {
-                        return <div>
-                                {
-                                    members.map(function(value, index) {
-                                        return <Tag key={ value }>{ value }</Tag>
-                                    }.bind(this))
-                                }
-                            </div>
-                    } else {
-                        const content = <div>
-                                    {
-                                        members.map(function(value, index) {
-                                            if (index >= 4) {
-                                                return <Tag key={ value }>{ value }</Tag>
-                                            }
-                                        }.bind(this))
-                                    }
-                                </div>
-
-                        return <div>
-                                {
-                                    [0, 1, 2, 3].map(function(value, index) {
-                                        return <Tag key={ members[value] }>{ members[value] }</Tag>
-                                    }.bind(this))
-                                }
-                                <Popover
-                                    title=""
-                                    content={ content }
-                                >
-                                    <Badge
-                                        overflowCount={ 10 }
-                                        count={ members.length - 4 }
-                                        style={{ backgroundColor: '#87d068', cursor: 'pointer' }}
-                                    />
-                                </Popover>
-                            </div>
-                    }
+                    this._createMember(text, record, index)
                 }
             }, {
                 key: 'options',

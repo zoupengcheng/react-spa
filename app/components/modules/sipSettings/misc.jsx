@@ -68,8 +68,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG1894" />}>
-                                {formatMessage({id: "LANG1893"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG1894" /> }>
+                                <span>{ formatMessage({id: "LANG1893"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
@@ -119,8 +119,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG1746" />}>
-                                {formatMessage({id: "LANG1745"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG1746" /> }>
+                                <span>{ formatMessage({id: "LANG1745"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
@@ -136,8 +136,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG1897" />}>
-                                {formatMessage({id: "LANG1896"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG1897" /> }>
+                                <span>{ formatMessage({id: "LANG1896"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
@@ -158,8 +158,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG4551" />}>
-                                {formatMessage({id: "LANG4552"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG4551" /> }>
+                                <span>{ formatMessage({id: "LANG4552"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
@@ -180,8 +180,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG4775" />}>
-                                {formatMessage({id: "LANG4776"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG4775" /> }>
+                                <span>{ formatMessage({id: "LANG4776"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
@@ -202,8 +202,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG5042" />}>
-                                {formatMessage({id: "LANG5043"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG5042" /> }>
+                                <span>{ formatMessage({id: "LANG5043"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
@@ -218,8 +218,8 @@ const CustomizedForm = injectIntl(Form.create({
                     { ...formItemLayout }
                     label={(
                         <span>
-                            <Tooltip title={<FormattedHTMLMessage id="LANG1889" />}>
-                                {formatMessage({id: "LANG1888"})}
+                            <Tooltip title={ <FormattedHTMLMessage id="LANG1889" /> }>
+                                <span>{ formatMessage({id: "LANG1888"}) }</span>
                             </Tooltip>
                         </span>
                     )}>
