@@ -223,7 +223,7 @@ class Extension extends Component {
         browserHistory.push('/extension-trunk/extension/add')
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extension/add')
+        browserHistory.push('/extension-trunk/extension/edit/' + record.account_type.toLowerCase().slice(0, 3) + '/' + record.extension)
     }
     _reboot = (record) => {
         browserHistory.push('/extension-trunk/extension/add')
@@ -325,9 +325,9 @@ class Extension extends Component {
 
         const exportMenu = (
                 <Menu onClick={ this._export }>
-                    <Menu.Item key="SIP">{ formatMessage({id: "LANG2927"}) }</Menu.Item>
-                    <Menu.Item key="IAX">{ formatMessage({id: "LANG2928"}) }</Menu.Item>
-                    <Menu.Item key="FXS">{ formatMessage({id: "LANG2929"}) }</Menu.Item>
+                    <Menu.Item key="sip">{ formatMessage({id: "LANG2927"}) }</Menu.Item>
+                    <Menu.Item key="iax">{ formatMessage({id: "LANG2929"}) }</Menu.Item>
+                    <Menu.Item key="fxs">{ formatMessage({id: "LANG2928"}) }</Menu.Item>
                 </Menu>
             )
 

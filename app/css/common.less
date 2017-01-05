@@ -658,9 +658,17 @@ li {
  */
 .app-wrapper .ant-form {
     position: relative;
-    padding: 30px 18px 20px 52px;
     background-color: #FFF;
-    border-bottom: 1px solid #e6ebf0;
+    padding: 30px 18px 20px 52px;
+
+    &.form-contain-tab {
+        padding: 0;
+        background-color: transparent;
+
+        .content {
+            padding: 0 14px 14px 14px;
+        }
+    }
 }
 
 .app-wrapper .ant-tabs-bar {
@@ -710,7 +718,7 @@ li {
 
 .ant-form-item-label label {
     cursor: help;
-    color: #596600
+    /* color: #596600 */
 }
 
 .ant-checkbox-inner {
@@ -1060,7 +1068,7 @@ li {
 }
 
 .sprite-reboot-disabled {
-    background-position: -169px -85px;
+    background-position: -86px -250px;
     width: 19px;
     height: 21px;
     margin-left: 12px;

@@ -16,8 +16,9 @@ import { Button, Card, Col, DatePicker, Form, message, Row, Select, Tooltip } fr
 const NewDate = new Date()
 const FormItem = Form.Item
 const Option = Select.Option
+const AddZero = UCMGUI.addZero
 const DateFormat = 'YYYY-MM-DD'
-const CurrentDate = NewDate.getFullYear() + '-' + (NewDate.getMonth() + 1) + '-' + NewDate.getDate()
+const CurrentDate = NewDate.getFullYear() + '-' + AddZero(NewDate.getMonth() + 1) + '-' + AddZero(NewDate.getDate())
 
 class Statistics extends Component {
     constructor(props) {
@@ -564,7 +565,7 @@ class Statistics extends Component {
         return new Date(ymd[0], ymd[1] - 1, ymd[2])
     }
     _parseDateToString = (date) => {
-        return (date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate())
+        return (date.getFullYear() + '-' + AddZero(date.getMonth() + 1) + '-' + AddZero(date.getDate()))
     }
     render() {
         const form = this.props.form

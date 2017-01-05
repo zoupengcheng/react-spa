@@ -171,8 +171,8 @@ const routes = (state, currentLocaleData) => {
                         <Route path="extension" onEnter={ requireAuth } component={ Extension } breadcrumbName={ currentLocaleData["LANG87"] } />
                         <Route path="add" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="import" onEnter={ requireAuth } component={ ImportExtension } breadcrumbName={ currentLocaleData["LANG2734"] } />
-                        <Route path="edit/:id" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
-                        <Route path="batchEdit/:id" onEnter={ requireAuth } component={ BatchExtensionItem } breadcrumbName={ currentLocaleData["LANG734"] } />
+                        <Route path="edit/:type/:id" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                        <Route path="batchEdit/:type/:id" onEnter={ requireAuth } component={ BatchExtensionItem } breadcrumbName={ currentLocaleData["LANG734"] } />
                     </Route>
                     <Route path="extensionGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2800"] }>
                         <IndexRoute component={ ExtensionGroup } />

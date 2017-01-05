@@ -26,6 +26,8 @@ const Login = React.createClass({
         }
     },
     getFeatureLimits() {
+        let limits = {}
+
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -36,10 +38,14 @@ const Login = React.createClass({
             success: function(res) {
                 const response = res.response || {}
 
-                localStorage.setItem('featureLimits', JSON.stringify(response.feature_limits))
+                limits = response.feature_limits || {}
+
+                localStorage.setItem('featureLimits', JSON.stringify(limits))
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
+
+                localStorage.setItem('featureLimits', JSON.stringify(limits))
             }
         })
     },
@@ -207,6 +213,13 @@ const Login = React.createClass({
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 
+            1: formatMessage({id: "LANG269"})
+        })
 
         return (
             <div className="app-login-wrapper">
