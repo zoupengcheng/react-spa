@@ -468,6 +468,11 @@ li {
     padding: 14px;
 }
 
+.app-content-main .function-description {
+    color: #727070;
+    margin-bottom: 10px;
+}
+
 .ant-tabs-content .app-content-main .content {
     padding: 0 14px 14px;
 }
@@ -651,6 +656,44 @@ li {
 
 .section-body {
     margin-top: 12px;
+}
+
+.status-container {
+    &.unavailable {
+        color: #c0c5cc;
+    }
+
+    &.idle {
+        color: #48dc6b;
+    }
+
+    &.inuse, &.busy {
+        color: #fe980e;
+    }
+
+    &.ringing {
+        color: #3f7bf2;
+    }
+
+    &.email-status-sent {
+        color: #48dc6b;
+
+        span {
+            float: left;
+        }
+    }
+
+    &.email-status-disabled {
+        color: #c0c5cc;
+
+        span {
+            float: left;
+        }
+    }
+
+    .sprite {
+        margin-right: 10px;
+    }
 }
 
 /*

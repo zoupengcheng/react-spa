@@ -120,7 +120,7 @@ class Report extends Component {
             }]
 
         return (
-            <div className="call-queue-report">
+            <div className="app-content-queue-report">
                 <Row gutter={ 32 }>
                     <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
                         <Card title={ formatMessage({id: "LANG5352"}) }>

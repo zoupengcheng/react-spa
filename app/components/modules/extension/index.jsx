@@ -33,7 +33,7 @@ class Extension extends Component {
     componentWillUnmount() {
     }
     _createAddr = (text, record, index) => {
-        let address
+        const { formatMessage } = this.props.intl
 
         if (!text || text === '-' || text === '1' || text === '2') {
             return '--'
@@ -133,7 +133,7 @@ class Extension extends Component {
                     <span className="sprite sprite-del"></span>
                 </Popconfirm>
             </div>
-        }
+    }
     _createStatus = (text, record, index) => {
         const { formatMessage } = this.props.intl
 
@@ -337,7 +337,7 @@ class Extension extends Component {
                 })
 
         return (
-            <div className="app-content-main" id="extensionContent">
+            <div className="app-content-main app-content-extension">
                 <Title
                     isDisplay='hidden'
                     headerTitle={ formatMessage({id: "LANG622"}) }

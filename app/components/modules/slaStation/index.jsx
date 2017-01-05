@@ -321,7 +321,7 @@ class SLAStation extends Component {
                 })
 
         return (
-            <div className="app-content-main app-content-cdr">
+            <div className="app-content-main">
                 <Title
                     isDisplay='hidden'
                     headerTitle={ formatMessage({id: "LANG3225"}) }

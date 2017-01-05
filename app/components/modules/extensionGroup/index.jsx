@@ -21,7 +21,7 @@ class ExtensionGroup extends Component {
             extensionGroups: []
         }
     }
-    componentDidMount () {
+    componentDidMount() {
         this._getAccountList()
         this._getExtensionGroups()
     }
@@ -236,7 +236,7 @@ class ExtensionGroup extends Component {
                 })
 
         return (
-            <div className="app-content-main app-content-cdr">
+            <div className="app-content-main">
                 <Title
                     headerTitle={ formatMessage({id: "LANG2800"}) }
                     isDisplay='hidden'
