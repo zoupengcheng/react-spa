@@ -44,12 +44,16 @@ class CallQueue extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const callQueueList = response.queue || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    callQueueList: callQueueList
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const callQueueList = response.queue || []
+
+                    this.setState({
+                        callQueueList: callQueueList
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -69,18 +73,22 @@ class CallQueue extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                let response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                extgroupList = response.extension_groups || []
+                if (bool) {
+                    let response = res.response || {}
 
-                extgroupList.map(function(item) {
-                    extgroupObj[item.group_id] = item
-                })
+                    extgroupList = response.extension_groups || []
 
-                this.setState({
-                    extgroupObj: extgroupObj,
-                    extgroupList: extgroupList
-                })
+                    extgroupList.map(function(item) {
+                        extgroupObj[item.group_id] = item
+                    })
+
+                    this.setState({
+                        extgroupObj: extgroupObj,
+                        extgroupList: extgroupList
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -111,12 +119,16 @@ class CallQueue extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const recordingFiles = response.queue_recording || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    recordingFiles: recordingFiles
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const recordingFiles = response.queue_recording || []
+
+                    this.setState({
+                        recordingFiles: recordingFiles
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)

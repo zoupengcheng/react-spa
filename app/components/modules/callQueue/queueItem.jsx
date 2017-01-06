@@ -58,9 +58,13 @@ class QueueItem extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                groupNameList = response.group_name || []
+                if (bool) {
+                    const response = res.response || {}
+
+                    groupNameList = response.group_name || []
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -76,19 +80,23 @@ class QueueItem extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const extension = response.extension || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                accountList = extension.map(function(item) {
-                    return {
-                            key: item.extension,
-                            out_of_service: item.out_of_service,
-                            // disabled: (item.out_of_service === 'yes'),
-                            title: (item.extension +
-                                (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                (item.out_of_service === 'yes' ? ' <' + formatMessage({id: "LANG273"}) + '>' : ''))
-                        }
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const extension = response.extension || []
+
+                    accountList = extension.map(function(item) {
+                        return {
+                                key: item.extension,
+                                out_of_service: item.out_of_service,
+                                // disabled: (item.out_of_service === 'yes'),
+                                title: (item.extension +
+                                    (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                    (item.out_of_service === 'yes' ? ' <' + formatMessage({id: "LANG273"}) + '>' : ''))
+                            }
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -106,10 +114,14 @@ class QueueItem extends Component {
                 type: 'json',
                 async: false,
                 success: function(res) {
-                    const response = res.response || {}
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                    extensionGroup = res.response.extension_group || {}
-                    targetKeys = extensionGroup.members.split(',') || []
+                    if (bool) {
+                        const response = res.response || {}
+
+                        extensionGroup = res.response.extension_group || {}
+                        targetKeys = extensionGroup.members.split(',') || []
+                    }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
@@ -198,7 +210,7 @@ class QueueItem extends Component {
                         message.error(e.statusText)
                     },
                     success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()

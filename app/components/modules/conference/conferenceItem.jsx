@@ -9,23 +9,137 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Tooltip, Modal } from 'antd'
 
 const FormItem = Form.Item
+const Option = Select.Option
 
 class ConferenceItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            conferenceItem: {}
+            publicEnable: true,
+            waitAdminEnable: false,
+            quiteModeEnable: false,
+            announceCallers: false,
+            userInviteEnable: false,
+            musicclassHidden: 'hidden',
+            conferenceItem: {
+                musicclass: 'defalut'
+            },
+            mohNameList: []
         }
     }
-    componentWillMount() {
-    }
     componentDidMount() {
+        this._getInitData()
     }
     _getInitData = () => {
+        $.ajax({
+            url: api.apiHost,
+            type: "post",
+            data: {
+                'action': 'getMohNameList'
+            },
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var list = data.response.moh_name
 
+                if (list && list.length > 0) {
+                    this.setState({
+                        mohNameList: list
+                    })
+                }
+            }.bind(this)
+        })
+    }
+    _handlePublicChange = (e) => {
+        const {formatMessage} = this.props.intl,
+            self = this
+
+        if (this.state.userInviteEnable && e.target.checked) {
+            Modal.confirm({
+                title: formatMessage({id: "LANG543" }),
+                content: formatMessage({id: "LANG2433"}, {
+                        0: formatMessage({id: "LANG1027"}),
+                        1: formatMessage({id: "LANG2431"})
+                    }),
+                okText: formatMessage({id: "LANG727" }),
+                cancelText: formatMessage({id: "LANG726" }),
+                onOk() {
+                    self.props.form.setFieldsValue({
+                        public: true
+                    })
+                },
+                onCancel() {
+                    self.props.form.setFieldsValue({
+                        public: false
+                    })
+                }
+            })
+        }
+
+        this.setState({
+            publicEnable: e.target.checked
+        })
+    }
+    _handleWaitAdminChange = (e) => {
+        this.setState({
+            waitAdminEnable: e.target.checked
+        })
+    }
+    _handleQuiteModeChange = (e) => {
+        this.setState({
+            quiteModeEnable: e.target.checked
+        })
+    }
+    _handleAnnounceChange = (e) => {
+        this.setState({
+            announceCallers: e.target.checked
+        })
+    }
+    _handleMusicclassChange = (e) => {
+        if (e.target.checked) {
+            this.setState({
+                musicclassHidden: 'block'
+            })
+        } else {
+            this.setState({
+                musicclassHidden: 'hidden'
+            })
+        }
+    }
+    _handleUserInviteChange = (e) => {
+        const {formatMessage} = this.props.intl,
+            self = this
+
+        if (this.state.publicEnable && e.target.checked) {
+            Modal.confirm({
+                title: formatMessage({id: "LANG543" }),
+                content: formatMessage({id: "LANG2433"}, {
+                        0: formatMessage({id: "LANG1027"}),
+                        1: formatMessage({id: "LANG2431"})
+                    }),
+                okText: formatMessage({id: "LANG727" }),
+                cancelText: formatMessage({id: "LANG726" }),
+                onOk() {
+                    self.props.form.setFieldsValue({
+                        user_invite: true
+                    })
+                },
+                onCancel() {
+                    self.props.form.setFieldsValue({
+                        user_invite: false
+                    })
+                }
+            })
+        }
+
+        this.setState({
+            userInviteEnable: e.target.checked
+        })
     }
     _handleCancel = () => {
         browserHistory.push('/call-features/conference')
@@ -38,8 +152,8 @@ class ConferenceItem extends Component {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const formItemLayout = {
-            labelCol: { span: 3 },
-            wrapperCol: { span: 6 }
+            labelCol: { span: 6 },
+            wrapperCol: { span: 12 }
         }
 
         const title = (this.props.params.id
@@ -49,13 +163,17 @@ class ConferenceItem extends Component {
                 })
                 : formatMessage({id: "LANG597"}))
 
-        const extensionGroupItem = this.state.extensionGroupItem || {}
-        const name = extensionGroupItem.group_name
+        const conferenceItem = this.state.conferenceItem || {}
+        const name = conferenceItem.group_name
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: title
                 })
+
+        for (let i = 0; i < this.state.mohNameList.length; i++) {
+
+        }
 
         return (
             <div className="app-content-main">
@@ -77,7 +195,6 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('extension', {
-                                        rules: [],
                                         initialValue: this.state.conferenceItem.extension
                                     })(
                                         <Input />
@@ -96,10 +213,10 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('public', {
-                                        rules: [],
-                                        initialValue: this.state.conferenceItem.public
+                                        valuePropName: 'checked',
+                                        initialValue: this.state.publicEnable
                                     })(
-                                        <Checkbox />
+                                        <Checkbox disabled={ this.state.waitAdminEnable } onChange={ this._handlePublicChange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -115,10 +232,196 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('wait_admin', {
-                                        rules: [],
                                         initialValue: this.state.conferenceItem.wait_admin
                                     })(
+                                        <Checkbox disabled={ this.state.publicEnable } onChange={ this._handleWaitAdminChange } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1033" /> }>
+                                            <span>{ formatMessage({id: "LANG1032"}) }</span>
+                                        </Tooltip>
+                                    )}
+                                >
+                                    { getFieldDecorator('pincode', {
+                                        initialValue: this.state.conferenceItem.pincode
+                                    })(
+                                        <Input disabled={ this.state.publicEnable } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1021" /> }>
+                                                <span>{ formatMessage({id: "LANG1020"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('admin_pincode', {
+                                        initialValue: this.state.conferenceItem.admin_pincode
+                                    })(
+                                        <Input disabled={ this.state.publicEnable } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1037" /> }>
+                                            <span>{ formatMessage({id: "LANG1036"}) }</span>
+                                        </Tooltip>
+                                    )}
+                                >
+                                    { getFieldDecorator('quiet_mode', {
+                                        initialValue: this.state.conferenceItem.quiet_mode
+                                    })(
+                                        <Checkbox disabled={ this.state.announceCallers } onChange={ this._handleQuiteModeChange } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1023" /> }>
+                                                <span>{ formatMessage({id: "LANG1022"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('announce_callers', {
+                                        initialValue: this.state.conferenceItem.announce_callers
+                                    })(
+                                        <Checkbox disabled={ this.state.quiteModeEnable } onChange={ this._handleAnnounceChange } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1026" /> }>
+                                            <span>{ formatMessage({id: "LANG1025"}) }</span>
+                                        </Tooltip>
+                                    )}
+                                >
+                                    { getFieldDecorator('call_menu', {
+                                        initialValue: this.state.conferenceItem.call_menu
+                                    })(
                                         <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1039" /> }>
+                                                <span>{ formatMessage({id: "LANG1038"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('recording', {
+                                        initialValue: this.state.conferenceItem.recording
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1035" /> }>
+                                            <span>{ formatMessage({id: "LANG1034"}) }</span>
+                                        </Tooltip>
+                                    )}
+                                >
+                                    { getFieldDecorator('moh_firstcaller', {
+                                        initialValue: this.state.conferenceItem.moh_firstcaller
+                                    })(
+                                        <Checkbox onChange={ this._handleMusicclassChange } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 } className={ this.state.musicclassHidden }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1031" /> }>
+                                                <span>{ formatMessage({id: "LANG1031"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('musicclass', {
+                                        initialValue: this.state.conferenceItem.musicclass
+                                    })(
+                                        <Select>
+                                            {
+                                                this.state.mohNameList.map(function(value, index) {
+                                                    return <Option value={ value } key={ index }>{ value }</Option>
+                                                })
+                                            }
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1044" /> }>
+                                            <span>{ formatMessage({id: "LANG1043"}) }</span>
+                                        </Tooltip>
+                                    )}
+                                >
+                                    { getFieldDecorator('skipauth', {
+                                        initialValue: this.state.conferenceItem.skipauth
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1028" /> }>
+                                                <span>{ formatMessage({id: "LANG1027"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('user_invite', {
+                                        valuePropName: 'checked',
+                                        initialValue: this.state.userInviteEnable
+                                    })(
+                                        <Checkbox onChange={ this._handleUserInviteChange } />
                                     ) }
                                 </FormItem>
                             </Col>

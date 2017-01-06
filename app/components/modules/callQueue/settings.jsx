@@ -78,9 +78,13 @@ class AgentLoginSettings extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                agentLoginSettings = response.queue_settings || {}
+                if (bool) {
+                    const response = res.response || {}
+
+                    agentLoginSettings = response.queue_settings || {}
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -96,12 +100,16 @@ class AgentLoginSettings extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const numberList = response.number || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                pureNumberList = $.grep(numberList, function(n, i) {
-                    return !isNaN(Number(n))
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const numberList = response.number || []
+
+                    pureNumberList = $.grep(numberList, function(n, i) {
+                        return !isNaN(Number(n))
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -117,12 +125,16 @@ class AgentLoginSettings extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const queues = response.queues || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                queues.map(function(item) {
-                    queueList.push(item.extension)
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const queues = response.queues || []
+
+                    queues.map(function(item) {
+                        queueList.push(item.extension)
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -168,7 +180,7 @@ class AgentLoginSettings extends Component {
                         message.error(e.statusText)
                     },
                     success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()

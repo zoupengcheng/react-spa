@@ -18,12 +18,6 @@ class VoipTrunk extends Component {
     componentWillUnmount() {
 
     }
-    _createSipVoipTrunk = () => {
-        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk')
-    }
-    _createIaxVoipTrunk = () => {
-        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk')
-    }
     onChange(activeKey) {
         if (activeKey === "1") {
 

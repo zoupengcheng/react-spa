@@ -6,12 +6,16 @@ import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip,
 const FormItem = Form.Item
 const Option = Select.Option
 import _ from 'underscore'
+import $ from 'jquery'
 import Title from '../../../views/title'
 
 class CreateVoipTrunk extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            trunkType: "peer",
+            telUri: "disabled",
+            enableCc: false
         }
     }
     componentDidMount() {
@@ -19,18 +23,26 @@ class CreateVoipTrunk extends Component {
     componentWillUnmount() {
 
     }
-    _onChange = (activeKey) => {
-        if (activeKey === "1") {
-
-        } else {            
-            
-        }
-    }
     _handleSubmit = (e) => {
         // this.state.basicSettings.form.validateFields(() => {
         //     console.log("hi") 
         // })
         console.log("hi")
+    }
+    _onChangeTrunkType = (val) => {
+        this.setState({
+            trunkType: val
+        })      
+    }
+    _onChangeTelUri = (val) => {
+        this.setState({
+            telUri: val
+        })  
+    }
+    _onChangeEnableCc = (val) => {
+        this.setState({
+            enableCc: val
+        })  
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -39,25 +51,38 @@ class CreateVoipTrunk extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-        
+        let type = this.props.params.type
+
         return (
             <div className="app-content-main" id="app-content-main">
                 <Title headerTitle={ formatMessage({id: "LANG2908"}) } onSubmit={ this._handleSubmit.bind(this) } onCancel={ this._handleCancel } isDisplay='display-block' />
                 <Form tab={formatMessage({id: "LANG2217"})} key="1">
                     <FormItem
-                        id="div_trunktype"
+                        ref="div_trunktype"
                         { ...formItemLayout }
-                        label={formatMessage({id: "LANG84"})}>
-                        { getFieldDecorator('trunk_type', {
-                            rules: [],
-                            initialValue: ""
-                        })(
-                            <Select style={{ width: 200 }}>
-                            </Select>
-                        ) }
+                        label={ formatMessage({id: "LANG84"}) }>
+                        {(() => {
+                            switch (type) {
+                                case "addSip": 
+                                    return (
+                                        <Select ref="trunk_type" defaultValue="peer" onChange={this._onChangeTrunkType}>
+                                            <Option value="peer">{ formatMessage({id: "LANG233"}) }</Option>
+                                            <Option value="register">{ formatMessage({id: "LANG234"}) }</Option>
+                                        </Select>
+                                    )
+                                case "addIax": 
+                                    return (
+                                        <Select ref="trunk_type" defaultValue="peer" onChange={this._onChangeTrunkType}>
+                                            <Option value="peer">{ formatMessage({id: "LANG235"}) }</Option>
+                                            <Option value="register">{ formatMessage({id: "LANG236"}) }</Option>
+                                        </Select>
+                                    )
+                                default: return
+                            }
+                        })()}
                     </FormItem>
                     <FormItem
-                        id="div_trunktype"
+                        ref="div_trunktype"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1383" />}>
@@ -72,7 +97,7 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_hostname"
+                        ref="div_hostname"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1374" />}>
@@ -87,7 +112,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_transport"
+                        ref="div_transport"
+                        className="hidden"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1391" />}>
@@ -109,7 +135,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_keep_org_cid"
+                        ref="div_keep_org_cid"
+                        className={type === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4109" />}>
@@ -124,7 +151,7 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_keep_cid"
+                        ref="div_keep_cid"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2319" />}>
@@ -134,17 +161,18 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('keepcid', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: (this.state.trunkType === "register" && type === "addSip") ? true : false
                         })(
                             <Checkbox />
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_nat"
+                        ref="div_nat"
+                        className={type === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1093" />}>
-                                {"NAT:"}
+                                {"NAT"}
                             </Tooltip>
                         }>
                         { getFieldDecorator('nat', {
@@ -156,7 +184,7 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_out_of_service"
+                        ref="div_out_of_service"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG3480" />}>
@@ -172,7 +200,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_tel_uri"
+                        ref="div_tel_uri"
+                        className={type === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2769" />}>
@@ -183,7 +212,7 @@ class CreateVoipTrunk extends Component {
                             rules: [],
                             initialValue: "disabled"
                         })(
-                            <Select>
+                            <Select onChange={ this._onChangeTelUri}>
                                 <Option value='disabled'>{formatMessage({id: "LANG2770"})}</Option>
                                 <Option value='user_phone'>{formatMessage({id: "LANG2771"})}</Option>
                                 <Option value='enabled'>{formatMessage({id: "LANG2772"})}</Option>
@@ -191,7 +220,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="need_register_div"
+                        ref="need_register_div"
+                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG3016" />}>
@@ -201,13 +231,14 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('need_register', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: (this.state.trunkType === "register" && type === "addSip") ? true : false
                         })(
                             <Checkbox />
                         ) }
                     </FormItem>
                     <FormItem
-                        id="allow_outgoing_calls_if_reg_failed_div"
+                        ref="allow_outgoing_calls_if_reg_failed_div"
+                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG5070" />}>
@@ -223,7 +254,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_callerid"
+                        ref="div_callerid"
+                        className={this.state.trunkType === "peer" ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1360" />}>
@@ -238,7 +270,7 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_callername"
+                        ref="div_callername"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1362" />}>
@@ -253,7 +285,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_fromdomain"
+                        ref="div_fromdomain"
+                        className="hidden"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1370" />}>
@@ -268,7 +301,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_fromuser"
+                        ref="div_fromuser"
+                        className="hidden"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1372" />}>
@@ -283,7 +317,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_username"
+                        ref="div_username"
+                        className={ this.state.trunkType === "register" ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1393" />}>
@@ -298,7 +333,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_password"
+                        ref="div_password"
+                        className={ this.state.trunkType === "register" ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={formatMessage({id: "LANG73"})}>
                         { getFieldDecorator('password', {
@@ -312,7 +348,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="authid_field"
+                        ref="authid_field"
+                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2488" />}>
@@ -327,7 +364,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="auth_trunk_field"
+                        ref="auth_trunk_field"
+                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4262" />}>
@@ -343,7 +381,8 @@ class CreateVoipTrunk extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="auto_record_field"
+                        ref="auto_record_field"
+                        className={type === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG5266" />}>
@@ -357,7 +396,93 @@ class CreateVoipTrunk extends Component {
                         })(
                             <Checkbox />
                         ) }
-                    </FormItem>
+                        </FormItem>
+                        <div className="hidden">
+                            <FormItem
+                                ref="outboundproxy_field"
+                                className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                                { ...formItemLayout }
+                                label={                            
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG1379" />}>
+                                        <span>{formatMessage({id: "LANG1378"})}</span>
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('outboundproxy', {
+                                    rules: [],
+                                    initialValue: ""
+                                })(
+                                    <Input />
+                                ) }
+                            </FormItem>
+                            <FormItem
+                                id="rmvObpFromRoute_field"
+                                className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                                { ...formItemLayout }
+                                label={                            
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG5030" />}>
+                                        <span>{formatMessage({id: "LANG5029"})}</span>
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('rmv_obp_from_route', {
+                                    rules: [],
+                                    initialValue: ""
+                                })(
+                                    <Input disabled={ this.state.telUri !== "disabled" ? true : false } />
+                                ) }
+                            </FormItem>
+                        </div>
+                    {/*  ccss for trunk  */}
+                    <div id="ccss" className="hidden">
+                        <div className='section-title'>{ formatMessage({id: "LANG3725"}) }</div>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3727" /> }>
+                                    <span>{ formatMessage({id: "LANG3726"}) }</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('enable_cc', {
+                                rules: [],
+                                valuePropName: "checked",
+                                initialValue: ""
+                            })(
+                                <Checkbox onChange={this._onChangeEnableCc} />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            ref="cc-max-agents"
+                            className={ this.state.enableCc === true ? "display-block" : "hidden" }
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3734" /> }>
+                                    <span>{ formatMessage({id: "LANG3733"}) }</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('cc_max_agents', {
+                                rules: [],
+                                initialValue: ""
+                            })(
+                                <Input maxLength="10" />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            id="cc-max-monitors"
+                            className={ this.state.enableCc === true ? "display-block" : "hidden" }
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3740" /> }>
+                                    <span>{ formatMessage({id: "LANG3739"}) }</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('cc_max_monitors', {
+                                rules: [],
+                                initialValue: ""
+                            })(
+                                <Input maxLength="10" />
+                            ) }
+                        </FormItem>
+                    </div>      
+                    {/* ended of  ccss for trunk */} 
                 </Form>
             </div>
         )

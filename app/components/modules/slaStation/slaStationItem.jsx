@@ -54,9 +54,13 @@ class SLAStationItem extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                accountList = response.extension || []
+                if (bool) {
+                    const response = res.response || {}
+
+                    accountList = response.extension || []
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -74,10 +78,14 @@ class SLAStationItem extends Component {
                 type: 'json',
                 async: false,
                 success: function(res) {
-                    const response = res.response || {}
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                    slaStationItem = res.response.sla_station || {}
-                    targetKeys = slaStationItem.trunks.split(',') || []
+                    if (bool) {
+                        const response = res.response || {}
+
+                        slaStationItem = res.response.sla_station || {}
+                        targetKeys = slaStationItem.trunks.split(',') || []
+                    }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
@@ -161,7 +169,7 @@ class SLAStationItem extends Component {
                         message.error(e.statusText)
                     },
                     success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()

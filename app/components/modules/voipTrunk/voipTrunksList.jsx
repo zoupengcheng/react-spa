@@ -69,8 +69,11 @@ class VoipTrunksList extends Component {
             }
         })
     }
-    _createVoipTrunk = (e) => {
-        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk')
+    _createSipVoipTrunk = () => {
+        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk/addSip')
+    }
+    _createIaxVoipTrunk = () => {
+        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk/addIax')
     }
     _editVoipTrunk = (e) => {
         browserHistory.push('/extension-trunk/voipTrunk/editVoipTrunk')
@@ -84,10 +87,10 @@ class VoipTrunksList extends Component {
         const menu = (
           <Menu>
             <Menu.Item>
-              <span onClick={this._createVoipTrunk} >{formatMessage({id: "LANG2908"})}</span>
+              <span onClick={this._createSipVoipTrunk} >{formatMessage({id: "LANG2908"})}</span>
             </Menu.Item>
             <Menu.Item>
-              <span onClick={this._createVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>
+              <span onClick={this._createIaxVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>
             </Menu.Item>
             <Menu.Item>
               <span onClick={this._editVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>

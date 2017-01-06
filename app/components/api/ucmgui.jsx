@@ -3,12 +3,12 @@
  * Copyright (C) 2016 Grandstream Networks, Inc.
  *
  */
-import React from 'react'
 import $ from 'jquery'
-import { message } from 'antd'
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl'
-import { browserHistory } from 'react-router'
+import React from 'react'
 import _ from 'underscore'
+import { message } from 'antd'
+import { browserHistory } from 'react-router'
+import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
 
 let UCMGUI = function() {}
 

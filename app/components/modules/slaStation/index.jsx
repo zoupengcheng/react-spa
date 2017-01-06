@@ -119,7 +119,7 @@ class SLAStation extends Component {
                     type: 'json',
                     async: true,
                     success: function(res) {
-                        var bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()
@@ -160,7 +160,7 @@ class SLAStation extends Component {
             type: 'json',
             async: true,
             success: function(res) {
-                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()
@@ -195,9 +195,13 @@ class SLAStation extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                slaTrunkNameList = response.trunk_name || []
+                if (bool) {
+                    const response = res.response || {}
+
+                    slaTrunkNameList = response.trunk_name || []
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -213,9 +217,13 @@ class SLAStation extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                accountList = response.extension || []
+                if (bool) {
+                    const response = res.response || {}
+
+                    accountList = response.extension || []
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -242,11 +250,15 @@ class SLAStation extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    SLAStations: response.sla_station || []
-                })
+                if (bool) {
+                    const response = res.response || {}
+
+                    this.setState({
+                        SLAStations: response.sla_station || []
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)

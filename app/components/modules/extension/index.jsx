@@ -208,11 +208,15 @@ class Extension extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    extensionList: response.account || []
-                })
+                if (bool) {
+                    const response = res.response || {}
+
+                    this.setState({
+                        extensionList: response.account || []
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)

@@ -36,7 +36,7 @@ class extensionList extends Component {
             type: 'json',
             async: true,
             success: function(res) {
-                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()

@@ -64,7 +64,7 @@ class ExtensionGroup extends Component {
             type: 'json',
             async: true,
             success: function(res) {
-                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()
@@ -89,18 +89,22 @@ class ExtensionGroup extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                let obj = {}
-                let response = res.response || {}
-                let extension = response.extension || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                extension.map(function(item) {
-                    obj[item.extension] = item
-                })
+                if (bool) {
+                    let obj = {}
+                    let response = res.response || {}
+                    let extension = response.extension || []
 
-                this.setState({
-                    accountAryObj: obj,
-                    accountList: extension
-                })
+                    extension.map(function(item) {
+                        obj[item.extension] = item
+                    })
+
+                    this.setState({
+                        accountAryObj: obj,
+                        accountList: extension
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -121,12 +125,16 @@ class ExtensionGroup extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const extensionGroups = response.extension_group || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    extensionGroups: extensionGroups
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const extensionGroups = response.extension_group || []
+
+                    this.setState({
+                        extensionGroups: extensionGroups
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)

@@ -84,12 +84,16 @@ class Statistics extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const accountList = response.extension || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                accountList.map(function(item) {
-                    accounts[item.extension] = item
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const accountList = response.extension || []
+
+                    accountList.map(function(item) {
+                        accounts[item.extension] = item
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -105,16 +109,17 @@ class Statistics extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                let response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                extgroupList = response.extension_groups || []
+                if (bool) {
+                    let response = res.response || {}
 
-                extgroupList.map(function(item) {
-                    extgroupObj[item.group_id] = item
-                })
+                    extgroupList = response.extension_groups || []
 
-                this.setState({
-                })
+                    extgroupList.map(function(item) {
+                        extgroupObj[item.group_id] = item
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -132,49 +137,53 @@ class Statistics extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                let obj = {}
-                let members = []
-                let agentKeys = []
-                const response = res.response || {}
-                const queueList = response.queue || []
-                const disabled = formatMessage({id: "LANG273"})
-                const extgroupLabel = formatMessage({id: "LANG2714"})
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                queueList.map(function(item) {
-                    if (item.extension) {
-                        queues.push({
-                            key: item.extension,
-                            title: item.extension
-                        })
-                    }
+                if (bool) {
+                    let obj = {}
+                    let members = []
+                    let agentKeys = []
+                    const response = res.response || {}
+                    const queueList = response.queue || []
+                    const disabled = formatMessage({id: "LANG273"})
+                    const extgroupLabel = formatMessage({id: "LANG2714"})
 
-                    if (item.members) {
-                        members = item.members.split(',')
+                    queueList.map(function(item) {
+                        if (item.extension) {
+                            queues.push({
+                                key: item.extension,
+                                title: item.extension
+                            })
+                        }
 
-                        members.map(function(member) {
-                            if (agentKeys.indexOf(member) === -1) {
-                                obj = extgroupObj[member] || accounts[member] || {}
+                        if (item.members) {
+                            members = item.members.split(',')
 
-                                if (obj.out_of_service) {
-                                    agents.push({
-                                        key: member,
-                                        out_of_service: obj.out_of_service,
-                                        title: (obj.extension +
-                                                (obj.fullname ? ' "' + obj.fullname + '"' : '') +
-                                                (obj.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                                    })
-                                } else {
-                                    agents.push({
-                                        key: member,
-                                        title: extgroupLabel + " -- " + obj.group_name
-                                    })
+                            members.map(function(member) {
+                                if (agentKeys.indexOf(member) === -1) {
+                                    obj = extgroupObj[member] || accounts[member] || {}
+
+                                    if (obj.out_of_service) {
+                                        agents.push({
+                                            key: member,
+                                            out_of_service: obj.out_of_service,
+                                            title: (obj.extension +
+                                                    (obj.fullname ? ' "' + obj.fullname + '"' : '') +
+                                                    (obj.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                                        })
+                                    } else {
+                                        agents.push({
+                                            key: member,
+                                            title: extgroupLabel + " -- " + obj.group_name
+                                        })
+                                    }
+
+                                    agentKeys.push(member)
                                 }
-
-                                agentKeys.push(member)
-                            }
-                        })
-                    }
-                })
+                            })
+                        }
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -190,15 +199,19 @@ class Statistics extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                queueReport = response.queue_report_info || {}
+                if (bool) {
+                    const response = res.response || {}
 
-                queueReport.start_date = queueReport.start_date ? queueReport.start_date : CurrentDate
-                queueReport.end_date = queueReport.end_date ? queueReport.end_date : CurrentDate
-                queueReport.period = queueReport.period ? queueReport.period : '1'
-                queueReport.queue = queueReport.queue ? queueReport.queue.split(',') : []
-                queueReport.agent = queueReport.agent ? queueReport.agent.split(',') : []
+                    queueReport = response.queue_report_info || {}
+
+                    queueReport.start_date = queueReport.start_date ? queueReport.start_date : CurrentDate
+                    queueReport.end_date = queueReport.end_date ? queueReport.end_date : CurrentDate
+                    queueReport.period = queueReport.period ? queueReport.period : '1'
+                    queueReport.queue = queueReport.queue ? queueReport.queue.split(',') : []
+                    queueReport.agent = queueReport.agent ? queueReport.agent.split(',') : []
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -268,66 +281,70 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const total = response.distribution_total || {}
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                let QueueStatTotal = [{
-                        key: '1',
-                        name: formatMessage({id: "LANG5409"}),
-                        value: total.received_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                    }, {
-                        key: '2',
-                        name: formatMessage({id: "LANG5362"}),
-                        value: total.answered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                    }, {
-                        key: '3',
-                        name: formatMessage({id: "LANG5363"}),
-                        value: total.unanswered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                    }, {
-                        key: '4',
-                        name: formatMessage({id: "LANG5364"}),
-                        value: total.abandoned_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                    }, {
-                        key: '5',
-                        name: formatMessage({id: "LANG5410"}),
-                        value: total.transferred_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                    }, {
-                        key: '6',
-                        name: formatMessage({id: "LANG5365"}),
-                        value: parseFloat(total.answered_rate).toFixed(2) + ' %'
-                    }, {
-                        key: '7',
-                        name: formatMessage({id: "LANG5366"}),
-                        value: parseFloat(total.unanswered_rate).toFixed(2) + ' %'
-                    }, {
-                        key: '8',
-                        name: formatMessage({id: "LANG5367"}),
-                        value: parseFloat(total.abandoned_rate).toFixed(2) + ' %'
-                    }, {
-                        key: '9',
-                        name: formatMessage({id: "LANG5411"}),
-                        value: parseFloat(total.transferred_rate).toFixed(2) + ' %'
-                    }, {
-                        key: '10',
-                        name: formatMessage({id: "LANG5368"}),
-                        value: total.agent_login
-                    }, {
-                        key: '11',
-                        name: formatMessage({id: "LANG5369"}),
-                        value: total.agent_logoff
-                    }, {
-                        key: '12',
-                        name: formatMessage({id: "LANG5370"}),
-                        value: UCMGUI.formatSeconds(total.avg_talk)
-                    }, {
-                        key: '13',
-                        name: formatMessage({id: "LANG5371"}),
-                        value: UCMGUI.formatSeconds(total.avg_wait)
-                    }]
+                if (bool) {
+                    const response = res.response || {}
+                    const total = response.distribution_total || {}
 
-                this.setState({
-                    QueueStatTotal: QueueStatTotal
-                })
+                    let QueueStatTotal = [{
+                            key: '1',
+                            name: formatMessage({id: "LANG5409"}),
+                            value: total.received_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                        }, {
+                            key: '2',
+                            name: formatMessage({id: "LANG5362"}),
+                            value: total.answered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                        }, {
+                            key: '3',
+                            name: formatMessage({id: "LANG5363"}),
+                            value: total.unanswered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                        }, {
+                            key: '4',
+                            name: formatMessage({id: "LANG5364"}),
+                            value: total.abandoned_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                        }, {
+                            key: '5',
+                            name: formatMessage({id: "LANG5410"}),
+                            value: total.transferred_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
+                        }, {
+                            key: '6',
+                            name: formatMessage({id: "LANG5365"}),
+                            value: parseFloat(total.answered_rate).toFixed(2) + ' %'
+                        }, {
+                            key: '7',
+                            name: formatMessage({id: "LANG5366"}),
+                            value: parseFloat(total.unanswered_rate).toFixed(2) + ' %'
+                        }, {
+                            key: '8',
+                            name: formatMessage({id: "LANG5367"}),
+                            value: parseFloat(total.abandoned_rate).toFixed(2) + ' %'
+                        }, {
+                            key: '9',
+                            name: formatMessage({id: "LANG5411"}),
+                            value: parseFloat(total.transferred_rate).toFixed(2) + ' %'
+                        }, {
+                            key: '10',
+                            name: formatMessage({id: "LANG5368"}),
+                            value: total.agent_login
+                        }, {
+                            key: '11',
+                            name: formatMessage({id: "LANG5369"}),
+                            value: total.agent_logoff
+                        }, {
+                            key: '12',
+                            name: formatMessage({id: "LANG5370"}),
+                            value: UCMGUI.formatSeconds(total.avg_talk)
+                        }, {
+                            key: '13',
+                            name: formatMessage({id: "LANG5371"}),
+                            value: UCMGUI.formatSeconds(total.avg_wait)
+                        }]
+
+                    this.setState({
+                        QueueStatTotal: QueueStatTotal
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -346,12 +363,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByQueue = response.distribution_by_queue || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByQueue: QueueStatDistributionByQueue
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByQueue = response.distribution_by_queue || []
+
+                    this.setState({
+                        QueueStatDistributionByQueue: QueueStatDistributionByQueue
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -370,12 +391,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByAgent = response.distribution_by_agent || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByAgent: QueueStatDistributionByAgent
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByAgent = response.distribution_by_agent || []
+
+                    this.setState({
+                        QueueStatDistributionByAgent: QueueStatDistributionByAgent
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -392,12 +417,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByHour = response.distribution_by_hour || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByHour: QueueStatDistributionByHour
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByHour = response.distribution_by_hour || []
+
+                    this.setState({
+                        QueueStatDistributionByHour: QueueStatDistributionByHour
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -414,12 +443,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByDay = response.distribution_by_day || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByDay: QueueStatDistributionByDay
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByDay = response.distribution_by_day || []
+
+                    this.setState({
+                        QueueStatDistributionByDay: QueueStatDistributionByDay
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -436,12 +469,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByDayOfWeek = response.distribution_by_day_of_week || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByDayOfWeek: QueueStatDistributionByDayOfWeek
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByDayOfWeek = response.distribution_by_day_of_week || []
+
+                    this.setState({
+                        QueueStatDistributionByDayOfWeek: QueueStatDistributionByDayOfWeek
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -458,12 +495,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByWeek = response.distribution_by_week || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByWeek: QueueStatDistributionByWeek
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByWeek = response.distribution_by_week || []
+
+                    this.setState({
+                        QueueStatDistributionByWeek: QueueStatDistributionByWeek
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -480,12 +521,16 @@ class Statistics extends Component {
             type: 'json',
             // async: false,
             success: function(res) {
-                const response = res.response || {}
-                const QueueStatDistributionByMonth = response.distribution_by_month || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    QueueStatDistributionByMonth: QueueStatDistributionByMonth
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const QueueStatDistributionByMonth = response.distribution_by_month || []
+
+                    this.setState({
+                        QueueStatDistributionByMonth: QueueStatDistributionByMonth
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -539,7 +584,7 @@ class Statistics extends Component {
                         message.error(e.statusText)
                     },
                     success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()

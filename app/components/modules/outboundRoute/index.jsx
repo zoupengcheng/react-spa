@@ -67,7 +67,7 @@ class OutboundRoute extends Component {
             type: 'json',
             async: true,
             success: function(res) {
-                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()
@@ -164,18 +164,22 @@ class OutboundRoute extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                let obj = {}
-                let response = res.response || {}
-                let extension = response.extension || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                extension.map(function(item) {
-                    obj[item.extension] = item
-                })
+                if (bool) {
+                    let obj = {}
+                    let response = res.response || {}
+                    let extension = response.extension || []
 
-                this.setState({
-                    accountAryObj: obj,
-                    accountList: extension
-                })
+                    extension.map(function(item) {
+                        obj[item.extension] = item
+                    })
+
+                    this.setState({
+                        accountAryObj: obj,
+                        accountList: extension
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -197,12 +201,16 @@ class OutboundRoute extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const outboundRoutes = response.outbound_route || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    outboundRoutes: outboundRoutes
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const outboundRoutes = response.outbound_route || []
+
+                    this.setState({
+                        outboundRoutes: outboundRoutes
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)

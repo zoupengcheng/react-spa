@@ -57,7 +57,7 @@ class Recording extends Component {
                         type: 'json',
                         async: true,
                         success: function(res) {
-                            var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                            const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                             if (bool) {
                                 message.destroy()
@@ -111,7 +111,7 @@ class Recording extends Component {
                     type: 'json',
                     async: true,
                     success: function(res) {
-                        var bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()
@@ -160,7 +160,7 @@ class Recording extends Component {
                     type: 'json',
                     async: true,
                     success: function(res) {
-                        var bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
+                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()
@@ -224,7 +224,7 @@ class Recording extends Component {
             type: 'json',
             async: true,
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     window.open("/cgi?action=downloadFile&type=" + actionType + "&data=allQueueRecordFiles.tgz", '_self')
@@ -255,7 +255,7 @@ class Recording extends Component {
             type: 'json',
             async: true,
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     window.open("/cgi?action=downloadFile&type=" + actionType + "&data=batchQueueRecordFiles.tgz", '_self')
@@ -284,12 +284,16 @@ class Recording extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                const response = res.response || {}
-                const recordingFiles = response.queue_recording || []
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                this.setState({
-                    recordingFiles: recordingFiles
-                })
+                if (bool) {
+                    const response = res.response || {}
+                    const recordingFiles = response.queue_recording || []
+
+                    this.setState({
+                        recordingFiles: recordingFiles
+                    })
+                }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)

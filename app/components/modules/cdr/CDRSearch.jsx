@@ -47,22 +47,7 @@ const CustomizedForm = injectIntl(Form.create({
 
     const actionTypeList = props.actionTypeList,
           accountCodes = props.accountCodes,
-          all_trunks = props.all_trunks,
-          actionTypeListChildren = [],
-          accountCodesChildren = [],
-          allTrunksChildren = []
-
-    for (let i = 0; i < actionTypeList.length; i++) {
-        actionTypeListChildren.push(<Option value={actionTypeList[i]} key={i}>{actionTypeList[i]}</Option>)
-    }
-
-    for (let i = 0; i < accountCodes.length; i++) {
-        accountCodesChildren.push(<Option value={accountCodes[i]} key={i}>{accountCodes[i]}</Option>)
-    }
-
-    for (let i = 0; i < all_trunks.length; i++) {
-        allTrunksChildren.push(<Option value={'trunk_' + all_trunks[i].trunk_index} key={i}>{all_trunks[i].trunk_name}</Option>)
-    }
+          all_trunks = props.all_trunks
 
     return (
         <Form id="cdr-form" className={ props.isDisplaySearch }>
@@ -166,7 +151,11 @@ const CustomizedForm = injectIntl(Form.create({
                     >
                         {getFieldDecorator('accountcode')(
                             <Select multiple>
-                                {accountCodesChildren}
+                                {
+                                    accountCodes.map(function(value, index) {
+                                        return <Option value={ value } key={ index }>{ value }</Option>
+                                    })
+                                }
                             </Select>
                         )}
                     </FormItem>
@@ -187,7 +176,11 @@ const CustomizedForm = injectIntl(Form.create({
                     >
                         {getFieldDecorator('src_trunk_name')(
                             <Select multiple>
-                                {allTrunksChildren}
+                                {
+                                    all_trunks.map(function(value, index) {
+                                        return <Option value={ 'trunk_' + value.trunk_index } key={ index }>{ value.trunk_name }</Option>
+                                    })
+                                }
                             </Select>
                         )}
                     </FormItem>
@@ -205,7 +198,11 @@ const CustomizedForm = injectIntl(Form.create({
                     >
                         {getFieldDecorator('dst_trunk_name')(
                             <Select multiple>
-                                {allTrunksChildren}
+                                {
+                                    all_trunks.map(function(value, index) {
+                                        return <Option value={ 'trunk_' + value.trunk_index } key={ index }>{ value.trunk_name }</Option>
+                                    })
+                                }
                             </Select>
                         )}
                     </FormItem>
@@ -226,7 +223,11 @@ const CustomizedForm = injectIntl(Form.create({
                     >
                         {getFieldDecorator('action_type')(
                             <Select multiple>
-                                { actionTypeListChildren }
+                                {
+                                    actionTypeList.map(function(value, index) {
+                                        return <Option value={ value} key={ index }>{ value }</Option>
+                                    })
+                                }
                             </Select>
                         )}
                     </FormItem>
@@ -417,7 +418,7 @@ class CDRSearch extends Component {
 
         return (
             <CustomizedForm onChange={ this._handleFormChange.bind(this) } dataSource={ cdrSettings }
-            actionTypeList = { this.state.actionTypeList } accountCodes = { this.state.actionTypeList }
+            actionTypeList = { this.state.actionTypeList } accountCodes = { this.state.accountCodes }
             all_trunks = { this.state.all_trunks } _hideSearch = { this.props._hideSearch } isDisplaySearch={ this.props.isDisplaySearch } />
         )
     }
