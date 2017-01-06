@@ -135,7 +135,12 @@ UCMGUI.prototype = {
                     browserHistory.push('/login')
                 } else {
                     message.destroy()
-                    message.error(formatMessage({ id: (this.initConfig.errorCodes[status] || 'LANG916') }))
+
+                    if (typeof formatMessage === 'function') {
+                        message.error(formatMessage({ id: (this.initConfig.errorCodes[status] || 'LANG916') }))
+                    } else {
+                        message.error("Please pass the \'formatMessage\' function.")
+                    }
 
                     setTimeout(function() {
                         if (callback && typeof callback === "function") {
@@ -161,7 +166,12 @@ UCMGUI.prototype = {
                 return bool
             } else {
                 message.destroy()
-                message.error(formatMessage({ id: (this.initConfig.errorCodes[data] || 'LANG916') }))
+
+                if (typeof formatMessage === 'function') {
+                    message.error(formatMessage({ id: (this.initConfig.errorCodes[data] || 'LANG916') }))
+                } else {
+                    message.error("Please pass the \'formatMessage\' function.")
+                }
 
                 setTimeout(function() {
                     if (callback && typeof callback === "function") {
@@ -187,7 +197,7 @@ UCMGUI.prototype = {
         return bool
     },
     isExist: {
-        getList: function(type) {
+        getList: function(type, formatMessage) {
             let response = [],
                 responseDataHead = {
                     getAccountList: "extension",
@@ -250,7 +260,7 @@ UCMGUI.prototype = {
                 error: function(jqXHR, textStatus, errorThrown) {
                 },
                 success: function(data) {
-                    let bool = UCMGUI.prototype.errorHandler(data)
+                    let bool = UCMGUI.prototype.errorHandler(data, formatMessage)
 
                     if (bool) {
                         if (responseDataHead[type]) {
@@ -268,7 +278,7 @@ UCMGUI.prototype = {
 
             return response
         },
-        getRange: function(type) {
+        getRange: function(type, formatMessage) {
             let response = []
 
             $.ajax({
@@ -285,7 +295,7 @@ UCMGUI.prototype = {
                     // })
                 },
                 success: function(data) {
-                    let bool = UCMGUI.prototype.errorHandler(data)
+                    let bool = UCMGUI.prototype.errorHandler(data, formatMessage)
 
                     if (bool) {
                         let extensionPrefSettings = data.response.extension_pref_settings
@@ -361,17 +371,17 @@ UCMGUI.prototype = {
 
             if (nExt < start || nExt > end || nExtEnd > end) {
                 let str = <FormattedMessage
-                        id="LANG2132"
-                        defaultMessage={'<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?'}
-                        values={{0: ext, 1: start, 2: end}}
-                    />
+                                id="LANG2132"
+                                defaultMessage={ '<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?' }
+                                values={{ 0: ext, 1: start, 2: end }}
+                            />
 
                 if (nExtEnd > end) {
                     str = <FormattedMessage
-                        id="welcome"
-                        defaultMessage={'<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?'}
-                        values={{0: nExtEnd, 1: start, 2: end}}
-                    />
+                                id="welcome"
+                                defaultMessage={ '<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?' }
+                                values={{ 0: nExtEnd, 1: start, 2: end }}
+                            />
                 }
                 top.dialog.dialogConfirm({
                     confirmStr: str,
@@ -401,9 +411,9 @@ UCMGUI.prototype = {
         // usage ::  UCMGUI.makeSyncRequest ( { action :'getconfig', filename: 'something.conf' } ) // no need for call back function
         let s = $.ajax({
             type: 'POST',
-            url: this.initConfig.paths.baseServerURl,
             data: params,
-            async: false
+            async: false,
+            url: this.initConfig.paths.baseServerURl
         })
 
         return s.responseText

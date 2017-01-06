@@ -5,14 +5,20 @@ import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Transfer, Tabs } from 'antd'
 const FormItem = Form.Item
 const Option = Select.Option
+import $ from 'jquery'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
 import _ from 'underscore'
 import Title from '../../../views/title'
 const TabPane = Tabs.TabPane
+import Validator from "../../api/validator"
 
 class EditVoipTrunk extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            telUri: "disabled",
+            enableCc: false
         }
     }
     componentDidMount() {
@@ -20,18 +26,86 @@ class EditVoipTrunk extends Component {
     componentWillUnmount() {
 
     }
-    _onChange = (activeKey) => {
-        if (activeKey === "1") {
-
-        } else {            
-            
-        }
-    }
     _handleSubmit = (e) => {
-        // this.state.basicSettings.form.validateFields(() => {
-        //     console.log("hi") 
-        // })
-        console.log("hi")
+        const { formatMessage } = this.props.intl
+
+        this.props.form.validateFieldsAndScroll((err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
+
+                message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                let action = values
+
+                action.action = 'updateJBSettings'
+
+                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(formatMessage({ id: "LANG815" }))
+                        }
+                    }.bind(this)
+                })
+            }
+        })
+    }
+    _onChangeTelUri = (val) => {
+        this.setState({
+            telUri: val
+        })  
+    }
+    _onChangeEnableCc = (val) => {
+        this.setState({
+            enableCc: val
+        })  
+    }
+    _isSelfIp(rule, value, callback, msg) {
+        // var selfIp = window.location.hostname,
+        //     inputIp = $(ele).val().split(':')[0];
+
+        // if (inputIp == selfIp) {
+        //     return false;
+        // } else {
+        //     return true;
+        // }
+    }
+    _checkLdapPrefix = (rule, value, callback) => {
+        // var default_ob = $('#ldap_outrt_prefix').val();
+
+        // if (default_ob && default_ob == 'custom' && value == "") {
+        //     return "prefix is required.";
+        // }
+
+        // return true;
+    }
+    _checkOpenPort(rule, value, callback) {
+        // var ele;
+
+        // if (val === loadValue) {
+        //     return true;
+        // }
+
+        // for (var i = 0; i < openPort.length; i++) {
+        //     ele = openPort[i];
+
+        //     if (val == ele) {
+        //         return "LANG3869";
+        //     }
+        // }
+
+        // return true;
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -40,6 +114,7 @@ class EditVoipTrunk extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
+        // let type = this.props.params.type
         
         return (
             <div className="app-content-main" id="app-content-main">
@@ -48,19 +123,6 @@ class EditVoipTrunk extends Component {
                     <Tabs defaultActiveKey="1" onChange={this._onChange}>
                         <TabPane tab={formatMessage({id: "LANG2217"})} key="1">
                             <FormItem
-                                id="div_trunktype"
-                                { ...formItemLayout }
-                                label={formatMessage({id: "LANG84"})}>
-                                { getFieldDecorator('trunk_type', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Select style={{ width: 200 }}>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                            <FormItem
-                                id="div_trunktype"
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG1383" />}>
@@ -83,7 +145,24 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('host', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.alphanumeric(data, value, callback, formatMessage)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1373"})})
+                                            this._isSelfIp(data, value, callback, msg)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            let msg = formatMessage({id: "LANG2167"}, {0: formatMessage({id: "LANG1373"}).toLowerCase()})
+                                            this._isRightIP(data, value, callback, msg)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="60" />
@@ -227,6 +306,7 @@ class EditVoipTrunk extends Component {
                             </FormItem>
                             <FormItem
                                 id="div_callerid"
+                                className={this.state.trunkType === "peer" ? "display-block" : "hidden"}
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG1360" />}>
@@ -234,7 +314,20 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('cidnumber', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.calleridSip(data, value, callback, formatMessage)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            // LANG5066
+                                            // var isChecked = $('#keepcid')[0].checked;
+                                            // if ((isChecked && $("#cidnumber").val() != "") || !isChecked) {
+                                            //     return true;
+                                            // }
+                                            // return false;
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="64" />
@@ -249,7 +342,15 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('cidname', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.minlength(data, value, callback, formatMessage, 2)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.cidName(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="64" />
@@ -264,7 +365,11 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('fromdomain', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.specialhost(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="60" />
@@ -279,7 +384,11 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('fromuser', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.calleridSip(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="64" />
@@ -287,6 +396,7 @@ class EditVoipTrunk extends Component {
                             </FormItem>
                             <FormItem
                                 id="div_username"
+                                className={ this.state.trunkType === "register" ? "display-block" : "hidden"}
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG1393" />}>
@@ -294,7 +404,14 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('user_name', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.calleridSip(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="64" />
@@ -302,10 +419,18 @@ class EditVoipTrunk extends Component {
                             </FormItem>
                             <FormItem
                                 id="div_password"
+                                className={ this.state.trunkType === "register" ? "display-block" : "hidden"}
                                 { ...formItemLayout }
                                 label={formatMessage({id: "LANG73"})}>
                                 { getFieldDecorator('password', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.keyboradNoSpace(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <div>
@@ -323,7 +448,11 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('authid', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.specialauthid1(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="64" />
@@ -430,7 +559,11 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('pai_number', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.specailCalleridSip(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <InputNumber />
@@ -461,7 +594,16 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('outboundproxy', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.specialhost(data, value, callback, formatMessage)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1378"})})
+                                            this._isSelfIp(data, value, callback, msg)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input />
@@ -479,7 +621,7 @@ class EditVoipTrunk extends Component {
                                     rules: [],
                                     initialValue: ""
                                 })(
-                                    <Input />
+                                    <Input disabled={ this.state.telUri !== "disabled" ? true : false } />
                                 ) }
                             </FormItem>
                             <FormItem
@@ -547,10 +689,14 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('qualifyfreq', {
-                                    rules: [],
+                                    rules: [{ 
+                                        type: "integer", 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
-                                    <Input maxLength="4" />
+                                    <InputNumber min={1} max={3600} maxLength="4" />
                                 ) }
                             </FormItem>
                             <FormItem
@@ -562,10 +708,14 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('out_maxchans', {
-                                    rules: [],
+                                    rules: [{ 
+                                        type: "integer", 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
-                                    <Input />
+                                    <InputNumber max={999} />
                                 ) }
                             </FormItem>
                             <FormItem
@@ -666,7 +816,18 @@ class EditVoipTrunk extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('ldap_sync_passwd', {
-                                        rules: [],
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                Validator.alphanumeric(data, value, callback, formatMessage)
+                                            }
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                Validator.minlength(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         initialValue: ""
                                     })(
                                         <Input maxlength="64" />
@@ -681,10 +842,18 @@ class EditVoipTrunk extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('ldap_sync_port', {
-                                        rules: [],
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: this._checkLdapPrefix
+                                        }, { 
+                                            validator: this._checkOpenPort
+                                        }],
                                         initialValue: ""
                                     })(
-                                        <Input />
+                                        <InputNumber min={1} max={65534} />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -711,10 +880,16 @@ class EditVoipTrunk extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('ldap_outrt_prefix', {
-                                        rules: [],
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: this._checkLdapPrefix
+                                        }],
                                         initialValue: ""
                                     })(
-                                        <Input />
+                                        <InputNumber maxLength="14" />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -756,10 +931,14 @@ class EditVoipTrunk extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('cc_max_agents', {
-                                        rules: [],
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }],
                                         initialValue: ""
                                     })(
-                                        <Input maxLength="10" />
+                                        <InputNumber min={1} max={999} maxLength="10" />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -771,10 +950,14 @@ class EditVoipTrunk extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('cc_max_monitors', {
-                                        rules: [],
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }],
                                         initialValue: ""
                                     })(
-                                        <Input maxLength="10" />
+                                        <Input min={1} max={999} maxLength="10" />
                                     ) }
                                 </FormItem>
                             </div>      

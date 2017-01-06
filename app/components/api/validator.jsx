@@ -124,6 +124,15 @@ Validator.prototype = {
             callback()
         }
     },
+    specialhost: function(data, value, callback, formatMessage) {
+        if (/^((([hH][Tt][Tt][Pp][Ss])|(([Tt][Ff]|[Ff]|[Hh][Tt])[Tt][Pp])):\/\/)?(((([a-z]|\d|-|\.|~|[A-Z])|(%[\da-f]{2})|[\-\.])*)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[A-Z])|(([a-z]|\d|[A-Z])([a-z]|\d|-|\.|~|[A-Z])*([a-z]|\d|[A-Z])))\.)+(([a-z]|[A-Z])|(([a-z]|[A-Z])([a-z]|\d|-|\.|~|[A-Z])*([a-z]|[A-Z]|\d)))\.?)(:\d*)?)$/.test(value) || 
+            (/^\[?((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\]?$/.test(value) && ((value.contains("[") && value.contains("]")) || (!value.contains("[") && !value.contains("]")))) ||
+            /^\[((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\](\:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9]))?$/.test(value)) {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG1373"}))
+        }
+    },
     ipAddress: function(data, value, callback, formatMessage) {
         if (/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/i.test(value) ||
             (/^\[?((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\]?$/.test(value) && 
@@ -184,7 +193,75 @@ Validator.prototype = {
             callback()
         }
     },
-    errorHandler: function(data, callback, formatMessage) {
+    calleridSip: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9_\+\*#\-\.]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG5031"}))
+        } else {
+            callback()
+        }
+    },    
+    specailCalleridSip: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9_\+\*#\-\.<>]*)$/.test(value) && ((value.contains("<") && value.contains(">") && /\>$/.test(value)) || (!value.contains("<") && !value.contains(">")))) {
+            callback(formatMessage({id: "LANG5375"}))
+        } else {
+            callback()
+        }
+    },    
+    cidName: function(data, value, callback, formatMessage) {
+        if (value && !/^[^"@:;)(,]*$/.test(value)) {
+            callback(formatMessage({id: "LANG3198"}))
+        } else {
+            callback()
+        }
+    },    
+    keyboradNoSpace: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9,\.\/<>\?;':"\[\]\\\{\}\|`~!@#\$%\^&\*\(\)\-_=\+]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG2173"}))
+        } else {
+            callback()
+        }
+    }, 
+    keyboradNoSpaceSpecial: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9,\.\/<>\?;':\[\]\\\{\}\|~!@#\$%\^&\*\(\)\-_=\+]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG5212"}))
+        } else {
+            callback()
+        }
+    },    
+    keyboradNoSpacesemicolon: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9~!@#\$%\^\*]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG4475"}))
+        } else {
+            callback()
+        }
+    },    
+    keyboradNoSpacesemicolon1: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9~!+@%\*]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG2643"}))
+        } else {
+            callback()
+        }
+    },    
+    authid: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9\.'\|`~!#\$%\^&\*\-_\+]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG2489"}))
+        } else {
+            callback()
+        }
+    },    
+    specialauthid: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9,\.\/':\?~!\$\&\*\(\)\-_=\+]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG4445"}))
+        } else {
+            callback()
+        }
+    },    
+    specialauthid1: function(data, value, callback, formatMessage) {
+        if (value && !/^([a-zA-Z0-9\.\|`~!#\$%\^\*\-_\+\@]*)$/.test(value)) {
+            callback(formatMessage({id: "LANG4463"}))
+        } else {
+            callback()
+        }
     }
 }
 

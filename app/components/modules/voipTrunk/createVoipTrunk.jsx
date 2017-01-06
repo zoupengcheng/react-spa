@@ -7,7 +7,10 @@ const FormItem = Form.Item
 const Option = Select.Option
 import _ from 'underscore'
 import $ from 'jquery'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from "../../api/validator"
 
 class CreateVoipTrunk extends Component {
     constructor(props) {
@@ -24,10 +27,39 @@ class CreateVoipTrunk extends Component {
 
     }
     _handleSubmit = (e) => {
-        // this.state.basicSettings.form.validateFields(() => {
-        //     console.log("hi") 
-        // })
-        console.log("hi")
+        const { formatMessage } = this.props.intl
+
+        this.props.form.validateFieldsAndScroll((err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
+
+                message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                let action = values
+
+                action.action = 'updateJBSettings'
+
+                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(formatMessage({ id: "LANG815" }))
+                        }
+                    }.bind(this)
+                })
+            }
+        })
     }
     _onChangeTrunkType = (val) => {
         this.setState({
@@ -43,6 +75,50 @@ class CreateVoipTrunk extends Component {
         this.setState({
             enableCc: val
         })  
+    }
+    _trunkNameIsExist = (rule, value, callback) => {
+        // const form = this.props.form
+        // const { formatMessage } = this.props.intl
+        // const len = form.getFieldValue('gs_jblen')
+
+        // if (value && len && value < len) {
+        //     callback($P.lang("LANG2137"))
+        // } else {
+        //     callback()
+        // }
+    //         var trunkName = $("#trunk_name").val(),
+    //     trunkNameList = mWindow.trunkNameList,
+    //     tmpTrunkNameList = [];
+
+    // tmpTrunkNameList = trunkNameList.copy(tmpTrunkNameList);
+
+    // if (oldTrunkName) {
+    //     tmpTrunkNameList.remove(oldTrunkName);
+    // }
+
+    // return !UCMGUI.inArray(trunkName, tmpTrunkNameList);
+    }
+    _isSelfIp(rule, value, callback, msg) {
+        // var selfIp = window.location.hostname,
+        //     inputIp = $(ele).val().split(':')[0];
+
+        // if (inputIp == selfIp) {
+        //     return false;
+        // } else {
+        //     return true;
+        // }
+    }
+    _isRightIP = (id) => {
+        // var val = $("#" + id).val();
+        // var ip = val.split(".");
+        // var ret = true;
+        // var ipDNSReg = /(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/;
+        
+        // if (ipDNSReg.test(val) && (ip[0] == "127" || ip[0] >= 224 || ip[3] == 0)) {
+        //     ret = false;
+        // }
+
+        // return ret;
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -82,7 +158,6 @@ class CreateVoipTrunk extends Component {
                         })()}
                     </FormItem>
                     <FormItem
-                        ref="div_trunktype"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1383" />}>
@@ -90,7 +165,20 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('trunk_name', {
-                            rules: [],
+                            rules: [{ 
+                                required: true, 
+                                message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.minlength(data, value, callback, formatMessage, 2)
+                                }
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.alphanumeric(data, value, callback, formatMessage)
+                                }
+                            }, { 
+                                validator: this._trunkNameIsExist
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="16" />
@@ -101,11 +189,28 @@ class CreateVoipTrunk extends Component {
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1374" />}>
-                                <span>{formatMessage({id: "LANG1373"})}</span>
+                                <span>{ formatMessage({id: "LANG1373"}) }</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('host', {
-                            rules: [],
+                            rules: [{ 
+                                required: true, 
+                                message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.alphanumeric(data, value, callback, formatMessage)
+                                }
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1373"})})
+                                    this._isSelfIp(data, value, callback, msg)
+                                }
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    let msg = formatMessage({id: "LANG2167"}, {0: formatMessage({id: "LANG1373"}).toLowerCase()})
+                                    this._isRightIP(data, value, callback, msg)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="60" />
@@ -263,7 +368,20 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('cidnumber', {
-                            rules: [],
+                            rules: [{ 
+                                validator: (data, value, callback) => {
+                                    Validator.calleridSip(data, value, callback, formatMessage)
+                                }
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    // LANG5066
+                                    // var isChecked = $('#keepcid')[0].checked;
+                                    // if ((isChecked && $("#cidnumber").val() != "") || !isChecked) {
+                                    //     return true;
+                                    // }
+                                    // return false;
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="64" />
@@ -278,7 +396,15 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('cidname', {
-                            rules: [],
+                            rules: [{ 
+                                validator: (data, value, callback) => {
+                                    Validator.minlength(data, value, callback, formatMessage, 2)
+                                }
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.cidName(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="64" />
@@ -294,7 +420,11 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('fromdomain', {
-                            rules: [],
+                            rules: [{ 
+                                validator: (data, value, callback) => {
+                                    Validator.specialhost(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="60" />
@@ -310,7 +440,11 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('fromuser', {
-                            rules: [],
+                            rules: [{ 
+                                validator: (data, value, callback) => {
+                                    Validator.calleridSip(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="64" />
@@ -326,7 +460,14 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('user_name', {
-                            rules: [],
+                            rules: [{ 
+                                required: true, 
+                                message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.calleridSip(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="64" />
@@ -338,7 +479,14 @@ class CreateVoipTrunk extends Component {
                         { ...formItemLayout }
                         label={formatMessage({id: "LANG73"})}>
                         { getFieldDecorator('password', {
-                            rules: [],
+                            rules: [{ 
+                                required: true, 
+                                message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.keyboradNoSpace(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <div>
@@ -357,7 +505,11 @@ class CreateVoipTrunk extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('authid', {
-                            rules: [],
+                            rules: [{ 
+                                validator: (data, value, callback) => {
+                                    Validator.specialauthid1(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ""
                         })(
                             <Input maxLength="64" />
@@ -408,7 +560,16 @@ class CreateVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('outboundproxy', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            Validator.specialhost(data, value, callback, formatMessage)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1378"})})
+                                            this._isSelfIp(data, value, callback, msg)
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input />
@@ -459,7 +620,11 @@ class CreateVoipTrunk extends Component {
                                 </Tooltip>
                             }>
                             { getFieldDecorator('cc_max_agents', {
-                                rules: [],
+                                rules: [{ 
+                                    type: "integer", 
+                                    required: true, 
+                                    message: formatMessage({id: "LANG2150"}) 
+                                }],
                                 initialValue: ""
                             })(
                                 <Input maxLength="10" />
@@ -475,7 +640,11 @@ class CreateVoipTrunk extends Component {
                                 </Tooltip>
                             }>
                             { getFieldDecorator('cc_max_monitors', {
-                                rules: [],
+                                rules: [{ 
+                                    type: "integer", 
+                                    required: true, 
+                                    message: formatMessage({id: "LANG2150"}) 
+                                }],
                                 initialValue: ""
                             })(
                                 <Input maxLength="10" />

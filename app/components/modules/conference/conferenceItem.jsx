@@ -32,6 +32,7 @@ class ConferenceItem extends Component {
     }
     componentDidMount() {
         this._getInitData()
+        this._getConferenceInfo()
     }
     _getInitData = () => {
         $.ajax({
@@ -55,9 +56,41 @@ class ConferenceItem extends Component {
             }.bind(this)
         })
     }
+    _getConferenceInfo = () => {
+        const { formatMessage } = this.props.intl
+        const extensionId = this.props.params.id
+
+        if (extensionId) {
+            $.ajax({
+                url: api.apiHost,
+                method: 'post',
+                data: {
+                    action: 'getConference',
+                    conference: extensionId
+                },
+                type: 'json',
+                async: false,
+                success: function(res) {
+                    const response = res.response || {}
+                    const conferenceItem = response.conference || {}
+
+                    this.setState({
+                        conferenceItem: conferenceItem
+                    })
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+        }
+    }
     _handlePublicChange = (e) => {
         const {formatMessage} = this.props.intl,
             self = this
+
+        this.setState({
+            publicEnable: e.target.checked
+        })
 
         if (this.state.userInviteEnable && e.target.checked) {
             Modal.confirm({
@@ -72,18 +105,22 @@ class ConferenceItem extends Component {
                     self.props.form.setFieldsValue({
                         public: true
                     })
+
+                    self.setState({
+                        publicEnable: true
+                    })
                 },
                 onCancel() {
                     self.props.form.setFieldsValue({
                         public: false
                     })
+
+                    self.setState({
+                        publicEnable: false
+                    })
                 }
             })
         }
-
-        this.setState({
-            publicEnable: e.target.checked
-        })
     }
     _handleWaitAdminChange = (e) => {
         this.setState({
@@ -115,6 +152,10 @@ class ConferenceItem extends Component {
         const {formatMessage} = this.props.intl,
             self = this
 
+        this.setState({
+            userInviteEnable: e.target.checked
+        })
+
         if (this.state.publicEnable && e.target.checked) {
             Modal.confirm({
                 title: formatMessage({id: "LANG543" }),
@@ -128,23 +169,82 @@ class ConferenceItem extends Component {
                     self.props.form.setFieldsValue({
                         user_invite: true
                     })
+
+                    self.setState({
+                        userInviteEnable: true
+                    })
                 },
                 onCancel() {
                     self.props.form.setFieldsValue({
                         user_invite: false
                     })
+
+                    self.setState({
+                        userInviteEnable: false
+                    })
                 }
             })
         }
-
-        this.setState({
-            userInviteEnable: e.target.checked
-        })
     }
     _handleCancel = () => {
         browserHistory.push('/call-features/conference')
     }
     _handleSubmit = () => {
+        let errorMessage = ''
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+        const extensionGroupId = this.props.params.id
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
+
+        this.props.form.validateFieldsAndScroll((err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
+
+                message.loading(loadingMessage)
+
+                let action = values
+
+                if (extensionGroupId) {
+                    action.action = 'updateConference'
+                    action.extension_group = extensionGroupId
+                } else {
+                    action.action = 'addConference'
+                }
+
+                action.public = (action.public ? 'yes' : 'no')
+                action.wait_admin = (action.wait_admin ? 'yes' : 'no')
+                action.quiet_mode = (action.quiet_mode ? 'yes' : 'no')
+                action.announce_callers = (action.announce_callers ? 'yes' : 'no')
+                action.call_menu = (action.call_menu ? 'yes' : 'no')
+                action.recording = (action.recording ? 'yes' : 'no')
+                action.moh_firstcaller = (action.moh_firstcaller ? 'yes' : 'no')
+                action.skipauth = (action.skipauth ? 'yes' : 'no')
+                action.user_invite = (action.user_invite ? 'yes' : 'no')
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+                        }
+
+                        this._handleCancel()
+                    }.bind(this)
+                })
+            }
+        })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -159,21 +259,16 @@ class ConferenceItem extends Component {
         const title = (this.props.params.id
                 ? formatMessage({id: "LANG222"}, {
                     0: formatMessage({id: "LANG595"}),
-                    1: this.props.params.name
+                    1: this.props.params.id
                 })
                 : formatMessage({id: "LANG597"}))
 
         const conferenceItem = this.state.conferenceItem || {}
-        const name = conferenceItem.group_name
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: title
                 })
-
-        for (let i = 0; i < this.state.mohNameList.length; i++) {
-
-        }
 
         return (
             <div className="app-content-main">
@@ -195,7 +290,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('extension', {
-                                        initialValue: this.state.conferenceItem.extension
+                                        initialValue: conferenceItem.extension
                                     })(
                                         <Input />
                                     ) }
@@ -232,7 +327,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('wait_admin', {
-                                        initialValue: this.state.conferenceItem.wait_admin
+                                        initialValue: conferenceItem.wait_admin
                                     })(
                                         <Checkbox disabled={ this.state.publicEnable } onChange={ this._handleWaitAdminChange } />
                                     ) }
@@ -250,7 +345,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('pincode', {
-                                        initialValue: this.state.conferenceItem.pincode
+                                        initialValue: conferenceItem.pincode
                                     })(
                                         <Input disabled={ this.state.publicEnable } />
                                     ) }
@@ -268,7 +363,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('admin_pincode', {
-                                        initialValue: this.state.conferenceItem.admin_pincode
+                                        initialValue: conferenceItem.admin_pincode
                                     })(
                                         <Input disabled={ this.state.publicEnable } />
                                     ) }
@@ -286,7 +381,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('quiet_mode', {
-                                        initialValue: this.state.conferenceItem.quiet_mode
+                                        initialValue: conferenceItem.quiet_mode
                                     })(
                                         <Checkbox disabled={ this.state.announceCallers } onChange={ this._handleQuiteModeChange } />
                                     ) }
@@ -304,7 +399,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('announce_callers', {
-                                        initialValue: this.state.conferenceItem.announce_callers
+                                        initialValue: conferenceItem.announce_callers
                                     })(
                                         <Checkbox disabled={ this.state.quiteModeEnable } onChange={ this._handleAnnounceChange } />
                                     ) }
@@ -322,7 +417,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('call_menu', {
-                                        initialValue: this.state.conferenceItem.call_menu
+                                        initialValue: conferenceItem.call_menu
                                     })(
                                         <Checkbox />
                                     ) }
@@ -340,7 +435,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('recording', {
-                                        initialValue: this.state.conferenceItem.recording
+                                        initialValue: conferenceItem.recording
                                     })(
                                         <Checkbox />
                                     ) }
@@ -358,7 +453,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('moh_firstcaller', {
-                                        initialValue: this.state.conferenceItem.moh_firstcaller
+                                        initialValue: conferenceItem.moh_firstcaller
                                     })(
                                         <Checkbox onChange={ this._handleMusicclassChange } />
                                     ) }
@@ -376,7 +471,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('musicclass', {
-                                        initialValue: this.state.conferenceItem.musicclass
+                                        initialValue: conferenceItem.musicclass
                                     })(
                                         <Select>
                                             {
@@ -400,7 +495,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('skipauth', {
-                                        initialValue: this.state.conferenceItem.skipauth
+                                        initialValue: conferenceItem.skipauth
                                     })(
                                         <Checkbox />
                                     ) }

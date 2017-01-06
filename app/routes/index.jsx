@@ -37,6 +37,7 @@ import InboundRoute from '../components/modules/inboundRoute/index'
 // Call Features
 import Conference from '../components/modules/conference/index'
 import ConferenceItem from '../components/modules/conference/conferenceItem'
+import ConferenceSettings from '../components/modules/conference/conferenceSettings'
 import IVR from '../components/modules/ivr/index'
 import Voicemail from '../components/modules/voicemail/index'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
@@ -211,6 +212,8 @@ const routes = (state, currentLocaleData) => {
                     <Route path="conference" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG18"] }>
                         <IndexRoute component={ Conference } />
                         <Route path="add" onEnter={ requireAuth } component={ ConferenceItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ ConferenceItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="conferenceSettings" onEnter={ requireAuth } component={ ConferenceSettings } breadcrumbName={ currentLocaleData["LANG5097"] } />
                     </Route>
                     <Route path="ivr" onEnter={ requireAuth } component={ IVR } breadcrumbName={ currentLocaleData["LANG19"] } />
                     <Route path="voicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>

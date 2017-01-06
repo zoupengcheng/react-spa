@@ -19,7 +19,7 @@ module.exports = {
     ],
     "rules": {
         "react/jsx-uses-vars": 1,
-        "max-len": [1, 420, 2, {ignoreComments: true}],
+        "max-len": [1, 500, 2, { ignoreComments: true }],
         "accessor-pairs": 2,
         "arrow-spacing": [2, { "before": true, "after": true }],
         "block-spacing": [2, "always"],

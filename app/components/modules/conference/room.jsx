@@ -55,8 +55,11 @@ class Room extends Component {
             }
         })
     }
-    _edit = () => {
-
+    _edit = (record) => {
+        browserHistory.push('/call-features/conference/edit/' + record.extension)
+    }
+    _conferenceSettings = () => {
+browserHistory.push('/call-features/conference/conferenceSettings')
     }
     _getConfoList = () => {
         const { formatMessage } = this.props.intl
@@ -151,7 +154,7 @@ class Room extends Component {
                         <Button icon="plus" type="primary" size="default" onClick={ this._add }>
                             { formatMessage({id: "LANG597"}) }
                         </Button>
-                        <Button icon="setting" type="primary" size="default">
+                        <Button icon="setting" type="primary" size="default" onClick={ this._conferenceSettings }>
                             { formatMessage({id: "LANG5097"}) }
                         </Button>
                     </div>

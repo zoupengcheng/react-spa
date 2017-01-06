@@ -21,7 +21,7 @@ import 'antd/dist/antd.less'
 import './css/index'
 import cookie from 'react-cookie'
 const store = createStore()
-import {handleResponse, handleRequest} from './components/api/handleMessage'
+import { handleResponse, handleRequest } from './components/api/handleMessage'
 import actions from './actions/'
 
 const chooseLocale = () => {
