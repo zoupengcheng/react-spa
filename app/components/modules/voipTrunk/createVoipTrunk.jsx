@@ -28,18 +28,42 @@ class CreateVoipTrunk extends Component {
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
+        let mode = this.props.params.mode
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
+                $("#cc_max_agents").is(":hidden")
+
                 console.log('Received values of form: ', values)
 
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
-                let action = values
+                let action = values,
+                    confirmStr = ""
 
-                action.action = 'updateJBSettings'
+                if (mode === "addSip") {
+                    action["action"] = "addSIPTrunk"
+                    action["technology"] = "SIP"
+                } else if (mode === "addIax") {
+                    action["action"] = "addIAXTrunk"
+                    action["technology"] = "IAX"
+                } 
+                if (action["user_name"]) {
+                    action["username"] = action["user_name"]
+                    delete action["user_name"]
+                }
 
-                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
+                if (action["password"]) {
+                    action["secret"] = action["password"]
+                    delete action["password"]
+                }
+
+                if ((action["action"].toLowerCase().indexOf('sip') > -1) && /[a-zA-Z]/g.test(action['host']) && !UCMGUI.isIPv6(action['host'])) {
+                    confirmStr = formatMessage({ id: "LANG4163" })
+                } else if ((action["action"].toLowerCase().indexOf('iax') > -1) &&
+                    (/[a-zA-Z]/g.test(action['host']) || /:\d*$/.test(action['host'])) && !UCMGUI.isIPv6(action['host'])) {
+                    confirmStr = formatMessage({ id: "LANG4469" })
+                }
 
                 $.ajax({
                     url: api.apiHost,
@@ -77,12 +101,10 @@ class CreateVoipTrunk extends Component {
         })  
     }
     _trunkNameIsExist = (rule, value, callback) => {
-        // const form = this.props.form
-        // const { formatMessage } = this.props.intl
         // const len = form.getFieldValue('gs_jblen')
 
         // if (value && len && value < len) {
-        //     callback($P.lang("LANG2137"))
+        //    callback(formatMessage({id: ""}))
         // } else {
         //     callback()
         // }
@@ -97,28 +119,27 @@ class CreateVoipTrunk extends Component {
     // }
 
     // return !UCMGUI.inArray(trunkName, tmpTrunkNameList);
+        callback()
     }
-    _isSelfIp(rule, value, callback, msg) {
-        // var selfIp = window.location.hostname,
-        //     inputIp = $(ele).val().split(':')[0];
-
-        // if (inputIp == selfIp) {
-        //     return false;
-        // } else {
-        //     return true;
-        // }
-    }
-    _isRightIP = (id) => {
-        // var val = $("#" + id).val();
-        // var ip = val.split(".");
-        // var ret = true;
-        // var ipDNSReg = /(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/;
+    _isRightIP = (rule, value, callback, errMsg) => {
+        let ipArr = value.split("."),
+            ipDNSReg = /(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/
         
-        // if (ipDNSReg.test(val) && (ip[0] == "127" || ip[0] >= 224 || ip[3] == 0)) {
-        //     ret = false;
-        // }
-
-        // return ret;
+        if (ipDNSReg.test(value) && (ipArr[0] === "127" || ipArr[0] >= 224 || ipArr[3] === 0)) {
+            callback(errMsg)
+        } else {
+            callback()
+        }
+    }
+    _isSelfIP = (rule, value, callback, errMsg) => {
+        let selfIp = window.location.hostname,
+            inputIp = value.split(':')[0]
+        
+        if (inputIp === selfIp) {
+            callback(errMsg)
+        } else {
+            callback()
+        }
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -127,7 +148,7 @@ class CreateVoipTrunk extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-        let type = this.props.params.type
+        let mode = this.props.params.mode
 
         return (
             <div className="app-content-main" id="app-content-main">
@@ -138,17 +159,17 @@ class CreateVoipTrunk extends Component {
                         { ...formItemLayout }
                         label={ formatMessage({id: "LANG84"}) }>
                         {(() => {
-                            switch (type) {
+                            switch (mode) {
                                 case "addSip": 
                                     return (
-                                        <Select ref="trunk_type" defaultValue="peer" onChange={this._onChangeTrunkType}>
+                                        <Select id="trunk_type" defaultValue="peer" onChange={this._onChangeTrunkType}>
                                             <Option value="peer">{ formatMessage({id: "LANG233"}) }</Option>
                                             <Option value="register">{ formatMessage({id: "LANG234"}) }</Option>
                                         </Select>
                                     )
                                 case "addIax": 
                                     return (
-                                        <Select ref="trunk_type" defaultValue="peer" onChange={this._onChangeTrunkType}>
+                                        <Select id="trunk_type" defaultValue="peer" onChange={this._onChangeTrunkType}>
                                             <Option value="peer">{ formatMessage({id: "LANG235"}) }</Option>
                                             <Option value="register">{ formatMessage({id: "LANG236"}) }</Option>
                                         </Select>
@@ -158,6 +179,7 @@ class CreateVoipTrunk extends Component {
                         })()}
                     </FormItem>
                     <FormItem
+                        ref="div_providername"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1383" />}>
@@ -177,7 +199,10 @@ class CreateVoipTrunk extends Component {
                                     Validator.alphanumeric(data, value, callback, formatMessage)
                                 }
                             }, { 
-                                validator: this._trunkNameIsExist
+                                validator: (data, value, callback) => {
+                                    let errMsg = formatMessage({id: "LANG2137"})
+                                    this._trunkNameIsExist(data, value, callback, errMsg)
+                                }
                             }],
                             initialValue: ""
                         })(
@@ -198,17 +223,50 @@ class CreateVoipTrunk extends Component {
                                 message: formatMessage({id: "LANG2150"})
                             }, { 
                                 validator: (data, value, callback) => {
-                                    Validator.alphanumeric(data, value, callback, formatMessage)
+                                    let hostName = formatMessage({
+                                            id: "LANG1373"
+                                        }).toLowerCase(),
+                                        rightIpMsg = formatMessage({
+                                            id: "LANG2167"
+                                        }, {
+                                            0: hostName
+                                        })
+
+                                    Validator.specialhost(data, value, callback, rightIpMsg)
                                 }
                             }, { 
                                 validator: (data, value, callback) => {
-                                    let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1373"})})
-                                    this._isSelfIp(data, value, callback, msg)
+                                    let hostName = formatMessage({
+                                            id: "LANG1373"
+                                        }).toLowerCase(),
+
+                                        selfIpErrMsg = formatMessage({
+                                            id: "LANG2542"
+                                        }, {
+                                            0: hostName
+                                        }),
+
+                                        rightIpMsg = formatMessage({
+                                            id: "LANG2167"
+                                        }, {
+                                            0: hostName
+                                        })
+
+                                    this._isRightIP(data, value, callback, rightIpMsg)
                                 }
                             }, { 
                                 validator: (data, value, callback) => {
-                                    let msg = formatMessage({id: "LANG2167"}, {0: formatMessage({id: "LANG1373"}).toLowerCase()})
-                                    this._isRightIP(data, value, callback, msg)
+                                    let hostName = formatMessage({
+                                            id: "LANG1373"
+                                        }).toLowerCase(),
+
+                                        selfIpErrMsg = formatMessage({
+                                            id: "LANG2542"
+                                        }, {
+                                            0: hostName
+                                        })
+
+                                    this._isSelfIP(data, value, callback, selfIpErrMsg)
                                 }
                             }],
                             initialValue: ""
@@ -241,7 +299,7 @@ class CreateVoipTrunk extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_keep_org_cid"
-                        className={type === "addIax" ? "hidden" : "display-block"}
+                        className={mode === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4109" />}>
@@ -266,24 +324,24 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('keepcid', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: (this.state.trunkType === "register" && type === "addSip") ? true : false
+                            initialValue: (this.state.trunkType === "register" && mode === "addSip") ? true : false
                         })(
                             <Checkbox />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_nat"
-                        className={type === "addIax" ? "hidden" : "display-block"}
+                        className={mode === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG1093" />}>
-                                {"NAT"}
+                                <span>{formatMessage({id: "LANG5036"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('nat', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: false
                         })(
                             <Checkbox />
                         ) }
@@ -299,14 +357,14 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('out_of_service', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: false
                         })(
                             <Checkbox />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_tel_uri"
-                        className={type === "addIax" ? "hidden" : "display-block"}
+                        className={mode === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2769" />}>
@@ -326,7 +384,7 @@ class CreateVoipTrunk extends Component {
                     </FormItem>
                     <FormItem
                         ref="need_register_div"
-                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                        className={ (this.state.trunkType === "register" && mode === "addSip") ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG3016" />}>
@@ -336,14 +394,14 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('need_register', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: (this.state.trunkType === "register" && type === "addSip") ? true : false
+                            initialValue: (this.state.trunkType === "register" && mode === "addSip") ? true : false
                         })(
                             <Checkbox />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="allow_outgoing_calls_if_reg_failed_div"
-                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                        className={ (this.state.trunkType === "register" && mode === "addSip") ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG5070" />}>
@@ -353,7 +411,7 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('allow_outgoing_calls_if_reg_failed', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: false
                         })(
                             <Checkbox />
                         ) }
@@ -371,9 +429,6 @@ class CreateVoipTrunk extends Component {
                             rules: [{ 
                                 validator: (data, value, callback) => {
                                     Validator.calleridSip(data, value, callback, formatMessage)
-                                }
-                            }, { 
-                                validator: (data, value, callback) => {
                                     // LANG5066
                                     // var isChecked = $('#keepcid')[0].checked;
                                     // if ((isChecked && $("#cidnumber").val() != "") || !isChecked) {
@@ -399,9 +454,6 @@ class CreateVoipTrunk extends Component {
                             rules: [{ 
                                 validator: (data, value, callback) => {
                                     Validator.minlength(data, value, callback, formatMessage, 2)
-                                }
-                            }, { 
-                                validator: (data, value, callback) => {
                                     Validator.cidName(data, value, callback, formatMessage)
                                 }
                             }],
@@ -497,7 +549,7 @@ class CreateVoipTrunk extends Component {
                     </FormItem>
                     <FormItem
                         ref="authid_field"
-                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                        className={ (this.state.trunkType === "register" && mode === "addSip") ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2488" />}>
@@ -517,7 +569,7 @@ class CreateVoipTrunk extends Component {
                     </FormItem>
                     <FormItem
                         ref="auth_trunk_field"
-                        className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden" }
+                        className={ (this.state.trunkType === "register" && mode === "addSip") ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4262" />}>
@@ -527,14 +579,14 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('auth_trunk', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: false
                         })(
                             <Checkbox />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="auto_record_field"
-                        className={type === "addIax" ? "hidden" : "display-block"}
+                        className={mode === "addIax" ? "hidden" : "display-block"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG5266" />}>
@@ -544,7 +596,7 @@ class CreateVoipTrunk extends Component {
                         { getFieldDecorator('auto_recording', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: ""
+                            initialValue: false
                         })(
                             <Checkbox />
                         ) }
@@ -552,7 +604,7 @@ class CreateVoipTrunk extends Component {
                         <div className="hidden">
                             <FormItem
                                 ref="outboundproxy_field"
-                                className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                                className={ (this.state.trunkType === "register" && mode === "addSip") ? "display-block" : "hidden"}
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG1379" />}>
@@ -563,11 +615,8 @@ class CreateVoipTrunk extends Component {
                                     rules: [{ 
                                         validator: (data, value, callback) => {
                                             Validator.specialhost(data, value, callback, formatMessage)
-                                        }
-                                    }, { 
-                                        validator: (data, value, callback) => {
                                             let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1378"})})
-                                            this._isSelfIp(data, value, callback, msg)
+                                            this._isSelfIP(data, value, callback, msg)
                                         }
                                     }],
                                     initialValue: ""
@@ -577,7 +626,7 @@ class CreateVoipTrunk extends Component {
                             </FormItem>
                             <FormItem
                                 id="rmvObpFromRoute_field"
-                                className={ (this.state.trunkType === "register" && type === "addSip") ? "display-block" : "hidden"}
+                                className={ (this.state.trunkType === "register" && mode === "addSip") ? "display-block" : "hidden"}
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG5030" />}>
@@ -605,7 +654,7 @@ class CreateVoipTrunk extends Component {
                             { getFieldDecorator('enable_cc', {
                                 rules: [],
                                 valuePropName: "checked",
-                                initialValue: ""
+                                initialValue: false
                             })(
                                 <Checkbox onChange={this._onChangeEnableCc} />
                             ) }

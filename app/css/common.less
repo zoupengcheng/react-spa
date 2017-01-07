@@ -753,15 +753,36 @@ li {
 
 .ant-form-item {
     margin-bottom: 14px;
-}
 
-.ant-form-item-label {
-    text-align: left;
-}
+    .ant-form-item-label {
+        text-align: left;
 
-.ant-form-item-label label {
-    cursor: help;
-    /* color: #596600 */
+        label {
+            cursor: help;
+            /* color: #596600 */
+        }
+
+        .ant-form-item-required:before {
+            height: 16px;
+        }
+    }
+
+    .ant-input-number-lg {
+        height: 29px;
+
+        input {
+            height: 29px;
+            line-height: 29px;
+        }
+
+        .ant-input-number-input-wrap {
+            height: 29px;
+        }
+
+        .ant-input-number-handler-wrap {
+            height: 29px;
+        }
+    }
 }
 
 .ant-checkbox-inner {

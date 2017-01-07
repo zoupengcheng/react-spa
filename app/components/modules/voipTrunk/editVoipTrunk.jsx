@@ -114,7 +114,7 @@ class EditVoipTrunk extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-        // let type = this.props.params.type
+        // let mode = this.props.params.mode
         
         return (
             <div className="app-content-main" id="app-content-main">
@@ -130,7 +130,18 @@ class EditVoipTrunk extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('trunk_name', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            if (Validator.minlength(data, value, callback, formatMessage, 2)) {
+                                                if (Validator.alphanumeric(data, value, callback, formatMessage)) {
+                                                    this._trunkNameIsExist()
+                                                }
+                                            }
+                                        }
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input maxLength="16" />
@@ -216,7 +227,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('keepcid', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -225,14 +236,14 @@ class EditVoipTrunk extends Component {
                                 id="div_nat"
                                 { ...formItemLayout }
                                 label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG1093" />}>
-                                        {"NAT:"}
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG1093" /> }>
+                                        <span>{ formatMessage({id: "LANG5036"}) }</span>
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('nat', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -248,7 +259,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('out_of_service', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -283,7 +294,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('need_register', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -299,7 +310,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('allow_outgoing_calls_if_reg_failed', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -469,7 +480,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('auth_trunk', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -485,7 +496,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('auto_recording', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -513,7 +524,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('send_ppi', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -529,7 +540,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('use_dod_in_ppi', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -545,7 +556,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('send_pai', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -580,7 +591,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('chkOutboundproxy', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -675,7 +686,7 @@ class EditVoipTrunk extends Component {
                                 { getFieldDecorator('enable_qualify', {
                                     rules: [],
                                     valuePropName: "checked",
-                                    initialValue: ""
+                                    initialValue: false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -748,7 +759,7 @@ class EditVoipTrunk extends Component {
                                     { getFieldDecorator('fax_intelligent_route', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: false
                                     })(
                                         <Checkbox />
                                     ) }
@@ -802,7 +813,7 @@ class EditVoipTrunk extends Component {
                                     { getFieldDecorator('ldap_sync_enable', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: false
                                     })(
                                         <Checkbox />
                                     ) }
@@ -917,7 +928,7 @@ class EditVoipTrunk extends Component {
                                     { getFieldDecorator('enable_cc', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: false
                                     })(
                                         <Checkbox />
                                     ) }

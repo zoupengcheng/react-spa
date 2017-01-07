@@ -400,6 +400,155 @@ UCMGUI.prototype = {
             return true
         }
     },
+    filterHiddenVal: function(ele) { 
+        let val = ele.attr("id"),
+            domVal = "",
+            noSerialize = ele.attr("noSerialize")
+
+        if (!noSerialize && val.length !== 0) {
+            if (ele.is(":hidden")) {
+                if (ele.is("[readonly]")) {
+                    if (ele.attr("name").length !== 0) {
+                        val = ele.attr("name")
+                    }
+                } else {
+                    return false
+                }
+            }
+            if (ele.is(":disabled")) {
+                return false
+            }
+            switch (ele[0].type) {
+                case 'textarea':
+                case 'text':
+                case 'password':
+                case 'hidden':
+                    domVal = ele.val()
+                    break
+                case 'checkbox':
+                    domVal = ele.is(":checked") ? "yes" : "no"
+                    break
+                case 'radio':
+                    break
+                case 'select-one':
+                    domVal = ele.val()
+                    break
+                case 'select-multiple':
+                    let options = []
+
+                    for (var i = 0; i < ele[0].options.length; i++) {
+                        options.push(ele[0].options[i].value)
+                    }
+                    domVal = options.toString()
+                    break
+                default:
+                    break
+            }
+
+            return domVal
+            // if (actionType) {
+            //     let privilegeAttrVal = ele.attr("privilegeAttr"),
+            //         privilegeActionArr = UCMGUI.getPrivilegeActionArr({
+            //             attrVal: privilegeAttrVal,
+            //             actionType: actionType,
+            //             id: val,
+            //             val: domVal
+            //         })
+
+            //     if (privilegeActionArr[0]) {
+            //         hash[privilegeActionArr[0]] = privilegeActionArr[1];
+            //     }
+            // }
+        }
+    },
+    // getPrivilegeAction: function(actionData, privilegeData, actionType) {
+    //     var action = actionData["action"],
+    //         obj = {};
+
+    //     if (action) {
+    //         obj["action"] = action;
+    //         if (!actionType) {
+    //             actionType = action;
+    //         }
+    //     }
+    //     if (actionType) {
+    //         for (var attr in actionData) {
+    //             if (actionData.hasOwnProperty(attr) && attr != "action") {
+    //                 var privilegeAttrVal = privilegeData[attr],
+    //                     privilegeActionArr = UCMGUI.getPrivilegeActionArr({
+    //                         attrVal: privilegeAttrVal,
+    //                         actionType: actionType,
+    //                         id: attr,
+    //                         val: actionData[attr]
+    //                     });
+
+    //                 if (privilegeActionArr[0]) {
+    //                     obj[privilegeActionArr[0]] = privilegeActionArr[1];
+    //                 }
+    //             }
+    //         }
+    //         return obj;
+    //     } else {
+    //         return actionData;
+    //     }
+    // },
+    // getPrivilegeActionArr: function(obj) {
+    //     var attrVal = obj.attrVal,
+    //         actionType = obj.actionType,
+    //         id = obj.id,
+    //         val = obj.val,
+    //         //attrVal = (attrVal != undefined) ? attrVal.toString() : "",
+    //         actionArr = [];
+
+    //     if (UCMGUI.checkPrivilege(attrVal, actionType)) {
+    //         actionArr.push(id);
+    //         actionArr.push(val);
+    //     }
+    //     return actionArr;
+    // },
+    // checkPrivilege: function(privilegeVal, actionType) {
+    //     privilegeVal = (privilegeVal != undefined) ? privilegeVal.toString() : "";
+
+    //     if (!!privilegeVal && !!actionType) {
+    //         if (privilegeVal == "-1") {
+    //             privilegeVal = 15;
+    //         }
+    //         var privInt = parseInt(privilegeVal, 10);
+
+    //         if (!isNaN(privInt)) {
+    //             var privBinary = privInt.toString(2),
+    //                 arr = privBinary.split(""),
+    //                 str = "";
+    //             for (var i = 0; i < 4 - arr.length; i++) {
+    //                 str += 0;
+    //             }
+    //             privBinary = str + privBinary;
+
+    //             var matchArr = privBinary.match(/\d/g);
+
+    //             if (matchArr.length != 0) {
+    //                 var add = Number(matchArr[0]),
+    //                     del = Number(matchArr[1]),
+    //                     edit = Number(matchArr[2]),
+    //                     read = Number(matchArr[3]);
+    //                 ///^add/.test(actionType);
+    //                 ///^delete/.test(actionType);
+    //                 ///^update/.test(actionType);
+
+    //                 if ((actionType.indexOf("add") != -1 && add == 1) ||
+    //                     (actionType.indexOf("delete") != -1 && del == 1) ||
+    //                     (actionType.indexOf("delete") != -1 && del == 1) ||
+    //                     (read == 1)) {
+    //                     return true;
+    //                 } else {
+    //                     return false;
+    //                 }
+    //             }
+    //         }
+    //     } else {
+    //         return true;
+    //     }
+    // },
     isIPv6: function(value) {
         return (/^\[?((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\]?$/.test(value) && ((value.contains("[") && value.contains("]")) || (!value.contains("[") && !value.contains("]")))) ||
                 /^\[((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\](\:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9]))?$/.test(value)
