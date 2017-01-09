@@ -24,7 +24,8 @@ class ExtensionItem extends Component {
 
         this.state = {
             settings: {},
-            current_mode: this.props.params.id ? 'edit' : 'add'
+            current_mode: this.props.params.id ? 'edit' : 'add',
+            extension_type: this.props.params.type ? this.props.params.type : 'sip'
         }
     }
     componentDidMount() {
@@ -47,23 +48,35 @@ class ExtensionItem extends Component {
             }
         })
     }
+    _onExtensionTypeChange = (value) => {
+        this.setState({
+            extension_type: value
+        })
+    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
+        const title = (this.props.params.id
+                ? formatMessage({id: "LANG222"}, {
+                    0: formatMessage({id: "LANG85"}),
+                    1: this.props.params.id
+                })
+                : formatMessage({id: "LANG733"}))
+
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
-                    1: formatMessage({id: "LANG733"})
+                    1: title
                 })
 
         return (
-            <div className="app-content-main" id="addExtension">
+            <div className="app-content-main app-content-extension">
                 <Title
+                    headerTitle={ title }
                     isDisplay='display-block'
                     onCancel={ this._handleCancel }
                     onSubmit={ this._handleSubmit.bind(this) }
-                    headerTitle={ formatMessage({id: "LANG733"}) }
                 />
                 <Form className="form-contain-tab">
                     <Tabs defaultActiveKey="1" onChange={ this._onChange }>
@@ -72,6 +85,8 @@ class ExtensionItem extends Component {
                                 form={ form }
                                 settings={ this.state.settings }
                                 currentMode={ this.state.current_mode }
+                                extensionType={ this.state.extension_type }
+                                onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG3886"}) } key="2">
@@ -79,6 +94,8 @@ class ExtensionItem extends Component {
                                 form={ form }
                                 settings={ this.state.settings }
                                 currentMode={ this.state.current_mode }
+                                extensionType={ this.state.extension_type }
+                                onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG106"}) } key="3">
@@ -86,6 +103,8 @@ class ExtensionItem extends Component {
                                 form={ form }
                                 settings={ this.state.settings }
                                 currentMode={ this.state.current_mode }
+                                extensionType={ this.state.extension_type }
+                                onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
@@ -93,6 +112,8 @@ class ExtensionItem extends Component {
                                 form={ form }
                                 settings={ this.state.settings }
                                 currentMode={ this.state.current_mode }
+                                extensionType={ this.state.extension_type }
+                                onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG568"}) } key="5">
@@ -100,6 +121,8 @@ class ExtensionItem extends Component {
                                 form={ form }
                                 settings={ this.state.settings }
                                 currentMode={ this.state.current_mode }
+                                extensionType={ this.state.extension_type }
+                                onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
                     </Tabs>

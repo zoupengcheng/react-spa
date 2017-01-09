@@ -241,10 +241,14 @@ class ExtensionGroupItem extends Component {
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
+        const extensionGroupItem = this.state.extensionGroupItem || {}
+        const name = extensionGroupItem.group_name
+
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
+
         const formItemTransferLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 18 }
@@ -256,9 +260,6 @@ class ExtensionGroupItem extends Component {
                     1: this.props.params.name
                 })
                 : formatMessage({id: "LANG2706"}))
-
-        const extensionGroupItem = this.state.extensionGroupItem || {}
-        const name = extensionGroupItem.group_name
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,

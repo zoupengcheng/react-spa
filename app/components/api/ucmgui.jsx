@@ -6,6 +6,7 @@
 import $ from 'jquery'
 import React from 'react'
 import _ from 'underscore'
+import api from "./api"
 import { message } from 'antd'
 import { browserHistory } from 'react-router'
 import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
@@ -252,7 +253,7 @@ UCMGUI.prototype = {
 
             $.ajax({
                 type: "post",
-                url: "../cgi",
+                url: api.apiHost,
                 data: {
                     action: type
                 },
@@ -400,66 +401,23 @@ UCMGUI.prototype = {
             return true
         }
     },
-    filterHiddenVal: function(ele) { 
-        let val = ele.attr("id"),
-            domVal = "",
-            noSerialize = ele.attr("noSerialize")
-
-        if (!noSerialize && val.length !== 0) {
+    filterHiddenEle: function(ele) { 
+        if (typeof ele[0] !== "undefined") {
             if (ele.is(":hidden")) {
-                if (ele.is("[readonly]")) {
-                    if (ele.attr("name").length !== 0) {
-                        val = ele.attr("name")
-                    }
-                } else {
-                    return false
-                }
-            }
-            if (ele.is(":disabled")) {
+                return false
+            } else if (ele.is("[readonly]")) {
+                return false
+            } else if (ele.is(":disabled")) {
                 return false
             }
-            switch (ele[0].type) {
-                case 'textarea':
-                case 'text':
-                case 'password':
-                case 'hidden':
-                    domVal = ele.val()
-                    break
-                case 'checkbox':
-                    domVal = ele.is(":checked") ? "yes" : "no"
-                    break
-                case 'radio':
-                    break
-                case 'select-one':
-                    domVal = ele.val()
-                    break
-                case 'select-multiple':
-                    let options = []
-
-                    for (var i = 0; i < ele[0].options.length; i++) {
-                        options.push(ele[0].options[i].value)
-                    }
-                    domVal = options.toString()
-                    break
-                default:
-                    break
-            }
-
-            return domVal
-            // if (actionType) {
-            //     let privilegeAttrVal = ele.attr("privilegeAttr"),
-            //         privilegeActionArr = UCMGUI.getPrivilegeActionArr({
-            //             attrVal: privilegeAttrVal,
-            //             actionType: actionType,
-            //             id: val,
-            //             val: domVal
-            //         })
-
-            //     if (privilegeActionArr[0]) {
-            //         hash[privilegeActionArr[0]] = privilegeActionArr[1];
-            //     }
-            // }
         }
+        return true
+    },
+    transCheckboxVal: function(val) {
+        if (val === true || val === false) {
+            return val ? "yes" : "no"
+        } 
+        return val
     },
     // getPrivilegeAction: function(actionData, privilegeData, actionType) {
     //     var action = actionData["action"],

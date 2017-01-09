@@ -195,7 +195,7 @@ const routes = (state, currentLocaleData) => {
                     <Route path="voipTrunk" breadcrumbName={ currentLocaleData["LANG13"] }>
                         <IndexRoute component={ VoIPTrunk } />
                         <Route path="createVoipTrunk/:mode" onEnter={ requireAuth } component={ CreateVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
-                        <Route path="editVoipTrunk" onEnter={ requireAuth } component={ EditVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editVoipTrunk/:trunkId/:technology/:trunkType/:trunkName" onEnter={ requireAuth } component={ EditVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                     </Route>
                     <Route path="slaStation" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3225"] }>
                         <IndexRoute component={ SLAStation } />

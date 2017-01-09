@@ -20,8 +20,7 @@ class BasicSettings extends Component {
 
         this.state = {
             batch_number: 1,
-            add_method: 'single',
-            extension_type: 'sip'
+            add_method: 'single'
         }
     }
     componentWillMount() {
@@ -40,9 +39,7 @@ class BasicSettings extends Component {
             })
         }
 
-        this.setState({
-            extension_type: value
-        })
+        this.props.onExtensionTypeChange(value)
     }
     _onChangeAddMethod = (value) => {
         this.setState({
@@ -59,8 +56,9 @@ class BasicSettings extends Component {
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const { getFieldDecorator } = this.props.form
         const settings = this.props.settings || {}
+        const { getFieldDecorator } = this.props.form
+        const extension_type = this.props.extensionType
         const current_mode = (this.props.currentMode === 'add')
 
         const formItemLayout = {
@@ -97,7 +95,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: this.state.extension_type
+                                    initialValue: extension_type
                                 })(
                                     <Select onChange={ this._onChangeExtensionType }>
                                         <Option value='sip'>{ formatMessage({id: "LANG2927"}) }</Option>
@@ -131,7 +129,7 @@ class BasicSettings extends Component {
                                         <Option value='single'>{ formatMessage({id: "LANG5420"}) }</Option>
                                         <Option
                                             value='batch'
-                                            disabled={ this.state.extension_type === 'fxs' }
+                                            disabled={ extension_type === 'fxs' }
                                         >
                                             { formatMessage({id: "LANG5419"}) }
                                         </Option>
@@ -199,7 +197,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ this.state.extension_type === 'fxs' ? 'display-block' : 'hidden' }
+                            className={ extension_type === 'fxs' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -282,7 +280,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ this.state.extension_type === 'fxs' ? 'hidden' : 'display-block' }
+                            className={ extension_type === 'fxs' ? 'hidden' : 'display-block' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -309,7 +307,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ this.state.extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -398,7 +396,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ this.state.extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -420,7 +418,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ this.state.extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -597,7 +595,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ this.state.extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
