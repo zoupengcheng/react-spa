@@ -24,42 +24,68 @@ class AdvanceSettings extends Component {
     componentWillMount() {
     }
     componentDidMount() {
+        // this._getOpenPort()
     }
-    _onChangeTelUri = (val) => {
+    _onChangeFaxmode = (val) => {
         this.setState({
-            telUri: val
+            faxmode: val
         })  
     }
-    _onChangeEnableCc = (val) => {
+    _onChangeEnableCc = (e) => {
         this.setState({
-            enableCc: val
+            enableCc: e.target.checked
         })  
+    }
+    _onChangenableQualify = (e) => {
+        this.setState({
+            enableQualify: e.target.checked
+        })  
+    }
+    _onChangeLdapSyncEnable = (e) => {
+        this.setState({
+            ldapSyncEnable: e.target.checked
+        })  
+    }
+    _onChangeChkOutboundproxy = (e) => {
+        this.setState({
+            chkOutboundproxy: e.target.checked
+        })      
+    }
+    _onChangeSendPai = (e) => {
+        this.setState({
+            sendPai: e.target.checked
+        })      
+    }
+    _onChangeSendPpi = (e) => {
+        this.setState({
+            sendPpi: e.target.checked
+        })      
     }
     _checkLdapPrefix = (rule, value, callback) => {
-        // var default_ob = $('#ldap_outrt_prefix').val();
-
-        // if (default_ob && default_ob == 'custom' && value == "") {
-        //     return "prefix is required.";
-        // }
-
-        // return true;
+        if (value && value === 'custom' && value === "") {
+            callback("prefix is required.")
+        }
+        callback()
     }
     _checkOpenPort(rule, value, callback) {
-        // var ele;
+        const { formatMessage } = this.props.intl
 
-        // if (val === loadValue) {
-        //     return true;
-        // }
+        let trunk = this.props.trunk,
+            loadValue = (trunk.ldap_sync_port === null ? null : trunk.ldap_sync_port.toString())
+        
+        if (value === loadValue) {
+            callback()
+        }
 
-        // for (var i = 0; i < openPort.length; i++) {
-        //     ele = openPort[i];
+        for (let i = 0; i < this.props.openPort.length; i++) {
+            let ele = this.props.openPort[i]
 
-        //     if (val == ele) {
-        //         return "LANG3869";
-        //     }
-        // }
+            if (value === Number(ele)) {
+                callback(formatMessage({id: "LANG3869"}))
+            }
+        }
 
-        // return true;
+        callback()
     }
     _transData = (res, cb) => {
         let arr = []
@@ -73,21 +99,6 @@ class AdvanceSettings extends Component {
         }
 
         return arr
-    }
-    _getNameList = () => {
-        const { formatMessage } = this.props.intl
-        let trunkList = UCMGUI.isExist.getList("getTrunkList", formatMessage)
-        this.setState({
-            trunkNameList: this._transData(trunkList)
-        })
-    }
-    _trunkNameIsExist = (rule, value, callback, errMsg) => {
-        if (_.find(this.state.trunkNameList, function (num) { 
-            return num === value
-        })) {
-            callback(errMsg)
-        }
-        callback()
     }
     _isRightIP = (rule, value, callback, errMsg) => {
         let ipArr = value.split("."),
@@ -120,10 +131,14 @@ class AdvanceSettings extends Component {
             wrapperCol: { span: 6 }
         }
 
+        let trunkId = trunk.trunk_index,
+            technology = this.props.technology,
+            trunkType = this.props.trunkType
+
         return (
             <div className="content">
                 {/* <Transfer
-                    id="div_codecs"
+                    ref="div_codecs"
                     dataSource={mockData}
                     titles={['Source', 'Target']}
                     targetKeys={state.targetKeys}
@@ -134,6 +149,7 @@ class AdvanceSettings extends Component {
                   /> */}
                 <FormItem
                     id="div_send_ppi"
+                    className={(technology && technology.toLowerCase() === "sip") ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3901" />}>
@@ -145,11 +161,12 @@ class AdvanceSettings extends Component {
                         valuePropName: "checked",
                         initialValue: trunk.send_ppi === "yes" ? true : false
                     })(
-                        <Checkbox />
+                        <Checkbox onChange={ this._onChangeSendPpi } disabled={ this.state.sendPai ? true : false} />
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_use_dod_in_ppi"
+                    ref="div_use_dod_in_ppi"
+                    className={ (technology && technology.toLowerCase() === "sip" && this.state.sendPpi) ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5322" />}>
@@ -165,7 +182,8 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_send_pai"
+                    ref="div_send_pai"
+                    className={(technology && technology.toLowerCase() === "sip") ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3989" />}>
@@ -177,11 +195,12 @@ class AdvanceSettings extends Component {
                         valuePropName: "checked",
                         initialValue: trunk.send_pai === "yes" ? true : false
                     })(
-                        <Checkbox />
+                        <Checkbox onChange={ this._onChangeSendPai } disabled={ this.state.sendPpi ? true : false } />
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_send_pai"
+                    ref="div_pai_number"
+                    className={ (technology && technology.toLowerCase() === "sip" && this.state.sendPai) ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5320" />}>
@@ -200,7 +219,8 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="is_outboundproxy_field"
+                    ref="div_chkOutboundproxy"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1381" />}>
@@ -212,11 +232,12 @@ class AdvanceSettings extends Component {
                         valuePropName: "checked",
                         initialValue: trunk.chkOutboundproxy === "yes" ? true : false
                     })(
-                        <Checkbox />
+                        <Checkbox onChange={this._onChangeChkOutboundproxy} />
                     ) }
                 </FormItem>
                 <FormItem
-                    id="outboundproxy_field"
+                    ref="div_outboundproxy"
+                    className={(technology && technology.toLowerCase() === "sip" && this.state.chkOutboundproxy) ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1379" />}>
@@ -240,7 +261,8 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="rmvObpFromRoute_field"
+                    ref="div_rmv_obp_from_route"
+                    className={(technology && technology.toLowerCase() === "sip" && this.state.chkOutboundproxy) ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5030" />}>
@@ -251,16 +273,16 @@ class AdvanceSettings extends Component {
                         rules: [],
                         initialValue: trunk.keepcid
                     })(
-                        <Input disabled={ this.state.telUri !== "disabled" ? true : false } />
+                        <Input disabled={ this.props.telUri !== "disabled" ? true : false } />
                     ) }
                 </FormItem>
                 <FormItem
-                    id="didmode_field"
-                    className="hidden"
+                    ref="div_did_mode"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
-                        <Tooltip title={<FormattedHTMLMessage id="LANG2649" />}>
-                            <span>{formatMessage({id: "LANG2648"})}</span>
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG2649" /> }>
+                            <span>{ formatMessage({id: "LANG2648"}) }</span>
                         </Tooltip>
                     }>
                     { getFieldDecorator('did_mode', {
@@ -274,7 +296,8 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_dtmfmode"
+                    ref="div_dtmfmode"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1786" />}>
@@ -295,7 +318,7 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="editTrunk_Field_qualify"
+                    ref="div_enable_qualify"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1367" />}>
@@ -307,11 +330,12 @@ class AdvanceSettings extends Component {
                         valuePropName: "checked",
                         initialValue: trunk.enable_qualify === "yes" ? true : false
                     })(
-                        <Checkbox />
+                        <Checkbox onChange={this._onChangenableQualify} />
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_qualifyfreq"
+                    ref="div_qualifyfreq"
+                    className={this.state.enableQualify ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1385" />}>
@@ -330,7 +354,7 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_out_maxchans"
+                    ref="div_out_maxchans"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3024" />}>
@@ -349,7 +373,7 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="editTrunk_Field_faxmode"
+                    ref="div_faxmode"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG4199" />}>
@@ -360,15 +384,16 @@ class AdvanceSettings extends Component {
                         rules: [],
                         initialValue: trunk.faxmode
                     })(
-                        <Select>
+                        <Select onChange={this._onChangeFaxmode} >
                             <Option value='no'>{formatMessage({id: "LANG133"})}</Option>
                             <Option value='detect'>{formatMessage({id: "LANG1135"})}</Option>
                             {/* <option value='gateway' locale="LANG3554"></option> */}
                         </Select>
                     ) }
                 </FormItem>
-                <div id="detect_div">
+                <div ref="detect_div" className={this.state.faxmode === "detect" ? "display-block" : "hidden"} >
                     <FormItem
+                        ref = "div_fax_intelligent_route"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4380" />}>
@@ -384,6 +409,7 @@ class AdvanceSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
+                        ref="div_fax_intelligent_route_destination"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4382" />}>
@@ -401,7 +427,8 @@ class AdvanceSettings extends Component {
                     </FormItem>
                 </div>
                 <FormItem
-                    id="div_srtp"
+                    ref="div_encryption"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1390" />}>
@@ -420,9 +447,9 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 {/* ldap for trunk */}
-                <div id="ldapDiv">
+                <div ref="ldapDiv">
                     <FormItem
-                        id="div_ldap_sync_enable"
+                        ref="div_ldap_sync_enable"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2497" />}>
@@ -434,11 +461,12 @@ class AdvanceSettings extends Component {
                             valuePropName: "checked",
                             initialValue: trunk.ldap_sync_enable === "yes" ? true : false
                         })(
-                            <Checkbox />
+                            <Checkbox onChange={this._onChangeLdapSyncEnable} />
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_ldap_sync_passwd"
+                        ref="div_ldap_sync_passwd"
+                        className={ (trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2498" />}>
@@ -464,7 +492,8 @@ class AdvanceSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_ldap_sync_port"
+                        ref="div_ldap_sync_port"
+                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2499" />}>
@@ -477,9 +506,9 @@ class AdvanceSettings extends Component {
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }, { 
-                                validator: this._checkLdapPrefix
-                            }, { 
-                                validator: this._checkOpenPort
+                                validator: (data, value, callback) => {
+                                    this._checkOpenPort(data, value, callback)
+                                }
                             }],
                             initialValue: trunk.ldap_sync_port
                         })(
@@ -487,7 +516,8 @@ class AdvanceSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_ldap_default_outrt"
+                        ref="div_ldap_default_outrt"
+                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2500" />}>
@@ -502,7 +532,8 @@ class AdvanceSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_ldap_default_outrt_prefix"
+                        ref="div_ldap_default_outrt_prefix"
+                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2499" />}>
@@ -523,7 +554,8 @@ class AdvanceSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="div_ldap_last_sync_date"
+                        ref="div_ldap_last_sync_date"
+                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG2653" /> }>
@@ -535,9 +567,10 @@ class AdvanceSettings extends Component {
                 </div>
                 {/*  ended of  ldap for trunk  */}
                 {/*  ccss for trunk  */}
-                <div id="ccss">
+                <div ref="ccss" className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" } >
                     <div className='section-title'>{ formatMessage({id: "LANG3725"}) }</div>
                     <FormItem
+                        ref="div_enable_cc"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG3727" /> }>
@@ -549,11 +582,12 @@ class AdvanceSettings extends Component {
                             valuePropName: "checked",
                             initialValue: trunk.enable_cc === "yes" ? true : false
                         })(
-                            <Checkbox />
+                            <Checkbox onChange={this._onChangeEnableCc} />
                         ) }
                     </FormItem>
                     <FormItem
-                        id="cc-max-agents"
+                        ref="div_cc_max_agents"
+                        className={this.state.enableCc ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG3734" /> }>
@@ -572,7 +606,8 @@ class AdvanceSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        id="cc-max-monitors"
+                        ref="div_cc_max_monitors"
+                        className={this.state.enableCc ? "display-block" : "hidden"}
                         { ...formItemLayout }
                         className={ this.state.enableCc === true ? "display-block" : "hidden" }
                         label={                            

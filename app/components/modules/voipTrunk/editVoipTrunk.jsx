@@ -19,6 +19,7 @@ class EditVoipTrunk extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            openPort: [],
             telUri: "disabled",
             enableCc: false
         }
@@ -35,11 +36,136 @@ class EditVoipTrunk extends Component {
             action["action"] = "getSIPTrunk"
 
             this._getTrunk(action)
+            // this._tectFax()
         } else {
             action["action"] = "getIAXTrunk"
             this._getTrunk(action)
         }
         // this._getNameList()
+        this._getOpenPort()
+    }
+    // _tectFax = () => {
+    //     var accountList = UCMGUI.isExist.getList("listAccount").account,
+    //         faxList = UCMGUI.isExist.getList("listFax").fax,
+    //         str = '',
+    //         ele;
+
+    //     for (var i = 0; i < accountList.length; i++) {
+    //         ele = accountList[i];
+
+    //         if (ele.account_type.match(/FXS/i)) {
+    //             str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
+    //         }
+    //     }
+
+    //     for (var i = 0; i < faxList.length; i++) {
+    //         ele = faxList[i];
+
+    //         str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
+
+    //     }
+
+    //     $('#fax_intelligent_route_destination').append(str);
+    //     $('#faxmode').on('change', function() {
+    //         if ($(this).val() === 'detect') {
+    //             $('#detect_div').show();
+    //         } else {
+    //             $('#detect_div').hide();
+    //         }
+    //     });
+    //     enableCheckBox({
+    //         enableCheckBox: 'fax_intelligent_route',
+    //         enableList: ['fax_intelligent_route_destination']
+    //     }, doc);
+    //     enableCheckBox({
+    //         enableCheckBox: 'need_register',
+    //         enableList: ['allow_outgoing_calls_if_reg_failed']
+    //     }, doc);
+    // }
+    _getOpenPort = () => {
+        let openPort = []
+
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: {
+                action: "getNetstatInfo"
+            },
+            async: true,
+            dataType: "json",
+            error: function(jqXHR, textStatus, errorThrown) {
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let netstat = data.response.netstat,
+                        currentPort = ''
+
+                    for (let i = 0, length = netstat.length; i < length; i++) {
+                        currentPort = netstat[i]['port']
+
+                        if (openPort.length !== 0 && _.find(openPort, function (num) { 
+                                return num !== currentPort
+                            })) {
+                            openPort.push(currentPort)
+                        } else {
+                            openPort.push(currentPort)
+                        }
+                    }
+                    this.setState({
+                        openPort: this.state.openPort
+                    })
+                }
+            }.bind(this)
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: {
+                action: "getSIPTCPSettings"
+            },
+            // async: false,
+            dataType: "json",
+            error: function(jqXHR, textStatus, errorThrown) {
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    let tlsbindaddr = data.response.sip_tcp_settings.tlsbindaddr,
+                        tcpbindaddr = data.response.sip_tcp_settings.tcpbindaddr
+
+                    if (tlsbindaddr) {
+                        let tlsPort = tlsbindaddr.split(":")[1]
+
+                        if (openPort.length !== 0 && tlsPort && _.find(openPort, function (num) { 
+                                return num !== tlsPort
+                            })) {
+                            openPort.push(tlsPort)
+                        } else {
+                            openPort.push(tlsPort)
+                        }
+                    }
+
+                    if (tcpbindaddr) {
+                        let tcpPort = tcpbindaddr.split(":")[1]
+
+                        if (openPort.length !== 0 && tcpPort && _.find(openPort, function (num) { 
+                                return num !== tcpPort
+                            })) {
+                            openPort.push(tcpPort)
+                        } else {
+                            openPort.push(tcpPort)
+                        }
+                    }
+                    this.setState({
+                        openPort: this.state.openPort
+                    })
+                }
+            }.bind(this)
+        })
     }
     _getTrunk = (action) => {
         $.ajax({
@@ -47,10 +173,6 @@ class EditVoipTrunk extends Component {
             url: api.apiHost,
             data: action,
             error: function(jqXHR, textStatus, errorThrown) {
-                // top.dialog.dialogMessage({
-                //     type: 'error',
-                //     content: errorThrown
-                // });
             },
             success: function(data) {
                 let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
@@ -70,122 +192,56 @@ class EditVoipTrunk extends Component {
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
+        let trunkId = this.props.params.trunkId,
+            technology = this.props.params.technology,
+            trunkType = this.props.params.trunkType,
+            action = {}
+
+        if (technology.toLowerCase() === "sip") {
+            action["action"] = "updateSIPTrunk"
+        } else {
+            action["action"] = "updateIAXTrunk"
+        }
 
         this.props.form.validateFieldsAndScroll((err, values) => {
-            if (!err) {
-                console.log('Received values of form: ', values)
-
-                message.loading(formatMessage({ id: "LANG826" }), 0)
-
-                let action = values
-
-                action.action = 'updateJBSettings'
-
-                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(formatMessage({ id: "LANG815" }))
+            let me = this
+            for (let key in values) {
+                if (values.hasOwnProperty(key)) {
+                    if (me.refs["div_" + key] && 
+                        me.refs["div_" + key].props &&
+                        ((me.refs["div_" + key].props.className &&
+                        me.refs["div_" + key].props.className.indexOf("hidden") === -1) ||
+                        typeof me.refs["div_" + key].props.className === "undefined")) {
+                        if (!err || (err && typeof err[key] === "undefined")) {
+                            action[key] = UCMGUI.transCheckboxVal(values[key])   
+                        } else {
+                            return
                         }
-                    }.bind(this)
-                })
+                    }
+                }
             }
+
+            console.log('Received values of form: ', values)
+            message.loading(formatMessage({ id: "LANG826" }), 0)
+
+            $.ajax({
+                url: api.apiHost,
+                method: "post",
+                data: action,
+                type: 'json',
+                error: function(e) {
+                    message.error(e.statusText)
+                },
+                success: function(data) {
+                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        message.destroy()
+                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                    }
+                }.bind(this)
+            })
         })
-    }
-    _onChangeTelUri = (val) => {
-        this.setState({
-            telUri: val
-        })  
-    }
-    _onChangeEnableCc = (val) => {
-        this.setState({
-            enableCc: val
-        })  
-    }
-    _checkLdapPrefix = (rule, value, callback) => {
-        // var default_ob = $('#ldap_outrt_prefix').val();
-
-        // if (default_ob && default_ob == 'custom' && value == "") {
-        //     return "prefix is required.";
-        // }
-
-        // return true;
-    }
-    _checkOpenPort(rule, value, callback) {
-        // var ele;
-
-        // if (val === loadValue) {
-        //     return true;
-        // }
-
-        // for (var i = 0; i < openPort.length; i++) {
-        //     ele = openPort[i];
-
-        //     if (val == ele) {
-        //         return "LANG3869";
-        //     }
-        // }
-
-        // return true;
-    }
-    _transData = (res, cb) => {
-        let arr = []
-
-        for (var i = 0; i < res.length; i++) {
-            arr.push(res[i]["trunk_name"])
-        }
-
-        if (cb && typeof cb === "function") {
-            cb(arr)
-        }
-
-        return arr
-    }
-    _getNameList = () => {
-        const { formatMessage } = this.props.intl
-        let trunkList = UCMGUI.isExist.getList("getTrunkList", formatMessage)
-        this.setState({
-            trunkNameList: this._transData(trunkList)
-        })
-    }
-    _trunkNameIsExist = (rule, value, callback, errMsg) => {
-        if (_.find(this.state.trunkNameList, function (num) { 
-            return num === value
-        })) {
-            callback(errMsg)
-        }
-        callback()
-    }
-    _isRightIP = (rule, value, callback, errMsg) => {
-        let ipArr = value.split("."),
-            ipDNSReg = /(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])/
-        
-        if (ipDNSReg.test(value) && (ipArr[0] === "127" || ipArr[0] >= 224 || ipArr[3] === 0)) {
-            callback(errMsg)
-        } else {
-            callback()
-        }
-    }
-    _isSelfIP = (rule, value, callback, errMsg) => {
-        let selfIp = window.location.hostname,
-            inputIp = value.split(':')[0]
-        
-        if (inputIp === selfIp) {
-            callback(errMsg)
-        } else {
-            callback()
-        }
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -214,11 +270,18 @@ class EditVoipTrunk extends Component {
                         <TabPane tab={formatMessage({id: "LANG2217"})} key="1">
                             <BasicSettings form={ this.props.form }
                                 trunk={ this.state.trunk }
+                                trunkType = {trunkType}
+                                technology = {technology}
+                                telUri={ this.state.telUri }
                             />
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG542"})} key="2">
                             <AdvanceSettings form={ this.props.form }
                                 trunk={ this.state.trunk }
+                                trunkType = {trunkType}
+                                technology = {technology}
+                                openPort = { this.state.openPort }
+                                telUri={ this.state.telUri }
                             />
                         </TabPane>
                     </Tabs>

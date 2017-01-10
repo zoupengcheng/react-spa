@@ -66,18 +66,47 @@ class Media extends Component {
     }
     _addLocalNetwork = () => {
         const { form } = this.props
+        const { formatMessage } = this.props.intl
+
         // can use data-binding to get
         const localNetworks = form.getFieldValue('localNetworks')
-        const newLocalNetworks = localNetworks.concat(localNetworks.length + 2)
 
-        // can use data-binding to set
-        // important! notify form to detect changes
-        form.setFieldsValue({
-            localNetworks: newLocalNetworks
-        })
+        if (localNetworks.length <= 8) {
+            const newLocalNetworks = localNetworks.concat(this._generateLocalNetworkID(localNetworks))
+
+            // can use data-binding to set
+            // important! notify form to detect changes
+            form.setFieldsValue({
+                localNetworks: newLocalNetworks
+            })
+        } else {
+            message.warning(formatMessage({id: "LANG948"}))
+
+            return false
+        }
+    }
+    _filterCodecsSource = () => {
+        if (this.props.extensionType === 'iax') {
+            return _.filter(this.state.availableCodecs, function(item) {
+                    return item.key !== 'opus'
+                })
+        } else {
+            return this.state.availableCodecs
+        }
     }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
+    }
+    _generateLocalNetworkID = (existIDs) => {
+        let newID = 2
+
+        if (existIDs && existIDs.length) {
+            newID = _.find([2, 3, 4, 5, 6, 7, 8, 9, 10], function(key) {
+                    return !_.contains(existIDs, key)
+                })
+        }
+
+        return newID
     }
     _handleTransferChange = (targetKeys, direction, moveKeys) => {
         if (!targetKeys.length) {
@@ -115,16 +144,6 @@ class Media extends Component {
         const form = this.props.form
 
         form.validateFields([e.target.id], { force: true })
-    }
-    _renderItem = (item) => {
-        if (item.key === 'opus' && this.props.extensionType === 'iax') {
-            return false
-        } else {
-            return {
-                label: item.key,  // for displayed item
-                value: item.title   // for title and filter matching
-            }
-        }
     }
     _removeLocalNetwork = (k) => {
         const { form } = this.props
@@ -165,8 +184,8 @@ class Media extends Component {
         const localNetworkFormItems = localNetworks.map((k, index) => {
             return (
                 <Col
-                    span={ 12 }
                     key={ k }
+                    span={ 12 }
                     className={ extension_type === 'fxs'
                                     ? 'hidden'
                                     : this.state.strategy_ipacl === '1'
@@ -1018,28 +1037,18 @@ class Media extends Component {
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('available_codec', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: settings.available_codec
-                                })(
-                                    <Transfer
-                                        showSearch
-                                        render={ this._renderItem }
-                                        targetKeys={ this.state.targetKeys }
-                                        dataSource={ this.state.availableCodecs }
-                                        onChange={ this._handleTransferChange }
-                                        filterOption={ this._filterTransferOption }
-                                        notFoundContent={ formatMessage({id: "LANG133"}) }
-                                        onSelectChange={ this._handleTransferSelectChange }
-                                        searchPlaceholder={ formatMessage({id: "LANG803"}) }
-                                        titles={[formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})]}
-                                    />
-                                ) }
+                                <Transfer
+                                    showSearch
+                                    render={ item => item.title }
+                                    targetKeys={ this.state.targetKeys }
+                                    dataSource={ this._filterCodecsSource() }
+                                    onChange={ this._handleTransferChange }
+                                    filterOption={ this._filterTransferOption }
+                                    notFoundContent={ formatMessage({id: "LANG133"}) }
+                                    onSelectChange={ this._handleTransferSelectChange }
+                                    searchPlaceholder={ formatMessage({id: "LANG803"}) }
+                                    titles={[formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})]}
+                                />
                             </FormItem>
                         </Col>
                     </Row>

@@ -32,7 +32,12 @@ class ExtensionItem extends Component {
     }
     componentWillUnmount() {
     }
-    _onChange = (activeKey) => {
+    _onChangeTabs = (activeKey) => {
+        // this.props.form.validateFields((err, values) => {
+        //     if (!err) {
+        //         return false
+        //     }
+        // })
     }
     _handleCancel = (e) => {
         browserHistory.push('/extension-trunk/extension')
@@ -79,7 +84,7 @@ class ExtensionItem extends Component {
                     onSubmit={ this._handleSubmit.bind(this) }
                 />
                 <Form className="form-contain-tab">
-                    <Tabs defaultActiveKey="1" onChange={ this._onChange }>
+                    <Tabs defaultActiveKey="1" onChange={ this._onChangeTabs }>
                         <TabPane tab={ formatMessage({id: "LANG2217"}) } key="1">
                             <BasicSettings
                                 form={ form }

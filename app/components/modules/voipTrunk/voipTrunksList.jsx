@@ -199,11 +199,17 @@ class VoipTrunksList extends Component {
         return (
             <div className="content">
                 <div className="top-button">
-                    <Dropdown overlay={menu}>
+                    {/* <Dropdown overlay={menu}>
                         <a className="ant-dropdown-link" href="#">
                         Create Voip Trunk<Icon type="down" />
                         </a>
-                    </Dropdown>
+                    </Dropdown> */}
+                    <Button icon="plus" type="primary" size="default" onClick={ this._createSipVoipTrunk }>
+                        { formatMessage({id: "LANG2908"}) }
+                    </Button>
+                    <Button icon="plus" type="primary" size="default" onClick={ this._createIaxVoipTrunk }>
+                        { formatMessage({id: "LANG2909"}) }
+                    </Button>
                     {/* <Button type="primary" icon="" onClick={this._deleteVoipTrunk} >
                         {formatMessage({id: "LANG739"})}
                     </Button> */}

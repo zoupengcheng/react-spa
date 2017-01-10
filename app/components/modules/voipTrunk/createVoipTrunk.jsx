@@ -79,7 +79,7 @@ class CreateVoipTrunk extends Component {
 
                     if (bool) {
                         message.destroy()
-                        message.success(formatMessage({ id: "LANG815" }))
+                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
                         browserHistory.push('/extension-trunk/voipTrunk')
                     }
                 }.bind(this)
@@ -96,11 +96,11 @@ class CreateVoipTrunk extends Component {
             telUri: val
         })  
     }
-    _onChangeEnableCc = (val) => {
-        this.setState({
-            enableCc: val
-        })  
-    }
+    // _onChangeEnableCc = (val) => {
+    //     this.setState({
+    //         enableCc: val
+    //     })  
+    // }
     _transData = (res, cb) => {
         let arr = []
 

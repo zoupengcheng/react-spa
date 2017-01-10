@@ -26,14 +26,17 @@ class BasicSettings extends Component {
     componentDidMount() {
         this._getNameList()
     }
-    _onChangeTelUri = (val) => {
+    _onChangeTelUri = (e) => {
+        this.props.telUri = e.target.checked
+    }
+    _onChangeEnableCc = (e) => {
         this.setState({
-            telUri: val
+            enableCc: e.target.checked
         })  
     }
-    _onChangeEnableCc = (val) => {
+    _onChangeKeepcid = (e) => {
         this.setState({
-            enableCc: val
+            keepcid: e.target.checked
         })  
     }
     _checkLdapPrefix = (rule, value, callback) => {
@@ -86,7 +89,7 @@ class BasicSettings extends Component {
         let _this = this
 
         if (_.find(this.state.trunkNameList, function (num) { 
-            return (num === value && _this.props.trunk.trunk_name !== value)
+            return (num === value && _this.props.trunk && _this.props.trunk.trunk_name !== value)
         })) {
             callback(errMsg)
         }
@@ -123,6 +126,10 @@ class BasicSettings extends Component {
             wrapperCol: { span: 6 }
         }
 
+        let trunkId = trunk.trunk_index,
+            technology = this.props.technology,
+            trunkType = this.props.trunkType
+                    
         return (
             <div className="content">
                 <FormItem
@@ -157,7 +164,7 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_hostname"
+                    ref="div_host"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1374" />}>
@@ -168,10 +175,6 @@ class BasicSettings extends Component {
                         rules: [{ 
                             required: true, 
                             message: formatMessage({id: "LANG2150"})
-                        }, { 
-                            validator: (data, value, callback) => {
-                                Validator.alphanumeric(data, value, callback, formatMessage)
-                            }
                         }, { 
                             validator: (data, value, callback) => {
                                 let msg = formatMessage({id: "LANG2542"}, {0: formatMessage({id: "LANG1373"})})
@@ -189,7 +192,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_transport"
+                    ref="div_transport"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1391" />}>
@@ -211,7 +215,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_keep_org_cid"
+                    ref="div_keeporgcid"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG4109" />}>
@@ -226,7 +231,7 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_keep_cid"
+                    ref="div_keepcid"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG2319" />}>
@@ -238,11 +243,12 @@ class BasicSettings extends Component {
                         valuePropName: "checked",
                         initialValue: trunk.keepcid === "yes" ? true : false
                     })(
-                        <Checkbox />
+                        <Checkbox onChange={this._onChangeKeepcid} />
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_nat"
+                    ref="div_nat"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={ <FormattedHTMLMessage id="LANG1093" /> }>
@@ -258,7 +264,7 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_out_of_service"
+                    ref="div_out_of_service"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3480" />}>
@@ -274,7 +280,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_tel_uri"
+                    ref="div_tel_uri"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG2769" />}>
@@ -285,7 +292,7 @@ class BasicSettings extends Component {
                         rules: [],
                         initialValue: trunk.tel_uri
                     })(
-                        <Select>
+                        <Select onChange={this._onChangeTelUri} >
                             <Option value='disabled'>{formatMessage({id: "LANG2770"})}</Option>
                             <Option value='user_phone'>{formatMessage({id: "LANG2771"})}</Option>
                             <Option value='enabled'>{formatMessage({id: "LANG2772"})}</Option>
@@ -293,7 +300,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="need_register_div"
+                    ref="div_need_register"
+                    className={(technology && technology.toLowerCase() === "sip" && trunkType && trunkType.toLowerCase() !== "peer") ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3016" />}>
@@ -309,7 +317,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="allow_outgoing_calls_if_reg_failed_div"
+                    ref="div_allow_outgoing_calls_if_reg_failed"
+                    className={(technology && technology.toLowerCase() === "sip" && trunkType && trunkType.toLowerCase() !== "peer") ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5070" />}>
@@ -325,8 +334,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_callerid"
-                    className={trunk.trunk_type === "peer" ? "display-block" : "hidden"}
+                    ref="div_cidnumber"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1360" />}>
@@ -340,12 +349,12 @@ class BasicSettings extends Component {
                             }
                         }, { 
                             validator: (data, value, callback) => {
-                                // LANG5066
-                                // var isChecked = $('#keepcid')[0].checked;
-                                // if ((isChecked && $("#cidnumber").val() != "") || !isChecked) {
-                                //     return true;
-                                // }
-                                // return false;
+                                let isChecked = this.state.keepcid
+
+                                if ((isChecked && value !== "") || !isChecked) {
+                                    callback()
+                                }
+                                callback(formatMessage({id: "LANG5066"}))
                             }
                         }],
                         initialValue: trunk.cidnumber
@@ -354,7 +363,7 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_callername"
+                    ref="div_cidname"
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1362" />}>
@@ -377,7 +386,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_fromdomain"
+                    ref="div_fromdomain"
+                    className={(technology && technology.toLowerCase() === "sip") ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1370" />}>
@@ -396,7 +406,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_fromuser"
+                    ref="div_fromuser"
+                    className={(technology && technology.toLowerCase() === "sip" && trunkType && trunkType.toLowerCase() !== "peer") ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1372" />}>
@@ -415,7 +426,7 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_username"
+                    ref="div_username"
                     className={ trunk.trunk_type === "register" ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
@@ -438,7 +449,7 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="div_secret"
+                    ref="div_secret"
                     className={ trunk.trunk_type === "register" ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={formatMessage({id: "LANG73"})}>
@@ -457,7 +468,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="authid_field"
+                    ref="div_authid"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG2488" />}>
@@ -476,7 +488,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="auth_trunk_field"
+                    ref="div_auth_trunk"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG4262" />}>
@@ -492,7 +505,8 @@ class BasicSettings extends Component {
                     ) }
                 </FormItem>
                 <FormItem
-                    id="auto_record_field"
+                    ref="div_auto_recording"
+                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5266" />}>
