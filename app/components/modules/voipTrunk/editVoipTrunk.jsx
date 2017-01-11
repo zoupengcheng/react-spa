@@ -114,7 +114,7 @@ class EditVoipTrunk extends Component {
                         }
                     }
                     this.setState({
-                        openPort: this.state.openPort
+                        openPort: this.state.openPort.concat(openPort)
                     })
                 }
             }.bind(this)
@@ -161,7 +161,7 @@ class EditVoipTrunk extends Component {
                         }
                     }
                     this.setState({
-                        openPort: this.state.openPort
+                        openPort: this.state.openPort.concat(openPort)
                     })
                 }
             }.bind(this)

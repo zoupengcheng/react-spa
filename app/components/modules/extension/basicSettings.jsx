@@ -24,8 +24,18 @@ class BasicSettings extends Component {
         }
     }
     componentWillMount() {
+        this._getLanguages()
     }
     componentDidMount() {
+    }
+    _getLanguages = () => {
+        const { formatMessage } = this.props.intl
+
+        let languages = UCMGUI.isExist.getList('getLanguage')
+
+        this.setState({
+            languages: languages
+        })
     }
     _onChangeExtensionType = (value) => {
         if (value === 'fxs') {
@@ -58,8 +68,8 @@ class BasicSettings extends Component {
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
         const { getFieldDecorator } = this.props.form
+        const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
-        const current_mode = (this.props.currentMode === 'add')
 
         const formItemLayout = {
             labelCol: { span: 8 },
@@ -75,7 +85,7 @@ class BasicSettings extends Component {
             <div className="content">
                 <div className="ant-form">
                     <Row
-                        className={ current_mode ? 'display-block' : 'hidden' }
+                        className={ !currentEditId ? 'display-block' : 'hidden' }
                     >
                         <Col span={ 24 }>
                             <FormItem
@@ -589,6 +599,16 @@ class BasicSettings extends Component {
                                 })(
                                     <Select>
                                         <Option value=''>{ formatMessage({id: "LANG257"}) }</Option>
+                                        {
+                                            this.state.languages.map(function(item) {
+                                                return <Option
+                                                            key={ item.language_id }
+                                                            value={ item.language_id }
+                                                        >
+                                                            { item.language_name }
+                                                        </Option>
+                                            })
+                                        }
                                     </Select>
                                 ) }
                             </FormItem>

@@ -24,7 +24,7 @@ class ExtensionItem extends Component {
 
         this.state = {
             settings: {},
-            current_mode: this.props.params.id ? 'edit' : 'add',
+            currentEditId: this.props.params.id,
             extension_type: this.props.params.type ? this.props.params.type : 'sip'
         }
     }
@@ -89,7 +89,7 @@ class ExtensionItem extends Component {
                             <BasicSettings
                                 form={ form }
                                 settings={ this.state.settings }
-                                currentMode={ this.state.current_mode }
+                                currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
@@ -98,7 +98,7 @@ class ExtensionItem extends Component {
                             <Media
                                 form={ form }
                                 settings={ this.state.settings }
-                                currentMode={ this.state.current_mode }
+                                currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
@@ -107,7 +107,7 @@ class ExtensionItem extends Component {
                             <Feature
                                 form={ form }
                                 settings={ this.state.settings }
-                                currentMode={ this.state.current_mode }
+                                currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
@@ -116,7 +116,7 @@ class ExtensionItem extends Component {
                             <SpecificTime
                                 form={ form }
                                 settings={ this.state.settings }
-                                currentMode={ this.state.current_mode }
+                                currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
@@ -125,7 +125,7 @@ class ExtensionItem extends Component {
                             <FollowMe
                                 form={ form }
                                 settings={ this.state.settings }
-                                currentMode={ this.state.current_mode }
+                                currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />

@@ -108,8 +108,8 @@ class VoipTrunksList extends Component {
 
         browserHistory.push('/extension-trunk/voipTrunk/editVoipTrunk/' + trunkId + "/" + technology + "/" + trunkType + "/" + trunkName)
     }
-    _dodTrunksList = () => {
-        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList')
+    _dodTrunksList = (record) => {
+        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index)
     }
     _syncLdap = () => {
         // browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList')

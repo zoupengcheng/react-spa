@@ -159,8 +159,8 @@ class Media extends Component {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
+        const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
-        const current_mode = (this.props.currentMode === 'add')
         const { getFieldDecorator, getFieldValue } = this.props.form
 
         const formItemLayout = {

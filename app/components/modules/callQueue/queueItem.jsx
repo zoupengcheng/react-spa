@@ -740,9 +740,9 @@ class QueueItem extends Component {
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('chairman', {
+                                    { getFieldDecorator('queue_chairman', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.chairman
+                                        initialValue: this.state.queueItem.queue_chairman
                                     })(
                                         <Input />
                                     ) }
