@@ -1,16 +1,15 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
-import {Row, Col } from 'antd'
-import { FormattedMessage, injectIntl } from 'react-intl'
-import EquipmentCapacity from './equipmentCapacity'
-import ResourceUsage from './resourceUsage'
-import DiskCapacity from './diskCapacity'
-import PBXStatus from './pbxStatus'
-import InterfaceStatus from './interfaceStatus'
 import Trunks from './trunks'
-
+import {Row, Col } from 'antd'
 import '../../../css/dashboard'
+import PBXStatus from './pbxStatus'
+import DiskCapacity from './diskCapacity'
+import ResourceUsage from './resourceUsage'
+import InterfaceStatus from './interfaceStatus'
+import EquipmentCapacity from './equipmentCapacity'
+import React, { Component, PropTypes } from 'react'
+import { FormattedMessage, injectIntl } from 'react-intl'
 
 class Dashboard extends Component {
     constructor(props) {

@@ -56,6 +56,46 @@ class ConferenceRecord extends Component {
     _delete = (record) => {
 
     }
+    _download = (record) => {
+
+    }
+    _createSize = (text) => {
+        let size = parseFloat(text),
+            rank = 0,
+            rankchar = 'Bytes'
+
+        while (size > 1024) {
+            size = size / 1024
+            rank++
+        }
+
+        if (rank === 1) {
+            rankchar = "KB"
+        } else if (rank === 2) {
+            rankchar = "MB"
+        } else if (rank === 3) {
+            rankchar = "GB"
+        }
+
+        return Math.round(size * Math.pow(10, 2)) / Math.pow(10, 2) + " " + rankchar
+    }
+    _createOptions = (record) => {
+        const { formatMessage } = this.props.intl
+
+        return (
+            <div>
+                <Popconfirm
+                    title={ formatMessage({id: "LANG841"}) }
+                    okText={ formatMessage({id: "LANG727"}) }
+                    cancelText={ formatMessage({id: "LANG726"}) }
+                    onConfirm={ this._delete.bind(this, record) }
+                >
+                    <span className="sprite sprite-del"></span>
+                </Popconfirm>
+                <span className="sprite sprite-download" onClick={ this._download.bind(this, record) }></span>
+            </div>
+        )
+    }
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -75,11 +115,17 @@ class ConferenceRecord extends Component {
             }, {
                 key: 's',
                 dataIndex: 's',
-                title: formatMessage({id: "LANG2257"})
+                title: formatMessage({id: "LANG2257"}),
+                render: (text, record, index) => {
+                    return this._createSize(text)
+                }
             }, {
                 key: 'options',
                 dataIndex: 'options',
-                title: formatMessage({id: "LANG74"})
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return this._createOptions(record)
+                }
             }]
         const pagination = {
                 total: this.state.conferenceRecord.length,

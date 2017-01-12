@@ -59,7 +59,7 @@ class Room extends Component {
         browserHistory.push('/call-features/conference/edit/' + record.extension)
     }
     _conferenceSettings = () => {
-browserHistory.push('/call-features/conference/conferenceSettings')
+        browserHistory.push('/call-features/conference/conferenceSettings')
     }
     _getConfoList = () => {
         const { formatMessage } = this.props.intl

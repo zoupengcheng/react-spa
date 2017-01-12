@@ -70,9 +70,16 @@ class Statistics extends Component {
         let queues = []
         let agents = []
         let accounts = {}
-        let queueReport = {}
         let extgroupObj = {}
         let extgroupList = []
+        let queueReport = {
+                queue: [],
+                agent: [],
+                period: '1',
+                end_date: CurrentDate,
+                start_date: CurrentDate
+            }
+
         const { formatMessage } = this.props.intl
 
         $.ajax({

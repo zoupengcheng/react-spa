@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import React from 'react'
+import '../../../css/login'
 import md5 from "../../api/md5"
 import api from "../../api/api"
 import cookie from 'react-cookie'

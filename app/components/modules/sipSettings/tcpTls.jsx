@@ -141,7 +141,7 @@ const CustomizedForm = injectIntl(Form.create({
                     rules: [],
                     initialValue: sipTcpSettings.tlsclientmethod
                 })(
-                    <Select defaultValue="tlsv1" style={{ width: 200 }}>
+                    <Select style={{ width: 200 }}>
                         <Option value="tlsv1">TLSv1</Option>
                         <Option value="sslv3">SSLv3</Option>
                         <Option value="sslv2">SSLv2</Option>

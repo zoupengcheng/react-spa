@@ -111,8 +111,138 @@ class VoipTrunksList extends Component {
     _dodTrunksList = (record) => {
         browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index)
     }
-    _syncLdap = () => {
-        // browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList')
+    _manual_ldap_sync = (record) => {
+        const { formatMessage } = this.props.intl
+
+        let trunkId = record.trunk_index,
+            trunkName = record.trunk_name,
+            ldapSyncEnable = record.ldap_sync_enable,
+            ttype = record.technology
+
+        if (!trunkId) {
+            message.warn(formatMessage({ id: "ERROR ITEM!!!!" }))
+            return
+        }
+
+        let a = (ldapSyncEnable === "yes") ? 1 : 0
+
+        if (a !== 1) {
+            // message.destroy()
+            // message.warn(formatMessage({ id: "LANG2674" }))
+            return
+        }
+
+        message.loading(formatMessage({ id: "LANG2655" }), 0)
+
+        /* Start to sync */
+        $.ajax({
+            type: "Post",
+            url: api.apiHost,
+            data: {
+                "action": "syncLDAP",
+                "ldap-sync": "trunk_" + trunkId
+            },
+            dataType: "json",
+            error: function() {
+                message.destroy()
+                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG909" })}}></span>)
+            }.bind(this),
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    this._manual_ldap_sync_progress(trunkName)
+                }
+            }.bind(this)
+        })
+    }
+
+    _manual_ldap_sync_progress = (trunkName) => {
+        /* Get the LDAP SYNC date and progress */
+        const { formatMessage } = this.props.intl
+        let errArray = ['', 'LANG2664', 'LANG2665', 'LANG2666']
+
+        let count = 120
+        let tryTimes = 0
+
+        this._check_ldap_sync_progress(trunkName, count, tryTimes)
+
+        if (count <= 0) {
+            message.warn(formatMessage({ id: errArray[1] }))
+        }
+    }
+
+    _check_ldap_sync_progress = (trunkName, count, tryTimes) => {
+        const { formatMessage } = this.props.intl
+        let errArray = ['', 'LANG2664', 'LANG2665', 'LANG2666']
+
+        if (count <= 0) {
+            message.warn(formatMessage({ id: errArray[1] }))
+            return
+        }
+        tryTimes++
+        count--
+
+        $.ajax({
+            type: "POST",
+            url: api.apiHost,
+            async: false,
+            data: {
+                action: "getldapsyncprogress",
+                ldap_sync_progress: trunkName
+            },
+            success: function(result) {
+                let bool = UCMGUI.errorHandler(result, null, this.props.intl.formatMessage)
+                let msgArray = ['LANG2656', 'LANG2657', 'LANG2658', 'LANG2659', 'LANG2660', 'LANG2661', 'LANG2662', 'LANG2663']
+
+                if (bool) {
+                    /* The progress */
+                    let index = Number(result.response.ldap_sync_progress)
+
+                    if (isNaN(index)) {
+                        setTimeout(() => {
+                            this._check_ldap_sync_progress(trunkName, count, tryTimes)
+                        }, 1000)
+                        return
+                    }
+
+                    if (index >= 0) {
+                        if (index === 7) {
+                            message.destroy()
+
+                            /* successful done */
+                            message.success(formatMessage({ id: msgArray[index] }))
+
+                            // let frameContainerDoc = top.frames["frameContainer"].document,
+                            //     applyChanges = $("#applyChanges_Button", frameContainerDoc),
+                            //     lineButton = $("#line_Button", frameContainerDoc)
+
+                            // // if (applyChanges.length > 0 && lineButton.length > 0 && !applyChanges.is(':animated')) {
+                            // applyChanges.css("visibility", "visible")
+
+                            // lineButton.css("visibility", "visible")
+                        } else {
+                            if (tryTimes === 60) {
+                                message.warn(formatMessage({ id: errArray[1] }))
+                            } else {
+                                count = 90
+                                message.loading(formatMessage({ id: msgArray[index] }), 0)
+
+                                setTimeout(() => {
+                                    this._check_ldap_sync_progress(trunkName, count, tryTimes)
+                                }, 1000)
+                            }
+                        }
+                    } else {
+                        message.destroy()
+
+                        let number = Math.abs(index)
+                        message.warn(formatMessage({ id: errArray[number] }))
+                    }
+                }
+            }
+
+        })
     }
     render() {
         const {formatMessage, formatHTMLMessage} = this.props.intl
@@ -155,7 +285,7 @@ class VoipTrunksList extends Component {
                     <span>
                         <span className="sprite sprite-edit" onClick={this._editVoipTrunk.bind(this, record)}></span>
                         <span className="" onClick={this._dodTrunksList.bind(this, record)}>DOD</span>
-                        <span className="" onClick={this._syncLdap.bind(this, record)}>LDAP</span>
+                        <span className="" onClick={this._manual_ldap_sync.bind(this, record)}>LDAP</span>
                         <Popconfirm title={
                             <FormattedHTMLMessage
                                 id='LANG4471'

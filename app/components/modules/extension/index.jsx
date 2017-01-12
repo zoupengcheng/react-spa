@@ -138,8 +138,7 @@ class Extension extends Component {
         const { formatMessage } = this.props.intl
 
         let status,
-            disabled = record.out_of_service,
-            extension = record.extension
+            disabled = record.out_of_service
 
         if (disabled === 'yes') {
             status = <div className="status-container unavailable">

@@ -194,7 +194,7 @@ class ConferenceItem extends Component {
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
+        const extensionId = this.props.params.id
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
@@ -207,13 +207,6 @@ class ConferenceItem extends Component {
 
                 let action = values
 
-                if (extensionGroupId) {
-                    action.action = 'updateConference'
-                    action.extension_group = extensionGroupId
-                } else {
-                    action.action = 'addConference'
-                }
-
                 action.public = (action.public ? 'yes' : 'no')
                 action.wait_admin = (action.wait_admin ? 'yes' : 'no')
                 action.quiet_mode = (action.quiet_mode ? 'yes' : 'no')
@@ -223,6 +216,18 @@ class ConferenceItem extends Component {
                 action.moh_firstcaller = (action.moh_firstcaller ? 'yes' : 'no')
                 action.skipauth = (action.skipauth ? 'yes' : 'no')
                 action.user_invite = (action.user_invite ? 'yes' : 'no')
+
+                if (action.moh_firstcaller === 'no') {
+                    delete action.musicclass
+                }
+
+                if (extensionId) {
+                    action.action = 'updateConference'
+                    delete action.extension
+                    action.conference = extensionId
+                } else {
+                    action.action = 'addConference'
+                }
 
                 $.ajax({
                     url: api.apiHost,
@@ -292,7 +297,7 @@ class ConferenceItem extends Component {
                                     { getFieldDecorator('extension', {
                                         initialValue: conferenceItem.extension
                                     })(
-                                        <Input />
+                                        <Input disabled={ !!this.props.params.id } />
                                     ) }
                                 </FormItem>
                             </Col>

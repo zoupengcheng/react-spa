@@ -297,6 +297,7 @@ class Queue extends Component {
                             type="primary"
                             size='default'
                             onClick={ this._statistics }
+                            disabled={ !this.props.callQueueList.length }
                         >
                             { formatMessage({id: "LANG5359"}) }
                         </Button>
@@ -305,6 +306,7 @@ class Queue extends Component {
                             type="primary"
                             size='default'
                             onClick={ this._switchboard }
+                            disabled={ !this.props.callQueueList.length }
                         >
                             { formatMessage({id: "LANG5407"}) }
                         </Button>

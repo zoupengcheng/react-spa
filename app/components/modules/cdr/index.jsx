@@ -1,16 +1,17 @@
 'use strict'
 
+import $ from 'jquery'
+import '../../../css/cdr'
+import _ from 'underscore'
+import api from "../../api/api"
+import CDRList from './CDRList'
+import CDRSearch from './CDRSearch'
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { Modal, message } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
-import $ from 'jquery'
-import api from "../../api/api"
-import UCMGUI from "../../api/ucmgui"
-import CDRSearch from './CDRSearch'
-import CDRList from './CDRList'
-import Title from '../../../views/title'
-import _ from 'underscore'
 
 class CDR extends Component {
     constructor(props) {

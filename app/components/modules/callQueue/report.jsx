@@ -6,6 +6,7 @@ import ByWeek from './byWeek'
 import ByQueue from './byQueue'
 import ByAgent from './byAgent'
 import ByMonth from './byMonth'
+import '../../../css/call-queue'
 import UCMGUI from "../../api/ucmgui"
 import ByDayOfWeek from './byDayOfWeek'
 import { Card, Col, Row, Table } from 'antd'
@@ -13,7 +14,6 @@ import React, { Component, PropTypes } from 'react'
 import ReportInformation from './reportInformation'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import TotalInformation from './totalInformation'
-import '../../../css/call-queue'
 
 class Report extends Component {
     render() {

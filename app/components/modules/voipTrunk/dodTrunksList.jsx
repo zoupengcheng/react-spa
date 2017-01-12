@@ -18,7 +18,9 @@ class DodTrunksList extends Component {
             visible: false,
             voipTrunk: [],
             dodExtList: [],
-            membersArr: []
+            dodTmpExtList: [],
+            membersArr: [],
+            curentMembersArr: []
         }
     }
     componentDidMount() {
@@ -37,9 +39,25 @@ class DodTrunksList extends Component {
             type: 'json',
             async: true,
             success: function(res) {
-                let dod = res.response.dod
+                let dod = res.response.dod,
+                    membersArr = []
+
+                $.each(dod, function(index, item) {
+                    var members = (item.members ? item.members.split(",") : []),
+                        members_ldap = (item.members_ldap ? item.members_ldap.split("|") : [])
+
+                    $.each(members, function(index, item) {
+                        membersArr.push(item)
+                    })
+
+                    $.each(members_ldap, function(index, item) {
+                        membersArr.push(item)
+                    })
+                })
+
                 this.setState({
-                    dod: dod
+                    dod: dod,
+                    membersArr: membersArr
                 })
             }.bind(this),
             error: function(e) {
@@ -99,7 +117,7 @@ class DodTrunksList extends Component {
 
         let obj = {
         },
-        membersArr = []
+        curentMembersArr = []
 
         if (type === "add") {
             obj = {
@@ -113,25 +131,47 @@ class DodTrunksList extends Component {
                 members_ldap = (record.members_ldap ? record.members_ldap.split("|") : [])
 
             $.each(members, function(index, item) {
-                membersArr.push(item)
+                curentMembersArr.push(item)
             })
 
             $.each(members_ldap, function(index, item) {
-                membersArr.push(item)
+                curentMembersArr.push(item)
             })
 
             this.setState({
-                membersArr: membersArr
+                curentMembersArr: curentMembersArr
             })
 
             obj = {
                 type: "edit",
                 title: formatMessage({id: "LANG2675"}),
                 visible: true,
-                record: record
+                record: record,
+                dodTmpExtList: []
             }
         }
 
+        let dodTmpExtList = _.extend(this.state.dodTmpExtList, this.state.dodExtList),
+            membersArr = this.state.membersArr
+
+        if (_.isArray(dodTmpExtList)) {
+            _.each(membersArr, function(i) {
+                let index = -1
+
+                for (var j = 0; j <= dodTmpExtList.length - 1; j++) {
+                    if (dodTmpExtList[j].key !== i) {
+                        continue
+                    } else {
+                        index = j
+                    }
+                }
+                
+                if (curentMembersArr.indexOf(i) === -1 && index !== -1 && dodTmpExtList[index]) {
+                    dodTmpExtList.splice(index, 1)
+                }
+            })
+            obj["dodTmpExtList"] = dodTmpExtList
+        }
         this.setState(obj)
     }
     _handleOk() {
@@ -190,7 +230,8 @@ class DodTrunksList extends Component {
             })
             this.setState({
                 record: {},
-                membersArr: [],
+                dodTmpExtList: [],
+                curentMembersArr: [],
                 visible: false
             })
         })
@@ -198,13 +239,14 @@ class DodTrunksList extends Component {
     _handleCancel(e) {
         this.setState({
             record: {},
+            dodTmpExtList: [],
             visible: false,
-            membersArr: []
+            curentMembersArr: []
         })
     }
     _handleChange = (nextTargetKeys, direction, moveKeys) => {
         this.setState({ 
-            membersArr: nextTargetKeys 
+            curentMembersArr: nextTargetKeys 
         })
 
         console.log('targetKeys: ', this.state.targetKeys)
@@ -406,6 +448,14 @@ class DodTrunksList extends Component {
             }
         }
 
+        // let dodExtList = this.state.dodExtList.filter((item) => {
+        //     if (_.find(this.state.membersArr, function (num) { 
+        //         return num == item.key
+        //     })) {
+        //         return true
+        //     }
+        // })
+
         return (
             <div className="app-content-main" id="app-content-main">
                 <div className="content">
@@ -450,9 +500,10 @@ class DodTrunksList extends Component {
                                     ) }
                                 </FormItem>
                                 <Transfer
-                                    dataSource={this.state.dodExtList}
+                                    dataSource={this.state.dodTmpExtList}
                                     titles={[formatMessage({id: "LANG2484"}), formatMessage({id: "LANG2483"})]}
-                                    targetKeys={this.state.membersArr}
+                                    
+                                    targetKeys={this.state.curentMembersArr}
                                     onChange={this._handleChange}
                                     onSelectChange={this._handleSelectChange}
                                     render={item => item.title}

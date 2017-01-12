@@ -12,9 +12,34 @@ class Schedule extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            confoList: []
         }
     }
     componentDidMount() {
+        this._getConfoList()
+    }
+    _getConfoList = () => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listMeetme'
+            },
+            type: 'json',
+            success: function(res) {
+                const response = res.response || {}
+                const confoList = response.bookid || []
+
+                this.setState({
+                    confoList: confoList
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _cleanSettings = () => {
         browserHistory.push('/call-features/conference/cleanSettings/')
@@ -22,8 +47,108 @@ class Schedule extends Component {
     _scheduleSettings = () => {
         browserHistory.push('/call-features/conference/scheduleSettings')
     }
+    _edit = (record) => {
+        browserHistory.push('/call-features/conference/editSchedule/' + record.bookid)
+    }
+    _delete = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deleteMeetme",
+                "bookid": record.bookid
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getConfoList()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _renderOptions = (record) => {
+        const { formatMessage } = this.props.intl
+
+        return (
+            <div>
+                <span className="sprite sprite-edit" onClick={ this._edit.bind(this, record) }></span>
+                <Popconfirm
+                    title={ formatMessage({id: "LANG841"}) }
+                    okText={ formatMessage({id: "LANG727"}) }
+                    cancelText={ formatMessage({id: "LANG726"}) }
+                    onConfirm={ this._delete.bind(this, record) }
+                >
+                    <span className="sprite sprite-del"></span>
+                </Popconfirm>
+            </div>
+        )
+    }
     render() {
         const { formatMessage } = this.props.intl
+        const columns = [{
+                key: 'confno',
+                dataIndex: 'confno',
+                title: formatMessage({id: "LANG3784"})
+            }, {
+                key: 'confname',
+                dataIndex: 'confname',
+                title: formatMessage({id: "LANG3783"})
+            }, {
+                key: 'starttime',
+                dataIndex: 'starttime',
+                title: formatMessage({id: "LANG1048"})
+            }, {
+                key: 'endtime',
+                dataIndex: 'endtime',
+                title: formatMessage({id: "LANG1049"})
+            }, {
+                key: 'status',
+                dataIndex: 'status',
+                title: formatMessage({id: "LANG3802"})
+            }, {
+                key: 'open_calendar',
+                dataIndex: 'open_calendar',
+                title: formatMessage({id: "LANG3791"})
+            }, {
+                key: 'recurringevent',
+                dataIndex: 'recurringevent',
+                title: formatMessage({id: "LANG3803"})
+            }, {
+                key: 'options',
+                dataIndex: 'options',
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return this._renderOptions(record)
+                }   
+            }]
+        const pagination = {
+                total: this.state.confoList.length,
+                showSizeChanger: true,
+                onShowSizeChange: (current, pageSize) => {
+                    console.log('Current: ', current, '; PageSize: ', pageSize)
+                },
+                onChange: (current) => {
+                    console.log('Current: ', current)
+                }
+            }
 
         return (
             <div className="app-content-main">
@@ -36,6 +161,14 @@ class Schedule extends Component {
                             { formatMessage({id: "LANG4277"}) }
                         </Button>
                     </div>
+                    <Table
+                        rowKey="extension"
+                        columns={ columns }
+                        pagination={ pagination }
+                        dataSource={ this.state.confoList }
+                        showHeader={ !!this.state.confoList.length }
+                    >
+                    </Table>
                 </div>
             </div>
         )

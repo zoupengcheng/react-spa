@@ -222,6 +222,7 @@ const routes = (state, currentLocaleData) => {
                         <Route path="edit/:id" onEnter={ requireAuth } component={ ConferenceItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="conferenceSettings" onEnter={ requireAuth } component={ ConferenceSettings } breadcrumbName={ currentLocaleData["LANG5097"] } />
                         <Route path="scheduleSettings" onEnter={ requireAuth } component={ ScheduleSettings } breadcrumbName={ currentLocaleData["LANG3776"] } />
+                        <Route path="editSchedule/:id" onEnter={ requireAuth } component={ ScheduleSettings } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="cleanSettings" onEnter={ requireAuth } component={ CleanSettings } breadcrumbName={ currentLocaleData["LANG4277"] } />
                     </Route>
                     <Route path="ivr" onEnter={ requireAuth } component={ IVR } breadcrumbName={ currentLocaleData["LANG19"] } />

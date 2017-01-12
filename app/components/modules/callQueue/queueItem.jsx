@@ -276,8 +276,6 @@ class QueueItem extends Component {
                                     <span>{ formatMessage({id: "LANG3"}) }</span>
                                 </div>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -316,8 +314,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -363,8 +359,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -411,8 +405,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -501,8 +493,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -541,8 +531,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -581,8 +569,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -628,8 +614,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -687,8 +671,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -727,27 +709,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5408" /> }>
-                                                <span>{ formatMessage({id: "LANG5408"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('queue_chairman', {
-                                        rules: [],
-                                        initialValue: this.state.queueItem.queue_chairman
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -767,8 +728,6 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -829,11 +788,54 @@ class QueueItem extends Component {
                         <Row>
                             <Col span={ 24 }>
                                 <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG143"}) }</span>
+                                    <span>{ formatMessage({id: "LANG5408"}) }</span>
                                 </div>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5408" /> }>
+                                                <span>{ formatMessage({id: "LANG5408"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('queue_chairman', {
+                                        rules: [],
+                                        initialValue: this.state.queueItem.queue_chairman
+                                    })(
+                                        <Select></Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5434" /> }>
+                                                <span>{ formatMessage({id: "LANG5434"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('enable_agent_login', {
+                                        rules: [],
+                                        initialValue: this.state.queueItem.enable_agent_login
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
                             </Col>
                         </Row>
                         <Row>
+                            <Col span={ 24 }>
+                                <div className="section-title">
+                                    <span>{ formatMessage({id: "LANG143"}) }</span>
+                                </div>
+                            </Col>
                             <Col span={ 24 }>
                                 <FormItem
                                     { ...formItemTransferLayout }

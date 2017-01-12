@@ -44,7 +44,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.tos_sip
                         })(
-                            <Select defaultValue="none" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <Option value='none'>{formatMessage({id: "LANG133"})}</Option>
                                 <Option value='ef'>EF</Option>
                                 <Option value='CS0'>CS0</Option>
@@ -85,7 +85,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.tos_audio
                         })(
-                            <Select defaultValue="none" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <Option value='none'>{formatMessage({id: "LANG133"})}</Option>
                                 <Option value='ef'>EF</Option>
                                 <Option value='CS0'>CS0</Option>
@@ -128,7 +128,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.tos_video
                         })(
-                            <Select defaultValue="none" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <Option value='none'>{formatMessage({id: "LANG133"})}</Option>
                                 <Option value='ef'>EF</Option>
                                 <Option value='CS0'>CS0</Option>
@@ -246,7 +246,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.dtmfmode
                         })(
-                            <Select defaultValue="rfc2833" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <Option value='rfc2833'>RFC2833</Option>
                                 <Option value='info'>{formatMessage({id: "LANG1099"})}</Option>
                                 <Option value='inband'>{formatMessage({id: "LANG1100"})}</Option>
@@ -327,7 +327,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.p100rel
                         })(
-                            <Select defaultValue="no" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <option value='no'>{formatMessage({id: "LANG137"})}</option>
                                 <option value='yes'>{formatMessage({id: "LANG136"})}</option>
                                 <option value='required'>{formatMessage({id: "LANG4214"})}</option>
@@ -369,7 +369,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.p100rel
                         })(
-                            <Select defaultValue="no" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <option value='no'>{formatMessage({id: "LANG137"})}</option>
                                 <option value='yes'>{formatMessage({id: "LANG136"})}</option>
                                 <option value='required'>{formatMessage({id: "LANG4214"})}</option>
@@ -407,7 +407,7 @@ const CustomizedForm = injectIntl(Form.create({
                             rules: [],
                             initialValue: sipTosSettings.p100rel
                         })(
-                            <Select defaultValue="no" style={{ width: 200 }}>
+                            <Select style={{ width: 200 }}>
                                 <option value='no'>{formatMessage({id: "LANG137"})}</option>
                                 <option value='yes'>{formatMessage({id: "LANG136"})}</option>
                                 <option value='required'>{formatMessage({id: "LANG4214"})}</option>
