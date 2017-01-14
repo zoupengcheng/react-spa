@@ -21,14 +21,15 @@
 .app-wrapper .app-logo {
     width: 224px;
     height: 50px;
-    padding: 0 45px 0 25px;
+    padding: 0 45px 0 20px;
     transition: all 0.3s ease;
+    background: #22262e;
 }
 
 .app-wrapper-collapse .app-logo {
     width: 50px;
-    padding: 0 16px;
     transition: all 0.3s ease;
+    background: #22262e;
 }
 
 .app-wrapper .app-logo .logo {
@@ -56,10 +57,10 @@
 }
 
 .app-wrapper .app-logo .logo .logo-text {
-    color: #FFF;
+    color: #E1E8F0;
     float: left;
     display: inline;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 500;
     padding-left: 8px;
     line-height: 50px;
@@ -71,9 +72,17 @@
     transition: all 0.3s ease;
 }
 
+.app-wrapper-collapse .ant-menu-sub.ant-menu-inline > .ant-menu-item, 
+.app-wrapper-collapse .ant-menu-submenu-inline > .ant-menu-submenu-title:after {
+    display: none!important;
+}
+
+.app-wrapper-collapse .ant-menu-inline > .ant-menu-submenu > .ant-menu-submenu-title .subMenuTitle{
+    display: none;
+}
 .app-wrapper .app-header {
     height: 50px;
-    background: #FFF;
+    background: #22262e;
     line-height: 50px;
     position: relative;
     border-bottom: 1px solid #e7ecf0;

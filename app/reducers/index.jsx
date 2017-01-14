@@ -69,6 +69,7 @@ const rootReducer = combineReducers({
     trunksData,
     account,
     interfaceStatus
+
 })
 
 export default rootReducer

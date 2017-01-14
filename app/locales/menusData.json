@@ -2,7 +2,7 @@
     "subMenus": [{
         "name": "system-status",
         "title": "LANG585",
-        "icon": "tags-o",
+        "icon": "sprite-menu-system-status",
         "items": [{
             "name": "LANG5261",
             "path": "dashboard"
@@ -19,7 +19,7 @@
     }, {
         "name": "extension-trunk",
         "title": "LANG5263",
-        "icon": "folder",
+        "icon": "sprite-menu-extension-trunk",
         "items": [{
             "name": "LANG87",
             "path": "extension"
@@ -51,7 +51,7 @@
     }, {
         "name": "call-features",
         "title": "LANG17",
-        "icon": "folder",
+        "icon": "sprite-menu-call-features",
         "items": [{
             "name": "LANG18",
             "path": "conference"
@@ -98,7 +98,7 @@
     }, {
         "name": "pbx-settings",
         "title": "LANG5299",
-        "icon": "folder",
+        "icon": "sprite-menu-pbx-settings",
         "items": [{
             "name": "LANG3949",
             "path": "pbxGeneralSettings"
@@ -130,7 +130,7 @@
     }, {
         "name": "system-settings",
         "title": "LANG5300",
-        "icon": "folder",
+        "icon": "sprite-menu-system-settings",
         "items": [{
             "name": "LANG57",
             "path": "httpServer"
@@ -159,7 +159,7 @@
     }, {
         "name": "maintenance",
         "title": "LANG60",
-        "icon": "folder",
+        "icon": "sprite-menu-maintenance",
         "items": [{
             "name": "LANG3859",
             "path": "userManagement"
@@ -191,7 +191,7 @@
     }, {
         "name": "cdr",
         "title": "LANG7",
-        "icon": "folder",
+        "icon": "sprite-menu-cdr",
         "items": [{
             "name": "LANG7",
             "path": "cdr"
@@ -205,7 +205,7 @@
     }, {
         "name": "value-added-features",
         "title": "LANG4066",
-        "icon": "folder",
+        "icon": "sprite-menu-value-added-features",
         "items": [{
             "name": "LANG16",
             "path": "zeroConfig"

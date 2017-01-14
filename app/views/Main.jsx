@@ -56,9 +56,9 @@ let App = React.createClass({
         return (
             <div className={ collapse ? "app-wrapper app-wrapper-collapse" : "app-wrapper" }>
                 <div className="app-container">
-                    <SideBar />
+                    <SideBar collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
                     <div className="app-main">
-                        <Header collpaseStatus={ collapse } onChangeCollpase={ this.handleCollapseChange } />
+                        <Header />
                         <Container>
                             { this.renderChild() }
                         </Container>

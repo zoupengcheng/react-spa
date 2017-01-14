@@ -293,7 +293,7 @@ class VoipTrunksList extends Component {
                                     0: record.trunk_name
                                 }}
                             />} 
-                        onConfirm={() => this._deleteTrunk(record)}>
+                            onConfirm={() => this._deleteTrunk(record)}>
                             <span className="sprite sprite-del" ></span>
                         </Popconfirm>
                     </span>

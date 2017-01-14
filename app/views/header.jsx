@@ -67,12 +67,12 @@ let Header = React.createClass({
                     {/* <a className="logo" href="http://www.grandstream.com/">
                         <span className="logo-text">Grandstream</span>
                     </a>
-                    <div className="search"></div> */}
+                    <div className="search"></div> 
                     <nav className="left-nav">
                         <div className="app-sidebar-toggle" onClick={ this.triggerParentCollapseChange }>
                             <Icon type="bars" />
                         </div>
-                    </nav>
+                    </nav> */}
                     <nav className="right-nav">
                         <Dropdown overlay={ menu }>
                             <a className="ant-dropdown-link" href="#">

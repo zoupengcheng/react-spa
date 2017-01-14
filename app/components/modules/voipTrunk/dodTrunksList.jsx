@@ -20,6 +20,7 @@ class DodTrunksList extends Component {
             dodExtList: [],
             dodTmpExtList: [],
             membersArr: [],
+            memberLDAPList: [],
             curentMembersArr: []
         }
     }
@@ -65,23 +66,15 @@ class DodTrunksList extends Component {
             }
         })
     }
-    _deleteTrunk = (data) => {
+    _deleteDODVoIPTrunk = (record) => {
         const { formatMessage } = this.props.intl
 
-        let trunkIndex = data.trunk_index,
-            technology = data.technology,
-            action = {}
+        let action = {}
 
-        if (technology.toLowerCase() === "sip") {
-            action = {
-                "action": "deleteSIPTrunk",
-                "trunk": trunkIndex
-            }
-        } else {
-            action = {
-                "action": "deleteIAXTrunk",
-                "trunk": trunkIndex
-            }
+        action = {
+            action: "deleteDODVoIPTrunk",
+            trunk: this.props.params.trunkId,
+            number: record.number
         }
         message.loading(formatMessage({ id: "LANG825" }, {0: "LANG11"}), 0)
 
@@ -97,7 +90,7 @@ class DodTrunksList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>)
-                    this._listDodTrunk()
+                    this._listDODVoIPTrunk()
                 }
             }.bind(this),
             error: function(e) {
@@ -119,6 +112,9 @@ class DodTrunksList extends Component {
         },
         curentMembersArr = []
 
+        let dodTmpExtList = _.extend(this.state.dodTmpExtList, this.state.dodExtList),
+            membersArr = this.state.membersArr
+
         if (type === "add") {
             obj = {
                 type: "add",
@@ -126,6 +122,29 @@ class DodTrunksList extends Component {
                 visible: true,
                 record: {}
             }
+
+            if (_.isArray(dodTmpExtList)) {
+                _.each(membersArr, function(i) {
+                    let index = -1
+
+                    for (var j = 0; j <= dodTmpExtList.length - 1; j++) {
+                        if (dodTmpExtList[j].key !== i) {
+                            continue
+                        } else {
+                            index = j
+                        }
+                    }
+                    
+                    if (index !== -1 && dodTmpExtList[index]) {
+                        dodTmpExtList.splice(index, 1)
+                    }
+                })
+                obj["dodTmpExtList"] = dodTmpExtList
+            }
+            // this.props.form.setFieldsValue({
+            //     number: "",
+            //     add_extension: false
+            // })
         } else {
             let members = (record.members ? record.members.split(",") : []),
                 members_ldap = (record.members_ldap ? record.members_ldap.split("|") : [])
@@ -138,46 +157,42 @@ class DodTrunksList extends Component {
                 curentMembersArr.push(item)
             })
 
-            this.setState({
-                curentMembersArr: curentMembersArr
-            })
-
             obj = {
                 type: "edit",
                 title: formatMessage({id: "LANG2675"}),
                 visible: true,
                 record: record,
-                dodTmpExtList: []
+                dodTmpExtList: [],
+                curentMembersArr: curentMembersArr
             }
-        }
 
-        let dodTmpExtList = _.extend(this.state.dodTmpExtList, this.state.dodExtList),
-            membersArr = this.state.membersArr
+            if (_.isArray(dodTmpExtList)) {
+                _.each(membersArr, function(i) {
+                    let index = -1
 
-        if (_.isArray(dodTmpExtList)) {
-            _.each(membersArr, function(i) {
-                let index = -1
-
-                for (var j = 0; j <= dodTmpExtList.length - 1; j++) {
-                    if (dodTmpExtList[j].key !== i) {
-                        continue
-                    } else {
-                        index = j
+                    for (var j = 0; j <= dodTmpExtList.length - 1; j++) {
+                        if (dodTmpExtList[j].key !== i) {
+                            continue
+                        } else {
+                            index = j
+                        }
                     }
-                }
-                
-                if (curentMembersArr.indexOf(i) === -1 && index !== -1 && dodTmpExtList[index]) {
-                    dodTmpExtList.splice(index, 1)
-                }
-            })
-            obj["dodTmpExtList"] = dodTmpExtList
+                    
+                    if (curentMembersArr.indexOf(i) === -1 && index !== -1 && dodTmpExtList[index]) {
+                        dodTmpExtList.splice(index, 1)
+                    }
+                })
+                obj["dodTmpExtList"] = dodTmpExtList
+            }
         }
         this.setState(obj)
     }
     _handleOk() {
         const { formatMessage } = this.props.intl
         let trunkId = this.props.params.trunkId,
-            action = {}
+            action = {},
+            members = "",
+            membersLdap = ""
 
         if (this.state.type === "add") {
             action["action"] = "addDODVoIPTrunk"
@@ -187,6 +202,26 @@ class DodTrunksList extends Component {
 
         action["trunk"] = trunkId
 
+        for (let i = 0; i <= this.state.curentMembersArr.length - 1; i++) {
+            let index = this.state.curentMembersArr[i]
+
+            if (this.state.memberLDAPList.indexOf(index) === -1) {
+                members += index
+            } else {
+                membersLdap += index
+            }
+        }
+
+        if (members) {
+            action["members"] = members
+        }
+        if (membersLdap) {
+            action["members_ldap"] = membersLdap
+        }
+
+        if (members === "" && membersLdap === "") {
+            return 
+        }
         this.props.form.validateFieldsAndScroll((err, values) => {
             let me = this
 
@@ -224,13 +259,11 @@ class DodTrunksList extends Component {
                     if (bool) {
                         message.destroy()
                         message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
-                        browserHistory.push('/extension-trunk/voipTrunk')
+                        this._listDODVoIPTrunk()
                     }
                 }.bind(this)
             })
             this.setState({
-                record: {},
-                dodTmpExtList: [],
                 curentMembersArr: [],
                 visible: false
             })
@@ -238,10 +271,8 @@ class DodTrunksList extends Component {
     }
     _handleCancel(e) {
         this.setState({
-            record: {},
-            dodTmpExtList: [],
-            visible: false,
-            curentMembersArr: []
+            curentMembersArr: [],
+            visible: false
         })
     }
     _handleChange = (nextTargetKeys, direction, moveKeys) => {
@@ -281,7 +312,8 @@ class DodTrunksList extends Component {
                     let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                     if (bool) {
-                        let memberLDAP = data.response.extension
+                        let memberLDAP = data.response.extension,
+                            memberLDAPList = []
 
                         for (let i = 0; i < memberLDAP.length; i++) {
                             let phonebook = memberLDAP[i]["phonebook_dn"]
@@ -303,10 +335,12 @@ class DodTrunksList extends Component {
                                             'description': 'LDAP',
                                             'title': text
                                         })
+                                        memberLDAPList.push(value)
                                     }
                                 }
 
                                 this.setState({
+                                    memberLDAPList: memberLDAPList,
                                     dodExtList: dodExtList
                                 })
                             }
@@ -315,43 +349,6 @@ class DodTrunksList extends Component {
                 }.bind(this)
             })
         // }
-
-        // $.ajax({
-        //     type: "post",
-        //     url: api.apiHost,
-        //     data: {
-        //         'action': "listDODVoIPTrunk",
-        //         'trunk': this.props.params.trunkId,
-        //         'options': "members,members_ldap"
-        //     },
-        //     error: function(jqXHR, textStatus, errorThrown) {
-        //     },
-        //     success: function(data) {
-        //         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-        //         if (bool) {
-        //             let dod = data.response.dod,
-        //                 membersArr = []
-
-        //             $.each(dod, function(index, item) {
-        //                 var members = (item.members ? item.members.split(",") : []),
-        //                     members_ldap = (item.members_ldap ? item.members_ldap.split("|") : [])
-
-        //                 $.each(members, function(index, item) {
-        //                     membersArr.push(item)
-        //                 })
-
-        //                 $.each(members_ldap, function(index, item) {
-        //                     membersArr.push(item)
-        //                 })
-        //             })
-
-        //             this.setState({
-        //                 membersArr: membersArr
-        //             })
-        //         }
-        //     }.bind(this)
-        // })
     }
     _transAccountVoicemailData = (res, cb) => {
         const {formatMessage} = this.props.intl
@@ -407,15 +404,14 @@ class DodTrunksList extends Component {
                 render: (text, record, index) => (
                     <span>
                         <span className="sprite sprite-edit" onClick={this._showModal.bind(this, "edit", record)}></span>
-                        <span className="" onClick={this._deleteTrunk.bind(this, record)}></span>
                         <Popconfirm title={
                             <FormattedHTMLMessage
-                                id='LANG4471'
+                                id='LANG818'
                                 values={{
                                     0: record.number
                                 }}
                             />} 
-                        onConfirm={() => this._deleteTrunk(record)}>
+                            onConfirm={() => this._deleteDODVoIPTrunk(record)}>
                             <span className="sprite sprite-del" ></span>
                         </Popconfirm>
                     </span>
@@ -478,7 +474,7 @@ class DodTrunksList extends Component {
                                     label={formatMessage({id: "LANG2680"})} >
                                     { getFieldDecorator('number', {
                                         rules: [],
-                                        initialValue: this.state.record.number
+                                        initialValue: this.state.record.number || ""
                                     })(
                                         <Input maxLength="32" />
                                     ) }

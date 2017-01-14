@@ -9,13 +9,14 @@ import Title from '../../../views/title'
 // import * as Actions from './actions/'
 // import { connect } from 'react-redux'
 // import { bindActionCreators } from 'redux'
-import { injectIntl } from 'react-intl'
+import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
 
 const FormItem = Form.Item
+const confirm = Modal.confirm
 const Privilege = localStorage.getItem('role')
 const FeatureLimits = JSON.parse(localStorage.getItem('featureLimits'))
 
@@ -23,6 +24,7 @@ class Extension extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            selectedRows: [],
             extensionList: [],
             selectedRowKeys: []
         }
@@ -223,7 +225,22 @@ class Extension extends Component {
         })
     }
     _add = () => {
-        browserHistory.push('/extension-trunk/extension/add')
+        const { formatMessage } = this.props.intl
+        const maxExtension = FeatureLimits.extension ? parseInt(FeatureLimits.extension) : 500
+
+        if (this.state.extensionList.length >= maxExtension) {
+            const warningMessage = <span dangerouslySetInnerHTML=
+                                        {{ __html: formatMessage({ id: "LANG809" }, {
+                                                0: formatMessage({ id: "LANG85" }),
+                                                1: maxExtension
+                                            })
+                                        }}
+                                    ></span>
+
+            message.warning(warningMessage, 2)
+        } else {
+            browserHistory.push('/extension-trunk/extension/add')
+        }
     }
     _edit = (record) => {
         browserHistory.push('/extension-trunk/extension/edit/' + record.account_type.toLowerCase().slice(0, 3) + '/' + record.extension)
@@ -232,13 +249,123 @@ class Extension extends Component {
         browserHistory.push('/extension-trunk/extension/add')
     }
     _delete = (record) => {
-        browserHistory.push('/extension-trunk/extension/add')
+        let __this = this
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+        const confirmContent = <span dangerouslySetInnerHTML=
+                                    {{ __html: formatMessage({ id: "LANG824" }, { 0: record.extension }) }}
+                                ></span>
+
+        confirm({
+            title: '',
+            content: confirmContent,
+            onOk() {
+                message.loading(loadingMessage)
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: 'post',
+                    data: {
+                        "action": "deleteUser",
+                        "user_name": record.extension
+                    },
+                    type: 'json',
+                    async: true,
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+
+                            __this._getExtensionList()
+
+                            __this.setState({
+                                selectedRowKeys: _.without(__this.state.selectedRowKeys, record.extension),
+                                selectedRows: __this.state.selectedRows.filter(function(item) { return item.extension !== record.extension })
+                            })
+
+                            console.log(__this.state.selectedRowKeys)
+                            console.log(__this.state.selectedRows)
+                        }
+                    },
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            },
+            onCancel() {}
+        })
     }
     _batchEdit = () => {
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
+        let typeList = []
+        const { formatMessage } = this.props.intl
+
+        this.state.selectedRows.map(function(item) {
+            typeList.push(item.account_type.toLowerCase().slice(0, 3))
+        })
+
+        if (_.without(typeList, typeList[0]).length) {
+            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG2871" }) }}></span>, 2)
+
+            return false
+        }
+
+        if (_.indexOf(typeList, 'fxs') > -1) {
+            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG2870" }) }}></span>, 2)
+
+            return false
+        }
+
+        browserHistory.push('/extension-trunk/extension/batchEdit/' + typeList[0] + '/' + this.state.selectedRowKeys.join(','))
     }
     _batchDelete = () => {
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
+        let __this = this
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5414" })}}></span>
+        const modalContent = <span dangerouslySetInnerHTML=
+                                    {{ __html: formatMessage({ id: "LANG824" }, { 0: this.state.selectedRowKeys.join('  ') }) }}
+                                ></span>
+
+        confirm({
+            title: '',
+            content: modalContent,
+            onOk() {
+                message.loading(loadingMessage)
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: 'post',
+                    data: {
+                        'action': 'deleteUser',
+                        'user_name': __this.state.selectedRowKeys.join(',')
+                    },
+                    type: 'json',
+                    async: true,
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+
+                            __this._getExtensionList()
+
+                            __this.setState({
+                                selectedRows: [],
+                                selectedRowKeys: []
+                            })
+                        }
+                    },
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            },
+            onCancel() {}
+        })
     }
     _import = () => {
         browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
@@ -251,9 +378,9 @@ class Extension extends Component {
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
-        // console.log('selectedRow changed: ', selectedRows)
+        console.log('selectedRow changed: ', selectedRows)
 
-        this.setState({ selectedRowKeys })
+        this.setState({ selectedRowKeys, selectedRows })
     }
     render() {
         const { formatMessage } = this.props.intl

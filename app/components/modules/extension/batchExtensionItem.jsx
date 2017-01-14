@@ -37,10 +37,6 @@ class Media extends Component {
     }
 }
 
-Media.propTypes = {
-    dataSource: PropTypes.object.isRequired
-}
-
 const mapStateToProps = (state) => ({
    
 })

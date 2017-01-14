@@ -54,8 +54,11 @@ import CallQueueSwitchboard from '../components/modules/callQueue/switchboard'
 import AgentLoginSettings from '../components/modules/callQueue/settings'
 import PickupGroup from '../components/modules/pickupGroup/index'
 import DialByName from '../components/modules/dialByName/index'
+import DialByNameItem from '../components/modules/dialByName/dialByNameItem'
 import SpeedDial from '../components/modules/speedDial/index'
+import SpeedDialItem from '../components/modules/speedDial/speedDialItem'
 import DISA from '../components/modules/disa/index'
+import DISAItem from '../components/modules/disa/disaItem'
 import Callback from '../components/modules/callback/index'
 import EventList from '../components/modules/eventList/index'
 import FeatureCode from '../components/modules/featureCode/index'
@@ -106,6 +109,7 @@ import CTIServer from '../components/modules/ctiServer/index'
 import CRM from '../components/modules/crm/index'
 import PMS from '../components/modules/pms/index'
 import WakeupService from '../components/modules/wakeupService/index'
+import WakeupServiceItem from '../components/modules/wakeupService/wakeupServiceItem'
 import FAXSending from '../components/modules/faxSending/index'
 import AnnouncementCenter from '../components/modules/announcementCenter/index'
 import WebRTC from '../components/modules/webrtc/index'
@@ -233,7 +237,7 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="ringGroup" onEnter={ requireAuth } component={ RingGroup } breadcrumbName={ currentLocaleData["LANG22"] } />
                     <Route path="pagingIntercom" onEnter={ requireAuth } component={ PagingIntercom } breadcrumbName={ currentLocaleData["LANG23"] } />
-                    <Route path="callQueue" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG24"] }>
+                    <Route path="callQueue" breadcrumbName={ currentLocaleData["LANG24"] }>
                         <IndexRoute component={ CallQueue } />
                         <Route path="add" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG738"] } />
@@ -242,9 +246,21 @@ const routes = (state, currentLocaleData) => {
                         <Route path="switchboard" onEnter={ requireAuth } component={ CallQueueSwitchboard } breadcrumbName={ currentLocaleData["LANG5407"] } />
                     </Route>
                     <Route path="pickupGroup" onEnter={ requireAuth } component={ PickupGroup } breadcrumbName={ currentLocaleData["LANG2510"] } />
-                    <Route path="dialByName" onEnter={ requireAuth } component={ DialByName } breadcrumbName={ currentLocaleData["LANG2884"] } />
-                    <Route path="speedDial" onEnter={ requireAuth } component={ SpeedDial } breadcrumbName={ currentLocaleData["LANG3501"] } />
-                    <Route path="disa" onEnter={ requireAuth } component={ DISA } breadcrumbName={ currentLocaleData["LANG2353"] } />
+                    <Route path="dialByName" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3501"] }>
+                        <IndexRoute component={ DialByName } />
+                        <Route path="add" onEnter={ requireAuth } component={ DialByNameItem } breadcrumbName={ currentLocaleData["LANG2884"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ DialByNameItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="speedDial" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3501"] }>
+                        <IndexRoute component={ SpeedDial } />
+                        <Route path="add" onEnter={ requireAuth } component={ SpeedDialItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ SpeedDialItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="disa" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2353"] }>
+                        <IndexRoute component={ DISA } />
+                        <Route path="add" onEnter={ requireAuth } component={ DISAItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ DISAItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="callback" onEnter={ requireAuth } component={ Callback } breadcrumbName={ currentLocaleData["LANG3741"] } />
                     <Route path="eventList" onEnter={ requireAuth } component={ EventList } breadcrumbName={ currentLocaleData["LANG2474"] } />
                     <Route path="featureCode" onEnter={ requireAuth } component={ FeatureCode } breadcrumbName={ currentLocaleData["LANG26"] } />
@@ -309,7 +325,11 @@ const routes = (state, currentLocaleData) => {
                     <Route path="ctiServer" onEnter={ requireAuth } component={ CTIServer } breadcrumbName={ currentLocaleData["LANG4815"] } />
                     <Route path="crm" onEnter={ requireAuth } component={ CRM } breadcrumbName={ currentLocaleData["LANG5110"] } />
                     <Route path="pms" onEnter={ requireAuth } component={ PMS } breadcrumbName={ currentLocaleData["LANG4855"] } />
-                    <Route path="wakeupService" onEnter={ requireAuth } component={ WakeupService } breadcrumbName={ currentLocaleData["LANG4858"] } />
+                    <Route path="wakeupService" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ WakeupService } />
+                        <Route path="add" onEnter={ requireAuth } component={ WakeupServiceItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ WakeupServiceItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="faxSending" onEnter={ requireAuth } component={ FAXSending } breadcrumbName={ currentLocaleData["LANG4067"] } />
                     <Route path="announcementCenter" onEnter={ requireAuth } component={ AnnouncementCenter } breadcrumbName={ currentLocaleData["LANG4338"] } />
                     <Route path="webrtc" onEnter={ requireAuth } component={ WebRTC } breadcrumbName={ currentLocaleData["LANG4263"] } />

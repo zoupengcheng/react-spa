@@ -45,5 +45,23 @@ module.exports = {
             }
         }],
         "unsubscribe": []
+    },
+    callQueue: {
+        "subscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "subscribe", 
+                "eventnames": ["CallQueueStatus"]
+            }
+        }],
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["CallQueueStatus"]
+            }
+        }]
     }
 }

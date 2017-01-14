@@ -15,7 +15,8 @@ class ConferenceRecord extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            conferenceRecord: []
+            conferenceRecord: [],
+            selectedRowKeys: []
         }
     }
     componentDidMount() {
@@ -54,10 +55,308 @@ class ConferenceRecord extends Component {
         })
     }
     _delete = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        let fileName = record.n
+        const { formatMessage } = this.props.intl
 
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "checkFile",
+                "type": "conference_recording",
+                "data": fileName
+            },
+            type: 'json',
+            async: true,
+            success: function(data) {
+                if (data && data.hasOwnProperty("status") && (data.status === 0)) {
+                    $.ajax({
+                        url: api.apiHost,
+                        method: 'post',
+                        data: {
+                            "action": "removeFile",
+                            "type": "conference_recording",
+                            "data": fileName
+                        },
+                        type: 'json',
+                        async: true,
+                        success: function(res) {
+                            const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(successMessage)
+
+                                this._getConferenceRecord()
+                            }
+                        }.bind(this),
+                        error: function(e) {
+                            message.error(e.statusText)
+                        }
+                    })
+                } else {
+                    message.error(formatMessage({ id: "LANG3868" }))
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _download = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        let fileName = record.n
+        const { formatMessage } = this.props.intl
 
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG905" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG961" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "checkFile",
+                "type": "conference_recording",
+                "data": fileName
+            },
+            type: 'json',
+            async: true,
+            success: function(data) {
+                if (data && data.hasOwnProperty("status") && (data.status === 0)) {
+                    window.open("/cgi?action=downloadFile&type=conference_recording&data=" + fileName, '_self')
+                    message.destroy()
+                } else {
+                    message.error(formatMessage({ id: "LANG3868" }))
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _batchDelete = () => {
+        let confirmContent = ''
+        let self = this
+        let selectedRowKeys = self.state.selectedRowKeys
+        const { formatMessage } = this.props.intl
+
+        if (this.state.conferenceRecord.length === 0) {
+            Modal.warning({
+                title: '',
+                content: formatMessage({id: "LANG2240"})
+            })
+
+            return
+        }
+
+        if (selectedRowKeys.length === 0) {
+            Modal.warning({
+                title: '',
+                content: formatMessage({id: "LANG823"}, {0: formatMessage({ id: "LANG2640" })})
+            })
+
+            return
+        }
+
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3512" })}}></span>
+
+        confirm({
+            title: '',
+            content: confirmContent,
+            onOk() {
+                let loadingMessage = ''
+                let successMessage = ''
+
+                loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+                successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+                message.loading(loadingMessage)
+                $.ajax({
+                    url: api.apiHost,
+                    method: 'post',
+                    data: {
+                        "action": "removeFile",
+                        "type": "conference_recording",
+                        "data": selectedRowKeys.join(',,')
+                    },
+                    type: 'json',
+                    async: true,
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, self.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+
+                            self._getConferenceRecord()
+                        }
+                    }.bind(this),
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            },
+            onCancel() {}
+        })
+    }
+    _batchDownload = () => {
+        let selectedRowKeys = this.state.selectedRowKeys
+        let actionType = 'meetme_pack'
+        const { formatMessage } = this.props.intl
+
+        if (this.state.conferenceRecord.length === 0) {
+            Modal.warning({
+                title: '',
+                content: formatMessage({id: "LANG2240"})
+            })
+
+            return
+        }
+
+        if (selectedRowKeys.length === 0) {
+            Modal.warning({
+                title: '',
+                content: formatMessage({id: "LANG4762"}, {0: formatMessage({ id: "LANG3652" })})
+            })
+
+            return
+        }
+
+        let loadingMessage = ''
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "packFile",
+                "type": actionType,
+                "data": selectedRowKeys.join(',')
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    window.open("/cgi?action=downloadFile&type=" + actionType + "&data=batchMeetmeRecordFiles.tgz", '_self')
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _deleteAll = () => {
+        let confirmContent = ''
+        let self = this
+        const { formatMessage } = this.props.intl
+
+        if (this.state.conferenceRecord.length === 0) {
+            Modal.warning({
+                title: '',
+                content: formatMessage({id: "LANG2240"})
+            })
+
+            return
+        }
+
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG840" })}}></span>
+
+        confirm({
+            title: '',
+            content: confirmContent,
+            onOk() {
+                let loadingMessage = ''
+                let successMessage = ''
+
+                loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+                successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG871" })}}></span>
+
+                message.loading(loadingMessage)
+                $.ajax({
+                    url: api.apiHost,
+                    method: 'post',
+                    data: {
+                        "action": "removeFile",
+                        "type": "conference_recording",
+                        "data": '*'
+                    },
+                    type: 'json',
+                    async: true,
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, self.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+
+                            self._getConferenceRecord()
+                        }
+                    }.bind(this),
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            },
+            onCancel() {}
+        })
+    }
+    _downloadAll = () => {
+        let actionType = 'meetme_pack'
+        const { formatMessage } = this.props.intl
+
+        if (this.state.conferenceRecord.length === 0) {
+            Modal.warning({
+                title: '',
+                content: formatMessage({id: "LANG2240"})
+            })
+
+            return
+        }
+
+        let loadingMessage = ''
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "packFile",
+                "type": actionType,
+                "data": 'allMeetmeFiles.tgz'
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    window.open("/cgi?action=downloadFile&type=" + actionType + "&data=allMeetmeFiles.tgz", '_self')
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _createSize = (text) => {
         let size = parseFloat(text),
@@ -95,6 +394,12 @@ class ConferenceRecord extends Component {
                 <span className="sprite sprite-download" onClick={ this._download.bind(this, record) }></span>
             </div>
         )
+    }
+    _onSelectChange = (selectedRowKeys, selectedRows) => {
+        console.log('selectedRowKeys changed: ', selectedRowKeys)
+        // console.log('selectedRow changed: ', selectedRows)
+
+        this.setState({ selectedRowKeys })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -154,19 +459,19 @@ class ConferenceRecord extends Component {
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._add }>
+                            onClick={ this._batchDelete }>
                             { formatMessage({id: "LANG3488"}) }
                         </Button>
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._add }>
+                            onClick={ this._deleteAll }>
                             { formatMessage({id: "LANG3439"}) }
                         </Button>
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._add }>
+                            onClick={ this._batchDownload }>
                             { formatMessage({id: "LANG4761"}, {
                                 0: formatMessage({id: "LANG2640"})
                             }) }
@@ -174,14 +479,14 @@ class ConferenceRecord extends Component {
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._add }>
+                            onClick={ this._downloadAll }>
                             { formatMessage({id: "LANG741"}, {
                                 0: formatMessage({id: "LANG2640"})
                             }) }
                         </Button>
                     </div>
                     <Table
-                        rowKey="d"
+                        rowKey="n"
                         columns={ columns }
                         pagination={ pagination }
                         rowSelection={ rowSelection }
