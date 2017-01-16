@@ -401,6 +401,71 @@ UCMGUI.prototype = {
             return true
         }
     },
+    loginFunction: { // login function
+        confirmReboot: function(cb) {
+            var reload = function() {
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    async: false,
+                    url: api.apiHost,
+                    data: {
+                        action: 'getInfo'
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        setTimeout(reload, 5000)
+                    },
+                    success: function(data) {
+                        if (data.status === 0) {
+                            top.dialog.clearDialog()
+                            browserHistory.push('/login')
+                            // UCMGUI.logoutFunction.doLogout();
+                        }
+                    }
+                })
+            }
+            var reboot = function() {
+                // delete interval while reboot.
+                // if (top.$.gsec && top.$.gsec.stopSessionCheck) {
+                //     top.$.gsec.stopSessionCheck();
+                // }
+
+                // $(document).unbind('mousemove mouseenter scroll keydown click dblclick');
+
+                // clearInterval(loginInterval);
+
+                // loginInterval = null;
+
+                // UCMGUI.config.needReloadPage = true;
+
+                // top.dialog.dialogMessage({
+                //     type: 'loading',
+                //     content: $.lang("LANG832")
+                // });
+
+                $.ajax({
+                    type: "GET",
+                    url: api.apiHost + "?action=rebootSystem",
+                    success: function() {
+                        setTimeout(reload, 30000)
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        setTimeout(reload, 30000)
+                    }
+                })
+            }
+            if (cb) {
+                // top.dialog.dialogConfirm({
+                //     confirmStr: $.lang("LANG835"),
+                //     buttons: {
+                //         ok: reboot
+                //     }
+                // })
+            } else {
+                reboot()
+            }
+        }
+    },
     filterHiddenEle: function(ele) { 
         if (typeof ele[0] !== "undefined") {
             if (ele.is(":hidden")) {
@@ -507,6 +572,53 @@ UCMGUI.prototype = {
     //         return true;
     //     }
     // },
+     transUploadcode: function(rescode) {
+        if (!isNaN(rescode)) {
+            let rescode = parseInt(rescode)
+
+            switch (rescode) {
+                case 0:
+                    return "LANG961"
+                case 236:
+                    return "LANG962"
+                case 238:
+                    return "LANG963"
+                case 239:
+                    return "LANG964"
+                case 240:
+                    return "LANG965"
+                case 241:
+                    return "LANG966"
+                case 242:
+                    return "LANG967"
+                case 243:
+                case 253:
+                    return "LANG968"
+                case 244:
+                case 254:
+                    return "LANG969"
+                case 245:
+                    return "LANG970"
+                case 246:
+                    return "LANG971"
+                case 247:
+                case 248:
+                    return "LANG972"
+                case 249:
+                case 250:
+                case 255:
+                    return "LANG973"
+                case 251:
+                    return "LANG974"
+                case 252:
+                    return "LANG975"
+                default:
+                    return "LANG976"
+            }
+        } else {
+            return "LANG976"
+        }
+    },
     isIPv6: function(value) {
         return (/^\[?((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\]?$/.test(value) && ((value.contains("[") && value.contains("]")) || (!value.contains("[") && !value.contains("]")))) ||
                 /^\[((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\](\:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9]))?$/.test(value)

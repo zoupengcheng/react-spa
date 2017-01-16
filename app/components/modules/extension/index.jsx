@@ -13,7 +13,7 @@ import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
+import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Table, Tag, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const confirm = Modal.confirm
@@ -26,13 +26,64 @@ class Extension extends Component {
         this.state = {
             selectedRows: [],
             extensionList: [],
-            selectedRowKeys: []
+            selectedRowKeys: [],
+            sendEmailModalVisible: false,
+            batchDeleteModalVisible: false
         }
     }
     componentDidMount() {
         this._getExtensionList()
     }
     componentWillUnmount() {
+    }
+    _add = () => {
+        const { formatMessage } = this.props.intl
+        const maxExtension = FeatureLimits.extension ? parseInt(FeatureLimits.extension) : 500
+
+        if (this.state.extensionList.length >= maxExtension) {
+            const warningMessage = <span dangerouslySetInnerHTML=
+                                        {{ __html: formatMessage({ id: "LANG809" }, {
+                                                0: formatMessage({ id: "LANG85" }),
+                                                1: maxExtension
+                                            })
+                                        }}
+                                    ></span>
+
+            message.warning(warningMessage, 2)
+        } else {
+            browserHistory.push('/extension-trunk/extension/add')
+        }
+    }
+    _batchEdit = () => {
+        let typeList = []
+        const { formatMessage } = this.props.intl
+
+        this.state.selectedRows.map(function(item) {
+            typeList.push(item.account_type.toLowerCase().slice(0, 3))
+        })
+
+        if (_.without(typeList, typeList[0]).length) {
+            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG2871" }) }}></span>, 2)
+
+            return false
+        }
+
+        if (_.indexOf(typeList, 'fxs') > -1) {
+            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG2870" }) }}></span>, 2)
+
+            return false
+        }
+
+        browserHistory.push('/extension-trunk/extension/batchEdit/' + typeList[0] + '/' + this.state.selectedRowKeys.join(','))
+    }
+    _batchDelete = () => {
+        this.setState({ batchDeleteModalVisible: true })
+    }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRows: [],
+            selectedRowKeys: []
+        })
     }
     _createAddr = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -127,7 +178,10 @@ class Extension extends Component {
                 </span>
                 { reboot }
                 <Popconfirm
-                    title={ formatMessage({id: "LANG841"}) }
+                    placement="left"
+                    title={ <span dangerouslySetInnerHTML=
+                                {{ __html: formatMessage({ id: "LANG824" }, { 0: record.extension }) }}
+                            ></span> }
                     okText={ formatMessage({id: "LANG727"}) }
                     cancelText={ formatMessage({id: "LANG726"}) }
                     onConfirm={ this._delete.bind(this, record) }
@@ -194,20 +248,64 @@ class Extension extends Component {
 
         return status
     }
-    _getExtensionList = () => {
+    _delete = (record) => {
         const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
-                action: 'listAccount',
-                options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user",
-                sidx: 'extension',
-                sord: 'asc'
+                "action": "deleteUser",
+                "user_name": record.extension
             },
             type: 'json',
-            async: false,
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getExtensionList()
+
+                    this.setState({
+                        selectedRowKeys: _.without(this.state.selectedRowKeys, record.extension),
+                        selectedRows: this.state.selectedRows.filter(function(item) { return item.extension !== record.extension })
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _edit = (record) => {
+        browserHistory.push('/extension-trunk/extension/edit/' + record.account_type.toLowerCase().slice(0, 3) + '/' + record.extension)
+    }
+    _export = (e) => {
+        const type = e.key
+
+        window.open("/cgi?action=downloadFile&type=export_" + type + "_extensions&data=export_" + type + "_extensions.csv", '_self')
+    }
+    _getExtensionList = () => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            async: true,
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                sord: 'asc',
+                sidx: 'extension',
+                action: 'listAccount',
+                options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
+            },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -224,163 +322,167 @@ class Extension extends Component {
             }
         })
     }
-    _add = () => {
-        const { formatMessage } = this.props.intl
-        const maxExtension = FeatureLimits.extension ? parseInt(FeatureLimits.extension) : 500
-
-        if (this.state.extensionList.length >= maxExtension) {
-            const warningMessage = <span dangerouslySetInnerHTML=
-                                        {{ __html: formatMessage({ id: "LANG809" }, {
-                                                0: formatMessage({ id: "LANG85" }),
-                                                1: maxExtension
-                                            })
-                                        }}
-                                    ></span>
-
-            message.warning(warningMessage, 2)
-        } else {
-            browserHistory.push('/extension-trunk/extension/add')
-        }
+    _handleBatchDeleteCancel = () => {
+        this.setState({ batchDeleteModalVisible: false })
     }
-    _edit = (record) => {
-        browserHistory.push('/extension-trunk/extension/edit/' + record.account_type.toLowerCase().slice(0, 3) + '/' + record.extension)
+    _handleBatchDeleteOk = () => {
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5414" })}}></span>
+
+        this.setState({ batchDeleteModalVisible: false })
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'deleteUser',
+                'user_name': this.state.selectedRowKeys.join(',')
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getExtensionList()
+
+                    this._clearSelectRows()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _handleSendEmailCancel = () => {
+        this.setState({ sendEmailModalVisible: false })
+    }
+    _handleSendEmailJump = () => {
+        browserHistory.push('/system-settings/emailSettings')
+    }
+    _handleSendEmailOk = () => {
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3496" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3497" })}}></span>
+        const sendExtensions = this.state.selectedRowKeys.length ? this.state.selectedRowKeys.join(',') : ''
+
+        this.setState({ sendEmailModalVisible: false })
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'sendAccount2User',
+                'extension': sendExtensions
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _handleSearchSubmit(e) {
+        e.preventDefault()
+
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3773" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
+
+        this.props.form.validateFields({ force: true }, (err, values) => {
+            if (!err) {
+                let action = {
+                        sord: 'asc',
+                        sidx: 'extension',
+                        action: 'listAccount',
+                        options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
+                    }
+
+                if (values.ext_num) {
+                    action.ext_num = values.ext_num
+                }
+
+                console.log('Received values of form: ', values)
+
+                message.loading(loadingMessage)
+
+                $.ajax({
+                    async: true,
+                    data: action,
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            const response = res.response || {}
+
+                            this.setState({
+                                extensionList: response.account || []
+                            })
+
+                            message.destroy()
+                            // message.success(successMessage)
+
+                            this._clearSelectRows()
+                        }
+                    }.bind(this),
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            }
+        })
+    }
+    _import = () => {
+        // browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
+    }
+    _onSelectChange = (selectedRowKeys, selectedRows) => {
+        // console.log('selectedRowKeys changed: ', selectedRowKeys)
+        // console.log('selectedRow changed: ', selectedRows)
+
+        this.setState({ selectedRowKeys, selectedRows })
     }
     _reboot = (record) => {
         browserHistory.push('/extension-trunk/extension/add')
     }
-    _delete = (record) => {
-        let __this = this
+    _sendEmail = () => {
         const { formatMessage } = this.props.intl
-        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
-        const confirmContent = <span dangerouslySetInnerHTML=
-                                    {{ __html: formatMessage({ id: "LANG824" }, { 0: record.extension }) }}
-                                ></span>
+        const disabledExtensions = this.state.selectedRows.filter(function(item) { return item.out_of_service === 'yes' })
 
-        confirm({
-            title: '',
-            content: confirmContent,
-            onOk() {
-                message.loading(loadingMessage)
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: 'post',
-                    data: {
-                        "action": "deleteUser",
-                        "user_name": record.extension
-                    },
-                    type: 'json',
-                    async: true,
-                    success: function(res) {
-                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(successMessage)
-
-                            __this._getExtensionList()
-
-                            __this.setState({
-                                selectedRowKeys: _.without(__this.state.selectedRowKeys, record.extension),
-                                selectedRows: __this.state.selectedRows.filter(function(item) { return item.extension !== record.extension })
-                            })
-
-                            console.log(__this.state.selectedRowKeys)
-                            console.log(__this.state.selectedRows)
-                        }
-                    },
-                    error: function(e) {
-                        message.error(e.statusText)
-                    }
-                })
-            },
-            onCancel() {}
-        })
-    }
-    _batchEdit = () => {
-        let typeList = []
-        const { formatMessage } = this.props.intl
-
-        this.state.selectedRows.map(function(item) {
-            typeList.push(item.account_type.toLowerCase().slice(0, 3))
-        })
-
-        if (_.without(typeList, typeList[0]).length) {
-            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG2871" }) }}></span>, 2)
+        if (disabledExtensions.length) {
+            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG5059" }) }}></span>, 2)
 
             return false
         }
 
-        if (_.indexOf(typeList, 'fxs') > -1) {
-            message.warning(<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG2870" }) }}></span>, 2)
-
-            return false
-        }
-
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + typeList[0] + '/' + this.state.selectedRowKeys.join(','))
+        this.setState({ sendEmailModalVisible: true })
     }
-    _batchDelete = () => {
-        let __this = this
+    _validateCallerNumFormate = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
-        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5414" })}}></span>
-        const modalContent = <span dangerouslySetInnerHTML=
-                                    {{ __html: formatMessage({ id: "LANG824" }, { 0: this.state.selectedRowKeys.join('  ') }) }}
-                                ></span>
 
-        confirm({
-            title: '',
-            content: modalContent,
-            onOk() {
-                message.loading(loadingMessage)
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: 'post',
-                    data: {
-                        'action': 'deleteUser',
-                        'user_name': __this.state.selectedRowKeys.join(',')
-                    },
-                    type: 'json',
-                    async: true,
-                    success: function(res) {
-                        const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(successMessage)
-
-                            __this._getExtensionList()
-
-                            __this.setState({
-                                selectedRows: [],
-                                selectedRowKeys: []
-                            })
-                        }
-                    },
-                    error: function(e) {
-                        message.error(e.statusText)
-                    }
-                })
-            },
-            onCancel() {}
-        })
-    }
-    _import = () => {
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
-    }
-    _export = () => {
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
-    }
-    _email = () => {
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
-    }
-    _onSelectChange = (selectedRowKeys, selectedRows) => {
-        console.log('selectedRowKeys changed: ', selectedRowKeys)
-        console.log('selectedRow changed: ', selectedRows)
-
-        this.setState({ selectedRowKeys, selectedRows })
+        if (value && !/^[0-9\+]*x*.{0,1}$/i.test(value)) {
+            callback(formatMessage({id: "LANG2767"}))
+        } else {
+            callback()
+        }
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -442,9 +544,13 @@ class Extension extends Component {
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
+
+                    this._clearSelectRows()
                 },
                 onChange: (current) => {
                     console.log('Current: ', current)
+
+                    this._clearSelectRows()
                 }
             }
 
@@ -474,35 +580,37 @@ class Extension extends Component {
                 />
                 <div className="content">
                     <div className="top-button">
-                        <Form inline>
-                            <FormItem>
-                                { getFieldDecorator('group_name', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }, {
-                                        validator: (data, value, callback) => {
-                                            Validator.minlength(data, value, callback, formatMessage, 2)
-                                        }
-                                    }, {
-                                        validator: (data, value, callback) => {
-                                            Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
-                                        }
-                                    }]
-                                })(
-                                    <Input
-                                        size="default"
-                                        disabled={ !this.state.extensionList.length }
-                                        placeholder={ formatMessage({id: "LANG5415"}) }
-                                    />
-                                ) }
-                            </FormItem>
+                        <Form inline onSubmit={ this._handleSearchSubmit.bind(this) }>
+                            <Tooltip
+                                placement="bottom"
+                                title={ <FormattedHTMLMessage id="LANG5175" /> }
+                            >
+                                <FormItem>
+                                    { getFieldDecorator('ext_num', {
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.noSpaces(data, value, callback, formatMessage)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.maxlength(data, value, callback, formatMessage, 18)
+                                            }
+                                        }, {
+                                            validator: this._validateCallerNumFormate
+                                        }]
+                                    })(
+                                        <Input
+                                            size="default"
+                                            placeholder={ formatMessage({id: "LANG5415"}) }
+                                        />
+                                    ) }
+                                </FormItem>
+                            </Tooltip>
                             <FormItem>
                                 <Button
                                     size="default"
                                     type="primary"
                                     htmlType="submit"
-                                    disabled={ !this.state.extensionList.length }
                                 >
                                     { formatMessage({id: "LANG803"}) }
                                 </Button>
@@ -531,6 +639,18 @@ class Extension extends Component {
                         >
                             { formatMessage({id: "LANG739"}) }
                         </Button>
+                        <Modal
+                            onOk={ this._handleBatchDeleteOk }
+                            onCancel={ this._handleBatchDeleteCancel }
+                            title={ formatMessage({id: "LANG735"}) }
+                            okText={ formatMessage({id: "LANG727"}) }
+                            cancelText={ formatMessage({id: "LANG726"}) }
+                            visible={ this.state.batchDeleteModalVisible }
+                        >
+                            <span dangerouslySetInnerHTML=
+                                {{ __html: formatMessage({ id: "LANG824" }, { 0: this.state.selectedRowKeys.join('  ') }) }}
+                            ></span>
+                        </Modal>
                         <Button
                             icon="upload"
                             type="primary"
@@ -554,11 +674,30 @@ class Extension extends Component {
                         <Button
                             icon="mail"
                             type="primary"
-                            onClick={ this._email }
+                            onClick={ this._sendEmail }
                             disabled={ !this.state.extensionList.length }
                         >
                             { formatMessage({id: "LANG3495"}) }
                         </Button>
+                        <Modal
+                            onOk={ this._handleSendEmailOk }
+                            onCancel={ this._handleSendEmailCancel }
+                            title={ formatMessage({id: "LANG3495"}) }
+                            visible={ this.state.sendEmailModalVisible }
+                            footer={ [
+                                <Button key="back" type="ghost" size="large" onClick={ this._handleSendEmailCancel }>
+                                    { formatMessage({id: "LANG726"}) }
+                                </Button>,
+                                <Button key="jump" type="primary" size="large" onClick={ this._handleSendEmailJump }>
+                                    { formatMessage({id: "LANG4576"}) }
+                                </Button>,
+                                <Button key="submit" type="primary" size="large" onClick={ this._handleSendEmailOk }>
+                                    { formatMessage({id: "LANG727"}) }
+                                </Button>
+                            ] }
+                        >
+                            <FormattedHTMLMessage id="LANG3498" />
+                        </Modal>
                     </div>
                     <Table
                         bordered

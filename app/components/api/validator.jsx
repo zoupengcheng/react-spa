@@ -262,6 +262,20 @@ Validator.prototype = {
         } else {
             callback()
         }
+    },    
+    noSpaces: function(data, value, callback, formatMessage) {
+        if (value && /\s/g.test(value)) {
+            callback(formatMessage({id: "LANG2818"}))
+        } else {
+            callback()
+        }
+    },    
+    noSpacesInFrontAndEnd: function(data, value, callback, formatMessage) {
+        if (value && /^\s+|\s+$/g.test(value)) {
+            callback(formatMessage({id: "LANG4113"}))
+        } else {
+            callback()
+        }
     }
 }
 

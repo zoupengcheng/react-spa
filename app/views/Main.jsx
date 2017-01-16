@@ -5,7 +5,7 @@ import SideBar from './sidebar'
 import Header from './header'
 import Footer from './footer'
 import Container from './container'
-import { Icon } from 'antd'
+import { Icon, Spin } from 'antd'
 
 let Home = React.createClass({
     render() {
@@ -25,7 +25,8 @@ let App = React.createClass({
     },
     getInitialState() {
         return {
-            collapse: false
+            collapse: false,
+            loading: false
         }
     },
     handleCollapseChange() {
@@ -52,8 +53,7 @@ let App = React.createClass({
     },
     render() {
         const collapse = this.state.collapse
-
-        return (
+        const container = (
             <div className={ collapse ? "app-wrapper app-wrapper-collapse" : "app-wrapper" }>
                 <div className="app-container">
                     <SideBar collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
@@ -64,8 +64,11 @@ let App = React.createClass({
                         </Container>
                     </div>
                 </div>
-                <Footer />
+                <Footer />        
             </div>
+        )
+        return (
+            <Spin spinning={this.state.loading} tip="Loading...">{container}</Spin>
         )
     }
 })
