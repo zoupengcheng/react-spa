@@ -18,19 +18,212 @@ class ScheduleSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            scheduleSettings: {}
+            scheduleSettings: {},
+            conference: [],
+            transAccountList: [],
+            remoteExtList: [],
+            bCandler: true
         }
     }
     componentDidMount() {
+        this._getInitData()
+    }
+    _emailConfirm = () => {
+        browserHistory.push('/system-settings/emailSettings')
+    }
+    _googleConfirm = () => {
+        browserHistory.push('/call-features/conference')
+    }
+    _transLocale = (res) => {
+        var arr = [],
+            ele, firstname, lastname, username, email, fullname
+
+        for (var i = 0; i < res.users.length; i++) {
+            ele = res.users[i]
+            firstname = ele.first_name
+            lastname = ele.last_name
+            username = ele.user_name
+            email = ele.email
+
+            if (firstname && lastname) {
+                fullname = '"' + firstname + ' ' + lastname + '"'
+            } else if (firstname) {
+                fullname = '"' + firstname + '"'
+            } else if (lastname) {
+                fullname = '"' + lastname + '"'
+            } else {
+                fullname = ''
+            }
+
+            arr.push({
+                text: username + ' ' + fullname,
+                val: username,
+                attr: email ? email : ''
+            })
+        }
+
+        return arr
+    }
+    _transRemote = (res) => {
+        var arr = [],
+            ele, firstname, lastname, accountnumber, email, phonebook, fullname
+
+        for (var i = 0; i < res.phonebooks.length; i++) {
+            ele = res.phonebooks[i]
+            firstname = ele.firstname
+            lastname = ele.lastname
+            accountnumber = ele.accountnumber
+            email = ele.email
+            phonebook = ele.phonebook_dn
+
+            if (firstname && lastname) {
+                fullname = '"' + firstname + ' ' + lastname + '"'
+            } else if (firstname) {
+                fullname = '"' + firstname + '"'
+            } else if (lastname) {
+                fullname = '"' + lastname + '"'
+            } else {
+                fullname = ''
+            }
+
+            arr.push({
+                text: phonebook.split(',')[0].slice(3) + '--' + accountnumber + ' ' + fullname,
+                val: accountnumber,
+                attr: email ? email : ''
+            })
+        }
+
+        return arr
     }
     _getInitData = () => {
-        
+        $.ajax({
+            url: api.apiHost,
+            type: "post",
+            data: {
+                'action': 'listConfStatus'
+            },
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var list = data.response.conference
+
+                if (list && list.length > 0) {
+                    this.setState({
+                        conference: list
+                    })
+                }
+            }.bind(this)
+        })
+
+        let accountList = UCMGUI.isExist.getList("getUserList")
+        let transAccountList = this._transLocale(accountList)
+
+        let remoteList = UCMGUI.isExist.getList("getRemoteUser")
+        let remoteExtList = this._transRemote(remoteList)
+
+        this.setState({
+            transAccountList: transAccountList,
+            remoteExtList: remoteExtList
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            type: "post",
+            data: {
+                'action': 'getGoogleAccountCal'
+            },
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var res = data.response,
+                    calendarName = res.googlecalendar.calendar_name.slice(0, -1),
+                    oCandler = $('#open_calendar')
+
+                if (calendarName !== "anonymous@gmail.com" && calendarName !== "" && calendarName.match(/^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$/)) {
+                    this.setState({
+                        bCandler: false
+                    })
+                }
+            }.bind(this)
+        })
+    }
+    _addZero = (n) => {
+        if (n < 10) {
+            n = "0" + n
+        }
+        return n
     }
     _handleCancel = () => {
         browserHistory.push('/call-features/conference')
     }
     _handleSubmit = () => {
-        
+        let errorMessage = ''
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+        const bookId = this.props.params.id
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
+
+        this.props.form.validateFieldsAndScroll((err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
+
+                message.loading(loadingMessage)
+
+                let aList = []
+
+                let action = values
+                action.members = JSON.stringify(aList)
+
+                if (bookId) {
+                    action.action = 'updateMeetme'
+                } else {
+                    action.action = 'addMeetme'
+                    action.zone = '+0800'
+                    action.bookid = new Date().getTime()
+                }
+
+                action.starttime = action.starttime.format('YYYY-MM-DD HH:mm:ss')
+
+                let sStartTime = action.starttime,
+                    nMinute = action.endtime,
+                    nEhour = parseInt(sStartTime.slice(11, 13), 10) + Math.floor(nMinute / 60),
+                    nEmin = parseInt(sStartTime.slice(14, 16), 10) + nMinute % 60
+
+                if (nEmin >= 60) {
+                    nEmin = nEmin - 60
+                    nEhour = nEhour + 1
+                }
+
+                action['endtime'] = sStartTime.slice(0, 11) + this._addZero(nEhour) + ':' + this._addZero(nEmin) + ':00'
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+                        }
+
+                        this._handleCancel()
+                    }.bind(this)
+                })
+            }
+        })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -40,6 +233,11 @@ class ScheduleSettings extends Component {
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 12 }
+        }
+
+        const formItemLayoutEmail = {
+            labelCol: { span: 12 },
+            wrapperCol: { span: 6 }
         }
 
         const title = (this.props.params.id
@@ -96,7 +294,13 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('confno', {
                                         initialValue: scheduleSettings.confno
                                     })(
-                                        <Select></Select>
+                                        <Select>
+                                            {
+                                                this.state.conference.map(function(value, index) {
+                                                    return <Option value={ value.extension } key={ index }>{ value.extension }</Option>
+                                                })
+                                            }
+                                        </Select>
                                     ) }
                                 </FormItem>
                             </Col>
@@ -150,7 +354,7 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('starttime', {
                                         initialValue: scheduleSettings.starttime
                                     })(
-                                        <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                                        <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -168,36 +372,21 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('endtime', {
                                         initialValue: scheduleSettings.endtime
                                     })(
-                                        <Select></Select>
+                                        <Select>
+                                            <Option value='15'>15</Option>
+                                            <Option value='30'>30</Option>
+                                            <Option value='45'>45</Option>
+                                            <Option value='60'>60</Option>
+                                            <Option value='75'>75</Option>
+                                            <Option value='90'>90</Option>
+                                            <Option value='105'>105</Option>
+                                            <Option value='120'>120</Option>
+                                        </Select>
                                     ) }
                                 </FormItem>
                             </Col>
                         </Row>
                         <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3801" /> }>
-                                            <span>{ formatMessage({id: "LANG3791"}) }</span>
-                                        </Tooltip>
-                                    )}
-                                >
-                                    { getFieldDecorator('open_calendar', {
-                                        initialValue: scheduleSettings.open_calendar
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                    <Popconfirm
-                                        onConfirm={ this._emailConfirm }
-                                        okText={ formatMessage({id: "LANG136"}) }
-                                        cancelText={ formatMessage({id: "LANG137"}) }
-                                        title={ formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG3513"})}) }
-                                    >
-                                        <a href="#">{ formatMessage({id: "LANG3513"}) }</a>
-                                    </Popconfirm>
-                                </FormItem>
-                            </Col>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -212,8 +401,36 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('recurringevent', {
                                         initialValue: scheduleSettings.recurringevent
                                     })(
-                                        <Select></Select>
+                                        <Select>
+                                            <Option value='COMMON'>{ formatMessage({id: "LANG3806"}) }</Option>
+                                            <Option value='DAILY'>{ formatMessage({id: "LANG3804"}) }</Option>
+                                            <Option value='WEEKLY'>{ formatMessage({id: "LANG3805"}) }</Option>
+                                        </Select>
                                     ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3801" /> }>
+                                            <span>{ formatMessage({id: "LANG3791"}) }</span>
+                                        </Tooltip>
+                                    )}
+                                >
+                                    { getFieldDecorator('open_calendar', {
+                                        initialValue: scheduleSettings.open_calendar
+                                    })(
+                                        <Checkbox disabled={ this.state.bCandler } />
+                                    ) }
+                                    <Popconfirm
+                                        onConfirm={ this._googleConfirm }
+                                        okText={ formatMessage({id: "LANG136"}) }
+                                        cancelText={ formatMessage({id: "LANG137"}) }
+                                        title={ formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG3513"})}) }
+                                    >
+                                        <a href="#" style={{ marginLeft: 20 }}>{ formatMessage({id: "LANG3513"}) }</a>
+                                    </Popconfirm>
                                 </FormItem>
                             </Col>
                         </Row>
@@ -232,7 +449,13 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('localeRightSelect', {
                                         initialValue: scheduleSettings.localeRightSelect
                                     })(
-                                        <Select multiple></Select>
+                                        <Select multiple>
+                                            {
+                                                this.state.transAccountList.map(function(value, index) {
+                                                    return <Option value={ value.val } key={ index }>{ value.text }</Option>
+                                                })
+                                            }
+                                        </Select>
                                     ) }
                                 </FormItem>
                             </Col>
@@ -258,7 +481,7 @@ class ScheduleSettings extends Component {
                                         cancelText={ formatMessage({id: "LANG137"}) }
                                         title={ formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG4572"})}) }
                                     >
-                                        <a href="#">{ formatMessage({id: "LANG4572"}) }</a>
+                                        <a href="#" style={{ marginLeft: 20 }}>{ formatMessage({id: "LANG4572"}) }</a>
                                     </Popconfirm>
                                 </FormItem>
                             </Col>
@@ -278,7 +501,13 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('remoteRightSelect', {
                                         initialValue: scheduleSettings.remoteRightSelect
                                     })(
-                                        <Select multiple></Select>
+                                        <Select multiple>
+                                            {
+                                                this.state.remoteExtList.map(function(value, index) {
+                                                    return <Option value={ value.val } key={ index }>{ value.text }</Option>
+                                                })
+                                            }
+                                        </Select>
                                     ) }
                                 </FormItem>
                             </Col>
@@ -301,11 +530,10 @@ class ScheduleSettings extends Component {
                                 </FormItem>
                             </Col>
                         </Row>
-
                         <Row>
-                            <Col span={ 6 }>
+                            <Col span={ 6 } style={{ marginRight: 20 }}>
                                 <FormItem
-                                    { ...formItemLayout }
+                                    { ...formItemLayoutEmail }
                                     label={(
                                         <span>
                                             <Tooltip title={ <FormattedHTMLMessage id="LANG4461" /> }>
@@ -317,31 +545,31 @@ class ScheduleSettings extends Component {
                                     { getFieldDecorator('member_name', {
                                         initialValue: scheduleSettings.member_name
                                     })(
-                                        <Input style={{ width: 200 }} />
+                                        <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG2026"}) } />
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 6 }>
+                            <Col span={ 3 } style={{ marginRight: 20 }}>
                                 <FormItem>
                                     { getFieldDecorator('member_tel', {
                                         initialValue: scheduleSettings.member_tel
                                     })(
-                                        <Input style={{ width: 200 }} />
+                                        <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG3781"}) } />
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 6 }>
+                            <Col span={ 3 } style={{ marginRight: 20 }}>
                                 <FormItem>
                                     { getFieldDecorator('member_mail', {
                                         initialValue: scheduleSettings.member_mail
                                     })(
-                                        <Input style={{ width: 200 }} />
+                                        <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG2032"}) } />
                                     ) }
                                 </FormItem>
                             </Col>
-                             <Col span={ 6 }>
+                             <Col span={ 3 }>
                                 <FormItem
-                                    { ...formItemLayout }
+                                    { ...formItemLayoutEmail }
                                     label={(
                                         <span>
                                             <Tooltip title={ <FormattedHTMLMessage id="LANG3782" /> }>
@@ -359,7 +587,36 @@ class ScheduleSettings extends Component {
                             </Col>
                         </Row>
                         <Row>
-                            <Col span={ 24 }>
+                            <Col span={ 6 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    { ...formItemLayoutEmail }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4479" /> }>
+                                                <span>{ formatMessage({id: "LANG4478"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('create_remote_room', {
+                                        initialValue: scheduleSettings.create_remote_room
+                                    })(
+                                        <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG2693"}) } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 6 }>
+                                <FormItem>
+                                    { getFieldDecorator('create_remote_pass', {
+                                        initialValue: scheduleSettings.create_remote_pass
+                                    })(
+                                        <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG2694"}) } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
                                     label={(

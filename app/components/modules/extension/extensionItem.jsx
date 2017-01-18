@@ -24,20 +24,73 @@ class ExtensionItem extends Component {
 
         this.state = {
             settings: {},
+            userSettings: {},
             currentEditId: this.props.params.id,
             extension_type: this.props.params.type ? this.props.params.type : 'sip'
         }
     }
     componentDidMount() {
+        this._getInitData()
     }
     componentWillUnmount() {
     }
-    _onChangeTabs = (activeKey) => {
-        // this.props.form.validateFields((err, values) => {
-        //     if (!err) {
-        //         return false
-        //     }
-        // })
+    _getInitData = () => {
+        const { formatMessage } = this.props.intl
+        const extensionId = this.props.params.id
+        const extensionType = this.props.params.type
+        const extensionTypeUpperCase = extensionType ? extensionType.toUpperCase() : ''
+
+        if (extensionId) {
+            $.ajax({
+                url: api.apiHost,
+                method: 'post',
+                data: {
+                    extension: extensionId,
+                    action: `get${extensionTypeUpperCase}Account`
+                },
+                type: 'json',
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        const response = res.response || {}
+                        const settings = response.extension || []
+
+                        this.setState({
+                            settings: settings
+                        })
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+
+            $.ajax({
+                url: api.apiHost,
+                method: 'post',
+                data: {
+                    action: 'getUser',
+                    user_name: extensionId
+                },
+                type: 'json',
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        const response = res.response || {}
+                        const userSettings = response.user_name || []
+
+                        this.setState({
+                            userSettings: userSettings
+                        })
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+        }
     }
     _handleCancel = (e) => {
         browserHistory.push('/extension-trunk/extension')
@@ -52,6 +105,13 @@ class ExtensionItem extends Component {
                 console.log('Received values of form: ', values)
             }
         })
+    }
+    _onChangeTabs = (activeKey) => {
+        // this.props.form.validateFields((err, values) => {
+        //     if (!err) {
+        //         return false
+        //     }
+        // })
     }
     _onExtensionTypeChange = (value) => {
         this.setState({
@@ -89,6 +149,7 @@ class ExtensionItem extends Component {
                             <BasicSettings
                                 form={ form }
                                 settings={ this.state.settings }
+                                userSettings={ this.state.userSettings }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }

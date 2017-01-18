@@ -23,7 +23,12 @@ module.exports = {
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "subscribe",
-                "eventnames": ["TrunkStatus", "InterfaceStatus", "ResourceUsageStatus", "EquipmentCapacityStatus"]
+                "eventnames": [
+                    "TrunkStatus",
+                    "InterfaceStatus",
+                    "ResourceUsageStatus",
+                    "EquipmentCapacityStatus"
+                ]
             }
         }],
         "unsubscribe": [{
@@ -31,7 +36,12 @@ module.exports = {
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "unsubscribe",
-                "eventnames": ["TrunkStatus", "InterfaceStatus", "ResourceUsageStatus", "EquipmentCapacityStatus"]
+                "eventnames": [
+                    "TrunkStatus",
+                    "InterfaceStatus",
+                    "ResourceUsageStatus",
+                    "EquipmentCapacityStatus"
+                ]
             }
         }]
     },
@@ -46,13 +56,21 @@ module.exports = {
         }],
         "unsubscribe": []
     },
-    callQueue: {
+    switchboard: {
         "subscribe": [{
             "type": "request",
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "subscribe", 
-                "eventnames": ["CallQueueStatus"]
+                "eventnames": [
+                    "CallQueueStatus",
+                    "CallQueueMemberStatus",
+                    "CallQueueCallersStatus",
+                    "CallQueueMemberAddedStatus",
+                    "CallQueueCallerLeaveStatus",
+                    "CallQueueCallersHangupStatus",
+                    "CallQueueMemberRemovedStatus"
+                ]
             }
         }],
         "unsubscribe": [{
@@ -60,7 +78,15 @@ module.exports = {
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "unsubscribe",
-                "eventnames": ["CallQueueStatus"]
+                "eventnames": [
+                    "CallQueueStatus",
+                    "CallQueueMemberStatus",
+                    "CallQueueCallersStatus",
+                    "CallQueueMemberAddedStatus",
+                    "CallQueueCallerLeaveStatus",
+                    "CallQueueCallersHangupStatus",
+                    "CallQueueMemberRemovedStatus"
+                ]
             }
         }]
     }

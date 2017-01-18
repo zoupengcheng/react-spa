@@ -1,6 +1,6 @@
-import { combineReducers } from 'redux'
-import {GET_STORAGEUSAGE, GET_RESOURCEUSAGE, DIFF_RESOURCEUSAGE, GET_PBXSTATUS, LISTAllTRUNK, GET_INTERFACESTATUS} from '../actions/'
 import msg from './message'
+import { combineReducers } from 'redux'
+import * as Actions from '../actions/'
 import systemInfo from '../components/modules/systemInfo/reducers/getNetworkInformation'
 import systemGeneralStatus from '../components/modules/systemInfo/reducers/getSystemGeneralStatus'
 import systemStatus from '../components/modules/systemInfo/reducers/getSystemStatus'
@@ -10,7 +10,7 @@ import account from '../components/modules/extension/reducers/listAccount'
 
 const storageUsage = (state = {}, action) => {
     switch (action.type) {
-        case GET_STORAGEUSAGE:
+        case Actions.GET_STORAGEUSAGE:
             return action.storageUsage
         default:
             return state
@@ -19,9 +19,9 @@ const storageUsage = (state = {}, action) => {
 
 const resourceUsage = (state = {}, action) => {
     switch (action.type) {
-        case GET_RESOURCEUSAGE:
+        case Actions.GET_RESOURCEUSAGE:
             return action.resourceUsage
-        case DIFF_RESOURCEUSAGE:
+        case Actions.DIFF_RESOURCEUSAGE:
             return action.resourceUsage
         default:
             return state
@@ -30,7 +30,7 @@ const resourceUsage = (state = {}, action) => {
 
 const pbxStatus = (state = {}, action) => {
     switch (action.type) {
-        case GET_PBXSTATUS:
+        case Actions.GET_PBXSTATUS:
             return action.pbxStatus
         default:
             return state
@@ -39,7 +39,7 @@ const pbxStatus = (state = {}, action) => {
 
 const trunksData = (state = [], action) => {
     switch (action.type) {
-        case LISTAllTRUNK:
+        case Actions.LISTAllTRUNK:
             return action.trunksData
         default:
             return state
@@ -48,8 +48,64 @@ const trunksData = (state = [], action) => {
 
 const interfaceStatus = (state = {}, action) => {
     switch (action.type) {
-        case GET_INTERFACESTATUS:
+        case Actions.GET_INTERFACESTATUS:
             return action.interfaceStatus
+        default:
+            return state
+    }
+}
+
+const callQueueList = (state = [], action) => {
+    switch (action.type) {
+        case Actions.GET_QUEUEBYCHAIRMAN:
+            return action.callQueueList
+        default:
+            return state
+    }
+}
+
+const queueMembers = (state = [], action) => {
+    switch (action.type) {
+        case Actions.GET_QUEUEMEMBERS:
+            return action.queueMembers
+        default:
+            return state
+    }
+}
+
+const currentQueue = (state = '', action) => {
+    switch (action.type) {
+        case Actions.SET_CURRENTQUEUE:
+            return action.currentQueue
+        default:
+            return state
+    }
+}
+
+const answerCallings = (state = [], action) => {
+    switch (action.type) {
+        case Actions.GET_QUEUECALLINGANSWERED:
+            return action.answerCallings
+        default:
+            return state
+    }
+}
+
+const waitingCallings = (state = [], action) => {
+    switch (action.type) {
+        case Actions.GET_QUEUECALLINGWAITING:
+            return action.waitingCallings
+        default:
+            return state
+    }
+}
+
+const spinLoading = (state = {}, action) => {
+    switch (action.type) {
+        case Actions.DISPLAY_SPIN:
+            return action.spinLoading
+        case Actions.HIDE_SPIN:
+            return action.spinLoading
         default:
             return state
     }
@@ -68,8 +124,13 @@ const rootReducer = combineReducers({
     pbxStatus,
     trunksData,
     account,
-    interfaceStatus
-
+    interfaceStatus,
+    callQueueList,
+    queueMembers,
+    currentQueue,
+    answerCallings,
+    waitingCallings,
+    spinLoading
 })
 
 export default rootReducer

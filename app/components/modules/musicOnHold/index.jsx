@@ -65,9 +65,9 @@ class MusicOnHold extends Component {
                                     rules: [],
                                     initialValue: ""
                                 })(
-                                    <Select></Select>
+                                    <Select style={{ width: '80%', marginRight: 8 }}></Select>
                                 )}
-                                <span className="sprite sprite-edit" onClick={this._showModal}></span>
+                                <span className="sprite sprite-edit" style={{position: "relative", top: "5px"}} onClick={this._showModal}></span>
                             </FormItem>
                         </Col>
                         <Col span={12}> 

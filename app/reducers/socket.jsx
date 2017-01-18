@@ -1,5 +1,5 @@
-import {combineReducers} from 'redux'
-import {UPDATE_MESSAGE, ADD_MESSAGE, ADD_RESPONSE, SET_USER_ID} from '../actions/message'
+import { combineReducers } from 'redux'
+import { UPDATE_MESSAGE, ADD_MESSAGE, ADD_RESPONSE, SET_USER_ID } from '../actions/message'
 
 export default function (initialState) {
   function messages (currentMessages = initialState.messages, action) {

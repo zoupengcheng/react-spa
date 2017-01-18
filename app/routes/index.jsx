@@ -42,6 +42,7 @@ import ConferenceItem from '../components/modules/conference/conferenceItem'
 import ConferenceSettings from '../components/modules/conference/conferenceSettings'
 import ScheduleSettings from '../components/modules/conference/scheduleSettings'
 import CleanSettings from '../components/modules/conference/cleanSettings'
+import CalendarSettings from '../components/modules/conference/calendarSettings'
 import IVR from '../components/modules/ivr/index'
 import Voicemail from '../components/modules/voicemail/index'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
@@ -108,10 +109,21 @@ import AMI from '../components/modules/ami/index'
 import CTIServer from '../components/modules/ctiServer/index'
 import CRM from '../components/modules/crm/index'
 import PMS from '../components/modules/pms/index'
+import PMSWakeup from '../components/modules/pms/pmsWakeup'
+import PMSRooms from '../components/modules/pms/pmsRooms'
+import PMSMinibar from '../components/modules/pms/pmsMinibar'
+import PMSWakeupItem from '../components/modules/pms/pmsWakeupItem'
+import PMSRoomsItemAdd from '../components/modules/pms/pmsRoomsItemAdd'
+import PMSRoomsItemBatchAdd from '../components/modules/pms/pmsRoomsItemBatchAdd'
+import PMSMinibarItemBar from '../components/modules/pms/pmsMinibarItemBar'
+import PMSMinibarItemWaiter from '../components/modules/pms/pmsMinibarItemWaiter'
+import PMSMinibarItemGoods from '../components/modules/pms/pmsMinibarItemGoods'
 import WakeupService from '../components/modules/wakeupService/index'
 import WakeupServiceItem from '../components/modules/wakeupService/wakeupServiceItem'
 import FAXSending from '../components/modules/faxSending/index'
 import AnnouncementCenter from '../components/modules/announcementCenter/index'
+import AnnouncementCenterItem from '../components/modules/announcementCenter/announcementCenterItem'
+import AnnouncementGroupItem from '../components/modules/announcementCenter/announcementGroupItem'
 import WebRTC from '../components/modules/webrtc/index'
 import cookie from 'react-cookie'
 import SubscribeEvent from '../components/api/subscribeEvent'
@@ -228,6 +240,7 @@ const routes = (state, currentLocaleData) => {
                         <Route path="scheduleSettings" onEnter={ requireAuth } component={ ScheduleSettings } breadcrumbName={ currentLocaleData["LANG3776"] } />
                         <Route path="editSchedule/:id" onEnter={ requireAuth } component={ ScheduleSettings } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="cleanSettings" onEnter={ requireAuth } component={ CleanSettings } breadcrumbName={ currentLocaleData["LANG4277"] } />
+                        <Route path="calendarSettings" onEnter={ requireAuth } component={ CalendarSettings } breadcrumbName={ currentLocaleData["LANG3516"] } />
                     </Route>
                     <Route path="ivr" onEnter={ requireAuth } component={ IVR } breadcrumbName={ currentLocaleData["LANG19"] } />
                     <Route path="voicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
@@ -324,14 +337,43 @@ const routes = (state, currentLocaleData) => {
                     <Route path="ami" onEnter={ requireAuth } component={ AMI } breadcrumbName={ currentLocaleData["LANG3525"] } />
                     <Route path="ctiServer" onEnter={ requireAuth } component={ CTIServer } breadcrumbName={ currentLocaleData["LANG4815"] } />
                     <Route path="crm" onEnter={ requireAuth } component={ CRM } breadcrumbName={ currentLocaleData["LANG5110"] } />
-                    <Route path="pms" onEnter={ requireAuth } component={ PMS } breadcrumbName={ currentLocaleData["LANG4855"] } />
+                    <Route path="pms" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4855"] } >
+                        <IndexRoute component={ PMS } />
+                        <Route path=":id" onEnter={ requireAuth } component={ PMS } breadcrumbName={ currentLocaleData["LANG4855"] } />
+                    </Route>
+                    <Route path="pmsWakeup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ PMSWakeup } />
+                        <Route path="add" onEnter={ requireAuth } component={ PMSWakeupItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ PMSWakeupItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="pmsRooms" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ PMSRooms } />
+                        <Route path="add" onEnter={ requireAuth } component={ PMSRoomsItemAdd } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ PMSRoomsItemAdd } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="batchadd" onEnter={ requireAuth } component={ PMSRoomsItemBatchAdd } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="pmsMinibar" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ PMSMinibar } />
+                        <Route path="addbar" onEnter={ requireAuth } component={ PMSMinibarItemBar } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editbar/:id/:name" onEnter={ requireAuth } component={ PMSMinibarItemBar } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="addwaiter" onEnter={ requireAuth } component={ PMSMinibarItemWaiter } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editwaiter/:id/:name" onEnter={ requireAuth } component={ PMSMinibarItemWaiter } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="addgoods" onEnter={ requireAuth } component={ PMSMinibarItemGoods } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editgoods/:id/:name" onEnter={ requireAuth } component={ PMSMinibarItemGoods } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="wakeupService" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
                         <IndexRoute component={ WakeupService } />
                         <Route path="add" onEnter={ requireAuth } component={ WakeupServiceItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ WakeupServiceItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="faxSending" onEnter={ requireAuth } component={ FAXSending } breadcrumbName={ currentLocaleData["LANG4067"] } />
-                    <Route path="announcementCenter" onEnter={ requireAuth } component={ AnnouncementCenter } breadcrumbName={ currentLocaleData["LANG4338"] } />
+                    <Route path="announcementCenter" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4338"] } >
+                        <IndexRoute component={ AnnouncementCenter } />
+                        <Route path="add" onEnter={ requireAuth } component={ AnnouncementCenterItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ AnnouncementCenterItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="addgroup" onEnter={ requireAuth } component={ AnnouncementGroupItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editgroup/:id/:name" onEnter={ requireAuth } component={ AnnouncementGroupItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="webrtc" onEnter={ requireAuth } component={ WebRTC } breadcrumbName={ currentLocaleData["LANG4263"] } />
                 </Route>
             </Route>

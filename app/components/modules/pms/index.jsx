@@ -18,63 +18,172 @@ class PmsSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            activeKey: this.props.params.id ? this.props.params.id : '1',
+            isDisplay: "display-block",
+            basicSettings: {
+                pms_protocol: "",
+                wakeup_prompt: "",
+                pms_addr: "",
+                ucm_port: "",
+                username: "",
+                password: ""
+            },
+            fileList: [{
+                val: "wakeup-call",
+                text: "wakeup-call"
+                }]
         }
     }
     componentDidMount() {
+        this._getBasicSettings()
+        this._getFileList()
     }
     componentWillUnmount() {
 
+    }
+    _removeSuffix = (filename) => {
+        let name = filename.toLocaleLowerCase(),
+            file_suffix = [".mp3", ".wav", ".gsm", ".ulaw", ".alaw"]
+
+        for (let i = 0; i < file_suffix.length; i++) {
+            let num = name.lastIndexOf(file_suffix[i])
+
+            if (num !== -1 && name.endsWith(file_suffix[i])) {
+                filename = filename.substring(0, num)
+
+                return filename
+            }
+        }
+    }
+    _onChange = (e) => {
+        if (e === "1") {
+            this.setState({
+                activeKey: e,
+                isDisplay: "display-block"
+            })
+        } else {
+            this.setState({
+                activeKey: e,
+                isDisplay: "hidden"
+            })
+        }
+    }
+    _getBasicSettings = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getPMSSettings' },
+            type: 'json',
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let res = data.response,
+                        basicSettings = res.pms_settings
+                        if (!basicSettings.pms_protocol) {
+                            basicSettings.pms_protocol = 'disable'
+                        }
+                    this.setState({
+                        basicSettings: basicSettings
+                    })
+                }
+            }.bind(this)
+        })        
+    }
+    _getFileList = () => {
+        const __this = this
+        let fileList = this.state.fileList
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listFile',
+                type: 'ivr',
+                filter: '{"list_dir":0,"list_file":1,"file_suffix":["mp3","wav","gsm","ulaw","alaw"]}',
+                sidx: 'n',
+                sord: 'desc'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    response.ivr.map(function(item) {
+                        let obj = { 
+                            text: item.n,
+                            val: "record/" + __this._removeSuffix(item.n)
+                        }
+                        fileList.push(obj)
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })      
+        this.setState({
+            fileList: fileList
+        })
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         let action = {}
 
-        action["trunk_type"] = this.state.trunkType
+        let basicSettings = this.state.basicSettings
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
-            let me = this
+        let basicSettingsAction = {}
+        basicSettingsAction["action"] = "updatePMSSettings"
+        const pms_protocol = _.isObject(basicSettings.pms_protocol) ? basicSettings.pms_protocol.value : basicSettings.pms_protocol
+        if (pms_protocol === 'disable') {
+            basicSettingsAction["pms_enable"] = 0
+            basicSettingsAction["pms_protocol"] = null
+        } else if (pms_protocol === 'mitel') {
+            basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
+            basicSettingsAction["pms_protocol"] = pms_protocol
+            basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
+            basicSettingsAction["pms_enable"] = 1
+        } else {
+            basicSettingsAction["username"] = _.isObject(basicSettings.username) ? basicSettings.username.value : basicSettings.username
+            basicSettingsAction["password"] = _.isObject(basicSettings.password) ? basicSettings.password.value : basicSettings.password
+            basicSettingsAction["pms_addr"] = _.isObject(basicSettings.pms_addr) ? basicSettings.pms_addr.value : basicSettings.pms_addr
+            basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
+            basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
+            basicSettingsAction["pms_protocol"] = pms_protocol
+            basicSettingsAction["pms_enable"] = 1
 
-            for (let key in values) {
-                if (values.hasOwnProperty(key)) {
-                    if (me.refs["div_" + key] && 
-                        me.refs["div_" + key].props &&
-                        ((me.refs["div_" + key].props.className &&
-                        me.refs["div_" + key].props.className.indexOf("hidden") === -1) ||
-                        typeof me.refs["div_" + key].props.className === "undefined")) {
-                        if (!err || (err && typeof err[key] === "undefined")) {
-                            action[key] = UCMGUI.transCheckboxVal(values[key])   
-                        } else {
-                            return
-                        }
-                    }
+            for (let key in basicSettingsAction) {
+                if (basicSettingsAction[key] === null || basicSettingsAction[key] === "") {
+                    return
                 }
             }
+        }   
 
-            console.log('Received values of form: ', values)
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: basicSettingsAction,
+            type: 'json',
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-            message.loading(formatMessage({ id: "LANG826" }), 0)
-
-            $.ajax({
-                url: api.apiHost,
-                method: "post",
-                data: action,
-                type: 'json',
-                error: function(e) {
-                    message.error(e.statusText)
-                },
-                success: function(data) {
-                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                    if (bool) {
-                        message.destroy()
-                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
-                    }
-                }.bind(this)
-            })
+                if (bool) {
+                    message.destroy()
+                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                }
+            }.bind(this)
         })
     }
     render() {
-        const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -91,11 +200,14 @@ class PmsSettings extends Component {
                 <Title headerTitle={ formatMessage({id: "LANG4855"}) } 
                     onSubmit={ this._handleSubmit.bind(this) } 
                     onCancel={ this._handleCancel } 
-                    isDisplay='display-block' 
+                    isDisplay={ this.state.isDisplay }
                 />
-                <Tabs defaultActiveKey="1" onChange={this.onChange}>
+                <Tabs defaultActiveKey={ this.state.activeKey } onChange={this._onChange}>
                     <TabPane tab={formatMessage({id: "LANG2217"})} key="1">
-                        <BasicSetting />
+                        <BasicSetting 
+                            dataSource={this.state.basicSettings}
+                            fileList={this.state.fileList}
+                        />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG4857"})} key="2">
                         <Room />
@@ -115,4 +227,4 @@ class PmsSettings extends Component {
 PmsSettings.propTypes = {
 }
 
-export default Form.create()(injectIntl(PmsSettings))
+export default injectIntl(PmsSettings)

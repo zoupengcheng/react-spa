@@ -1,9 +1,12 @@
 'use strict'
 
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Input, message, Popover, Select, Upload, Icon, Spin } from 'antd'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Form, Button, Row, Col, Input, message, Popover, Select, Upload, Icon, Spin, Modal } from 'antd'
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
@@ -55,7 +58,8 @@ class Upgrade extends Component {
                 let upgrade = res.response
 
                 this.setState({
-                    upgrade: upgrade
+                    upgrade: upgrade,
+                    upgradeLoading: true
                 })
             }.bind(this),
             error: function(e) {
@@ -135,54 +139,6 @@ class Upgrade extends Component {
 
     //     return checkFlag;
     // }
-    // Parse response code, return the corresponding text.
-    // _transUploadcode = (rescode) => {
-    //     if (!isNaN(rescode)) {
-    //         let rescode = parseInt(rescode)
-
-    //         switch (rescode) {
-    //             case 0:
-    //                 return "LANG961"
-    //             case 236:
-    //                 return "LANG962"
-    //             case 238:
-    //                 return "LANG963"
-    //             case 239:
-    //                 return "LANG964"
-    //             case 240:
-    //                 return "LANG965"
-    //             case 241:
-    //                 return "LANG966"
-    //             case 242:
-    //                 return "LANG967"
-    //             case 243:
-    //             case 253:
-    //                 return "LANG968"
-    //             case 244:
-    //             case 254:
-    //                 return "LANG969"
-    //             case 245:
-    //                 return "LANG970"
-    //             case 246:
-    //                 return "LANG971"
-    //             case 247:
-    //             case 248:
-    //                 return "LANG972"
-    //             case 249:
-    //             case 250:
-    //             case 255:
-    //                 return "LANG973"
-    //             case 251:
-    //                 return "LANG974"
-    //             case 252:
-    //                 return "LANG975"
-    //             default:
-    //                 return "LANG976"
-    //         }
-    //     } else {
-    //         return "LANG976"
-    //     }
-    // }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -211,36 +167,46 @@ class Upgrade extends Component {
             },
             onChange(info) {
                 // message.loading(formatMessage({ id: "LANG979" }), 0)
-
+                console.log(info.file.status)
                 if (info.file.status !== 'uploading') {
                     console.log(info.file, info.fileList)
                 }
+                if (me.state.upgradeLoading) {
+                    me.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
+                    me.setState({upgradeLoading: false})
+                }
+
+                if (info.file.status === 'removed') {
+                    return
+                }
+
                 if (info.file.status === 'done') {
                     // message.success(`${info.file.name} file uploaded successfully`)
                     let data = info.file.response
-
                     if (data) {
                         let status = data.status,
                             response = data.response
 
+                        me.props.setSpinLoading({loading: false})
+
                         if (data.status === 0 && response && response.result === 0) {
-                            // top.dialog.dialogConfirm({
-                            //     confirmStr: $P.lang("LANG924"),
-                            //     buttons: {
-                            //         ok: function() {
-                            //             UCMGUI.loginFunction.confirmReboot();
-                            //         },
-                            //         cancel: function() {
-                            //             UCMGUI.loginFunction.checkTrigger();
-                            //         }
-                            //     }
-                            // })
-                            <Popconfirm title={
-                                <FormattedHTMLMessage
-                                    id='LANG924'
-                                />} 
-                                onConfirm={() => UCMGUI.loginFunction.confirmReboot()}>
-                            </Popconfirm>
+                            Modal.confirm({
+                                title: formatMessage({id: "LANG924"}),
+                                content: '',
+                                okText: 'OK',
+                                cancelText: 'Cancel',
+                                onOk: () => {
+                                    me.setState({
+                                        visible: false
+                                    })
+                                    UCMGUI.loginFunction.confirmReboot() 
+                                },
+                                onCancel: () => {
+                                    me.setState({
+                                        visible: false
+                                    }) 
+                                }
+                            })
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
                         } else if (!_.isEmpty(response)) {
@@ -256,6 +222,7 @@ class Upgrade extends Component {
                 }
             },
             onRemove() {
+                me.props.setSpinLoading({loading: false})
                 message.destroy()
             }
         }
@@ -392,4 +359,12 @@ class Upgrade extends Component {
     }
 }
 
-export default Form.create()(injectIntl(Upgrade))
+const mapStateToProps = (state) => ({
+    spinLoading: state.spinLoading
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Form.create()(injectIntl(Upgrade))) 

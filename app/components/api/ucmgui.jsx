@@ -7,10 +7,12 @@ import $ from 'jquery'
 import React from 'react'
 import _ from 'underscore'
 import api from "./api"
-import { message } from 'antd'
+import { message, Modal } from 'antd'
 import { browserHistory } from 'react-router'
 import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
+import cookie from 'react-cookie'
 
+let loginInterval = null
 let UCMGUI = function() {}
 
 UCMGUI.prototype = {
@@ -284,7 +286,7 @@ UCMGUI.prototype = {
 
             $.ajax({
                 type: "post",
-                url: "../cgi",
+                url: api.apiHost,
                 data: {
                     "action": "getExtenPrefSettings"
                 },
@@ -402,6 +404,186 @@ UCMGUI.prototype = {
         }
     },
     loginFunction: { // login function
+        checkifLoggedIn: function(type, formatMessage) {
+            let username = cookie.load("username")
+
+            if (username) {
+                $.ajax({
+                    type: "post",
+                    url: "cgi",
+                    data: {
+                        action: 'checkInfo',
+                        user: username
+                    },
+                    async: false,
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        if (loginInterval) {
+                            message.destroy()
+
+                            UCMGUI.prototype.loginFunction.switchToLoginPanel()
+
+                            if (type === "ping") {
+                                clearInterval(loginInterval)
+
+                                loginInterval = null
+                            }
+                        }
+                    },
+                    success: function(data) {
+                        if (data && data.status === 0) {
+                            var currentTime = data.response.current_time,
+                                needApply = data.response.need_apply,
+                                needReboot = data.response.need_reboot
+
+                                // zcScanProgress = data.response.zc_scan_progress,
+                                // zcScanOperator = data.response.zc_scan_operator
+
+                            if (type === "ping") { // check user whether has logged per minute.
+                                // var applyChanges = $("#applyChanges_Button", top.frames["frameContainer"].document),
+                                //     lineButton = $("#line_Button", top.frames["frameContainer"].document);
+                                
+                                // if (needApply && needApply == 'yes') {
+                                //     cookie.save("needApplyChange", "yes");
+
+                                //     if (applyChanges.length > 0 && lineButton.length > 0 && !applyChanges.is(':animated')) {
+                                //         applyChanges.css("visibility", "visible");
+                                //         lineButton.css("visibility", "visible");
+                                //         // applyChanges.effect("shake", {
+                                //         //  direction: "up", distance: 2, times: 10000
+                                //         // }, 400);
+                                //     }
+                                // } else {
+                                //     cookie.save("needApplyChange", "no");
+
+                                //     if (applyChanges.length > 0 && lineButton.length > 0 && !applyChanges.is(':animated')) {
+                                //         applyChanges.css("visibility", "hidden");
+                                //         lineButton.css("visibility", "hidden");
+                                //         // applyChanges.effect("shake", {
+                                //         //  direction: "up", distance: 2, times: 10000
+                                //         // }, 400);
+                                //     }
+                                // }
+
+                                // if (currentTime) {
+                                //     var time = currentTime.split(' ');
+
+                                //     time[1] = time[1].slice(0, time[1].length - 3);
+
+                                //     $(".sysTime", top.frames["frameContainer"].document).text(time.join(' '));
+                                // }
+
+                                if (needReboot && needReboot !== UCMGUI.config.needReboot) {
+                                    var confirmMsg = ''
+
+                                    if (needReboot.contains("upgrade")) {
+                                        confirmMsg += formatMessage({id: "LANG924"}).split('<br />')[0] + ' '
+                                    }
+
+                                    if (needReboot.contains("network")) {
+                                        confirmMsg += formatMessage({id: "LANG925"}).split('<br />')[0] + ' '
+                                    }
+
+                                    if (needReboot.contains("TCPChanged")) {
+                                        confirmMsg += formatMessage({id: "LANG926"}).split('<br />')[0] + ' '
+                                    }
+
+                                    if (needReboot.contains("PCMAOverride")) {
+                                        confirmMsg += formatMessage({id: "LANG1716"}) + '!'
+                                    }
+
+                                    if (confirmMsg) {
+                                        message.destroy()
+
+                                        Modal.confirm({
+                                            title: formatMessage({id: "LANG2709"}, {0: confirmMsg}),
+                                            content: '',
+                                            okText: 'OK',
+                                            cancelText: 'Cancel',
+                                            onOk: () => {
+                                                UCMGUI.prototype.loginFunction.confirmReboot() 
+                                            },
+                                            onCancel: () => {
+                                                UCMGUI.config.needReboot = needReboot
+                                            }
+                                        })
+                                        return false
+                                    }
+                                }
+
+                                // if (zcScanProgress === '0' && UCMGUI.config.zcScanProgress === '1' && zcScanOperator == username) {
+                                //     top.dialog.clearDialog()
+
+                                //     top.dialog.dialogConfirm({
+                                //         confirmStr: $.lang("LANG917"),
+                                //         buttons: {
+                                //             ok: function() {
+                                //                 top.frames["frameContainer"].module.jumpMenu("zc_devices.html", "?filter=res")
+                                //             }
+                                //         }
+                                //     })
+                                // }
+
+                                // UCMGUI.config.zcScanProgress = zcScanProgress
+                            } else {
+                                if (!loginInterval) {
+                                    UCMGUI.prototype.loginFunction.checkTrigger()
+                                }
+                            }
+                        } else {
+                            message.destroy()
+
+                            UCMGUI.prototype.loginFunction.switchToLoginPanel()
+
+                            if (type === "ping") {
+                                clearInterval(loginInterval)
+
+                                loginInterval = null
+                            }
+                        }
+                    }
+                })
+            } else { // if username is null, switch to login page.
+                message.destroy()
+
+                UCMGUI.prototype.loginFunction.switchToLoginPanel()
+            }
+        },
+        switchToLoginPanel: function() {
+            message.destroy()
+
+            clearInterval(loginInterval)
+
+            // top.$.gsec = null
+
+            loginInterval = null
+
+            cookie.remove('html')
+            cookie.remove('role')
+            cookie.remove('user_id')
+            cookie.remove('username')
+            cookie.remove("position")
+            cookie.remove("jumpMenu")
+            cookie.remove("first_login")
+            cookie.remove("enable_module")
+            cookie.remove("needApplyChange")
+            cookie.remove("en_conf_reflesh")
+            cookie.remove("is_strong_password")
+
+            // $(document).unbind('mousemove mouseenter scroll keydown click dblclick');
+
+            UCMGUI.config.needReboot = ""
+
+            browserHistory.push('/login')
+
+            // reset unconditionally
+            // top.ZEROCONFIG.reset();
+        },
+        checkTrigger: function() {
+            // check user whether has logged per minute.
+            loginInterval = setInterval(function() {
+                UCMGUI.prototype.loginFunction.checkifLoggedIn('ping')
+            }, 60000)
+        },
         confirmReboot: function(cb) {
             var reload = function() {
                 $.ajax({
@@ -423,20 +605,21 @@ UCMGUI.prototype = {
                         }
                     }
                 })
+                browserHistory.push('/login')
             }
             var reboot = function() {
                 // delete interval while reboot.
                 // if (top.$.gsec && top.$.gsec.stopSessionCheck) {
-                //     top.$.gsec.stopSessionCheck();
+                //     top.$.gsec.stopSessionCheck()
                 // }
 
-                // $(document).unbind('mousemove mouseenter scroll keydown click dblclick');
+                // $(document).unbind('mousemove mouseenter scroll keydown click dblclick')
 
-                // clearInterval(loginInterval);
+                clearInterval(loginInterval)
 
-                // loginInterval = null;
+                loginInterval = null
 
-                // UCMGUI.config.needReloadPage = true;
+                // UCMGUI.config.needReloadPage = true
 
                 // top.dialog.dialogMessage({
                 //     type: 'loading',
@@ -445,7 +628,7 @@ UCMGUI.prototype = {
 
                 $.ajax({
                     type: "GET",
-                    url: api.apiHost + "?action=rebootSystem",
+                    url: api.apiHost + "action=rebootSystem",
                     success: function() {
                         setTimeout(reload, 30000)
                     },

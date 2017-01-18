@@ -2,8 +2,13 @@
 
 import React from 'react'
 import { browserHistory } from 'react-router'
-import { Icon, Menu, Dropdown, Select } from 'antd'
+import { Icon, Menu, Dropdown, Select, Button, message, Modal } from 'antd'
+import { injectIntl } from 'react-intl'
 import SubscribeEvent from '../components/api/subscribeEvent'
+import api from "../components/api/api"
+import $ from 'jquery'
+import UCMGUI from "../components/api/ucmgui"
+import cookie from 'react-cookie'
 
 const Option = Select.Option
 
@@ -13,7 +18,8 @@ let Header = React.createClass({
     },
     getInitialState() {
         return {
-            countryArr: JSON.parse(localStorage.getItem('countryArr'))
+            countryArr: JSON.parse(localStorage.getItem('countryArr')),
+            visible: true
         }
     },
     componentDidMount: function() {
@@ -29,16 +35,11 @@ let Header = React.createClass({
         window.location.reload()
     },
     // 跳转登录页
-    handleLogin: function(e) {
-        e && e.preventDefault()
-        if (window.socket) {
-            window.socket.send(SubscribeEvent.logout)
-        }
-        browserHistory.push('/login')
-    },
     handleLogout: function(e) {
+        message.destroy()
         e.preventDefault()
-
+        cookie.remove('adminId')
+        cookie.remove('username')
         localStorage.removeItem('adminId')
         localStorage.removeItem('username')
         localStorage.removeItem('password')
@@ -51,9 +52,58 @@ let Header = React.createClass({
     triggerParentCollapseChange() {
         this.props.onChangeCollpase()
     },
+    _applyChanges() {
+        const { formatMessage } = this.props.intl
+
+        message.loading(formatMessage({id: "LANG806"}), 60)
+
+        $.ajax({
+            url: api.apiHost + "action=applyChanges&settings=",
+            type: "GET",
+            success: function(data) {
+                let status = data.status,
+                    settings = data.response.hasOwnProperty('settings') ? data.response.settings : ''
+
+                message.destroy()
+                if (status === 0 && settings === '0') {
+                    // this.setState({
+                    //     visible: false
+                    // })
+
+                    // cookie.remove("needApplyChange");
+                    if (data.response.need_reboot && data.response.need_reboot === '1') {
+                        Modal.confirm({
+                            title: formatMessage({id: "LANG833"}),
+                            content: '',
+                            okText: 'OK',
+                            cancelText: 'Cancel',
+                            onOk: () => {
+                                UCMGUI.loginFunction.confirmReboot() 
+                            },
+                            onCancel: () => {
+                            }
+                        })
+                    } else {
+                        message.info(formatMessage({id: "LANG951"}))
+                    }
+                } else if (status === -9 && settings.contains('-1')) {
+                    message.error(formatMessage({id: "LANG2805"}))
+                } else if (status === -9 && settings.contains('486')) {
+                    message.info(formatMessage({id: "LANG2803"}))
+                } else if (status === -9 && settings.contains('485')) {
+                    message.info(formatMessage({id: "LANG2804"}))
+                } else if (status === -69) {
+                    message.error(formatMessage({id: "LANG4760"}))
+                } else {
+                    UCMGUI.errorHandler(data, null, formatMessage)
+                }
+            }.bind(this)
+        })
+    },
     render: function () {
         let username = localStorage.getItem('username')
-
+        const { formatMessage } = this.props.intl
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
         const menu = (
             <Menu>
                 <Menu.Item key="1"><a className="u-ml-10" href="#" >重 启</a></Menu.Item>
@@ -64,6 +114,13 @@ let Header = React.createClass({
         return (
             <header className="app-header clearfix">
                 <div className="header-inner">
+                    <div className="app-logo">
+                        <a className="logo" href="http://www.grandstream.com">
+                            <i className="sprite sprite-logo"></i>
+                            {/* <img alt="logo" src={ api.imageHost + "/images/logo-grandstream.png" } /> */}
+                            <span className="logo-text">{ model_info.model_name }</span>
+                        </a>
+                    </div>
                     {/* <a className="logo" href="http://www.grandstream.com/">
                         <span className="logo-text">Grandstream</span>
                     </a>
@@ -81,7 +138,7 @@ let Header = React.createClass({
                         </Dropdown>
                     </nav>
                     <nav className="right-nav">
-                        <Select defaultValue={ localStorage.getItem('locale') || "en-US" } style={{ width: 100 }} onChange={ this.handleChange }>
+                        <Select defaultValue={ localStorage.getItem('locale') || "en-US" } style={{ width: 100 }} size="small" onChange={ this.handleChange }>
                             {
                                 this.state.countryArr.map(function(it) {
                                 const lang = it.languages
@@ -91,6 +148,9 @@ let Header = React.createClass({
                             })}
                         </Select>
                     </nav>
+                    <nav className="right-nav">
+                        <Button type="primary" onClick={this._applyChanges} className={this.state.visible ? "display-inline" : "hidden"}>{formatMessage({id: "LANG260"})}</Button>
+                    </nav>
                     {/* <div className="nav-phone-icon"></div> */}
                 </div>
             </header>
@@ -98,4 +158,4 @@ let Header = React.createClass({
     }
 })
 
-module.exports = Header
+module.exports = injectIntl(Header)

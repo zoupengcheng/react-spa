@@ -248,6 +248,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('nat', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.nat === 'yes'
                                 })(
                                     <Checkbox />
@@ -384,6 +385,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('inDirectory', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.inDirectory === 'yes'
                                 })(
                                     <Checkbox />
@@ -403,6 +405,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('callwaiting', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.callwaiting === 'yes'
                                 })(
                                     <Checkbox />
@@ -422,6 +425,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('sharpissendkey', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.sharpissendkey === 'yes'
                                 })(
                                     <Checkbox />
@@ -561,6 +565,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('answeronpolarityswitch', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.answeronpolarityswitch === 'yes'
                                 })(
                                     <Checkbox />
@@ -640,6 +645,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('threewaycalling', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.threewaycalling === 'yes'
                                 })(
                                     <Checkbox />
@@ -885,6 +891,7 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('t38_udptl', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.t38_udptl
                                 })(
                                     <Checkbox />

@@ -1,4 +1,4 @@
-import {ADD_MESSAGE, ADD_RESPONSE} from '../actions/message'
+import { ADD_MESSAGE, ADD_RESPONSE } from '../actions/message'
 
 const messages = (currentMessages = "initMsg", action) => {
     switch (action.type) {

@@ -1,10 +1,14 @@
 'use strict'
 
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import * as Actions from '../actions/'
 import React from 'react'
 import SideBar from './sidebar'
 import Header from './header'
 import Footer from './footer'
 import Container from './container'
+import { injectIntl} from 'react-intl'
 import { Icon, Spin } from 'antd'
 
 let Home = React.createClass({
@@ -34,6 +38,9 @@ let App = React.createClass({
             collapse: !this.state.collapse
         })
     },
+    componentDidMount() {
+        this.props.setSpinLoading({loading: false})
+    },
     renderChild() {
         const { children } = this.props
 
@@ -52,13 +59,14 @@ let App = React.createClass({
         )
     },
     render() {
+        const { formatMessage } = this.props.intl
         const collapse = this.state.collapse
         const container = (
             <div className={ collapse ? "app-wrapper app-wrapper-collapse" : "app-wrapper" }>
                 <div className="app-container">
+                    <Header />
                     <SideBar collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
                     <div className="app-main">
-                        <Header />
                         <Container>
                             { this.renderChild() }
                         </Container>
@@ -67,10 +75,21 @@ let App = React.createClass({
                 <Footer />        
             </div>
         )
+        let tip = this.props.spinLoading.tip
+        let loading = this.props.spinLoading.loading
+
         return (
-            <Spin spinning={this.state.loading} tip="Loading...">{container}</Spin>
+            <Spin spinning={loading ? loading : false} tip={tip ? tip : formatMessage({id: "LANG904"})}>{container}</Spin>
         )
     }
 })
 
-module.exports = App
+const mapStateToProps = (state) => ({
+    spinLoading: state.spinLoading
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(App))

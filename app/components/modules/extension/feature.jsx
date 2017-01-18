@@ -467,6 +467,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('dnd', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.dnd === 'yes'
                                 })(
                                     <Checkbox onChange={ this._onChangeDND } />
@@ -560,6 +561,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('enable_cc', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.enable_cc === 'yes'
                                 })(
                                     <Checkbox onChange={ this._onChangeEnableCC } />
@@ -679,6 +681,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('en_ringboth', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.en_ringboth === 'yes'
                                 })(
                                     <Checkbox onChange={ this._onChangeRingBoth } />
@@ -763,6 +766,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('en_hotline', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.en_hotline === 'yes'
                                 })(
                                     <Checkbox onChange={ this._onChangeHotLine } />
@@ -980,6 +984,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('auto_record', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.auto_record === 'yes'
                                 })(
                                     <Checkbox />
@@ -999,6 +1004,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('cti', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.cti
                                 })(
                                     <Checkbox />
@@ -1108,6 +1114,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('enablehotdesk', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.enablehotdesk === 'yes'
                                 })(
                                     <Checkbox />
@@ -1127,6 +1134,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('enable_ldap', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.enable_ldap === 'yes'
                                 })(
                                     <Checkbox />
@@ -1149,6 +1157,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('enable_webrtc', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.enable_webrtc === 'yes'
                                 })(
                                     <Checkbox />
@@ -1206,6 +1215,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('room', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.room === 'yes'
                                 })(
                                     <Checkbox />
@@ -1225,6 +1235,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('out_limitime', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.out_limitime
                                 })(
                                     <Checkbox onChange={ this._onChangeLimiTime } />
@@ -1274,6 +1285,7 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('custom_autoanswer', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.custom_autoanswer === 'yes'
                                 })(
                                     <Checkbox />

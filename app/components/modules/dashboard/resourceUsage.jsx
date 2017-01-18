@@ -39,18 +39,18 @@ class ResourceUsage extends Component {
                 tooltip: {
                     trigger: 'axis'
                 },
-                color: ['#FF4179', '#4875F0'],
+                color: ['#4875F0', '#FF4179'],
                 legend: {
                     right: '0',
                     data: [{
-                        name: 'Memory Usage', 
+                        name: 'CPU Usage', 
                         icon: 'roundRect',
                         textStyle: {
                             color: '#7D8A99',
                             fontSize: '10px'
                         }
                     }, {
-                        name: 'CPU Usage', 
+                        name: 'Memory Usage', 
                         icon: 'roundRect',
                         textStyle: {
                             color: '#7D8A99',
@@ -119,38 +119,7 @@ class ResourceUsage extends Component {
                         }
                     }
                 },
-                series: [
-                    {
-                        name: 'Memory Usage',
-                        type: 'line',
-                        lineStyle: {
-                            normal: {
-                                type: 'solid',
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                                    offset: 0, color: '#FF827F' 
-                                }, {
-                                    offset: 1, color: '#FF3377' 
-                                }], true),
-                                opacity: '0.5'
-                            }
-                        },
-                        areaStyle: {
-                            normal: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                                  offset: 0, color: '#E3497F'
-                                }, {
-                                  offset: 1, color: '#FAEBF1' 
-                                }], true),
-                                opacity: '0.5'
-                            }
-                        },
-                        itemStyle: {
-                            normal: {
-                                opacity: 0.3
-                            }
-                        },
-                        data: memoryUsageData
-                    }, {
+                series: [{
                         name: 'CPU Usage',
                         type: 'line',
                         lineStyle: {
@@ -181,8 +150,37 @@ class ResourceUsage extends Component {
                             }
                         },
                         data: cpuUsageData
-                    }
-                ]
+                    }, {
+                        name: 'Memory Usage',
+                        type: 'line',
+                        lineStyle: {
+                            normal: {
+                                type: 'solid',
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0, color: '#FF827F' 
+                                }, {
+                                    offset: 1, color: '#FF3377' 
+                                }], true),
+                                opacity: '0.5'
+                            }
+                        },
+                        areaStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                  offset: 0, color: '#E3497F'
+                                }, {
+                                  offset: 1, color: '#FAEBF1' 
+                                }], true),
+                                opacity: '0.5'
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                opacity: 0.3
+                            }
+                        },
+                        data: memoryUsageData
+                    }]
             }   
             // for (let i = timesData.length - 1; i >= 0; i--) {
             //     let timesDataIndex = timesData[i]
@@ -195,11 +193,11 @@ class ResourceUsage extends Component {
                     data: timesData
                 },
                 series: [{
-                    name: 'Memory Usage',
-                    data: memoryUsageData
-                }, {
                     name: 'CPU Usage',
                     data: cpuUsageData
+                }, {
+                    name: 'Memory Usage',
+                    data: memoryUsageData
                 }]
             })
         }       

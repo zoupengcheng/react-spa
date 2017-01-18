@@ -279,6 +279,7 @@ const Login = React.createClass({
                                     <Select
                                         onChange={ this.handleChange }
                                         style={{ width: 100, float: "right" }}
+                                        size="small"
                                         defaultValue={ localStorage.getItem('locale') || "en-US" }
                                     >
                                         {

@@ -21,15 +21,17 @@ class ExtensionGroup extends Component {
             extensionGroups: [],
             miniBar: [],
             miniBarWaiter: [],
-            miniBarGoods: []
+            miniBarGoods: [],
+            buttonMinibar: true
         }
     }
     componentDidMount() {
         this._getMiniBar()
         this._getMiniBarWaiter()
         this._getMiniBarGoods()
+        this._getAccountList()
     }
-    _add = () => {
+    _addbar = () => {
         let confirmContent = ''
         const { formatMessage } = this.props.intl
 
@@ -40,15 +42,53 @@ class ExtensionGroup extends Component {
                 title: '',
                 content: confirmContent,
                 onOk() {
-                    browserHistory.push('/extension-trunk/extension')
+                    browserHistory.push('/value-added-features/pmsMinibar')
                 },
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/value-added-features/pmsMinibar/addbar')
         }
     }
-    _delete = (record) => {
+    _addwaiter = () => {
+        let confirmContent = ''
+        const { formatMessage } = this.props.intl
+
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
+
+        if (!this.state.accountList.length) {
+            confirm({
+                title: '',
+                content: confirmContent,
+                onOk() {
+                    browserHistory.push('/value-added-features/pmsMinibar')
+                },
+                onCancel() {}
+            })
+        } else {
+            browserHistory.push('/value-added-features/pmsMinibar/addwaiter')
+        }
+    }
+    _addgoods = () => {
+        let confirmContent = ''
+        const { formatMessage } = this.props.intl
+
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
+
+        if (!this.state.accountList.length) {
+            confirm({
+                title: '',
+                content: confirmContent,
+                onOk() {
+                    browserHistory.push('/value-added-features/pms/4')
+                },
+                onCancel() {}
+            })
+        } else {
+            browserHistory.push('/value-added-features/pmsMinibar/addgoods')
+        }
+    }
+    _deletebar = (record) => {
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
@@ -62,8 +102,8 @@ class ExtensionGroup extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                "action": "deleteMiniBar",
+                "extension": record.extension
             },
             type: 'json',
             async: true,
@@ -82,8 +122,82 @@ class ExtensionGroup extends Component {
             }
         })
     }
-    _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+    _deletewaiter = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deleteMiniBarWaiter",
+                "waiter_id": record.waiter_id
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getExtensionGroups()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _deletegoods = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deleteMiniBarGoods",
+                "extension": record.extension
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getExtensionGroups()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _editbar = (record) => {
+        browserHistory.push('/value-added-features/pmsMinibar/editbar/' + record.extension + '/' + record.extension)
+    }
+    _editwaiter = (record) => {
+        browserHistory.push('/value-added-features/pmsMinibar/editwaiter/' + record.waiter_id + '/' + record.waiter_id)
+    }
+    _editgoods = (record) => {
+        browserHistory.push('/value-added-features/pmsMinibar/editgoods/' + record.extension + '/' + record.extension)
     }
     _getAccountList = () => {
         $.ajax({
@@ -115,37 +229,6 @@ class ExtensionGroup extends Component {
             }
         })
     }
-    _getExtensionGroups = () => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'listExtensionGroup',
-                sidx: 'group_id',
-                sord: 'asc'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const extensionGroups = response.extension_group || []
-
-                    this.setState({
-                        extensionGroups: extensionGroups
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-
     _getMiniBar = () => {
         const { formatMessage } = this.props.intl
 
@@ -167,7 +250,8 @@ class ExtensionGroup extends Component {
                     const miniBar = response.minibar_settings || []
 
                     this.setState({
-                        miniBar: miniBar
+                        miniBar: miniBar,
+                        buttonMinibar: (miniBar.length > 0 ? false : true)
                     })
                 }
             }.bind(this),
@@ -268,13 +352,13 @@ class ExtensionGroup extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
-                                onClick={ this._edit.bind(this, record) }>
+                                onClick={ this._editbar.bind(this, record) }>
                             </span>
                             <Popconfirm
                                 title={ formatMessage({id: "LANG841"}) }
                                 okText={ formatMessage({id: "LANG727"}) }
                                 cancelText={ formatMessage({id: "LANG726"}) }
-                                onConfirm={ this._delete.bind(this, record) }
+                                onConfirm={ this._deletebar.bind(this, record) }
                             >
                                 <span className="sprite sprite-del"></span>
                             </Popconfirm>
@@ -302,13 +386,13 @@ class ExtensionGroup extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
-                                onClick={ this._edit.bind(this, record) }>
+                                onClick={ this._editwaiter.bind(this, record) }>
                             </span>
                             <Popconfirm
                                 title={ formatMessage({id: "LANG841"}) }
                                 okText={ formatMessage({id: "LANG727"}) }
                                 cancelText={ formatMessage({id: "LANG726"}) }
-                                onConfirm={ this._delete.bind(this, record) }
+                                onConfirm={ this._deletewaiter.bind(this, record) }
                             >
                                 <span className="sprite sprite-del"></span>
                             </Popconfirm>
@@ -336,13 +420,13 @@ class ExtensionGroup extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
-                                onClick={ this._edit.bind(this, record) }>
+                                onClick={ this._editgoods.bind(this, record) }>
                             </span>
                             <Popconfirm
                                 title={ formatMessage({id: "LANG841"}) }
                                 okText={ formatMessage({id: "LANG727"}) }
                                 cancelText={ formatMessage({id: "LANG726"}) }
-                                onConfirm={ this._delete.bind(this, record) }
+                                onConfirm={ this._deletegoods.bind(this, record) }
                             >
                                 <span className="sprite sprite-del"></span>
                             </Popconfirm>
@@ -397,7 +481,8 @@ class ExtensionGroup extends Component {
                             icon="plus"
                             type="primary"
                             size='default'
-                            onClick={ this._add }
+                            disabled={ this.state.buttonMinibar ? false : true }
+                            onClick={ this._addbar }
                         >
                             { formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG5056"}) }) }
                         </Button>
@@ -417,7 +502,7 @@ class ExtensionGroup extends Component {
                             icon="plus"
                             type="primary"
                             size='default'
-                            onClick={ this._add }
+                            onClick={ this._addwaiter }
                         >
                             { formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG5057"}) }) }
                         </Button>
@@ -437,7 +522,7 @@ class ExtensionGroup extends Component {
                             icon="plus"
                             type="primary"
                             size='default'
-                            onClick={ this._add }
+                            onClick={ this._addgoods }
                         >
                             { formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG5050"}) }) }
                         </Button>

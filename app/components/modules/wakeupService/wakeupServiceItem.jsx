@@ -451,8 +451,10 @@ class WakeupServiceItem extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('extension', {
-                                rules: [],
-                                required: true,
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
                                 width: 100,
                                 initialValue: wakeupServiceItem.extension ? wakeupServiceItem.extension : (this.state.accountList.length > 0 ? this.state.accountList[0].extension : "")
                             })(
@@ -484,8 +486,10 @@ class WakeupServiceItem extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('prompt', {
-                                rules: [],
-                                required: true,
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
                                 width: 100,
                                 initialValue: wakeupServiceItem.prompt ? wakeupServiceItem.prompt : "wakeup-call"
                             })(

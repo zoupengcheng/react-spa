@@ -22,6 +22,7 @@ class pmsRooms extends Component {
         }
     }
     componentDidMount() {
+        this._getAccountList()
         this._getPmsWakeup()
     }
     _add = () => {
@@ -35,12 +36,12 @@ class pmsRooms extends Component {
                 title: '',
                 content: confirmContent,
                 onOk() {
-                    browserHistory.push('/extension-trunk/extension')
+                    browserHistory.push('/value-added-features/pms/3')
                 },
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/value-added-features/pmsWakeup/add')
         }
     }
     _delete = (record) => {
@@ -57,8 +58,8 @@ class pmsRooms extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                "action": "deletePMSWakeUp",
+                "address": record.address
             },
             type: 'json',
             async: true,
@@ -78,7 +79,7 @@ class pmsRooms extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/value-added-features/pmsWakeup/edit/' + record.address + '/' + record.address)
     }
     _getAccountList = () => {
         $.ajax({
@@ -158,16 +159,53 @@ class pmsRooms extends Component {
                 key: 'w_action',
                 dataIndex: 'w_action',
                 title: formatMessage({id: "LANG4871"}),
+                render: (text, record, index) => {
+                    if (text === '0') {
+                        return <span>{ formatMessage({id: "LANG4868"}) }</span>
+                    } else if (text === '1') {
+                        return <span>{ formatMessage({id: "LANG4869"}) }</span>
+                    } else if (text === '2') {
+                        return <span>{ formatMessage({id: "LANG4870"}) }</span>
+                    } else {
+                        return <span>{ formatMessage({id: "LANG2403"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.w_action.length - b.w_action.length
             }, {
                 key: 'w_type',
                 dataIndex: 'w_type',
                 title: formatMessage({id: "LANG1950"}),
+                render: (text, record, index) => {
+                    if (text === '1') {
+                        return <span>{ formatMessage({id: "LANG4866"}) }</span>
+                    } else if (text === '2') {
+                        return <span>{ formatMessage({id: "LANG4867"}) }</span>
+                    } else {
+                        return <span>{ formatMessage({id: "LANG2403"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.w_type.length - b.w_type.length
             }, {
                 key: 'w_status',
                 dataIndex: 'w_status',
                 title: formatMessage({id: "LANG4862"}),
+                render: (text, record, index) => {
+                    if (record.w_action === '2') {
+                        if (text === '1') {
+                            return <span>{ formatMessage({id: "LANG4863"}) }</span>
+                        } else if (text === '2') {
+                            return <span>{ formatMessage({id: "LANG4864"}) }</span>
+                        } else if (text === '3') {
+                            return <span>{ formatMessage({id: "LANG2237"}) }</span>
+                        } else if (text === '4') {
+                            return <span>{ formatMessage({id: "LANG4865"}) }</span>
+                        } else {
+                            return <span>{ formatMessage({id: "LANG2403"}) }</span>
+                        }
+                    } else {
+                        return <span>{ formatMessage({id: "LANG4948"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.w_status.length - b.w_status.length
             }, {
                 key: 'w_date',
@@ -183,6 +221,16 @@ class pmsRooms extends Component {
                 key: 'send_status',
                 dataIndex: 'send_status',
                 title: formatMessage({id: "LANG4861"}),
+                className: "hidden",
+                render: (text, record, index) => {
+                    if (text === '0') {
+                        return <span>{ formatMessage({id: "LANG4153"}) }</span>
+                    } else if (text === '1') {
+                        return <span>{ formatMessage({id: "LANG4154"}) }</span>
+                    } else {
+                        return <span>{ formatMessage({id: "LANG2403"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.send_status.length - b.send_status.length
             }, {
                 key: 'options',

@@ -24,15 +24,21 @@ class Extension extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            rebootList: [],
             selectedRows: [],
             extensionList: [],
             selectedRowKeys: [],
+            zeroConfigSettings: {},
+            selectedRebootRows: [],
+            selectedRebootRowKeys: [],
+            rebootModalVisible: false,
             sendEmailModalVisible: false,
             batchDeleteModalVisible: false
         }
     }
     componentDidMount() {
         this._getExtensionList()
+        this._getZeroConfigSettings()
     }
     componentWillUnmount() {
     }
@@ -292,20 +298,25 @@ class Extension extends Component {
 
         window.open("/cgi?action=downloadFile&type=export_" + type + "_extensions&data=export_" + type + "_extensions.csv", '_self')
     }
-    _getExtensionList = () => {
+    _getExtensionList = (ext_num, callback) => {
         const { formatMessage } = this.props.intl
 
-        $.ajax({
-            async: true,
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
+        let data = {
                 sord: 'asc',
                 sidx: 'extension',
                 action: 'listAccount',
                 options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
-            },
+            }
+
+        if (ext_num) {
+            data.ext_num = ext_num
+        }
+
+        $.ajax({
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: data,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -315,11 +326,24 @@ class Extension extends Component {
                     this.setState({
                         extensionList: response.account || []
                     })
+
+                    if (callback) {
+                        callback()
+                    }
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _getZeroConfigSettings = () => {
+        const { formatMessage } = this.props.intl
+
+        let zeroConfigSettings = UCMGUI.isExist.getList("getZeroConfigSettings", formatMessage)
+
+        this.setState({
+            zeroConfigSettings: zeroConfigSettings
         })
     }
     _handleBatchDeleteCancel = () => {
@@ -360,6 +384,71 @@ class Extension extends Component {
             }
         })
     }
+    _handleRebootCancel = () => {
+        this.setState({ rebootModalVisible: false })
+    }
+    _handleRebootOk = () => {
+        let __this = this
+        const { formatMessage } = this.props.intl
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG829" })}}></span>
+        const confirmMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG834" })}}></span>
+        const warningMessage = <span dangerouslySetInnerHTML=
+                                        {{ __html: formatMessage({ id: "LANG3531" }, {
+                                                0: '1',
+                                                1: formatMessage({ id: "LANG155" }).toLowerCase()
+                                            })
+                                        }}
+                                    ></span>
+
+        if (!this.state.selectedRebootRowKeys.length) {
+            message.warning(warningMessage)
+        } else {
+            let ipLists = []
+
+            this._handleRebootCancel()
+
+            this.state.selectedRebootRows.map(function(item) {
+                ipLists.push(item.key + '@' + item.ip)
+            })
+
+            confirm({
+                title: '',
+                content: confirmMessage,
+                onOk() {
+                    $.ajax({
+                        url: api.apiHost,
+                        method: 'post',
+                        data: {
+                            'ip': ipLists.join(','),
+                            'action': 'rebootDevice'
+                        },
+                        type: 'json',
+                        success: function(res) {
+                            const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
+
+                            if (bool) {
+                                const rebootDevice = res.response.rebootDevice
+
+                                if (rebootDevice === "Send REBOOT !") {
+                                    message.success(successMessage)
+                                } else {
+                                    // res.lChop("ZCERROR_")
+                                    const num = rebootDevice.substr(8)
+                                    const localeID = __this.props.zeroconfigErr[num] ? __this.props.zeroconfigErr[num] : "LANG909"
+
+                                    message.error(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: localeID })}}></span>)
+                                }
+                            }
+                        },
+                        error: function(e) {
+                            message.error(e.statusText)
+                        }
+                    })
+                },
+                onCancel() {}
+            })
+        }
+    }
     _handleSendEmailCancel = () => {
         this.setState({ sendEmailModalVisible: false })
     }
@@ -380,8 +469,8 @@ class Extension extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                'action': 'sendAccount2User',
-                'extension': sendExtensions
+                'extension': sendExtensions,
+                'action': 'sendAccount2User'
             },
             type: 'json',
             async: true,
@@ -407,47 +496,16 @@ class Extension extends Component {
 
         this.props.form.validateFields({ force: true }, (err, values) => {
             if (!err) {
-                let action = {
-                        sord: 'asc',
-                        sidx: 'extension',
-                        action: 'listAccount',
-                        options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
-                    }
-
-                if (values.ext_num) {
-                    action.ext_num = values.ext_num
-                }
-
                 console.log('Received values of form: ', values)
 
                 message.loading(loadingMessage)
 
-                $.ajax({
-                    async: true,
-                    data: action,
-                    type: 'json',
-                    method: 'post',
-                    url: api.apiHost,
-                    success: function(res) {
-                        const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                this._getExtensionList(values.ext_num, function() {
+                    message.destroy()
+                    // message.success(successMessage)
 
-                        if (bool) {
-                            const response = res.response || {}
-
-                            this.setState({
-                                extensionList: response.account || []
-                            })
-
-                            message.destroy()
-                            // message.success(successMessage)
-
-                            this._clearSelectRows()
-                        }
-                    }.bind(this),
-                    error: function(e) {
-                        message.error(e.statusText)
-                    }
-                })
+                    this._clearSelectRows()
+                }.bind(this))
             }
         })
     }
@@ -460,8 +518,54 @@ class Extension extends Component {
 
         this.setState({ selectedRowKeys, selectedRows })
     }
+    _onSelectRebootChange = (selectedRowKeys, selectedRows) => {
+        // console.log('selectedRowKeys changed: ', selectedRowKeys)
+        // console.log('selectedRow changed: ', selectedRows)
+
+        this.setState({
+            selectedRebootRows: selectedRows,
+            selectedRebootRowKeys: selectedRowKeys
+        })
+    }
     _reboot = (record) => {
-        browserHistory.push('/extension-trunk/extension/add')
+        const { formatMessage } = this.props.intl
+        const confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG828" })}}></span>
+
+        if (this.state.zeroConfigSettings && this.state.zeroConfigSettings.enable_zeroconfig !== '1') {
+            confirm({
+                title: '',
+                content: confirmContent,
+                onOk() {
+                    browserHistory.push('/value-added-features/zeroConfig')
+                },
+                onCancel() {}
+            })
+        } else {
+            let extension = record.extension
+            let rebootList = record.addr ? record.addr.split(',') : []
+
+            rebootList = rebootList.map(function(value) {
+                let rebootIP
+
+                if (UCMGUI.isIPv6(value)) {
+                    rebootIP = value.split(']:')[0] + ']'
+                } else {
+                    rebootIP = value.split(':')[0]
+                }
+
+                return {
+                        ip: rebootIP,
+                        key: extension
+                    }
+            })
+
+            this.setState({
+                rebootList: rebootList,
+                selectedRebootRows: [],
+                rebootModalVisible: true,
+                selectedRebootRowKeys: []
+            })
+        }
     }
     _sendEmail = () => {
         const { formatMessage } = this.props.intl
@@ -507,7 +611,12 @@ class Extension extends Component {
                 key: 'fullname',
                 dataIndex: 'fullname',
                 title: formatMessage({id: "LANG1065"}),
-                sorter: (a, b) => a.fullname.length - b.fullname.length
+                sorter: (a, b) => {
+                    const aname = a.fullname ? a.fullname : ''
+                    const bname = b.fullname ? b.fullname : ''
+
+                    return aname.length - bname.length
+                }
             }, {
                 key: 'account_type',
                 dataIndex: 'account_type',
@@ -540,8 +649,8 @@ class Extension extends Component {
         ]
         
         const pagination = {
-                total: this.state.extensionList.length,
                 showSizeChanger: true,
+                total: this.state.extensionList.length,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
 
@@ -557,6 +666,17 @@ class Extension extends Component {
         const rowSelection = {
                 onChange: this._onSelectChange,
                 selectedRowKeys: this.state.selectedRowKeys
+            }
+
+        const rebootColumns = [{
+                key: 'ip',
+                dataIndex: 'ip', 
+                title: formatMessage({id: "LANG155"})
+            }]
+
+        const rebootRowSelection = {
+                onChange: this._onSelectRebootChange,
+                selectedRowKeys: this.state.selectedRebootRowKeys
             }
 
         const exportMenu = (
@@ -698,6 +818,24 @@ class Extension extends Component {
                         >
                             <FormattedHTMLMessage id="LANG3498" />
                         </Modal>
+                        <Modal
+                            onOk={ this._handleRebootOk }
+                            onCancel={ this._handleRebootCancel }
+                            title={ formatMessage({id: "LANG737"}) }
+                            okText={ formatMessage({id: "LANG737"}) }
+                            visible={ this.state.rebootModalVisible }
+                            cancelText={ formatMessage({id: "LANG726"}) }
+                        >
+                            <Table
+                                bordered
+                                rowKey="extension"
+                                pagination={ false }
+                                columns={ rebootColumns }
+                                rowSelection={ rebootRowSelection }
+                                dataSource={ this.state.rebootList }
+                                showHeader={ !!this.state.rebootList.length }
+                            />
+                        </Modal>
                     </div>
                     <Table
                         bordered
@@ -714,6 +852,13 @@ class Extension extends Component {
     }
 }
 
-Extension.defaultProps = {}
+Extension.defaultProps = {
+    zeroconfigErr: {
+        "1": "LANG918",
+        "2": "LANG919",
+        "3": "LANG920",
+        "4": "LANG2538"
+    }
+}
 
 export default Form.create()(injectIntl(Extension))

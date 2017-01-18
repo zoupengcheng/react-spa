@@ -22,6 +22,7 @@ class pmsRooms extends Component {
         }
     }
     componentDidMount() {
+        this._getAccountList()
         this._getPmsRooms()
     }
     _add = () => {
@@ -35,12 +36,31 @@ class pmsRooms extends Component {
                 title: '',
                 content: confirmContent,
                 onOk() {
-                    browserHistory.push('/extension-trunk/extension')
+                    browserHistory.push('/value-added-features/pms/2')
                 },
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/value-added-features/pmsRooms/add')
+        }
+    }
+    _batchadd = () => {
+        let confirmContent = ''
+        const { formatMessage } = this.props.intl
+
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
+
+        if (!this.state.accountList.length) {
+            confirm({
+                title: '',
+                content: confirmContent,
+                onOk() {
+                    browserHistory.push('/value-added-features/pms/2')
+                },
+                onCancel() {}
+            })
+        } else {
+            browserHistory.push('/value-added-features/pmsRooms/batchadd')
         }
     }
     _delete = (record) => {
@@ -57,8 +77,42 @@ class pmsRooms extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                "action": "deletePMSRoom",
+                "address": record.address
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getPmsRooms()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _batchdelete = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deletePMSRoom",
+                "address": this.state.selectedRowKeys.join(',')
             },
             type: 'json',
             async: true,
@@ -78,7 +132,7 @@ class pmsRooms extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/value-added-features/pmsRooms/edit/' + record.address + '/' + record.address)
     }
     _getAccountList = () => {
         $.ajax({
@@ -144,7 +198,9 @@ class pmsRooms extends Component {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
         // console.log('selectedRow changed: ', selectedRows)
 
-        this.setState({ selectedRowKeys })
+        this.setState({ 
+            selectedRowKeys: selectedRowKeys
+        })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -251,7 +307,7 @@ class pmsRooms extends Component {
                             icon="delete"
                             type="primary"
                             size='default'
-                            onClick={ this._add }
+                            onClick={ this._batchdelete }
                         >
                             { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG4969"}) }) }
                         </Button>
@@ -259,7 +315,7 @@ class pmsRooms extends Component {
                             icon="plus"
                             type="primary"
                             size='default'
-                            onClick={ this._add }
+                            onClick={ this._batchadd }
                         >
                             { formatMessage({id: "LANG4965"}, {0: formatMessage({id: "LANG4969"}) }) }
                         </Button>

@@ -23,8 +23,8 @@ class SwitchBoardItem extends Component {
         const { formatMessage } = this.props.intl
         const enableAgentLogin = this.props.queueDetail.enable_agent_login
 
-        console.log(text)
-        console.log(enableAgentLogin)
+        // console.log(text)
+        // console.log(enableAgentLogin)
 
         if (enableAgentLogin === 'yes') {
             if (text && text === 'loggin') {
@@ -171,6 +171,26 @@ class SwitchBoardItem extends Component {
                 title: formatMessage({id: "LANG2238"})
             }]
 
+        const answerColumns = [{
+                key: 'channel1',
+                dataIndex: 'channel1',
+                title: formatMessage({id: "LANG581"})
+            }, {
+                key: 'channel2',
+                dataIndex: 'channel2',
+                title: formatMessage({id: "LANG582"})
+            }]
+
+        const waitingColumns = [{
+                key: 'queuechannel',
+                dataIndex: 'queuechannel',
+                title: formatMessage({id: "LANG581"})
+            }, {
+                key: 'extension',
+                dataIndex: 'extension',
+                title: formatMessage({id: "LANG582"})
+            }]
+
         return (
             <div className="app-content-main">
                 <div className="content">
@@ -192,8 +212,8 @@ class SwitchBoardItem extends Component {
                         style={{ 'marginTop': '10px' }}
                     >
                         <Table
-                            rowKey="callerid1"
-                            columns={ columns }
+                            rowKey="channel1"
+                            columns={ answerColumns }
                             dataSource={ this.props.answerCallings }
                             showHeader={ !!this.props.answerCallings.length }
                             pagination={ this._pagination(this.props.answerCallings) }
@@ -205,8 +225,8 @@ class SwitchBoardItem extends Component {
                         style={{ 'marginTop': '10px' }}
                     >
                         <Table
-                            rowKey="extension"
-                            columns={ columns }
+                            rowKey="position"
+                            columns={ waitingColumns }
                             dataSource={ this.props.waitingCallings }
                             showHeader={ !!this.props.waitingCallings.length }
                             pagination={ this._pagination(this.props.waitingCallings) }

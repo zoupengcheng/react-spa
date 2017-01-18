@@ -61,12 +61,6 @@ let SideBar = React.createClass({
 
       return (
           <aside className="app-sidebar">
-                <div className="app-logo">
-                    <a className="logo" href="http://www.grandstream.com">
-                        <img alt="logo" src={ api.imageHost + "/images/logo-grandstream.png" } />
-                        <span className="logo-text">{ model_info.model_name }</span>
-                    </a>
-                </div>
                 <div className="aside-action" onClick={this.onCollapseChange} >
                     {this.props.collapse ? <div className="aside-bars"><Icon type="sprite sprite-bars-left" /></div> : <div className="aside-bars"><span className="bars-text">Menus</span><Icon type="sprite sprite-bars-right" /></div>}
                 </div>

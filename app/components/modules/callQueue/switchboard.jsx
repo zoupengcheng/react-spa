@@ -1,13 +1,15 @@
 'use strict'
 
-import { bindActionCreators } from 'redux'
-import { connect } from 'react-redux'
-import * as Actions from '../../../actions/'
 import $ from 'jquery'
+import _ from 'underscore'
 import api from "../../api/api"
 import { message, Tabs } from 'antd'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
@@ -28,7 +30,8 @@ class SwitchBoard extends Component {
         }
     }
     componentWillMount () {
-        this._getQueueByChairman()
+        // this._getQueueByChairman()
+        this.props.getQueueByChairman()
     }
     _getQueueByChairman = (chairman) => {
         let data = {}
@@ -149,7 +152,7 @@ class SwitchBoard extends Component {
                     const waitingCallings = response.CallQueues || []
 
                     this.setState({
-                        waitingCallings: waitingCallings
+                        waitingCallings: _.sortBy(waitingCallings, function(item) { return item.position })
                     })
                 }
             }.bind(this),
@@ -161,16 +164,18 @@ class SwitchBoard extends Component {
     _onTabsChange = (activeTabKey) => {
         this.setState({ activeTabKey })
 
-        this._getQueueMembers(activeTabKey)
-        this._getQueueCallingAnswered(activeTabKey)
-        this._getQueueCallingWaiting(activeTabKey)
+        this.props.getQueueMembers(activeTabKey)
+        this.props.getQueueCallingAnswered(activeTabKey)
+        this.props.getQueueCallingWaiting(activeTabKey)
     }
     render() {
         const { formatMessage } = this.props.intl
-        const queueMembers = this.state.queueMembers
-        const answerCallings = this.state.answerCallings
-        const waitingCallings = this.state.waitingCallings
+        const queueMembers = this.props.queueMembers
+        const callQueueList = this.props.callQueueList
+        const answerCallings = this.props.answerCallings
+        const waitingCallings = this.props.waitingCallings
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+        const activeTabKey = (callQueueList && callQueueList.length ? callQueueList[0].extension : '')
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -183,9 +188,12 @@ class SwitchBoard extends Component {
                     headerTitle={ formatMessage({id: "LANG5407"}) }
                     isDisplay='hidden'
                 />
-                <Tabs activeKey={ this.state.activeTabKey } onChange={ this._onTabsChange }>
+                <Tabs
+                    onChange={ this._onTabsChange }
+                    activeKey={ this.state.activeTabKey ? this.state.activeTabKey : activeTabKey }
+                >
                 {
-                    this.state.callQueueList.map(function(item) {
+                    callQueueList.map(function(item) {
                         return <TabPane
                                     key={ item.extension }
                                     tab={ item.extension + ' (' + item.queuename + ')' }
@@ -206,7 +214,10 @@ class SwitchBoard extends Component {
 }
 
 const mapStateToProps = (state) => ({
-    resourceUsage: state.resourceUsage
+    queueMembers: state.queueMembers,
+    callQueueList: state.callQueueList,
+    answerCallings: state.answerCallings,
+    waitingCallings: state.waitingCallings
 })
 
 function mapDispatchToProps(dispatch) {

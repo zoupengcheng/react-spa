@@ -70,6 +70,7 @@ class BasicSettings extends Component {
         const { getFieldDecorator } = this.props.form
         const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
+        const userSettings = this.props.userSettings || {}
 
         const formItemLayout = {
             labelCol: { span: 8 },
@@ -355,6 +356,7 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('hasvoicemail', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.hasvoicemail === 'yes'
                                 })(
                                     <Checkbox />
@@ -398,6 +400,7 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('skip_vmsecret', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.skip_vmsecret === 'yes'
                                 })(
                                     <Checkbox />
@@ -420,6 +423,7 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('enable_qualify', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.enable_qualify === 'yes'
                                 })(
                                     <Checkbox />
@@ -466,6 +470,7 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('out_of_service', {
                                     rules: [],
+                                    valuePropName: 'checked',
                                     initialValue: settings.out_of_service === 'yes'
                                 })(
                                     <Checkbox />
@@ -499,7 +504,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.first_name
+                                    initialValue: userSettings.first_name
                                 })(
                                     <Input />
                                 ) }
@@ -523,7 +528,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.last_name
+                                    initialValue: userSettings.last_name
                                 })(
                                     <Input />
                                 ) }
@@ -547,7 +552,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.email
+                                    initialValue: userSettings.email
                                 })(
                                     <Input />
                                 ) }
@@ -571,7 +576,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.user_password
+                                    initialValue: userSettings.user_password
                                 })(
                                     <Input />
                                 ) }
@@ -595,7 +600,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.language
+                                    initialValue: userSettings.language
                                 })(
                                     <Select>
                                         <Option value=''>{ formatMessage({id: "LANG257"}) }</Option>
@@ -658,7 +663,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.phone_number
+                                    initialValue: userSettings.phone_number
                                 })(
                                     <Input />
                                 ) }

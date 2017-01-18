@@ -27,7 +27,9 @@ class ConferenceItem extends Component {
             conferenceItem: {
                 musicclass: 'defalut'
             },
-            mohNameList: []
+            mohNameList: [],
+            conferenceRange: [],
+            existNumberList: []
         }
     }
     componentDidMount() {
@@ -54,6 +56,35 @@ class ConferenceItem extends Component {
                     })
                 }
             }.bind(this)
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            type: "post",
+            data: {
+                'action': 'conference'
+            },
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var list = data.response.moh_name
+
+                if (list && list.length > 0) {
+                    this.setState({
+                        mohNameList: list
+                    })
+                }
+            }.bind(this)
+        })
+
+        this.setState({
+            conferenceRange: UCMGUI.isExist.getRange('conference')
+        })
+
+        this.setState({
+            existNumberList: UCMGUI.isExist.getList("getNumberList")
         })
     }
     _getConferenceInfo = () => {
@@ -251,6 +282,21 @@ class ConferenceItem extends Component {
             }
         })
     }
+    _createConference = () => {
+        let conferenceRange = this.state.conferenceRange,
+            existNumberList = this.state.existNumberList,
+            startCon = conferenceRange[0],
+            endCon = conferenceRange[1],
+            i = startCon
+
+        for (i; i <= endCon; i++) {
+            if (_.indexOf(existNumberList, i.toString()) === -1) {
+                return i
+            }
+        }
+
+        return i
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -269,6 +315,11 @@ class ConferenceItem extends Component {
                 : formatMessage({id: "LANG597"}))
 
         const conferenceItem = this.state.conferenceItem || {}
+        let extension = conferenceItem.extension
+
+        if (!extension) {
+            extension = this._createConference()
+        }
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -295,7 +346,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('extension', {
-                                        initialValue: conferenceItem.extension
+                                        initialValue: extension
                                     })(
                                         <Input disabled={ !!this.props.params.id } />
                                     ) }
