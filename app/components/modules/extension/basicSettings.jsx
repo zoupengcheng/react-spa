@@ -13,20 +13,34 @@ import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer
 
 const FormItem = Form.Item
 const Option = Select.Option
+let firstGetSettings = false
 
 class BasicSettings extends Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            batch_number: 1,
-            add_method: 'single'
+            languages: [],
+            batch_number: 5,
+            add_method: 'single',
+            enable_qualify: false
         }
+    }
+    componentDidMount() {
     }
     componentWillMount() {
         this._getLanguages()
     }
-    componentDidMount() {
+    componentWillReceiveProps(nextProps) {
+        if (!_.isEmpty(nextProps.settings) && !firstGetSettings) {
+            const enable_qualify = nextProps.settings.enable_qualify === 'yes' ? true : false
+
+            firstGetSettings = true
+
+            this.setState({
+                enable_qualify: enable_qualify
+            })
+        }
     }
     _getLanguages = () => {
         const { formatMessage } = this.props.intl
@@ -36,6 +50,60 @@ class BasicSettings extends Component {
         this.setState({
             languages: languages
         })
+    }
+    _generateNewExtension = (extensionRange, existNumberList) => {
+        let startExt = extensionRange[0]
+        let endExt = extensionRange[1]
+        let i = startExt
+
+        for (i; i <= endExt; i++) {
+            if (i < 10) {
+                i = "0" + i
+            }
+
+            if (!_.contains(existNumberList, i.toString())) {
+                return i.toString()
+            }
+        }
+    }
+    _generatePassword(extensionRange, existNumberList, type, length) {
+        if (extensionRange[3].toLowerCase() === "yes") { // Strong Password
+            let pw = ''
+            let chars = ''
+            let strLength = (length ? length : Math.floor((Math.random() * 3) + 6))
+
+            switch (type) {
+                case 'number':
+                    chars += '3745890162'
+                    break
+                case 'char':
+                    chars += 'ZmnopqrMDEFGabcdefgABCXYRSstuvwxyzhijklHIJKLTUVWNOPQ'
+                    break
+                case 'special':
+                    chars += '~!@#$%^*'
+                    break
+                default:
+                    chars += '^*VW01234XYZabcdefghijklmnoABCNOHIJKLMp$%PQRSTz56qrstuvwxy9~!@#78UDEFG'
+                    break
+            }
+
+            chars = chars.split('')
+
+            for (let i = 0; i < strLength; i++) {
+                pw += chars[Math.floor(Math.random() * chars.length)]
+            }
+
+            // Pengcheng Zou Added. Check if has number.
+            if (!/\d/g.test(pw)) {
+                pw = pw.substr(1) // length - 1
+                pw += this._generatePassword(extensionRange, existNumberList, 'number', 1)
+            }
+
+            return pw
+        } else {
+            return ''
+            // return this._generateNewExtension(extensionRange, existNumberList)
+        }
     }
     _onChangeExtensionType = (value) => {
         if (value === 'fxs') {
@@ -56,6 +124,11 @@ class BasicSettings extends Component {
             add_method: value
         })
     }
+    _onChangeQualify = (e) => {
+        this.setState({
+            enable_qualify: e.target.checked
+        })
+    }
     _onFocus = (e) => {
         e.preventDefault()
 
@@ -64,12 +137,18 @@ class BasicSettings extends Component {
         form.validateFields([e.target.id], { force: true })
     }
     render() {
+        let secret
+        let vmsecret
+        let newExtension
+        let user_password
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
         const { getFieldDecorator } = this.props.form
         const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
+        const extensionRange = this.props.extensionRange
+        const existNumberList = this.props.existNumberList
         const userSettings = this.props.userSettings || {}
 
         const formItemLayout = {
@@ -80,6 +159,15 @@ class BasicSettings extends Component {
         const formItemLayoutRow = {
             labelCol: { span: 4 },
             wrapperCol: { span: 6 }
+        }
+
+        if (extensionRange && extensionRange.length &&
+            existNumberList && existNumberList.length) {
+            newExtension = this._generateNewExtension(extensionRange, existNumberList)
+
+            secret = this._generatePassword(extensionRange, existNumberList) || newExtension
+            user_password = this._generatePassword(extensionRange, existNumberList) || newExtension
+            vmsecret = this._generatePassword(extensionRange, existNumberList, 'number') || newExtension
         }
 
         return (
@@ -163,6 +251,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('batch_number', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -200,7 +289,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.extension
+                                    initialValue: settings.extension ? settings.extension : newExtension
                                 })(
                                     <Input />
                                 ) }
@@ -227,7 +316,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.dahdi
+                                    initialValue: settings.dahdi ? settings.dahdi : '1'
                                 })(
                                     <Select>
                                         <Option value='1'>{ 'FXS 1' }</Option>
@@ -248,12 +337,7 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('cidnumber', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.cidnumber
                                 })(
                                     <Input />
@@ -278,7 +362,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.permission
+                                    initialValue: settings.permission ? settings.permission : 'internal'
                                 })(
                                     <Select>
                                         <Option value='internal'>{ formatMessage({id: 'LANG1071'}) }</Option>
@@ -310,7 +394,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.secret
+                                    initialValue: settings.secret ? settings.secret : secret
                                 })(
                                     <Input />
                                 ) }
@@ -331,12 +415,7 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('authid', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.authid
                                 })(
                                     <Input />
@@ -357,7 +436,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('hasvoicemail', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.hasvoicemail === 'yes'
+                                    initialValue: settings.hasvoicemail ? (settings.hasvoicemail === 'yes') : true
                                 })(
                                     <Checkbox />
                                 ) }
@@ -381,9 +460,9 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.vmsecret
+                                    initialValue: settings.vmsecret ? settings.vmsecret : vmsecret
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -426,7 +505,7 @@ class BasicSettings extends Component {
                                     valuePropName: 'checked',
                                     initialValue: settings.enable_qualify === 'yes'
                                 })(
-                                    <Checkbox />
+                                    <Checkbox onChange={ this._onChangeQualify }/>
                                 ) }
                             </FormItem>
                         </Col>
@@ -447,13 +526,14 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('qualifyfreq', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.qualifyfreq
+                                    initialValue: settings.qualifyfreq ? settings.qualifyfreq : 60
                                 })(
-                                    <InputNumber />
+                                    <InputNumber disabled={ !this.state.enable_qualify } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -498,12 +578,7 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('first_name', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: userSettings.first_name
                                 })(
                                     <Input />
@@ -522,12 +597,7 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('last_name', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: userSettings.last_name
                                 })(
                                     <Input />
@@ -546,12 +616,7 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('email', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: userSettings.email
                                 })(
                                     <Input />
@@ -576,7 +641,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: userSettings.user_password
+                                    initialValue: userSettings.user_password ? userSettings.user_password : user_password
                                 })(
                                     <Input />
                                 ) }
@@ -600,10 +665,10 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: userSettings.language
+                                    initialValue: userSettings.language ? userSettings.language : 'default'
                                 })(
                                     <Select>
-                                        <Option value=''>{ formatMessage({id: "LANG257"}) }</Option>
+                                        <Option value='default'>{ formatMessage({id: "LANG257"}) }</Option>
                                         {
                                             this.state.languages.map(function(item) {
                                                 return <Option
@@ -639,7 +704,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.max_contacts
+                                    initialValue: settings.max_contacts ? settings.max_contacts : '1'
                                 })(
                                     <Input />
                                 ) }
@@ -657,12 +722,7 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('phone_number', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: userSettings.phone_number
                                 })(
                                     <Input />

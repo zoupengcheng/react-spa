@@ -96,92 +96,92 @@ class Version extends Component {
         return (
             <div className="app-content-main" id="app-content-main">
                 <Form horizontal>
-                    <div class="section-title">{formatMessage({id: "LANG586"})}</div>
+                    <div className="section-title">{formatMessage({id: "LANG586"})}</div>
                     <Row>
                         <FormItem
                             {...formItemLayout}
                             label = {formatMessage({id: "LANG144"})}
                         >
-                            <div className="content" ref="product-model">
+                            <span ref="product-model">
                                 {systemGeneralStatus["product-model"]}
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG145"})}
                         >
-                            <div className="content" ref="part-number">
+                            <span ref="part-number">
                                 {systemStatus["part-number"]}
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG146"})}
                         >
-                            <div className="content" ref="system-time">
+                            <span ref="system-time">
                                 {systemStatus["system-time"]}
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG147"})}
                         >
-                            <div className="content" ref="up-time">
+                            <span ref="up-time">
                                 {this.convertToTime(systemStatus["up-time"])}
-                            </div>
+                            </span>
                         </FormItem>
                         <div style={{display: "none"}}>
                             <FormItem
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG148"})}
                             >
-                                <div className="content" ref="idle-time">
+                                <span ref="idle-time">
                                     {this.convertToTime(systemStatus["idle-time"])}
-                                </div>
+                                </span>
                             </FormItem>
                         </div>
                     </Row>
-                    <div class="section-title">{formatMessage({id: "LANG588"})}</div>
+                    <div className="section-title">{formatMessage({id: "LANG588"})}</div>
                     <Row>
                         <FormItem
                             {...formItemLayout}
                             label = {formatMessage({id: "LANG149"})}
                         >
-                            <div className="content" ref="boot-version">
+                            <span ref="boot-version">
                                 {systemGeneralStatus["boot-version"]}
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG150"})}
                         >
-                            <div className="content" ref="base-version">
+                            <span ref="base-version">
                                 {systemGeneralStatus["base-version"]}
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG4482"})}
                         >
-                            <div className="content" ref="lang-version">
+                            <span ref="lang-version">
                                {systemGeneralStatus["lang-version"]} 
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG152"})}
                         >
-                            <div className="content" ref="prog-version">
+                            <span ref="prog-version">
                                 {systemGeneralStatus["prog-version"]}
-                            </div>
+                            </span>
                         </FormItem>
                         <FormItem
                             {...formItemLayout}
                             label={formatMessage({id: "LANG153"})}
                         >
-                            <div className="content" ref="rcvr-version">
+                            <span ref="rcvr-version">
                                 {systemGeneralStatus["rcvr-version"]}
-                            </div>
+                            </span>
                         </FormItem>
                     </Row>
                 </Form>

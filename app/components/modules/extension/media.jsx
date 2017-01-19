@@ -22,8 +22,8 @@ class Media extends Component {
         const strategy_ipacl = this.props.settings.strategy_ipacl
 
         this.state = {
-            alertinfo: alertinfo ? alertinfo : '',
-            strategy_ipacl: strategy_ipacl ? strategy_ipacl : '0',
+            alertinfo: alertinfo ? alertinfo : 'none',
+            strategy_ipacl: strategy_ipacl ? strategy_ipacl.toString() : '0',
             targetKeys: ['ulaw', 'alaw', 'gsm', 'g726', 'g722', 'g729', 'h264', 'ilbc'],
             availableCodecs: [
                 {
@@ -60,9 +60,9 @@ class Media extends Component {
             ]
         }
     }
-    componentWillMount() {
-    }
     componentDidMount() {
+    }
+    componentWillMount() {
     }
     _addLocalNetwork = () => {
         const { form } = this.props
@@ -156,6 +156,7 @@ class Media extends Component {
         })
     }
     render() {
+        let localNetworkIds = []
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
@@ -178,7 +179,13 @@ class Media extends Component {
             wrapperCol: { span: 20 }
         }
 
-        getFieldDecorator('localNetworks', { initialValue: [] })
+        _.map(settings, function(value, key) {
+            if ((key.indexOf('local_network') > -1) && (key !== 'local_network1') && value) {
+                localNetworkIds.push(key.slice(13))
+            }
+        })
+
+        getFieldDecorator('localNetworks', { initialValue: localNetworkIds })
 
         const localNetworks = getFieldValue('localNetworks')
         const localNetworkFormItems = localNetworks.map((k, index) => {
@@ -224,6 +231,17 @@ class Media extends Component {
             )
         })
 
+        const faxmode = (extension_type === 'fxs'
+                ? <Select>
+                        <Option value='no'>{ formatMessage({id: "LANG133"}) }</Option>
+                        <Option value='detect'>{ formatMessage({id: "LANG1135"}) }</Option>
+                        <Option value="gateway">{ formatMessage({id: "LANG3554"}) }</Option>
+                    </Select>
+                : <Select>
+                        <Option value='no'>{ formatMessage({id: "LANG133"}) }</Option>
+                        <Option value='detect'>{ formatMessage({id: "LANG1135"}) }</Option>
+                    </Select>)
+
         return (
             <div className="content">
                 <div className="ant-form">
@@ -249,7 +267,7 @@ class Media extends Component {
                                 { getFieldDecorator('nat', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.nat === 'yes'
+                                    initialValue: settings.nat ? (settings.nat === 'yes') : true
                                 })(
                                     <Checkbox />
                                 ) }
@@ -273,7 +291,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.directmedia
+                                    initialValue: settings.directmedia ? settings.directmedia : 'no'
                                 })(
                                     <Select>
                                         <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
@@ -300,7 +318,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.dtmfmode
+                                    initialValue: settings.dtmfmode ? settings.dtmfmode : 'rfc2833'
                                 })(
                                     <Select>
                                         <Option value='rfc2833'>{ 'RFC2833' }</Option>
@@ -353,7 +371,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.tel_uri
+                                    initialValue: settings.tel_uri ? settings.tel_uri : 'disabled'
                                 })(
                                     <Select>
                                         <Option value='disabled'>{ formatMessage({id: "LANG2770"}) }</Option>
@@ -406,7 +424,7 @@ class Media extends Component {
                                 { getFieldDecorator('callwaiting', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.callwaiting === 'yes'
+                                    initialValue: settings.callwaiting ? (settings.callwaiting === 'yes') : false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -426,7 +444,7 @@ class Media extends Component {
                                 { getFieldDecorator('sharpissendkey', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.sharpissendkey === 'yes'
+                                    initialValue: settings.sharpissendkey ? (settings.sharpissendkey === 'yes') : true
                                 })(
                                     <Checkbox />
                                 ) }
@@ -446,13 +464,14 @@ class Media extends Component {
                                 { getFieldDecorator('rxgain', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxgain
+                                    initialValue: settings.rxgain ? settings.rxgain : 0
                                 })(
-                                    <InputNumber />
+                                    <InputNumber min={ -30 } max={ 6 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -470,13 +489,14 @@ class Media extends Component {
                                 { getFieldDecorator('txgain', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.txgain
+                                    initialValue: settings.txgain ? settings.txgain : 0
                                 })(
-                                    <InputNumber />
+                                    <InputNumber min={ -30 } max={ 6 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -522,9 +542,9 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxflash_min
+                                    initialValue: settings.rxflash_min ? settings.rxflash_min : 200
                                 })(
-                                    <InputNumber />
+                                    <InputNumber min={ 30 } max={ 1000 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -546,7 +566,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxflash
+                                    initialValue: settings.rxflash ? settings.rxflash : 1250
                                 })(
                                     <InputNumber />
                                 ) }
@@ -566,7 +586,7 @@ class Media extends Component {
                                 { getFieldDecorator('answeronpolarityswitch', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.answeronpolarityswitch === 'yes'
+                                    initialValue: settings.answeronpolarityswitch ? (settings.answeronpolarityswitch === 'yes') : true
                                 })(
                                     <Checkbox />
                                 ) }
@@ -617,7 +637,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.echocancel
+                                    initialValue: settings.echocancel ? settings.echocancel : 'yes'
                                 })(
                                     <Select>
                                         <Option value='yes'>{ formatMessage({id: "LANG139"}) }</Option>
@@ -646,7 +666,7 @@ class Media extends Component {
                                 { getFieldDecorator('threewaycalling', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.threewaycalling === 'yes'
+                                    initialValue: settings.threewaycalling ? (settings.threewaycalling === 'yes') : true
                                 })(
                                     <Checkbox />
                                 ) }
@@ -670,7 +690,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.sendcalleridafter
+                                    initialValue: settings.sendcalleridafter ? settings.sendcalleridafter : '1'
                                 })(
                                     <Select>
                                         <Option value='1'>{ '1' }</Option>
@@ -701,12 +721,9 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('maxcallnumbers', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        { type: 'integer' }
                                     ],
-                                    initialValue: settings.maxcallnumbers === 'yes'
+                                    initialValue: settings.maxcallnumbers
                                 })(
                                     <InputNumber />
                                 ) }
@@ -761,7 +778,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.requirecalltoken
+                                    initialValue: settings.requirecalltoken ? settings.requirecalltoken : 'yes'
                                 })(
                                     <Select>
                                         <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
@@ -794,10 +811,10 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.alertinfo
+                                    initialValue: settings.alertinfo ? settings.alertinfo : 'none'
                                 })(
                                     <Select onChange={ this._onChangeAlertInfo }>
-                                        <Option value=''>{ formatMessage({id: "LANG133"}) }</Option>
+                                        <Option value='none'>{ formatMessage({id: "LANG133"}) }</Option>
                                         <Option value='ring1'>{ 'Ring 1' }</Option>
                                         <Option value='ring2'>{ 'Ring 2' }</Option>
                                         <Option value='ring3'>{ 'Ring 3' }</Option>
@@ -865,13 +882,9 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.faxmode
+                                    initialValue: settings.faxmode ? settings.faxmode : 'no'
                                 })(
-                                    <Select>
-                                        <Option value='no'>{ formatMessage({id: "LANG133"}) }</Option>
-                                        <Option value='detect'>{ formatMessage({id: "LANG1135"}) }</Option>
-                                        <Option value="gateway">{ formatMessage({id: "LANG3554"}) }</Option>
-                                    </Select>
+                                    faxmode
                                 ) }
                             </FormItem>
                         </Col>
@@ -892,7 +905,7 @@ class Media extends Component {
                                 { getFieldDecorator('t38_udptl', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.t38_udptl
+                                    initialValue: settings.t38_udptl ? settings.t38_udptl === 'yes' : false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -919,7 +932,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.encryption
+                                    initialValue: settings.encryption ? settings.encryption : 'no'
                                 })(
                                     <Select>
                                         <Option value='no'>{ formatMessage({id: "LANG4377"}) }</Option>
@@ -950,7 +963,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.strategy_ipacl
+                                    initialValue: settings.strategy_ipacl ? settings.strategy_ipacl.toString() : '0'
                                 })(
                                     <Select onChange={ this._onChangeStrategy }>
                                         <Option value='0'>{ formatMessage({id: "LANG1139"}) }</Option>

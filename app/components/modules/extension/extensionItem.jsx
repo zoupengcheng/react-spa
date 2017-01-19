@@ -38,7 +38,14 @@ class ExtensionItem extends Component {
         const { formatMessage } = this.props.intl
         const extensionId = this.props.params.id
         const extensionType = this.props.params.type
+        const extensionRange = UCMGUI.isExist.getRange('extension')
+        const existNumberList = UCMGUI.isExist.getList("getNumberList")
         const extensionTypeUpperCase = extensionType ? extensionType.toUpperCase() : ''
+
+        this.setState({
+            extensionRange: extensionRange,
+            existNumberList: existNumberList
+        })
 
         if (extensionId) {
             $.ajax({
@@ -152,6 +159,8 @@ class ExtensionItem extends Component {
                                 userSettings={ this.state.userSettings }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
+                                extensionRange={ this.state.extensionRange }
+                                existNumberList={ this.state.existNumberList }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>

@@ -148,24 +148,24 @@ class Network extends Component {
             <div className="app-content-main" id="app-content-main">
                 <Form horizontal={true}>
                     <div ref="wan" className={this.isEmpty(wan)}>
-                        <div class="section-title">{formatMessage({id: "LANG49"})}</div>
+                        <div className="section-title">{formatMessage({id: "LANG49"})}</div>
                         <Row>
                             <FormItem
                                 {...formItemLayout}
                                 label = {formatMessage({id: "LANG154"})}
                             >
-                                <div className="content" ref="wan_mac">
+                                <span ref="wan_mac">
                                     {this.convertToMAC(wan["mac"])}
-                                </div>
+                                </span>
                             </FormItem>
                             <div className={this.isUndefined(wan["ip"])}>                                
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5195"})}
                                 >
-                                    <div className="content" ref="wan_ip">
+                                    <span ref="wan_ip">
                                         {wan["ip"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(wan["ipv6"])}>
@@ -173,9 +173,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5130"})}
                                 >
-                                    <div className="content" ref="wan_ipv6">
+                                    <span ref="wan_ipv6">
                                         {wan["ipv6"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(wan["ipv6_link"])}>
@@ -183,9 +183,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5131"})}
                                 >
-                                    <div className="content" ref="wan_ipv6_link">
+                                    <span ref="wan_ipv6_link">
                                         {wan["ipv6_link"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(wan["gateway"])}>
@@ -193,9 +193,9 @@ class Network extends Component {
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG156"})}
                             >
-                                <div className="content" ref="wan_gateway">
+                                <span ref="wan_gateway">
                                     {wan["gateway"]}
-                                </div>
+                                </span>
                             </FormItem>
                             </div>
                             <div className={this.isUndefined(wan["mask"])}>
@@ -203,9 +203,9 @@ class Network extends Component {
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG157"})}
                             >
-                                <div className="content" ref="wan_mask">
+                                <span ref="wan_mask">
                                     {wan["mask"]}
-                                </div>
+                                </span>
                             </FormItem>
                             </div>
                             <div className={this.isUndefined(wan["dns"])}>
@@ -213,32 +213,32 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="wan_dns">
+                                    <span ref="wan_dns">
                                         {wan["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>
                     </div>
                     <div ref="lan" className={this.isEmpty(lan)}>
-                        <div class="section-title">{formatMessage({id: "LANG50"})}</div>
+                        <div className="section-title">{formatMessage({id: "LANG50"})}</div>
                         <Row>
                             <FormItem
                                 {...formItemLayout}
                                 label = {formatMessage({id: "LANG154"})}
                             >
-                                <div className="content" ref="lan_mac">
+                                <span ref="lan_mac">
                                     {this.convertToMAC(lan["mac"])}
-                                </div>
+                                </span>
                             </FormItem>
                             <div className={this.isUndefined(lan["ipv6"])}>
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5130"})}
                                 >
-                                    <div className="content" ref="lan_ipv6">
+                                    <span ref="lan_ipv6">
                                         {lan["ipv6"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan["ipv6_link"])}>
@@ -246,9 +246,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5131"})}
                                 >
-                                    <div className="content" ref="lan_ipv6_link">
+                                    <span ref="lan_ipv6_link">
                                         {lan["ipv6_link"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan["gateway"])}>
@@ -256,9 +256,9 @@ class Network extends Component {
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG156"})}
                             >
-                                <div className="content" ref="lan_gateway">
+                                <span ref="lan_gateway">
                                     {lan["gateway"]}
-                                </div>
+                                </span>
                             </FormItem>
                             </div>
                             <div className={this.isUndefined(lan["mask"])}>
@@ -266,9 +266,9 @@ class Network extends Component {
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG157"})}
                             >
-                                <div className="content" ref="lan_mask">
+                                <span ref="lan_mask">
                                     {lan["mask"]}
-                                </div>
+                                </span>
                             </FormItem>
                             </div>
                             <div className={this.isUndefined(lan["dns"])}>
@@ -276,32 +276,32 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="lan_dns">
+                                    <span ref="lan_dns">
                                         {lan["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>
                     </div>
                     <div ref="lan1" className={this.isEmpty(lan1)}>
-                        <div class="section-title">{"LAN 1"}</div>
+                        <div className="section-title">{"LAN 1"}</div>
                         <Row>
                             <FormItem
                                 {...formItemLayout}
                                 label = {formatMessage({id: "LANG154"})}
                             >
-                                <div className="content" ref="lan1_mac">
+                                <span ref="lan1_mac">
                                     {this.convertToMAC(lan1["mac"])}
-                                </div>
+                                </span>
                             </FormItem>
                             <div className={this.isUndefined(lan1["ip"])}>
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5195"})}
                                 >
-                                    <div className="content" ref="lan1_ip">
+                                    <span ref="lan1_ip">
                                         {lan1["ip"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan1["ipv6"])}>
@@ -309,9 +309,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5130"})}
                                 >
-                                    <div className="content" ref="lan1_ipv6">
+                                    <span ref="lan1_ipv6">
                                         {lan1["ipv6"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan1["ipv6_link"])}>
@@ -319,9 +319,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5131"})}
                                 >
-                                    <div className="content" ref="lan1_ipv6_link">
+                                    <span ref="lan1_ipv6_link">
                                         {lan1["ipv6_link"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan1["gateway"])}>
@@ -329,9 +329,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG156"})}
                                 >
-                                    <div className="content" ref="lan1_gateway">
+                                    <span ref="lan1_gateway">
                                         {lan1["gateway"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan1["mask"])}>
@@ -339,9 +339,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG157"})}
                                 >
-                                    <div className="content" ref="lan1_mask">
+                                    <span ref="lan1_mask">
                                         {lan1["mask"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan1["dns"])}>
@@ -349,32 +349,32 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="lan1_dns">
+                                    <span ref="lan1_dns">
                                         {lan1["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>
                     </div>
                     <div ref="lan2" className={this.isEmpty(lan2)}>
-                        <div class="section-title">{formatMessage({id: "LANG586"})}</div>
+                        <div className="section-title">{formatMessage({id: "LANG586"})}</div>
                         <Row>
                             <FormItem
                                 {...formItemLayout}
                                 label = {formatMessage({id: "LANG154"})}
                             >
-                                <div className="content" ref="lan2_mac">
+                                <span ref="lan2_mac">
                                     {this.convertToMAC(lan2["mac"])}
-                                </div>
+                                </span>
                             </FormItem>
                             <div className={this.isUndefined(lan2["ip"])}> 
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5195"})}
                                 >
-                                    <div className="content" ref="lan2_ip">
+                                    <span ref="lan2_ip">
                                         {lan2["ip"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan2["ipv6"])}> 
@@ -382,9 +382,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG146"})}
                                 >
-                                    <div className="content" ref="lan2_ipv6">
+                                    <span ref="lan2_ipv6">
                                         {lan2["ipv6"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan2["ipv6_link"])}> 
@@ -392,9 +392,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5131"})}
                                 >
-                                    <div className="content" ref="lan2_ipv6_link">
+                                    <span ref="lan2_ipv6_link">
                                         {lan2["ipv6_link"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(lan2["gateway"])}> 
@@ -402,9 +402,9 @@ class Network extends Component {
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG156"})}
                             >
-                                <div className="content" ref="lan2_gateway">
+                                <span ref="lan2_gateway">
                                     {lan2["gateway"]}
-                                </div>
+                                </span>
                             </FormItem>
                             </div>
                             <div className={this.isUndefined(lan2["mask"])}> 
@@ -412,9 +412,9 @@ class Network extends Component {
                                 {...formItemLayout}
                                 label={formatMessage({id: "LANG157"})}
                             >
-                                <div className="content" ref="lan2_mask">
+                                <span ref="lan2_mask">
                                     {lan2["mask"]}
-                                </div>
+                                </span>
                             </FormItem>
                             </div>
                             <div className={this.isUndefined(lan2["dns"])}> 
@@ -422,24 +422,24 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="lan2_dns">
+                                    <span ref="lan2_dns">
                                         {lan2["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>
                     </div>
                     <div ref="vpn" className={this.isEmpty(vpn)}>
-                        <div ref="VPNTitle" class="section-title">{this.state.VPNTitle}</div>
+                        <div ref="VPNTitle" className="section-title">{this.state.VPNTitle}</div>
                         <Row>
                             <div className={this.isUndefined(vpn["ip"])}> 
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5195"})}
                                 >
-                                    <div className="content" ref="vpn_ip">
+                                    <span ref="vpn_ip">
                                         {vpn["ip"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn["route"])}> 
@@ -447,9 +447,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG550"})}
                                 >
-                                    <div className="content" ref="vpn_route">
+                                    <span ref="vpn_route">
                                         {vpn["route"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn["mask"])}> 
@@ -457,9 +457,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG157"})}
                                 >
-                                    <div className="content" ref="vpn_mask">
+                                    <span ref="vpn_mask">
                                         {vpn["mask"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn["ptp"])}> 
@@ -467,9 +467,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG4009"})}
                                 >
-                                    <div className="content" ref="vpn_ptp">
+                                    <span ref="vpn_ptp">
                                         {vpn["ptp"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn["dns"])}> 
@@ -477,24 +477,24 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="LANG579">
+                                    <span ref="LANG579">
                                         {vpn["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>
                     </div>
                     <div ref="vpn1" className={this.isEmpty(vpn1)}>
-                        <div ref="VPN1Title" class="section-title">{this.state.VPN1Title}</div>
+                        <div ref="VPN1Title" className="section-title">{this.state.VPN1Title}</div>
                         <Row>
                             <div className={this.isUndefined(vpn1["ip"])}> 
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5195"})}
                                 >
-                                    <div className="content" ref="vpn1_ip">
+                                    <span ref="vpn1_ip">
                                         {vpn1["ip"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn1["route"])}> 
@@ -502,9 +502,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG550"})}
                                 >
-                                    <div className="content" ref="vpn1_route">
+                                    <span ref="vpn1_route">
                                         {vpn1["route"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn1["mask"])}> 
@@ -512,9 +512,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG157"})}
                                 >
-                                    <div className="content" ref="vpn1_mask">
+                                    <span ref="vpn1_mask">
                                         {vpn1["mask"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn1["ptp"])}> 
@@ -522,9 +522,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG4009"})}
                                 >
-                                    <div className="content" ref="vpn1_ptp">
+                                    <span ref="vpn1_ptp">
                                         {vpn1["ptp"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(vpn1["dns"])}> 
@@ -532,24 +532,24 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="vpn1_dns">
+                                    <span ref="vpn1_dns">
                                         {vpn1["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>
                     </div>
                     <div ref="hdlc1" className={this.isEmpty(hdlc1)}>
-                        <div class="section-title">{formatMessage({id: "LANG3572"})}</div>
+                        <div className="section-title">{formatMessage({id: "LANG3572"})}</div>
                         <Row>
                             <div className={this.isUndefined(hdlc1["ip"])}> 
                                 <FormItem
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG5195"})}
                                 >
-                                    <div className="content" ref="hdlc1_ip">
+                                    <span ref="hdlc1_ip">
                                         {hdlc1["ip"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(hdlc1["gateway"])}> 
@@ -557,9 +557,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG156"})}
                                 >
-                                    <div className="content" ref="hdlc1_gateway">
+                                    <span ref="hdlc1_gateway">
                                         {hdlc1["gateway"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                              <div className={this.isUndefined(hdlc1["mask"])}> 
@@ -567,9 +567,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG157"})}
                                 >
-                                    <div className="content" ref="hdlc1_mask">
+                                    <span ref="hdlc1_mask">
                                         {hdlc1["mask"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                             <div className={this.isUndefined(hdlc1["dns"])}> 
@@ -577,9 +577,9 @@ class Network extends Component {
                                     {...formItemLayout}
                                     label={formatMessage({id: "LANG579"})}
                                 >
-                                    <div className="content" ref="hdlc1_dns">
+                                    <span ref="hdlc1_dns">
                                         {hdlc1["dns"]}
-                                    </div>
+                                    </span>
                                 </FormItem>
                             </div>
                         </Row>

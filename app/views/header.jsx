@@ -149,7 +149,7 @@ let Header = React.createClass({
                         </Select>
                     </nav>
                     <nav className="right-nav">
-                        <Button type="primary" onClick={this._applyChanges} className={this.state.visible ? "display-inline" : "hidden"}>{formatMessage({id: "LANG260"})}</Button>
+                        <Button type="primary" size="small" onClick={this._applyChanges} className={this.state.visible ? "display-inline" : "hidden"}>{formatMessage({id: "LANG260"})}</Button>
                     </nav>
                     {/* <div className="nav-phone-icon"></div> */}
                 </div>
