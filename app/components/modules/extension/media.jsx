@@ -18,13 +18,14 @@ class Media extends Component {
     constructor(props) {
         super(props)
 
+        const targetKeys = this.props.settings.allow
         const alertinfo = this.props.settings.alertinfo
         const strategy_ipacl = this.props.settings.strategy_ipacl
 
         this.state = {
             alertinfo: alertinfo ? alertinfo : 'none',
+            targetKeys: targetKeys ? targetKeys.split(',') : [],
             strategy_ipacl: strategy_ipacl ? strategy_ipacl.toString() : '0',
-            targetKeys: ['ulaw', 'alaw', 'gsm', 'g726', 'g722', 'g729', 'h264', 'ilbc'],
             availableCodecs: [
                 {
                     key: 'g726aal2', title: 'AAL2-G.726-32'
@@ -99,25 +100,29 @@ class Media extends Component {
     }
     _generateLocalNetworkID = (existIDs) => {
         let newID = 2
+        const keyList = _.pluck(existIDs, 'key')
 
-        if (existIDs && existIDs.length) {
+        if (keyList && keyList.length) {
             newID = _.find([2, 3, 4, 5, 6, 7, 8, 9, 10], function(key) {
-                    return !_.contains(existIDs, key)
+                    return !_.contains(keyList, key)
                 })
         }
 
-        return newID
+        return {
+                new: true,
+                key: newID
+            }
     }
     _handleTransferChange = (targetKeys, direction, moveKeys) => {
-        if (!targetKeys.length) {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        } else {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        }
+        const { form } = this.props
+
+        this.setState({
+            targetKeys: targetKeys
+        })
+
+        form.setFieldsValue({
+            allow: targetKeys.toString()
+        })
 
         console.log('targetKeys: ', targetKeys)
         console.log('direction: ', direction)
@@ -146,14 +151,16 @@ class Media extends Component {
         form.validateFields([e.target.id], { force: true })
     }
     _removeLocalNetwork = (k) => {
+        let fieldsValue = {}
         const { form } = this.props
         // can use data-binding to get
         const localNetworks = form.getFieldValue('localNetworks')
 
+        fieldsValue['local_network' + k] = ''
+        fieldsValue.localNetworks = localNetworks.filter(item => item.key !== k)
+
         // can use data-binding to set
-        form.setFieldsValue({
-            localNetworks: localNetworks.filter(key => key !== k)
-        })
+        form.setFieldsValue(fieldsValue)
     }
     render() {
         let localNetworkIds = []
@@ -163,6 +170,7 @@ class Media extends Component {
         const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
         const { getFieldDecorator, getFieldValue } = this.props.form
+        const allow = (settings.allow ? settings.allow : 'ulaw,alaw,gsm,g726,g722,g729,h264,ilbc')
 
         const formItemLayout = {
             labelCol: { span: 8 },
@@ -181,17 +189,20 @@ class Media extends Component {
 
         _.map(settings, function(value, key) {
             if ((key.indexOf('local_network') > -1) && (key !== 'local_network1') && value) {
-                localNetworkIds.push(key.slice(13))
+                localNetworkIds.push({
+                    key: parseInt(key.slice(13))
+                })
             }
         })
 
+        getFieldDecorator('allow', { initialValue: allow })
         getFieldDecorator('localNetworks', { initialValue: localNetworkIds })
 
         const localNetworks = getFieldValue('localNetworks')
-        const localNetworkFormItems = localNetworks.map((k, index) => {
+        const localNetworkFormItems = localNetworks.map((item, index) => {
             return (
                 <Col
-                    key={ k }
+                    key={ item.key }
                     span={ 12 }
                     className={ extension_type === 'fxs'
                                     ? 'hidden'
@@ -210,20 +221,22 @@ class Media extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator(`local_network${k}`, {
+                        { getFieldDecorator(`local_network${item.key}`, {
                             rules: [
-                                {
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }
+                                (extension_type !== 'fxs' && this.state.strategy_ipacl === '1')
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
-                            initialValue: settings[`local_network${k}`]
+                            initialValue: item.new ? '' : settings[`local_network${item.key}`]
                         })(
                             <Input />
                         ) }
                         <Icon
                             type="minus-circle-o"
-                            onClick={ () => this._removeLocalNetwork(k) }
+                            onClick={ () => this._removeLocalNetwork(item.key) }
                             className="dynamic-network-button"
                         />
                     </FormItem>
@@ -538,6 +551,7 @@ class Media extends Component {
                                 { getFieldDecorator('rxflash_min', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -562,6 +576,7 @@ class Media extends Component {
                                 { getFieldDecorator('rxflash', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -837,7 +852,7 @@ class Media extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'sip' && this.state.alertinfo === 'custom'
+                            className={ (extension_type === 'sip' && this.state.alertinfo === 'custom')
                                             ? 'display-block'
                                             : 'hidden' }
                         >
@@ -853,10 +868,12 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('custom_alert_info', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        (extension_type === 'sip' && this.state.alertinfo === 'custom')
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
                                     ],
                                     initialValue: settings.custom_alert_info
                                 })(
@@ -994,10 +1011,12 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('specific_ip', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        (extension_type !== 'fxs' && this.state.strategy_ipacl === '2')
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
                                     ],
                                     initialValue: settings.specific_ip
                                 })(
@@ -1026,10 +1045,12 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('local_network1', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        (extension_type !== 'fxs' && this.state.strategy_ipacl === '1')
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
                                     ],
                                     initialValue: settings.local_network1
                                 })(

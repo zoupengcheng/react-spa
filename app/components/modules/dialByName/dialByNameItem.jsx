@@ -217,30 +217,18 @@ class DialByNameItem extends Component {
         browserHistory.push('/call-features/dialByName')
     }
     _handleTransferChange = (targetKeys, direction, moveKeys) => {
-        if (!targetKeys.length) {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        } else {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        }
+        this.setState({
+            targetKeys: targetKeys
+        })
 
         console.log('targetKeys: ', targetKeys)
         console.log('direction: ', direction)
         console.log('moveKeys: ', moveKeys)
     }
     _handleTransferChangeLDAP = (targetKeys, direction, moveKeys) => {
-        if (!targetKeys.length) {
-            this.setState({
-                targetKeysLDAP: targetKeys
-            })
-        } else {
-            this.setState({
-                targetKeysLDAP: targetKeys
-            })
-        }
+        this.setState({
+            targetKeysLDAP: targetKeys
+        })
 
         console.log('targetKeys: ', targetKeys)
         console.log('direction: ', direction)

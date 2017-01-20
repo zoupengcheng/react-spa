@@ -144,15 +144,9 @@ class QueueItem extends Component {
         browserHistory.push('/call-features/callQueue')
     }
     _handleTransferChange = (targetKeys, direction, moveKeys) => {
-        if (!targetKeys.length) {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        } else {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        }
+        this.setState({
+            targetKeys: targetKeys
+        })
 
         console.log('targetKeys: ', targetKeys)
         console.log('direction: ', direction)

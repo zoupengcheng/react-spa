@@ -84,6 +84,7 @@ class SpeedDialItem extends Component {
             var obj = {}
 
             obj["val"] = res[i]
+            obj["text"] = res[i]
 
             arr.push(obj)
         }
@@ -140,7 +141,8 @@ class SpeedDialItem extends Component {
 
         let keyAccountList = this._transAccountVoicemailData(UCMGUI.isExist.getList("getAccountList"))
         this.setState({
-            account: keyAccountList
+            account: keyAccountList,
+            keypressevent: keyAccountList[0].val
         })
 
         let keyVoicemailList = this._transAccountVoicemailData(UCMGUI.isExist.getList("getVoicemailList"))
@@ -258,6 +260,11 @@ class SpeedDialItem extends Component {
                         const response = res.response || {}
 
                         speedDialItem = res.response.speed_dial || {}
+
+                        this.setState({
+                            keypress: speedDialItem.destination_type,
+                            keypressevent: speedDialItem.destination_num
+                        })
                     }
                 }.bind(this),
                 error: function(e) {
@@ -273,12 +280,15 @@ class SpeedDialItem extends Component {
     _handleKeypressChange = (e) => {
         let keypressevent = ''
         if (this.state[e].length > 0) {
-            keypressevent = this.state[e][0].text
+            keypressevent = this.state[e][0].val
         }
 
         this.setState({
-            keypress: e,
-            keypressevent: keypressevent
+            keypress: e
+        })
+
+        this.props.form.setFieldsValue({
+          keypressevent: keypressevent
         })
     }
     _handleCancel = () => {
@@ -313,8 +323,15 @@ class SpeedDialItem extends Component {
                     action.enable_destination = "no" 
                 }
 
+                action.destination_type = action.keypress
+                delete action.keypress
+
+                action[action.destination_type] = action.keypressevent
+                delete action.keypressevent
+
                if (account) {
                     action.action = 'updateSpeedDial'
+                    action.extension = action.speed_dial
                     action.speed_dial = account
                 } else {
                     action.action = 'addSpeedDial'
@@ -358,7 +375,8 @@ class SpeedDialItem extends Component {
 
         const speedDialItem = this.state.speedDialItem || {}
         let account = speedDialItem.extension
-        let keypressevent = speedDialItem.keypressevent
+        let keypress = this.state.keypress
+        let keypressevent = this.state.keypressevent
 
         if (!account) {
             account = this._createDial()
@@ -372,6 +390,16 @@ class SpeedDialItem extends Component {
         const formItemTransferLayout = {
             labelCol: { span: 12 },
             wrapperCol: { span: 12 }
+        }
+
+        let keyList = this.state[this.state.keypress],
+            keyOption
+        if (keyList.length === 0) {
+            keyOption = <Option value=''>{ formatMessage({id: "LANG133"}) }</Option>
+        } else {
+            keyOption = this.state[this.state.keypress].map(function(value, index) {
+                            return <Option value={ value.val } key={ value.val }>{ value.text }</Option>
+                        })
         }
 
         const title = (this.props.params.id
@@ -453,7 +481,7 @@ class SpeedDialItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('keypress', {
-                                        initialValue: speedDialItem.keypress || 'account'
+                                        initialValue: keypress
                                     })(
                                         <Select onChange={ this._handleKeypressChange }>
                                             <Option value="account">{ formatMessage({id: "LANG85"}) }</Option>
@@ -475,14 +503,10 @@ class SpeedDialItem extends Component {
                             <Col span={ 3 }>
                                 <FormItem>
                                     { getFieldDecorator('keypressevent', {
-                                        initialValue: this.state.keypressevent
+                                        initialValue: keypressevent
                                     })(
                                         <Select>
-                                            {
-                                                this.state[this.state.keypress].map(function(value, index) {
-                                                    return <Option value={ value.val } key={ index }>{ value.text }</Option>
-                                                }) 
-                                            }
+                                            { keyOption }
                                         </Select>
                                     ) }
                                 </FormItem>

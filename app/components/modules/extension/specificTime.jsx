@@ -31,14 +31,10 @@ class SpecificTime extends Component {
         
         return (
             <div className="app-content-main" id="app-content-main">
-                {"Media"}
+                { "TODO: SpecificTime" }
             </div>
         )
     }
-}
-
-SpecificTime.propTypes = {
-    dataSource: PropTypes.object.isRequired
 }
 
 const mapStateToProps = (state) => ({

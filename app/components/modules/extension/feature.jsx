@@ -38,8 +38,8 @@ class Feature extends Component {
             out_limitime: out_limitime,
             bypass_outrt_auth: bypass_outrt_auth,
             strategy_ipacl: strategy_ipacl ? strategy_ipacl : '0',
-            targetKeysCallbarging: callbarging_monitor ? callbarging_monitor : [],
-            targetKeysSeamless: seamless_transfer_members ? seamless_transfer_members : []
+            targetKeysCallbarging: callbarging_monitor ? callbarging_monitor.split(',') : [],
+            targetKeysSeamless: seamless_transfer_members ? seamless_transfer_members.split(',') : []
         }
     }
     componentWillMount() {
@@ -87,14 +87,18 @@ class Feature extends Component {
     }
     _generateWhiteListID = (existIDs) => {
         let newID = 2
+        const keyList = _.pluck(existIDs, 'key')
 
-        if (existIDs && existIDs.length) {
+        if (keyList && keyList.length) {
             newID = _.find([2, 3, 4, 5, 6, 7, 8, 9, 10], function(key) {
-                    return !_.contains(existIDs, key)
+                    return !_.contains(keyList, key)
                 })
         }
 
-        return newID
+        return {
+                new: true,
+                key: newID
+            }
     }
     _getInitData = () => {
         const { formatMessage } = this.props.intl
@@ -119,16 +123,31 @@ class Feature extends Component {
             mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
         })
     }
-    _handleTransferChange = (targetKeys, direction, moveKeys) => {
-        if (!targetKeys.length) {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        } else {
-            this.setState({
-                targetKeys: targetKeys
-            })
-        }
+    _handleCallbargingChange = (targetKeys, direction, moveKeys) => {
+        const { form } = this.props
+
+        this.setState({
+            targetKeysCallbarging: targetKeys
+        })
+
+        form.setFieldsValue({
+            callbarging_monitor: targetKeys.toString()
+        })
+
+        console.log('targetKeys: ', targetKeys)
+        console.log('direction: ', direction)
+        console.log('moveKeys: ', moveKeys)
+    }
+    _handleSeamlessChange = (targetKeys, direction, moveKeys) => {
+        const { form } = this.props
+
+        this.setState({
+            targetKeysSeamless: targetKeys
+        })
+
+        form.setFieldsValue({
+            seamless_transfer_members: targetKeys.toString()
+        })
 
         console.log('targetKeys: ', targetKeys)
         console.log('direction: ', direction)
@@ -204,22 +223,28 @@ class Feature extends Component {
             }
     }
     _removeWhiteList = (k) => {
+        let fieldsValue = {}
         const { form } = this.props
         // can use data-binding to get
         const whiteLists = form.getFieldValue('whiteLists')
 
+        fieldsValue['whitelist' + k] = ''
+        fieldsValue.whiteLists = whiteLists.filter(item => item.key !== k)
+
         // can use data-binding to set
-        form.setFieldsValue({
-            whiteLists: whiteLists.filter(key => key !== k)
-        })
+        form.setFieldsValue(fieldsValue)
     }
     render() {
+        let whiteListIds = []
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
         const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
+        const callbarging_monitor = settings.callbarging_monitor
         const { getFieldDecorator, getFieldValue } = this.props.form
+        const seamless_transfer_members = settings.seamless_transfer_members
+        const dndwhitelist = settings.dndwhitelist ? settings.dndwhitelist.split(',') : []
 
         const formItemLayout = {
             labelCol: { span: 8 },
@@ -236,13 +261,23 @@ class Feature extends Component {
             wrapperCol: { span: 20 }
         }
 
-        getFieldDecorator('whiteLists', { initialValue: [] })
+        _.map(dndwhitelist, function(value, key) {
+            if (key > 0) {
+                whiteListIds.push({
+                    key: parseInt(key + 1)
+                })
+            }
+        })
+
+        getFieldDecorator('whiteLists', { initialValue: whiteListIds })
+        getFieldDecorator('callbarging_monitor', { initialValue: callbarging_monitor })
+        getFieldDecorator('seamless_transfer_members', { initialValue: seamless_transfer_members })
 
         const whiteLists = getFieldValue('whiteLists')
-        const whiteListFormItems = whiteLists.map((k, index) => {
+        const whiteListFormItems = whiteLists.map((item, index) => {
             return (
                 <Col
-                    key={ k }
+                    key={ item.key }
                     span={ 12 }
                     className={ this.state.dnd ? 'display-block' : 'hidden' }
                 >
@@ -256,20 +291,22 @@ class Feature extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator(`whitelist${k}`, {
+                        { getFieldDecorator(`whitelist${item.key}`, {
                             rules: [
-                                {
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }
+                                this.state.dnd
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
-                            initialValue: settings[`whitelist${k}`]
+                            initialValue: item.new ? '' : dndwhitelist[item.key - 1]
                         })(
                             <Input />
                         ) }
                         <Icon
                             type="minus-circle-o"
-                            onClick={ () => this._removeWhiteList(k) }
+                            onClick={ () => this._removeWhiteList(item.key) }
                             className="dynamic-network-button"
                         />
                     </FormItem>
@@ -298,12 +335,7 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('cfu', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.cfu
                                 })(
                                     <Input />
@@ -328,7 +360,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfu_timetype
+                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -354,12 +386,7 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('cfn', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.cfn
                                 })(
                                     <Input />
@@ -384,7 +411,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfu_timetype
+                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -410,12 +437,7 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('cfb', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.cfb
                                 })(
                                     <Input />
@@ -440,7 +462,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfb_timetype
+                                    initialValue: settings.cfb_timetype ? settings.cfb_timetype : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -468,7 +490,7 @@ class Feature extends Component {
                                 { getFieldDecorator('dnd', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.dnd === 'yes'
+                                    initialValue: settings.dnd ? (settings.dnd === 'yes') : false
                                 })(
                                     <Checkbox onChange={ this._onChangeDND } />
                                 ) }
@@ -492,7 +514,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.dnd_timetype
+                                    initialValue: settings.dnd_timetype ? settings.dnd_timetype : '0'
                                 })(
                                     <Select disabled={ !this.state.dnd }>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -522,12 +544,14 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('whitelist1', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        this.state.dnd
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
                                     ],
-                                    initialValue: settings.whitelist1
+                                    initialValue: dndwhitelist.length ? dndwhitelist[0] : ''
                                 })(
                                     <Input />
                                 ) }
@@ -562,7 +586,7 @@ class Feature extends Component {
                                 { getFieldDecorator('enable_cc', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_cc === 'yes'
+                                    initialValue: settings.enable_cc ? (settings.enable_cc === 'yes') : false
                                 })(
                                     <Checkbox onChange={ this._onChangeEnableCC } />
                                 ) }
@@ -592,7 +616,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_mode
+                                    initialValue: settings.cc_mode ? settings.cc_mode : 'normal'
                                 })(
                                     <Select onChange={ this._onChangeCCMode } >
                                         <Option value='normal'>Normal</Option>
@@ -621,13 +645,14 @@ class Feature extends Component {
                                 { getFieldDecorator('cc_max_agents', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_max_agents
+                                    initialValue: settings.cc_max_agents ? settings.cc_max_agents : 10
                                 })(
-                                    <InputNumber />
+                                    <InputNumber min={ 1 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -651,13 +676,14 @@ class Feature extends Component {
                                 { getFieldDecorator('cc_max_monitors', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_max_monitors
+                                    initialValue: settings.cc_max_monitors ? settings.cc_max_monitors : 10
                                 })(
-                                    <InputNumber />
+                                    <InputNumber min={ 1 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -682,7 +708,7 @@ class Feature extends Component {
                                 { getFieldDecorator('en_ringboth', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.en_ringboth === 'yes'
+                                    initialValue: settings.en_ringboth ? (settings.en_ringboth === 'yes') : false
                                 })(
                                     <Checkbox onChange={ this._onChangeRingBoth } />
                                 ) }
@@ -701,10 +727,12 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('external_number', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        this.state.en_ringboth
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
                                     ],
                                     initialValue: settings.external_number
                                 })(
@@ -730,7 +758,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.ringboth_timetype
+                                    initialValue: settings.ringboth_timetype ? settings.ringboth_timetype : '0'
                                 })(
                                     <Select disabled={ !this.state.en_ringboth }>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -767,7 +795,7 @@ class Feature extends Component {
                                 { getFieldDecorator('en_hotline', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.en_hotline === 'yes'
+                                    initialValue: settings.en_hotline ? (settings.en_hotline === 'yes') : false
                                 })(
                                     <Checkbox onChange={ this._onChangeHotLine } />
                                 ) }
@@ -786,10 +814,12 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('hotline_number', {
                                     rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
+                                        this.state.en_hotline
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
                                     ],
                                     initialValue: settings.hotline_number
                                 })(
@@ -815,7 +845,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.hotline_type
+                                    initialValue: settings.hotline_type ? settings.hotline_type : '1'
                                 })(
                                     <Select disabled={ !this.state.en_hotline }>
                                         <Option value='1'>{ formatMessage({id: "LANG4186"}) }</Option>
@@ -847,8 +877,8 @@ class Feature extends Component {
                                 <Transfer
                                     showSearch
                                     render={ this._renderItem }
-                                    onChange={ this._handleTransferChange }
                                     dataSource={ this._filterCodecsSource() }
+                                    onChange={ this._handleCallbargingChange }
                                     filterOption={ this._filterTransferOption }
                                     targetKeys={ this.state.targetKeysCallbarging }
                                     notFoundContent={ formatMessage({id: "LANG133"}) }
@@ -881,7 +911,7 @@ class Feature extends Component {
                                 <Transfer
                                     showSearch
                                     render={ this._renderItem }
-                                    onChange={ this._handleTransferChange }
+                                    onChange={ this._handleSeamlessChange }
                                     dataSource={ this._filterCodecsSource() }
                                     filterOption={ this._filterTransferOption }
                                     targetKeys={ this.state.targetKeysSeamless }
@@ -961,8 +991,7 @@ class Feature extends Component {
                                 { getFieldDecorator('ring_timeout', {
                                     rules: [
                                         {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
+                                            type: 'integer'
                                         }
                                     ],
                                     initialValue: settings.ring_timeout
@@ -985,7 +1014,7 @@ class Feature extends Component {
                                 { getFieldDecorator('auto_record', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.auto_record === 'yes'
+                                    initialValue: settings.auto_record ? (settings.auto_record === 'yes') : false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1029,7 +1058,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.bypass_outrt_auth
+                                    initialValue: settings.bypass_outrt_auth ? settings.bypass_outrt_auth : 'no'
                                 })(
                                     <Select onChange={ this._onChangeTrunkAuth }>
                                         <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
@@ -1051,12 +1080,7 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('user_outrt_passwd', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.user_outrt_passwd
                                 })(
                                     <Input disabled={ this.state.bypass_outrt_auth === 'yes' } />
@@ -1084,7 +1108,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.skip_auth_timetype
+                                    initialValue: settings.skip_auth_timetype ? settings.skip_auth_timetype : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -1115,7 +1139,7 @@ class Feature extends Component {
                                 { getFieldDecorator('enablehotdesk', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enablehotdesk === 'yes'
+                                    initialValue: settings.enablehotdesk ? (settings.enablehotdesk === 'yes') : false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1135,7 +1159,7 @@ class Feature extends Component {
                                 { getFieldDecorator('enable_ldap', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_ldap === 'yes'
+                                    initialValue: settings.enable_ldap ? (settings.enable_ldap === 'yes') : true
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1158,7 +1182,7 @@ class Feature extends Component {
                                 { getFieldDecorator('enable_webrtc', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_webrtc === 'yes'
+                                    initialValue: settings.enable_webrtc ? (settings.enable_webrtc === 'yes') : false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1182,7 +1206,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.mohsuggest
+                                    initialValue: settings.mohsuggest ? settings.mohsuggest : 'default'
                                 })(
                                     <Select>
                                         {
@@ -1216,7 +1240,7 @@ class Feature extends Component {
                                 { getFieldDecorator('room', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.room === 'yes'
+                                    initialValue: settings.room ? (settings.room === 'yes') : false
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1236,7 +1260,7 @@ class Feature extends Component {
                                 { getFieldDecorator('out_limitime', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.out_limitime
+                                    initialValue: settings.out_limitime ? settings.out_limitime : false
                                 })(
                                     <Checkbox onChange={ this._onChangeLimiTime } />
                                 ) }
@@ -1257,12 +1281,7 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('maximumTime', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.maximumTime
                                 })(
                                     <Input />
@@ -1286,7 +1305,7 @@ class Feature extends Component {
                                 { getFieldDecorator('custom_autoanswer', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.custom_autoanswer === 'yes'
+                                    initialValue: settings.custom_autoanswer ? (settings.custom_autoanswer === 'yes') : false
                                 })(
                                     <Checkbox />
                                 ) }

@@ -109,6 +109,28 @@ class ExtensionItem extends Component {
 
         this.props.form.validateFields({ force: true }, (err, values) => {
             if (!err) {
+                let action = {}
+
+                _.map(values, function(value, key) {
+
+                })
+
+                if (this.state.currentEditId) {
+                    action.action = `update${this.state.extension_type.toUpperCase()}Account`
+                } else {
+                    action.action = `add${this.state.extension_type.toUpperCase()}AccountAndUser`
+
+                    if (values.first_name && values.last_name) {
+                        action.fullname = values.first_name + ' ' + values.last_name
+                    } else if (values.first_name) {
+                        action.fullname = values.first_name
+                    } else if (values.last_name) {
+                        action.fullname = values.last_name
+                    } else {
+                        action.fullname = ''
+                    }
+                }
+
                 console.log('Received values of form: ', values)
             }
         })

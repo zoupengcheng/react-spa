@@ -224,6 +224,19 @@ class pmsRooms extends Component {
                 key: 'status',
                 dataIndex: 'status',
                 title: formatMessage({id: "LANG4857"}),
+                render: (text, record, index) => {
+                    if (text === '0') {
+                        return <span>{ formatMessage({id: "LANG4941"}) }</span>
+                    } else if (text === '1') {
+                        return <span>{ formatMessage({id: "LANG4942"}) }</span>
+                    } else if (text === '2') {
+                        return <span>{ formatMessage({id: "LANG4943"}) }</span>
+                    } else if (text === '3') {
+                        return <span>{ formatMessage({id: "LANG4944"}) }</span>
+                    } else {
+                        return <span>{ formatMessage({id: "LANG4942"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.status.length - b.status.length
             }, {
                 key: 'user_name',

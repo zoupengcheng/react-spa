@@ -44,6 +44,7 @@ import ScheduleSettings from '../components/modules/conference/scheduleSettings'
 import CleanSettings from '../components/modules/conference/cleanSettings'
 import CalendarSettings from '../components/modules/conference/calendarSettings'
 import IVR from '../components/modules/ivr/index'
+import IVRItem from '../components/modules/ivr/ivrItem'
 import Voicemail from '../components/modules/voicemail/index'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
 import RingGroup from '../components/modules/ringGroup/index'
@@ -242,7 +243,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="cleanSettings" onEnter={ requireAuth } component={ CleanSettings } breadcrumbName={ currentLocaleData["LANG4277"] } />
                         <Route path="calendarSettings" onEnter={ requireAuth } component={ CalendarSettings } breadcrumbName={ currentLocaleData["LANG3516"] } />
                     </Route>
-                    <Route path="ivr" onEnter={ requireAuth } component={ IVR } breadcrumbName={ currentLocaleData["LANG19"] } />
+                    <Route path="ivr" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG19"] } >
+                        <IndexRoute component={ IVR } />
+                        <Route path="add" onEnter={ requireAuth } component={ IVRItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ IVRItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="voicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
                         <IndexRoute component={ Voicemail } />
                         <Route path="voicemail" onEnter={ requireAuth } component={ Voicemail } breadcrumbName={ currentLocaleData["LANG20"] } />

@@ -8,7 +8,7 @@ import * as Actions from './actions/'
 import { Tabs } from 'antd'
 const TabPane = Tabs.TabPane
 
-class Media extends Component {
+class FollowMe extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -31,14 +31,10 @@ class Media extends Component {
         
         return (
             <div className="app-content-main" id="app-content-main">
-                {"Media"}
+                { "TODO: FollowMe" }
             </div>
         )
     }
-}
-
-Media.propTypes = {
-    dataSource: PropTypes.object.isRequired
 }
 
 const mapStateToProps = (state) => ({
@@ -49,4 +45,4 @@ function mapDispatchToProps(dispatch) {
   return bindActionCreators(Actions, dispatch)
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(Media))
+export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(FollowMe))

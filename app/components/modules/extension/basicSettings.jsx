@@ -11,9 +11,15 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
 
+let secret
+let vmsecret
+let newExtension
+let user_password
+let firstGetSettings = false
+let hasGeneratePassword = false
+
 const FormItem = Form.Item
 const Option = Select.Option
-let firstGetSettings = false
 
 class BasicSettings extends Component {
     constructor(props) {
@@ -110,11 +116,6 @@ class BasicSettings extends Component {
             this.setState({
                 add_method: 'single'
             })
-
-            // setState for select does not work
-            this.props.form.setFieldsValue({
-                add_method: 'single'
-            })
         }
 
         this.props.onExtensionTypeChange(value)
@@ -137,10 +138,6 @@ class BasicSettings extends Component {
         form.validateFields([e.target.id], { force: true })
     }
     render() {
-        let secret
-        let vmsecret
-        let newExtension
-        let user_password
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
@@ -161,13 +158,16 @@ class BasicSettings extends Component {
             wrapperCol: { span: 6 }
         }
 
-        if (extensionRange && extensionRange.length &&
+        if (!currentEditId && !hasGeneratePassword &&
+            extensionRange && extensionRange.length &&
             existNumberList && existNumberList.length) {
             newExtension = this._generateNewExtension(extensionRange, existNumberList)
 
             secret = this._generatePassword(extensionRange, existNumberList) || newExtension
             user_password = this._generatePassword(extensionRange, existNumberList) || newExtension
             vmsecret = this._generatePassword(extensionRange, existNumberList, 'number') || newExtension
+
+            hasGeneratePassword = true
         }
 
         return (
@@ -215,25 +215,18 @@ class BasicSettings extends Component {
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('add_method', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: this.state.add_method
-                                })(
-                                    <Select onChange={ this._onChangeAddMethod }>
-                                        <Option value='single'>{ formatMessage({id: "LANG5420"}) }</Option>
-                                        <Option
-                                            value='batch'
-                                            disabled={ extension_type === 'fxs' }
-                                        >
-                                            { formatMessage({id: "LANG5419"}) }
-                                        </Option>
-                                    </Select>
-                                ) }
+                                <Select
+                                    value={ this.state.add_method }
+                                    onChange={ this._onChangeAddMethod }
+                                >
+                                    <Option value='single'>{ formatMessage({id: "LANG5420"}) }</Option>
+                                    <Option
+                                        value='batch'
+                                        disabled={ extension_type === 'fxs' }
+                                    >
+                                        { formatMessage({id: "LANG5419"}) }
+                                    </Option>
+                                </Select>
                             </FormItem>
                         </Col>
                         <Col span={ 12 }>
@@ -700,13 +693,14 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('max_contacts', {
                                     rules: [
                                         {
+                                            type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.max_contacts ? settings.max_contacts : '1'
+                                    initialValue: settings.max_contacts ? settings.max_contacts : 1
                                 })(
-                                    <Input />
+                                    <InputNumber />
                                 ) }
                             </FormItem>
                         </Col>
