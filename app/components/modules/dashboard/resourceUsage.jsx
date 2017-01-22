@@ -59,6 +59,7 @@ class ResourceUsage extends Component {
                     }]
                 },
                 toolbox: {
+                    show: false,
                     feature: {
                         saveAsImage: {}
                     }

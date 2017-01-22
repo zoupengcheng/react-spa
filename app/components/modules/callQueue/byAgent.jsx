@@ -12,6 +12,7 @@ class ByAgent extends Component {
     }
     render() {
         const { formatMessage } = this.props.intl
+
         const agentColumns = [{
                 title: formatMessage({id: "LANG143"}),
                 dataIndex: 'agent',
@@ -99,6 +100,7 @@ class ByAgent extends Component {
                 key: 'agent_logoff',
                 sorter: (a, b) => a.agent_logoff - b.agent_logoff
             }]
+
         const pagination = {
                 total: this.props.QueueStatDistributionByAgent.length,
                 showSizeChanger: true,

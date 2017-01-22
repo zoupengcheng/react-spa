@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import _ from 'underscore'
+import moment from "moment"
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
@@ -9,7 +10,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -29,8 +30,6 @@ class WakeupServiceItem extends Component {
             weekShow: "hidden",
             customDateCheck: false,
             weekList: [],
-            time_minute: "",
-            time_hour: "",
             WeekBox: {
                 "week_0": false,
                 "week_1": false,
@@ -81,7 +80,6 @@ class WakeupServiceItem extends Component {
         let wakeupService = {}
         let customCheck = false
         let weekList = []
-        let time_all = []
         let WeekBox = {}
         const __this = this
         const { formatMessage } = this.props.intl
@@ -166,9 +164,6 @@ class WakeupServiceItem extends Component {
                             customCheck = true
                             weekList = wakeupService.custom_date.split(',')
                         }
-                        if (wakeupService.time) {
-                            time_all = wakeupService.time.split(':')
-                        }
                         weekList.map(function(item) {
                             if (item === "0") {
                                 WeekBox.week_0 = true
@@ -214,9 +209,7 @@ class WakeupServiceItem extends Component {
             weekShow: (customCheck ? "display-block" : "hidden"),
             dateShow: (customCheck ? "hidden" : "display-block"),
             customDateCheck: customCheck,
-            weekList: weekList,
-            time_hour: time_all[0],
-            time_minute: time_all[1]
+            weekList: weekList
         })
     }
     _handleCancel = () => {
@@ -286,7 +279,7 @@ class WakeupServiceItem extends Component {
                 action.extension = values.extension
                 action.wakeup_enable = values.wakeup_enable ? 1 : 0
                 action.prompt = values.prompt
-                action.time = values.time_hour + ":" + values.time_minute
+                action.time = values.time.format('HH:mm')
                 if (values.custom) {
                     let weeklist = []
                     if (values.week_0) {
@@ -312,7 +305,7 @@ class WakeupServiceItem extends Component {
                     }
                     action.custom_date = weeklist.join(',')
                 } else {
-                    action.custom_date = values.custom_date
+                    action.custom_date = values.custom_date.format('YYYY-MM-DD')
                 }
 
                 if (wakeupServiceId) {
@@ -535,13 +528,14 @@ class WakeupServiceItem extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('custom_date', {
-                                rules: [],
-                                required: true,
-                                width: 100,
-                                initialValue: wakeupServiceItem.custom_date
+                                rules: [{ type: 'object',
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
+                                initialValue: wakeupServiceItem.custom_date ? moment(wakeupServiceItem.custom_date, "YYYY-MM-DD") : null
                             })(
-                                <Input maxLength="128" />
-                            ) }
+                                <DatePicker />
+                            )}
                         </FormItem>
                         <FormItem
                             ref="div_weekBox"
@@ -635,120 +629,22 @@ class WakeupServiceItem extends Component {
                             <Col span={ 6 }>{formatMessage({id: "LANG104"})}</Col>
                         </FormItem>
                         <FormItem
-                            ref="div_time_hour"
+                            ref="div_time"
                             { ...formItemLayout }
-
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG247" />}>
                                     <span>{formatMessage({id: "LANG247"})}</span>
                                 </Tooltip>
                             )}>
-                                <Col span={ 4 }>
-                                    { getFieldDecorator('time_hour', {
-                                        rules: [],
-                                        required: true,
-                                        initialValue: wakeupServiceItem.time ? wakeupServiceItem.time.split(':')[0] : ""
-                                    })(
-                                    <Select>
-                                        <Option value="00">00</Option>
-                                        <Option value="01">01</Option>
-                                        <Option value="02">02</Option>
-                                        <Option value="03">03</Option>
-                                        <Option value="04">04</Option>
-                                        <Option value="05">05</Option>
-                                        <Option value="06">06</Option>
-                                        <Option value="07">07</Option>
-                                        <Option value="08">08</Option>
-                                        <Option value="09">09</Option>
-                                        <Option value="10">10</Option>
-                                        <Option value="11">11</Option>
-                                        <Option value="12">12</Option>
-                                        <Option value="13">13</Option>
-                                        <Option value="14">14</Option>
-                                        <Option value="15">15</Option>
-                                        <Option value="16">16</Option>
-                                        <Option value="17">17</Option>
-                                        <Option value="18">18</Option>
-                                        <Option value="19">19</Option>
-                                        <Option value="20">20</Option>
-                                        <Option value="21">21</Option>
-                                        <Option value="22">22</Option>
-                                        <Option value="23">23</Option>
-                                    </Select>
-                            ) }
-                            </Col>
-                            <Col span={ 1 }> </Col>
-                            <Col span={ 1 }> : </Col>
-                            <Col span={ 4 }>
-                                    { getFieldDecorator('time_minute', {
-                                        rules: [],
-                                        required: true,
-                                        initialValue: wakeupServiceItem.time ? wakeupServiceItem.time.split(':')[1] : ""
-                                    })(
-                                    <Select>
-                                        <Option value="00">00</Option>
-                                        <Option value="01">01</Option>
-                                        <Option value="02">02</Option>
-                                        <Option value="03">03</Option>
-                                        <Option value="04">04</Option>
-                                        <Option value="05">05</Option>
-                                        <Option value="06">06</Option>
-                                        <Option value="07">07</Option>
-                                        <Option value="08">08</Option>
-                                        <Option value="09">09</Option>
-                                        <Option value="10">10</Option>
-                                        <Option value="11">11</Option>
-                                        <Option value="12">12</Option>
-                                        <Option value="13">13</Option>
-                                        <Option value="14">14</Option>
-                                        <Option value="15">15</Option>
-                                        <Option value="16">16</Option>
-                                        <Option value="17">17</Option>
-                                        <Option value="18">18</Option>
-                                        <Option value="19">19</Option>
-                                        <Option value="20">20</Option>
-                                        <Option value="21">21</Option>
-                                        <Option value="22">22</Option>
-                                        <Option value="23">23</Option>
-                                        <Option value="24">24</Option>
-                                        <Option value="25">25</Option>
-                                        <Option value="26">26</Option>
-                                        <Option value="27">27</Option>
-                                        <Option value="28">28</Option>
-                                        <Option value="29">29</Option>
-                                        <Option value="30">30</Option>
-                                        <Option value="31">31</Option>
-                                        <Option value="32">32</Option>
-                                        <Option value="33">33</Option>
-                                        <Option value="34">34</Option>
-                                        <Option value="35">35</Option>
-                                        <Option value="36">36</Option>
-                                        <Option value="37">37</Option>
-                                        <Option value="38">38</Option>
-                                        <Option value="39">39</Option>
-                                        <Option value="40">40</Option>
-                                        <Option value="41">41</Option>
-                                        <Option value="42">42</Option>
-                                        <Option value="43">43</Option>
-                                        <Option value="44">44</Option>
-                                        <Option value="45">45</Option>
-                                        <Option value="46">46</Option>
-                                        <Option value="47">47</Option>
-                                        <Option value="48">48</Option>
-                                        <Option value="49">49</Option>
-                                        <Option value="50">50</Option>
-                                        <Option value="51">51</Option>
-                                        <Option value="52">52</Option>
-                                        <Option value="53">53</Option>
-                                        <Option value="54">54</Option>
-                                        <Option value="55">55</Option>
-                                        <Option value="56">56</Option>
-                                        <Option value="57">57</Option>
-                                        <Option value="58">58</Option>
-                                        <Option value="59">59</Option>
-                                    </Select>
-                            ) }
-                            </Col>
+                            { getFieldDecorator('time', {
+                                rules: [{ type: 'object',
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
+                                initialValue: wakeupServiceItem.time ? moment(wakeupServiceItem.time, "HH:mm") : null
+                            })(
+                                <TimePicker showTime format="HH:mm"/>
+                            )}
                         </FormItem>
                     </Form>
                 </div>

@@ -11,32 +11,66 @@ class TotalInfo extends Component {
     }
     render() {
         const { formatMessage } = this.props.intl
+
         const infoColumns = [{
-                title: formatMessage({id: "LANG135"}),
-                dataIndex: 'name',
-                key: 'name'
+                key: 'received_calls',
+                dataIndex: 'received_calls',
+                title: formatMessage({id: "LANG5409"})
             }, {
-                title: formatMessage({id: "LANG3485"}),
-                dataIndex: 'value',
-                key: 'value'
+                key: 'answered_calls',
+                dataIndex: 'answered_calls',
+                title: formatMessage({id: "LANG5362"})
+            }, {
+                key: 'unanswered_calls',
+                dataIndex: 'unanswered_calls',
+                title: formatMessage({id: "LANG5363"})
+            }, {
+                key: 'abandoned_calls',
+                dataIndex: 'abandoned_calls',
+                title: formatMessage({id: "LANG5364"})
+            }, {
+                key: 'transferred_calls',
+                dataIndex: 'transferred_calls',
+                title: formatMessage({id: "LANG5410"})
+            }, {
+                key: 'answered_rate',
+                dataIndex: 'answered_rate',
+                title: formatMessage({id: "LANG5365"})
+            }, {
+                key: 'unanswered_rate',
+                dataIndex: 'unanswered_rate',
+                title: formatMessage({id: "LANG5366"})
+            }, {
+                key: 'abandoned_rate',
+                dataIndex: 'abandoned_rate',
+                title: formatMessage({id: "LANG5367"})
+            }, {
+                key: 'transferred_rate',
+                dataIndex: 'transferred_rate',
+                title: formatMessage({id: "LANG5411"})
+            }, {
+                key: 'agent_login',
+                dataIndex: 'agent_login',
+                title: formatMessage({id: "LANG5368"})
+            }, {
+                key: 'agent_logoff',
+                dataIndex: 'agent_logoff',
+                title: formatMessage({id: "LANG5369"})
+            }, {
+                key: 'avg_talk',
+                dataIndex: 'avg_talk',
+                title: formatMessage({id: "LANG5370"})
+            }, {
+                key: 'avg_wait',
+                dataIndex: 'avg_wait',
+                title: formatMessage({id: "LANG5371"})
             }]
-        const pagination = {
-                total: this.props.QueueStatTotal.length,
-                defaultPageSize: 5,
-                pageSizeOptions: ['5', '10'],
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
-                }
-            }
 
         return (
             <Table
+                scroll={{ x: 2000 }}
+                pagination={ false }
                 columns={ infoColumns }
-                pagination={ pagination }
                 dataSource={ this.props.QueueStatTotal }
             />
         )

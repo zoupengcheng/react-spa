@@ -12,11 +12,13 @@ class ByDay extends Component {
     render() {
         const { formatMessage } = this.props.intl
         const generalColumns = this.props.generalColumns
+
         const dayColumn = [{
                 title: formatMessage({id: "LANG242"}),
                 dataIndex: 'date',
                 key: 'date'
             }]
+
         const pagination = {
                 total: this.props.QueueStatDistributionByDay.length,
                 showSizeChanger: true,

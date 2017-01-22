@@ -5,13 +5,14 @@ import moment from 'moment'
 import Filter from './filter'
 import Report from './report'
 import api from "../../api/api"
+import '../../../css/call-queue'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Button, Card, Col, DatePicker, Form, message, Row, Select, Tooltip } from 'antd'
+import { Button, Card, Col, DatePicker, Form, Input, message, Row, Select, Tooltip, Transfer } from 'antd'
 
 const NewDate = new Date()
 const FormItem = Form.Item
@@ -25,23 +26,22 @@ class Statistics extends Component {
         super(props)
 
         this.state = {
-            accounts: {},
             queues: [],
             agents: [],
             period: '1',
+            accounts: {},
             extgroupObj: {},
-            extgroupList: [],
+            QueueReport: [],
             selectQueues: [],
             selectAgents: [],
-            QueueReport: [],
             QueueStatTotal: [],
             endDate: CurrentDate,
             startDate: CurrentDate,
+            QueueStatDistributionByDay: [],
+            QueueStatDistributionByHour: [],
+            QueueStatDistributionByWeek: [],
             QueueStatDistributionByQueue: [],
             QueueStatDistributionByAgent: [],
-            QueueStatDistributionByHour: [],
-            QueueStatDistributionByDay: [],
-            QueueStatDistributionByWeek: [],
             QueueStatDistributionByMonth: [],
             QueueStatDistributionByDayOfWeek: []
         }
@@ -55,7 +55,7 @@ class Statistics extends Component {
     _checkTimeFormat = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
 
-        value = value.format(DateFormat)
+        value = value ? value.format(DateFormat) : ''
 
         if (value && !/^\d{4}\-\d{2}\-\d{2}$/.test(value)) {
             callback(formatMessage({id: "LANG2767"}))
@@ -66,12 +66,14 @@ class Statistics extends Component {
     _daysBetween(start, end) {
         return Math.round((end - start) / (1000 * 60 * 60 * 24))
     }
+    _filterTransferOption = (inputValue, option) => {
+        return (option.title.indexOf(inputValue) > -1)
+    }
     _getInitData = () => {
         let queues = []
         let agents = []
         let accounts = {}
         let extgroupObj = {}
-        let extgroupList = []
         let queueReport = {
                 queue: [],
                 agent: [],
@@ -119,9 +121,8 @@ class Statistics extends Component {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
-                    let response = res.response || {}
-
-                    extgroupList = response.extension_groups || []
+                    const response = res.response || {}
+                    const extgroupList = response.extension_groups || []
 
                     extgroupList.map(function(item) {
                         extgroupObj[item.group_id] = item
@@ -230,7 +231,6 @@ class Statistics extends Component {
             agents: agents,
             accounts: accounts,
             extgroupObj: extgroupObj,
-            extgroupList: extgroupList,
             period: queueReport.period,
             endDate: queueReport.end_date,
             selectQueues: queueReport.queue,
@@ -254,24 +254,11 @@ class Statistics extends Component {
 
         let QueueReport = [{
                 key: '1',
-                name: formatMessage({id: "LANG91"}),
-                value: this.state.selectQueues.join()
-            }, {
-                key: '2',
-                name: formatMessage({id: "LANG143"}),
-                value: this.state.selectAgents.join()
-            }, {
-                key: '3',
-                name: formatMessage({id: "LANG1048"}),
-                value: this.state.startDate
-            }, {
-                key: '4',
-                name: formatMessage({id: "LANG1049"}),
-                value: this.state.endDate
-            }, {
-                key: '5',
-                name: formatMessage({id: "LANG2261"}),
-                value: this.state.period + ' ' + formatMessage({id: "LANG3594"}).toLowerCase()
+                queue: this.state.selectQueues.join(),
+                agent: this.state.selectAgents.join(),
+                startDate: this.state.startDate,
+                endDate: this.state.endDate,
+                period: this.state.period + ' ' + formatMessage({id: "LANG3594"}).toLowerCase()
             }]
 
         this.setState({
@@ -296,56 +283,19 @@ class Statistics extends Component {
 
                     let QueueStatTotal = [{
                             key: '1',
-                            name: formatMessage({id: "LANG5409"}),
-                            value: total.received_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                        }, {
-                            key: '2',
-                            name: formatMessage({id: "LANG5362"}),
-                            value: total.answered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                        }, {
-                            key: '3',
-                            name: formatMessage({id: "LANG5363"}),
-                            value: total.unanswered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                        }, {
-                            key: '4',
-                            name: formatMessage({id: "LANG5364"}),
-                            value: total.abandoned_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                        }, {
-                            key: '5',
-                            name: formatMessage({id: "LANG5410"}),
-                            value: total.transferred_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
-                        }, {
-                            key: '6',
-                            name: formatMessage({id: "LANG5365"}),
-                            value: parseFloat(total.answered_rate).toFixed(2) + ' %'
-                        }, {
-                            key: '7',
-                            name: formatMessage({id: "LANG5366"}),
-                            value: parseFloat(total.unanswered_rate).toFixed(2) + ' %'
-                        }, {
-                            key: '8',
-                            name: formatMessage({id: "LANG5367"}),
-                            value: parseFloat(total.abandoned_rate).toFixed(2) + ' %'
-                        }, {
-                            key: '9',
-                            name: formatMessage({id: "LANG5411"}),
-                            value: parseFloat(total.transferred_rate).toFixed(2) + ' %'
-                        }, {
-                            key: '10',
-                            name: formatMessage({id: "LANG5368"}),
-                            value: total.agent_login
-                        }, {
-                            key: '11',
-                            name: formatMessage({id: "LANG5369"}),
-                            value: total.agent_logoff
-                        }, {
-                            key: '12',
-                            name: formatMessage({id: "LANG5370"}),
-                            value: UCMGUI.formatSeconds(total.avg_talk)
-                        }, {
-                            key: '13',
-                            name: formatMessage({id: "LANG5371"}),
-                            value: UCMGUI.formatSeconds(total.avg_wait)
+                            agent_login: total.agent_login,
+                            agent_logoff: total.agent_logoff,
+                            avg_talk: UCMGUI.formatSeconds(total.avg_talk),
+                            avg_wait: UCMGUI.formatSeconds(total.avg_wait),
+                            answered_rate: parseFloat(total.answered_rate).toFixed(2) + ' %',
+                            abandoned_rate: parseFloat(total.abandoned_rate).toFixed(2) + ' %',
+                            unanswered_rate: parseFloat(total.unanswered_rate).toFixed(2) + ' %',
+                            transferred_rate: parseFloat(total.transferred_rate).toFixed(2) + ' %',
+                            received_calls: total.received_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase(),
+                            answered_calls: total.answered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase(),
+                            abandoned_calls: total.abandoned_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase(),
+                            unanswered_calls: total.unanswered_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase(),
+                            transferred_calls: total.transferred_calls + ' ' + formatMessage({id: "LANG142"}).toLowerCase()
                         }]
 
                     this.setState({
@@ -355,6 +305,103 @@ class Statistics extends Component {
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
+            }
+        })
+    }
+    _handleAgentChange = (targetKeys, direction, moveKeys) => {
+        const { form } = this.props
+
+        this.setState({
+            selectAgents: targetKeys
+        })
+
+        form.setFieldsValue({
+            agent: targetKeys
+        })
+
+        form.validateFields(['agent'], { force: true })
+
+        console.log('targetKeys: ', targetKeys)
+        console.log('direction: ', direction)
+        console.log('moveKeys: ', moveKeys)
+    }
+    _handleQueueChange = (targetKeys, direction, moveKeys) => {
+        const { form } = this.props
+
+        this.setState({
+            selectQueues: targetKeys
+        })
+
+        form.setFieldsValue({
+            queue: targetKeys
+        })
+
+        form.validateFields(['queue'], { force: true })
+
+        console.log('targetKeys: ', targetKeys)
+        console.log('direction: ', direction)
+        console.log('moveKeys: ', moveKeys)
+    }
+    _handleTransferSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
+        // this.setState({ targetContactKeys: nextTargetKeys })
+        console.log('sourceSelectedKeys: ', sourceSelectedKeys)
+        console.log('targetSelectedKeys: ', targetSelectedKeys)
+    }
+    _handleCancel = () => {
+        browserHistory.push('/call-features/callQueue')
+    }
+    _handleSubmit = () => {
+        const { formatMessage } = this.props.intl
+
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
+
+                message.loading(formatMessage({ id: "LANG5360" }), 0)
+
+                const selectQueues = values.queue
+                const selectAgents = values.agent
+                const endDate = this._parseDateToString(values.end_date._d)
+                const startDate = this._parseDateToString(values.start_date._d)
+                const period = (1 + this._daysBetween(
+                            values.start_date._d,
+                            values.end_date._d
+                        ))
+
+                this.setState({
+                    period: period,
+                    endDate: endDate,
+                    startDate: startDate
+                })
+
+                let action = {
+                    period: period,
+                    end_date: endDate,
+                    start_date: startDate,
+                    queue: selectQueues.join(),
+                    agent: selectAgents.join(),
+                    action: 'updateQueueReport'
+                }
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(formatMessage({ id: "LANG5361" }))
+
+                            this._getStatisticDetails()
+                        }
+                    }.bind(this)
+                })
             }
         })
     }
@@ -544,66 +591,6 @@ class Statistics extends Component {
             }
         })
     }
-    _handleCancel = () => {
-        browserHistory.push('/call-features/callQueue')
-    }
-    _handleSubmit = () => {
-        const { formatMessage } = this.props.intl
-
-        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
-            if (!err) {
-                console.log('Received values of form: ', values)
-
-                message.loading(formatMessage({ id: "LANG5360" }), 0)
-
-                const selectQueues = values.queue
-                const selectAgents = values.agent
-                const endDate = this._parseDateToString(values.end_date._d)
-                const startDate = this._parseDateToString(values.start_date._d)
-                const period = (1 + this._daysBetween(
-                            values.start_date._d,
-                            values.end_date._d
-                        ))
-
-                this.setState({
-                    period: period,
-                    endDate: endDate,
-                    startDate: startDate,
-                    selectQueues: selectQueues,
-                    selectAgents: selectAgents
-                })
-
-                let action = {
-                    period: period,
-                    end_date: endDate,
-                    start_date: startDate,
-                    queue: selectQueues.join(),
-                    agent: selectAgents.join(),
-                    action: 'updateQueueReport'
-                }
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(formatMessage({ id: "LANG5361" }))
-
-                            this._getStatisticDetails()
-                        }
-                    }.bind(this)
-                })
-            }
-        })
-    }
     _onFocus = (e) => {
         e.preventDefault()
 
@@ -624,9 +611,15 @@ class Statistics extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 12 }
+        }
+
+        const formItemLayoutTransfer = {
+            labelCol: { span: 6 },
+            wrapperCol: { span: 18 }
         }
 
         document.title = formatMessage({id: "LANG584"}, {
@@ -635,7 +628,7 @@ class Statistics extends Component {
                 })
 
         return (
-            <div className="app-content-main">
+            <div className="app-content-main app-content-queue-stat">
                 <Title
                     isDisplay='display-block'
                     onCancel={ this._handleCancel }
@@ -726,7 +719,8 @@ class Statistics extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                { ...formItemLayout }
+                                { ...formItemLayoutTransfer }
+                                className="transfer-formitem"
                                 label={(
                                     <span>
                                         <Tooltip title={ formatMessage({id: "LANG91"}) }>
@@ -739,24 +733,30 @@ class Statistics extends Component {
                                     rules: [{
                                         type: 'array',
                                         required: true,
-                                        message: formatMessage({id: "LANG2150"})
+                                        message: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG2377"}).toLowerCase()})
                                     }],
                                     initialValue: this.state.selectQueues
                                 })(
-                                    <Select
-                                        multiple
-                                        notFoundContent={ formatMessage({id: "LANG133"}) }
-                                    >
-                                        { this.state.queues.map(function(item, index) {
-                                            return <Option key={ item.key }>{ item.title }</Option>
-                                        }) }
-                                    </Select>
+                                    <Input className="hidden" />
                                 ) }
+                                <Transfer
+                                    showSearch
+                                    render={ item => item.title }
+                                    dataSource={ this.state.queues }
+                                    onChange={ this._handleQueueChange }
+                                    targetKeys={ this.state.selectQueues }
+                                    filterOption={ this._filterTransferOption }
+                                    notFoundContent={ formatMessage({id: "LANG133"}) }
+                                    onSelectChange={ this._handleTransferSelectChange }
+                                    searchPlaceholder={ formatMessage({id: "LANG803"}) }
+                                    titles={[formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})]}
+                                />
                             </FormItem>
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                { ...formItemLayout }
+                                { ...formItemLayoutTransfer }
+                                className="transfer-formitem"
                                 label={(
                                     <span>
                                         <Tooltip title={ formatMessage({id: "LANG143"}) }>
@@ -769,42 +769,33 @@ class Statistics extends Component {
                                     rules: [{
                                         type: 'array',
                                         required: true,
-                                        message: formatMessage({id: "LANG2150"})
+                                        message: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG143"}).toLowerCase()})
                                     }],
                                     initialValue: this.state.selectAgents
                                 })(
-                                    <Select
-                                        multiple
-                                        notFoundContent={ formatMessage({id: "LANG133"}) }
-                                    >
-                                        { this.state.agents.map(function(item, index) {
-                                            return <Option
-                                                        key={ item.key }
-                                                        className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }
-                                                    >{ item.title }</Option>
-                                        }) }
-                                    </Select>
+                                    <Input className="hidden" />
                                 ) }
+                                <Transfer
+                                    showSearch
+                                    render={ item => item.title }
+                                    dataSource={ this.state.agents }
+                                    onChange={ this._handleAgentChange }
+                                    targetKeys={ this.state.selectAgents }
+                                    filterOption={ this._filterTransferOption }
+                                    notFoundContent={ formatMessage({id: "LANG133"}) }
+                                    onSelectChange={ this._handleTransferSelectChange }
+                                    searchPlaceholder={ formatMessage({id: "LANG803"}) }
+                                    titles={[formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})]}
+                                />
                             </FormItem>
                         </Col>
                     </Row>
-                    {/* <Filter
-                        queues={ this.state.queues }
-                        agents={ this.state.agents }
-                        endDate={ this.state.endDate }
-                        startDate={ this.state.startDate }
-                        selectQueues={ this.state.selectQueues }
-                        selectAgents={ this.state.selectAgents }
-                        onSubmit={ this._handleSubmit }
-                        onTimeChange={ this._onTimeChange }
-                        onQueueChange={ this._onQueueChange }
-                        onAgentChange={ this._onAgentChange }
-                    /> */}
                 </Form>
                 <div className="content">
                     <Card title={ formatMessage({id: "LANG5374"}) }>
                         <Report
                             QueueReport= { this.state.QueueReport }
+                            ExtensionGroup= { this.state.extgroupObj }
                             QueueStatTotal= { this.state.QueueStatTotal }
                             QueueStatDistributionByQueue= { this.state.QueueStatDistributionByQueue }
                             QueueStatDistributionByAgent= { this.state.QueueStatDistributionByAgent }

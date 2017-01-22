@@ -12,12 +12,14 @@ class ByHour extends Component {
     render() {
         const { formatMessage } = this.props.intl
         const generalColumns = this.props.generalColumns
+
         const hourColumn = [{
                 title: formatMessage({id: "LANG4545"}),
                 dataIndex: 'hour',
                 key: 'hour',
                 sorter: (a, b) => a.hour - b.hour
             }]
+
         const pagination = {
                 total: this.props.QueueStatDistributionByHour.length,
                 showSizeChanger: true,

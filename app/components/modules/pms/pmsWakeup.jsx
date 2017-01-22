@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import api from "../../api/api"
+import moment from "moment"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
@@ -211,11 +212,25 @@ class pmsRooms extends Component {
                 key: 'w_date',
                 dataIndex: 'w_date',
                 title: formatMessage({id: "LANG203"}),
+                render: (text, record, index) => {
+                    if (text.length === 8) {
+                        return <span>{ moment(record.w_date, "YYYYMMDD").format("YYYY-MM-DD") }</span>
+                    } else {
+                        return <span>{ formatMessage({id: "LANG2403"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.w_date.length - b.w_date.length
             }, {
                 key: 'w_time',
                 dataIndex: 'w_time',
                 title: formatMessage({id: "LANG247"}),
+                render: (text, record, index) => {
+                    if (text.length === 4) {
+                        return <span>{ moment(record.w_time, "HHmm").format("HH:mm") }</span>
+                    } else {
+                        return <span>{ formatMessage({id: "LANG2403"}) }</span>
+                    }
+                },
                 sorter: (a, b) => a.w_time.length - b.w_time.length
             }, {
                 key: 'send_status',

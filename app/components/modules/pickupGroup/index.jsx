@@ -24,7 +24,7 @@ class PickupGroup extends Component {
         }
     }
     componentDidMount() {
-        // this._getAccountList()
+        this._getAccountList()
         this._getExtensionGroupList()
         this._getPickupgroups()
     }
@@ -44,7 +44,7 @@ class PickupGroup extends Component {
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/call-features/pickupGroup/add')
         }
     }
     _delete = (record) => {
@@ -82,7 +82,7 @@ class PickupGroup extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/call-features/pickupgroup/edit/' + record.pickupgroup_id + '/' + record.pickupgroup_name)
     }
     _createMembers = (text, record, index) => {
         let members = text ? text.split(',') : []
@@ -320,7 +320,7 @@ class PickupGroup extends Component {
                         </Button>
                     </div>
                     <Table
-                        rowKey="group_id"
+                        rowKey="pickupgroup_id"
                         columns={ columns }
                         pagination={ pagination }
                         rowSelection={ rowSelection }

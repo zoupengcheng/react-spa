@@ -179,6 +179,7 @@ class BasicSettings extends Component {
                         <Col span={ 24 }>
                             <FormItem
                                 { ...formItemLayoutRow }
+                                className={ !currentEditId ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5417" /> }>
@@ -207,6 +208,7 @@ class BasicSettings extends Component {
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
+                                className={ !currentEditId ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5418" /> }>
@@ -232,7 +234,10 @@ class BasicSettings extends Component {
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
-                                className={ this.state.add_method === 'batch' ? 'display-block' : 'hidden' }
+                                className={ (!currentEditId && this.state.add_method === 'batch')
+                                                ? 'display-block'
+                                                : 'hidden'
+                                            }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1158" /> }>
@@ -294,6 +299,7 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
+                                className={ extension_type === 'fxs' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1092" /> }>
@@ -372,6 +378,7 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
+                                className={ extension_type === 'fxs' ? 'hidden' : 'display-block' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1076" /> }>
@@ -399,6 +406,7 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
+                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG2488" /> }>
@@ -485,6 +493,7 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
+                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1106" /> }>
@@ -508,6 +517,7 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
+                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1108" /> }>
@@ -682,6 +692,7 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
+                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG4223" /> }>

@@ -12,12 +12,14 @@ class ByQueue extends Component {
     render() {
         const { formatMessage } = this.props.intl
         const generalColumns = this.props.generalColumns
+
         const queueColumn = [{
                 title: formatMessage({id: "LANG91"}),
                 dataIndex: 'queue',
                 key: 'queue',
                 sorter: (a, b) => a.queue - b.queue
             }]
+
         const pagination = {
                 total: this.props.QueueStatDistributionByQueue.length,
                 showSizeChanger: true,

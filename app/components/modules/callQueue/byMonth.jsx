@@ -16,11 +16,13 @@ class ByMonth extends Component {
     render() {
         const { formatMessage } = this.props.intl
         const generalColumns = this.props.generalColumns
+
         const monthColumn = [{
                 title: formatMessage({id: "LANG244"}),
                 dataIndex: 'month',
                 key: 'month'
             }]
+
         const pagination = {
                 total: this.props.QueueStatDistributionByMonth.length,
                 showSizeChanger: true,
@@ -37,7 +39,7 @@ class ByMonth extends Component {
                 <Table
                     rowKey="month"
                     scroll={{ x: 2000 }}
-                    pagination={ pagination }
+                    pagination={ false }
                     columns={ monthColumn.concat(generalColumns) }
                     dataSource={ this.props.QueueStatDistributionByMonth }
                 />

@@ -49,12 +49,15 @@ import Voicemail from '../components/modules/voicemail/index'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
 import RingGroup from '../components/modules/ringGroup/index'
 import PagingIntercom from '../components/modules/pagingIntercom/index'
+import PagingIntercomItem from '../components/modules/pagingIntercom/pagingIntercomItem'
+import PagingIntercomSetting from '../components/modules/pagingIntercom/pagingIntercomSetting'
 import CallQueue from '../components/modules/callQueue/index'
 import CallQueueItem from '../components/modules/callQueue/queueItem'
 import CallQueueStatistics from '../components/modules/callQueue/statistics'
 import CallQueueSwitchboard from '../components/modules/callQueue/switchboard'
 import AgentLoginSettings from '../components/modules/callQueue/settings'
 import PickupGroup from '../components/modules/pickupGroup/index'
+import PickupGroupItem from '../components/modules/pickupGroup/pickupGroupItem'
 import DialByName from '../components/modules/dialByName/index'
 import DialByNameItem from '../components/modules/dialByName/dialByNameItem'
 import SpeedDial from '../components/modules/speedDial/index'
@@ -89,6 +92,7 @@ import EmailSettings from '../components/modules/emailSettings/index'
 
 // Maintenance
 import UserManagement from '../components/modules/userManagement/index'
+import UserManagementItem from '../components/modules/userManagement/userManagementItem'
 import ChangePassword from '../components/modules/changePassword/index'
 import OperationLog from '../components/modules/operationLog/index'
 import SystemLog from '../components/modules/systemLog/index'
@@ -254,7 +258,12 @@ const routes = (state, currentLocaleData) => {
                         <Route path="voicemailEmailSettings" onEnter={ requireAuth } component={ VoicemailEmailSettings } breadcrumbName={ currentLocaleData["LANG767"] } />
                     </Route>
                     <Route path="ringGroup" onEnter={ requireAuth } component={ RingGroup } breadcrumbName={ currentLocaleData["LANG22"] } />
-                    <Route path="pagingIntercom" onEnter={ requireAuth } component={ PagingIntercom } breadcrumbName={ currentLocaleData["LANG23"] } />
+                    <Route path="pagingIntercom" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG23"] } >
+                        <IndexRoute component={ PagingIntercom } />
+                        <Route path="add" onEnter={ requireAuth } component={ PagingIntercomItem } breadcrumbName={ currentLocaleData["LANG2884"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ PagingIntercomItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="setting" onEnter={ requireAuth } component={ PagingIntercomSetting } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="callQueue" breadcrumbName={ currentLocaleData["LANG24"] }>
                         <IndexRoute component={ CallQueue } />
                         <Route path="add" onEnter={ requireAuth } component={ CallQueueItem } breadcrumbName={ currentLocaleData["LANG769"] } />
@@ -263,7 +272,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="statistics" onEnter={ requireAuth } component={ CallQueueStatistics } breadcrumbName={ currentLocaleData["LANG8"] } />
                         <Route path="switchboard" onEnter={ requireAuth } component={ CallQueueSwitchboard } breadcrumbName={ currentLocaleData["LANG5407"] } />
                     </Route>
-                    <Route path="pickupGroup" onEnter={ requireAuth } component={ PickupGroup } breadcrumbName={ currentLocaleData["LANG2510"] } />
+                    <Route path="pickupGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2510"] } >
+                        <IndexRoute component={ PickupGroup } />
+                        <Route path="add" onEnter={ requireAuth } component={ PickupGroupItem } breadcrumbName={ currentLocaleData["LANG2884"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ PickupGroupItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="dialByName" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3501"] }>
                         <IndexRoute component={ DialByName } />
                         <Route path="add" onEnter={ requireAuth } component={ DialByNameItem } breadcrumbName={ currentLocaleData["LANG2884"] } />
@@ -315,7 +328,11 @@ const routes = (state, currentLocaleData) => {
                 {/* Maintenance */}
                 <Route path="maintenance" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG60"] }>
                     <IndexRoute component={ UserManagement } />
-                    <Route path="userManagement" onEnter={ requireAuth } component={ UserManagement } breadcrumbName={ currentLocaleData["LANG3859"] } />
+                    <Route path="userManagement" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3859"] } >
+                        <IndexRoute component={ UserManagement } />
+                        <Route path="add" onEnter={ requireAuth } component={ UserManagementItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ UserManagementItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="changePassword" onEnter={ requireAuth } component={ ChangePassword } breadcrumbName={ currentLocaleData["LANG55"] } />
                     <Route path="operationLog" onEnter={ requireAuth } component={ OperationLog } breadcrumbName={ currentLocaleData["LANG3908"] } />
                     <Route path="systemLog" onEnter={ requireAuth } component={ SystemLog } breadcrumbName={ currentLocaleData["LANG67"] } />

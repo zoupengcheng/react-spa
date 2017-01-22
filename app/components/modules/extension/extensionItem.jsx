@@ -104,7 +104,7 @@ class ExtensionItem extends Component {
     }
     _handleSubmit = (e) => {
         // e.preventDefault()
-
+        const form = this.props.form
         const { formatMessage } = this.props.intl
 
         this.props.form.validateFields({ force: true }, (err, values) => {

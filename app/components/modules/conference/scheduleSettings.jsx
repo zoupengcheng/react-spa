@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Tooltip, Modal, DatePicker, Popconfirm } from 'antd'
+import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Tooltip, Modal, DatePicker, Popconfirm, Icon } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -157,6 +157,51 @@ class ScheduleSettings extends Component {
         }
         return n
     }
+    _generateWhiteListID = (existIDs) => {
+        let newID = 1
+
+        if (existIDs && existIDs.length) {
+            newID = _.find([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], function(key) {
+                    return !_.contains(existIDs, key)
+                })
+        }
+
+        return newID
+    }
+    _addList = () => {
+        const { form } = this.props
+        const { formatMessage } = this.props.intl
+
+        // can use data-binding to get
+        const extenLists = form.getFieldValue('extenLists')
+
+        if (extenLists.length <= 8) {
+            const newextenLists = extenLists.concat(this._generateWhiteListID(extenLists))
+
+            // can use data-binding to set
+            // important! notify form to detect changes
+            form.setFieldsValue({
+                extenLists: newextenLists
+            })
+        } else {
+            message.warning(formatMessage({id: "LANG809"}, {
+                    0: '',
+                    1: 10
+                }))
+
+            return false
+        }
+    }
+    _removeList = (k) => {
+        const { form } = this.props
+        // can use data-binding to get
+        const extenLists = form.getFieldValue('extenLists')
+
+        // can use data-binding to set
+        form.setFieldsValue({
+            extenLists: extenLists.filter(key => key !== k)
+        })
+    }
     _handleCancel = () => {
         browserHistory.push('/call-features/conference')
     }
@@ -227,7 +272,7 @@ class ScheduleSettings extends Component {
     }
     render() {
         const { formatMessage } = this.props.intl
-        const { getFieldDecorator } = this.props.form
+        const { getFieldDecorator, getFieldValue } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const formItemLayout = {
@@ -249,13 +294,81 @@ class ScheduleSettings extends Component {
 
         const scheduleSettings = this.state.scheduleSettings || {}
 
+        getFieldDecorator('extenLists', { initialValue: [] })
+
+        const extenLists = getFieldValue('extenLists')
+
+        const SpecialExtenFormItems = extenLists.map((k, index) => {
+            return <Row key={ k }>
+                        <Col span={ 6 } style={{ marginRight: 20 }}>
+                            <FormItem
+                                { ...formItemLayoutEmail }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4461" /> }>
+                                            <span>{ formatMessage({id: "LANG3778"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator(`member_name${k}`, {
+                                    initialValue: scheduleSettings[`member_name${k}`]
+                                })(
+                                    <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG2026"}) } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 3 } style={{ marginRight: 20 }}>
+                            <FormItem>
+                                { getFieldDecorator(`member_tel${k}`, {
+                                    initialValue: scheduleSettings[`member_tel$[k]`]
+                                })(
+                                    <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG3781"}) } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 3 } style={{ marginRight: 20 }}>
+                            <FormItem>
+                                { getFieldDecorator(`member_mail${k}`, {
+                                    initialValue: scheduleSettings[`member_mail${k}`]
+                                })(
+                                    <Input style={{ width: 200 }} placeholder={ formatMessage({id: "LANG2032"}) } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                         <Col span={ 3 }>
+                            <FormItem
+                                { ...formItemLayoutEmail }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3782" /> }>
+                                            <span>{ formatMessage({id: "LANG3782"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator(`remote_send_email${k}`, {
+                                    initialValue: scheduleSettings[`remote_send_email${k}`]
+                                })(
+                                    <Checkbox />
+                                ) }
+                                <Icon
+                                    type="minus-circle-o"
+                                    onClick={ () => this._removeList(k) }
+                                    className="dynamic-network-button"
+                                />
+                            </FormItem>
+                        </Col>
+                    </Row>
+        })
+
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: title
                 })
 
         return (
-            <div className="app-content-main">
+            <div className="app-content-main app-content-conference">
                 <Title
                     headerTitle={ title }
                     onSubmit={ this._handleSubmit }
@@ -583,9 +696,15 @@ class ScheduleSettings extends Component {
                                     })(
                                         <Checkbox />
                                     ) }
+                                    <Icon
+                                        type="plus-circle-o"
+                                        onClick={ this._addList }
+                                        className="dynamic-network-button"
+                                    />
                                 </FormItem>
                             </Col>
                         </Row>
+                        { SpecialExtenFormItems }
                         <Row>
                             <Col span={ 6 } style={{ marginRight: 20 }}>
                                 <FormItem

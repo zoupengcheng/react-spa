@@ -29,7 +29,7 @@ class Trunks extends Component {
             // },
             color: ['#3F7BF2', '#FF4E4E', '#FE980E', '#C0C5CC'],
             toolbox: {
-                show: true,
+                show: false,
                 feature: {
                     mark: {show: true},
                     dataView: {show: true, readOnly: false},

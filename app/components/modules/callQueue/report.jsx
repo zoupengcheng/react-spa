@@ -121,15 +121,18 @@ class Report extends Component {
 
         return (
             <div className="app-content-queue-report">
-                <Row gutter={ 32 }>
-                    <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
+                <Row style={{ margin: '10px 0' }}>
+                    <Col>
                         <Card title={ formatMessage({id: "LANG5352"}) }>
                             <ReportInformation
                                 QueueReport={ this.props.QueueReport }
+                                ExtensionGroup= { this.props.ExtensionGroup }
                             />
                         </Card>
                     </Col>
-                    <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
+                </Row>
+                <Row style={{ margin: '10px 0' }}>
+                    <Col>
                         <Card title={ formatMessage({id: "LANG5353"}) }>
                             <TotalInformation
                                 QueueStatTotal={ this.props.QueueStatTotal }

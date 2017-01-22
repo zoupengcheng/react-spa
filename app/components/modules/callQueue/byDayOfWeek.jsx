@@ -21,23 +21,13 @@ class ByDayOfWeek extends Component {
                 dataIndex: 'day',
                 key: 'day'
             }]
-        const pagination = {
-                total: this.props.QueueStatDistributionByDayOfWeek.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
-                }
-            }
 
         return (
             <div>
                 <Table
                     rowKey="day"
                     scroll={{ x: 2000 }}
-                    pagination={ pagination }
+                    pagination={ false }
                     columns={ dayOfWeekColumn.concat(generalColumns) }
                     dataSource={ this.props.QueueStatDistributionByDayOfWeek }
                 />

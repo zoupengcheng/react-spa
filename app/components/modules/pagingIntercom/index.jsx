@@ -24,7 +24,7 @@ class PagingIntercom extends Component {
         }
     }
     componentDidMount() {
-        // this._getAccountList()
+        this._getAccountList()
         this._getExtensionGroupList()
         this._getPaginggroup()
     }
@@ -44,7 +44,7 @@ class PagingIntercom extends Component {
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/call-features/pagingIntercom/add')
         }
     }
     _delete = (record) => {
@@ -82,10 +82,41 @@ class PagingIntercom extends Component {
         })
     }
     _deleteBatch = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deletePaginggroup",
+                "paginggroup": this.state.selectedRowKeys.join(',')
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getPaginggroup()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/call-features/pagingIntercom/edit/' + record.extension + '/' + record.paginggroup_name)
     }
     _createMembers = (text, record, index) => {
         let members = text ? text.split(',') : []
@@ -272,7 +303,7 @@ class PagingIntercom extends Component {
         this.setState({ selectedRowKeys })
     }
     _settings = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/call-features/pagingIntercom/setting')
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -368,7 +399,7 @@ class PagingIntercom extends Component {
                         </Button>
                     </div>
                     <Table
-                        rowKey="group_id"
+                        rowKey="extension"
                         columns={ columns }
                         pagination={ pagination }
                         rowSelection={ rowSelection }

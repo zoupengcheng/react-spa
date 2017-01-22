@@ -2,23 +2,48 @@ var webpack = require('webpack');
 var path = require('path');
 var uglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 var CopyWebpackPlugin = require('copy-webpack-plugin');
-var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
+// var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
+var CommonsChunkPlugin = require("webpack/lib/optimize/CommonsChunkPlugin");
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
+
+const vendors = [
+    'antd',
+    'echarts',
+    'echarts/lib/chart/pie',
+    'echarts/lib/component/tooltip',
+    'echarts/lib/component/title',
+    'echarts/lib//component/legend',
+    'echarts/lib/chart/line',
+    'echarts/lib//component/grid',
+    'react',
+    'react-cookie',
+    'react-dom',
+    'react-router',
+    'react-intl',
+    'react-redux',
+    'redux',
+    'redux-thunk',
+    'underscore'
+];
 
 module.exports = {
-    // devtool: 'eval',
-    entry: [
-        path.resolve(__dirname, 'app/_window.js'),
-        path.resolve(__dirname, 'app/main.jsx')
-    ],
+    devtool: 'cheap-module-source-map',
+    entry: {
+        main: [
+            path.resolve(__dirname, 'app/_window.js'),
+            path.resolve(__dirname, 'app/main.jsx')
+        ],
+        vendor: vendors
+    },
     output: {
         path: __dirname + '/build',
         publicPath: '/',
-        filename: './bundle.js'
+        filename: './[name].js'
     },
     module: {
         loaders: [
-            { test: /\.css$/, include: path.resolve(__dirname, 'app'), loader: 'style-loader!css-loader!postcss-loader' },
-            { test: /\.less$/, loader: "style!css!less?outputStyle=expanded" },
+            { test: /\.css$/, include: path.resolve(__dirname, 'app'), loader: ExtractTextPlugin.extract("style-loader", "css-loader") },
+            { test: /\.less$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader!less-loader") },
             { test: /\.js[x]?$/, include: path.resolve(__dirname, 'app'), exclude: /node_modules/, loader: 'babel-loader' },
             { test: /\.(png|jpg|gif)$/, loader: 'url-loader?limit=8192' },
             { test: /\.json$/, loader: 'json' }
@@ -42,6 +67,11 @@ module.exports = {
             { from: './app/images', to: 'images' }
         ]),
         // new OpenBrowserPlugin({ url: 'http://localhost:8002' }),
-        commonsPlugin
+        // commonsPlugin,
+        new CommonsChunkPlugin({
+            name: ["common", "vendor"],
+            minChunks: 2
+        }),
+        new ExtractTextPlugin("main.css")
     ]
 };

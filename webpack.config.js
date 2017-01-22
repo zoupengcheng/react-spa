@@ -1,7 +1,29 @@
 var webpack = require('webpack');
 var path = require('path');
 var OpenBrowserPlugin = require('open-browser-webpack-plugin');
-var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
+// var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
+var CommonsChunkPlugin = require("webpack/lib/optimize/CommonsChunkPlugin");
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
+
+const vendors = [
+    'antd',
+    'echarts',
+    'echarts/lib/chart/pie',
+    'echarts/lib/component/tooltip',
+    'echarts/lib/component/title',
+    'echarts/lib//component/legend',
+    'echarts/lib/chart/line',
+    'echarts/lib//component/grid',
+    'react',
+    'react-cookie',
+    'react-dom',
+    'react-router',
+    'react-intl',
+    'react-redux',
+    'redux',
+    'redux-thunk',
+    'underscore'
+];
 
 module.exports = {
     devServer: {
@@ -15,27 +37,30 @@ module.exports = {
         proxy: {
             '/locale*': {
                 changeOrigin: true,
-                target: 'http://192.168.1.105:8089/',
+                target: 'http://192.168.124.101:8089',
                 secure: false
             },
             '/cgi?*': {
                 changeOrigin: true,
-                target: 'http://192.168.1.105:8089/',
+                target: 'http://192.168.124.101:8089',
                 secure: false
             }
         }
     },
     devtool: "cheap-module-eval-source-map",
-    entry: [
-        'webpack/hot/dev-server',
-        'webpack-dev-server/client?http://0.0.0.0:8089',
-        path.resolve(__dirname, 'app/_window.js'),
-        path.resolve(__dirname, 'app/main.jsx')
-    ],
+    entry: {
+        'main': [
+            'webpack/hot/dev-server',
+            'webpack-dev-server/client?http://0.0.0.0:8089',
+            path.resolve(__dirname, 'app/_window.js'),
+            path.resolve(__dirname, 'app/main.jsx')
+        ],
+        vendor: vendors
+    },
     output: {
         path: __dirname + '/build',
         publicPath: '/',
-        filename: './bundle.js'
+        filename: './[name].js'
     },
     module: {
         preLoaders: [
@@ -46,8 +71,8 @@ module.exports = {
             }
         ],
         loaders: [
-            { test: /\.css$/, include: path.resolve(__dirname, 'app'), loader: 'style-loader!css-loader!postcss-loader' },
-            { test: /\.less$/, loader: "style!css!less?outputStyle=expanded" },
+            { test: /\.css$/, include: path.resolve(__dirname, 'app'), loader: ExtractTextPlugin.extract("style-loader", "css-loader") },
+            { test: /\.less$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader!less-loader") },
             { test: /\.js[x]?$/, include: path.resolve(__dirname, 'app'), exclude: /node_modules/, loader: 'babel-loader' },
             { test: /\.(png|jpg|gif)$/, loader: 'url-loader?limit=8192' },
             { test: /\.json$/, loader: 'json' }
@@ -65,6 +90,11 @@ module.exports = {
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
         //new OpenBrowserPlugin({ url: 'http://0.0.0.0:8089' }),
-        commonsPlugin
+        // commonsPlugin
+        new CommonsChunkPlugin({
+            name: ["common", "vendor"],
+            minChunks: 2
+        }),
+        new ExtractTextPlugin("main.css")
     ]
 };

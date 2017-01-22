@@ -6,6 +6,7 @@ import { FormattedMessage, injectIntl } from 'react-intl'
 import { Form, message, Tabs } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
+import '../../../css/conference'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import Room from './room'

@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import _ from 'underscore'
+import moment from "moment"
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
@@ -9,7 +10,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -191,8 +192,8 @@ class WakeupItem extends Component {
 
                 action.w_action = values.w_action
                 action.w_type = values.w_type
-                action.w_date = values.w_date
-                action.w_time = values.time_hour + values.time_minute
+                action.w_date = values.w_date.format("YYYYMMDD")
+                action.w_time = values.w_time.format("HHmm")
                 action.send_status = 1
 
                 if (wakeupId) {
@@ -305,134 +306,32 @@ class WakeupItem extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('w_date', {
-                                rules: [{
+                                rules: [{ type: 'object',
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
                                 }],
-                                width: 100,
-                                initialValue: wakeupItem.w_date
+                                initialValue: wakeupItem.w_date ? moment(wakeupItem.w_date, "YYYYMMDD") : null
                             })(
-                                <Input maxLength="128" />
-                            ) }
+                                <DatePicker showTime format="YYYY-MM-DD"/>
+                            )}
                         </FormItem>
                         <FormItem
-                            ref="div_time"
+                            ref="div_w_time"
                             { ...formItemLayout }
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG247" />}>
                                     <span>{formatMessage({id: "LANG247"})}</span>
                                 </Tooltip>
                             )}>
-                                <Col span={ 4 }>
-                                    { getFieldDecorator('time_hour', {
-                                        rules: [{
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }],
-                                        initialValue: wakeupItem.w_time ? wakeupItem.w_time[0] + wakeupItem.w_time[1] : ""
-                                    })(
-                                    <Select>
-                                        <Option value="00">00</Option>
-                                        <Option value="01">01</Option>
-                                        <Option value="02">02</Option>
-                                        <Option value="03">03</Option>
-                                        <Option value="04">04</Option>
-                                        <Option value="05">05</Option>
-                                        <Option value="06">06</Option>
-                                        <Option value="07">07</Option>
-                                        <Option value="08">08</Option>
-                                        <Option value="09">09</Option>
-                                        <Option value="10">10</Option>
-                                        <Option value="11">11</Option>
-                                        <Option value="12">12</Option>
-                                        <Option value="13">13</Option>
-                                        <Option value="14">14</Option>
-                                        <Option value="15">15</Option>
-                                        <Option value="16">16</Option>
-                                        <Option value="17">17</Option>
-                                        <Option value="18">18</Option>
-                                        <Option value="19">19</Option>
-                                        <Option value="20">20</Option>
-                                        <Option value="21">21</Option>
-                                        <Option value="22">22</Option>
-                                        <Option value="23">23</Option>
-                                    </Select>
-                            ) }
-                            </Col>
-                            <Col span={ 1 }> </Col>
-                            <Col span={ 1 }> : </Col>
-                            <Col span={ 4 }>
-                                    { getFieldDecorator('time_minute', {
-                                        rules: [{
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }],
-                                        initialValue: wakeupItem.w_time ? wakeupItem.w_time[2] + wakeupItem.w_time[3] : ""
-                                    })(
-                                    <Select>
-                                        <Option value="00">00</Option>
-                                        <Option value="01">01</Option>
-                                        <Option value="02">02</Option>
-                                        <Option value="03">03</Option>
-                                        <Option value="04">04</Option>
-                                        <Option value="05">05</Option>
-                                        <Option value="06">06</Option>
-                                        <Option value="07">07</Option>
-                                        <Option value="08">08</Option>
-                                        <Option value="09">09</Option>
-                                        <Option value="10">10</Option>
-                                        <Option value="11">11</Option>
-                                        <Option value="12">12</Option>
-                                        <Option value="13">13</Option>
-                                        <Option value="14">14</Option>
-                                        <Option value="15">15</Option>
-                                        <Option value="16">16</Option>
-                                        <Option value="17">17</Option>
-                                        <Option value="18">18</Option>
-                                        <Option value="19">19</Option>
-                                        <Option value="20">20</Option>
-                                        <Option value="21">21</Option>
-                                        <Option value="22">22</Option>
-                                        <Option value="23">23</Option>
-                                        <Option value="24">24</Option>
-                                        <Option value="25">25</Option>
-                                        <Option value="26">26</Option>
-                                        <Option value="27">27</Option>
-                                        <Option value="28">28</Option>
-                                        <Option value="29">29</Option>
-                                        <Option value="30">30</Option>
-                                        <Option value="31">31</Option>
-                                        <Option value="32">32</Option>
-                                        <Option value="33">33</Option>
-                                        <Option value="34">34</Option>
-                                        <Option value="35">35</Option>
-                                        <Option value="36">36</Option>
-                                        <Option value="37">37</Option>
-                                        <Option value="38">38</Option>
-                                        <Option value="39">39</Option>
-                                        <Option value="40">40</Option>
-                                        <Option value="41">41</Option>
-                                        <Option value="42">42</Option>
-                                        <Option value="43">43</Option>
-                                        <Option value="44">44</Option>
-                                        <Option value="45">45</Option>
-                                        <Option value="46">46</Option>
-                                        <Option value="47">47</Option>
-                                        <Option value="48">48</Option>
-                                        <Option value="49">49</Option>
-                                        <Option value="50">50</Option>
-                                        <Option value="51">51</Option>
-                                        <Option value="52">52</Option>
-                                        <Option value="53">53</Option>
-                                        <Option value="54">54</Option>
-                                        <Option value="55">55</Option>
-                                        <Option value="56">56</Option>
-                                        <Option value="57">57</Option>
-                                        <Option value="58">58</Option>
-                                        <Option value="59">59</Option>
-                                    </Select>
-                            ) }
-                            </Col>
+                            { getFieldDecorator('w_time', {
+                                rules: [{ type: 'object',
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
+                                initialValue: wakeupItem.w_time ? moment(wakeupItem.w_time, "HHmm") : null
+                            })(
+                                <TimePicker showTime format="HH:mm"/>
+                            )}
                         </FormItem>
                         <FormItem
                             ref="div_w_action"
