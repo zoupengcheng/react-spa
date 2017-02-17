@@ -11,6 +11,7 @@ import { message, Modal } from 'antd'
 import { browserHistory } from 'react-router'
 import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
 import cookie from 'react-cookie'
+const baseServerURl = api.apiHost
 
 let loginInterval = null
 let UCMGUI = function() {}
@@ -647,6 +648,47 @@ UCMGUI.prototype = {
             } else {
                 reboot()
             }
+        },
+            confirmReset: function(url, formatMessage) {
+            // clearInterval(loginInterval);
+            // loginInterval = null;
+
+            // UCMGUI.config.needReloadPage = true
+
+            message.loading(formatMessage({ id: "LANG836"}))
+
+            var reload = function() {
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    async: false,
+                    url: baseServerURl,
+                    data: {
+                        action: 'getInfo'
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        setTimeout(reload, 5000)
+                    },
+                    success: function(data) {
+                        if (data.status === 0) {
+                            message.destroy()
+
+                            // UCMGUI.logoutFunction.doLogout()
+                        }
+                    }
+                })
+            }
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                success: function(data) {
+                    setTimeout(reload, 30000)
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    setTimeout(reload, 30000)
+                }
+            })
         }
     },
     filterHiddenEle: function(ele) { 
@@ -819,11 +861,6 @@ UCMGUI.prototype = {
         })
 
         return s.responseText
-    },
-    renderHtmlTooltip: function(str) {
-        let content = <FormattedHTMLMessage id={ str } defaultMessage={ str } />
-
-        return content
     }
 }
 

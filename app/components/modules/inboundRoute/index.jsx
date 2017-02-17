@@ -46,21 +46,21 @@ class InboundRoute extends Component {
 
         confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
 
-        if (!this.state.accountList.length) {
-            confirm({
-                title: '',
-                content: confirmContent,
-                onOk() {
-                    browserHistory.push('/extension-trunk/extension')
-                },
-                onCancel() {}
-            })
-        } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
-        }
+        // if (!this.state.accountList.length) {
+        //     confirm({
+        //         title: '',
+        //         content: confirmContent,
+        //         onOk() {
+        //             browserHistory.push('/extension-trunk/extension')
+        //         },
+        //         onCancel() {}
+        //     })
+        // } else {
+            browserHistory.push('/extension-trunk/inboundRoute/add')
+        // }
     }
     _blacklist = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.group_id + '/' + record.group_name)
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -97,7 +97,7 @@ class InboundRoute extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.group_id + '/' + record.group_name)
     }
     _createDestination = (text, record, index) => {
         const __this = this

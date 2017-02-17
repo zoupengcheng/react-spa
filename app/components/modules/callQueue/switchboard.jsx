@@ -31,140 +31,12 @@ class SwitchBoard extends Component {
     }
     componentWillMount () {
         // this._getQueueByChairman()
-        this.props.getQueueByChairman()
-    }
-    _getQueueByChairman = (chairman) => {
-        let data = {}
-        const { formatMessage } = this.props.intl
-
-        if (chairman) {
-            data.chairman = chairman
-        }
-
-        data.action = 'getQueueByChairman'
-
-        $.ajax({
-            data: data,
-            type: 'json',
-            method: 'post',
-            // async: false,
-            url: api.apiHost,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const callQueueList = response.CallQueues || []
-                    const activeTabKey = callQueueList.length ? callQueueList[0].extension : ''
-
-                    this.setState({
-                        activeTabKey: activeTabKey,
-                        callQueueList: callQueueList
-                    })
-
-                    this._getQueueMembers(activeTabKey)
-                    this._getQueueCallingAnswered(activeTabKey)
-                    this._getQueueCallingWaiting(activeTabKey)
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getQueueMembers = (queue) => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                queuename: queue,
-                action: 'getQueueByChairman'
-            },
-            type: 'json',
-            // async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const queueMembers = response.QueueMembers || []
-
-                    this.setState({
-                        queueMembers: queueMembers
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getQueueCallingAnswered = (queue) => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                role: 'answer',
-                queuename: queue,
-                action: 'getQueueCalling'
-            },
-            type: 'json',
-            // async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const answerCallings = response.CallQueues || []
-
-                    this.setState({
-                        answerCallings: answerCallings
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getQueueCallingWaiting = (queue) => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                role: '',
-                queuename: queue,
-                action: 'getQueueCalling'
-            },
-            type: 'json',
-            // async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const waitingCallings = response.CallQueues || []
-
-                    this.setState({
-                        waitingCallings: _.sortBy(waitingCallings, function(item) { return item.position })
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
+        this.props.getCallQueuesMessage()
     }
     _onTabsChange = (activeTabKey) => {
         this.setState({ activeTabKey })
 
-        this.props.getQueueMembers(activeTabKey)
+        this.props.getCallQueuesMemberMessage(activeTabKey)
         this.props.getQueueCallingAnswered(activeTabKey)
         this.props.getQueueCallingWaiting(activeTabKey)
     }
@@ -196,7 +68,7 @@ class SwitchBoard extends Component {
                     callQueueList.map(function(item) {
                         return <TabPane
                                     key={ item.extension }
-                                    tab={ item.extension + ' (' + item.queuename + ')' }
+                                    tab={ item.extension + (item.queuename ? (' (' + item.queuename + ')') : '') }
                                 >
                                     <SwitchBoardItem
                                         queueDetail={ item }

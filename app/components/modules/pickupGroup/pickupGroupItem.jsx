@@ -65,7 +65,7 @@ class PickupGroupItem extends Component {
                 if (bool) {
                     const response = res.response || {}
 
-                    groupNameList = response.group_name || []
+                    groupNameList = response.pickupgroup_name || []
                 }
             }.bind(this),
             error: function(e) {
@@ -163,9 +163,9 @@ class PickupGroupItem extends Component {
             })
         }
 
-        // if (extensionGroupName) {
-        //     groupNameList = _.without(groupNameList, extensionGroupName)
-        // }
+        if (pickupGroup.pickupgroup_name) {
+            groupNameList = _.without(groupNameList, pickupGroup.pickupgroup_name)
+        }
         for (let i = 0; i < groupList.length; i++) {
             accountList.push(groupList[i])
         }

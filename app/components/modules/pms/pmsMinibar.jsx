@@ -352,6 +352,7 @@ class ExtensionGroup extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._editbar.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -360,7 +361,7 @@ class ExtensionGroup extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._deletebar.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                             </Popconfirm>
                         </div>
                 }
@@ -386,6 +387,7 @@ class ExtensionGroup extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._editwaiter.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -394,7 +396,7 @@ class ExtensionGroup extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._deletewaiter.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                             </Popconfirm>
                         </div>
                 }
@@ -420,6 +422,7 @@ class ExtensionGroup extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._editgoods.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -428,7 +431,7 @@ class ExtensionGroup extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._deletegoods.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                             </Popconfirm>
                         </div>
                 }

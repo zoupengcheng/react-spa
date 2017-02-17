@@ -37,7 +37,7 @@ class Feature extends Component {
             en_ringboth: en_ringboth,
             out_limitime: out_limitime,
             bypass_outrt_auth: bypass_outrt_auth,
-            strategy_ipacl: strategy_ipacl ? strategy_ipacl : '0',
+            strategy_ipacl: strategy_ipacl ? strategy_ipacl + '' : '0',
             targetKeysCallbarging: callbarging_monitor ? callbarging_monitor.split(',') : [],
             targetKeysSeamless: seamless_transfer_members ? seamless_transfer_members.split(',') : []
         }
@@ -253,7 +253,7 @@ class Feature extends Component {
 
         const formItemLayoutRow = {
             labelCol: { span: 4 },
-            wrapperCol: { span: 6 }
+            wrapperCol: { span: 8 }
         }
 
         const formItemLayoutTransfer = {
@@ -292,15 +292,9 @@ class Feature extends Component {
                         )}
                     >
                         { getFieldDecorator(`whitelist${item.key}`, {
-                            rules: [
-                                this.state.dnd
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: item.new ? '' : dndwhitelist[item.key - 1]
+                            rules: [],
+                            initialValue: item.new ? '' : dndwhitelist[item.key - 1],
+                            className: this.state.dnd ? 'display-block' : 'hidden'
                         })(
                             <Input />
                         ) }
@@ -360,7 +354,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype : '0'
+                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -411,7 +405,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype : '0'
+                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -462,7 +456,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfb_timetype ? settings.cfb_timetype : '0'
+                                    initialValue: settings.cfb_timetype ? settings.cfb_timetype + '' : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -514,7 +508,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.dnd_timetype ? settings.dnd_timetype : '0'
+                                    initialValue: settings.dnd_timetype ? settings.dnd_timetype + '' : '0'
                                 })(
                                     <Select disabled={ !this.state.dnd }>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -543,15 +537,9 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('whitelist1', {
-                                    rules: [
-                                        this.state.dnd
-                                            ? {
-                                                    required: true,
-                                                    message: formatMessage({id: "LANG2150"})
-                                                }
-                                            : {}
-                                    ],
-                                    initialValue: dndwhitelist.length ? dndwhitelist[0] : ''
+                                    rules: [],
+                                    initialValue: dndwhitelist.length ? dndwhitelist[0] : '',
+                                    className: this.state.dnd ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
@@ -586,7 +574,8 @@ class Feature extends Component {
                                 { getFieldDecorator('enable_cc', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_cc ? (settings.enable_cc === 'yes') : false
+                                    initialValue: settings.enable_cc ? (settings.enable_cc === 'yes') : false,
+                                    className: extension_type === 'iax' ? 'hidden' : 'display-block'
                                 })(
                                     <Checkbox onChange={ this._onChangeEnableCC } />
                                 ) }
@@ -616,7 +605,10 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_mode ? settings.cc_mode : 'normal'
+                                    initialValue: settings.cc_mode ? settings.cc_mode : 'normal',
+                                    className: this.state.enable_cc && extension_type === 'sip'
+                                            ? 'display-block'
+                                            : 'hidden'
                                 })(
                                     <Select onChange={ this._onChangeCCMode } >
                                         <Option value='normal'>Normal</Option>
@@ -650,7 +642,10 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_max_agents ? settings.cc_max_agents : 10
+                                    initialValue: settings.cc_max_agents ? settings.cc_max_agents : 10,
+                                    className: (extension_type === 'sip' && this.state.enable_cc && this.state.cc_mode === 'trunk')
+                                            ? 'display-block'
+                                            : 'hidden'
                                 })(
                                     <InputNumber min={ 1 } />
                                 ) }
@@ -681,7 +676,10 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_max_monitors ? settings.cc_max_monitors : 10
+                                    initialValue: settings.cc_max_monitors ? settings.cc_max_monitors : 10,
+                                    className: (extension_type === 'sip' && this.state.enable_cc && this.state.cc_mode === 'trunk')
+                                            ? 'display-block'
+                                            : 'hidden'
                                 })(
                                     <InputNumber min={ 1 } />
                                 ) }
@@ -758,7 +756,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.ringboth_timetype ? settings.ringboth_timetype : '0'
+                                    initialValue: settings.ringboth_timetype ? settings.ringboth_timetype + '' : '0'
                                 })(
                                     <Select disabled={ !this.state.en_ringboth }>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -795,7 +793,8 @@ class Feature extends Component {
                                 { getFieldDecorator('en_hotline', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.en_hotline ? (settings.en_hotline === 'yes') : false
+                                    initialValue: settings.en_hotline ? (settings.en_hotline === 'yes') : false,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox onChange={ this._onChangeHotLine } />
                                 ) }
@@ -821,7 +820,8 @@ class Feature extends Component {
                                                 }
                                             : {}
                                     ],
-                                    initialValue: settings.hotline_number
+                                    initialValue: settings.hotline_number,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Input disabled={ !this.state.en_hotline } />
                                 ) }
@@ -845,7 +845,8 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.hotline_type ? settings.hotline_type : '1'
+                                    initialValue: settings.hotline_type ? settings.hotline_type : '1',
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Select disabled={ !this.state.en_hotline }>
                                         <Option value='1'>{ formatMessage({id: "LANG4186"}) }</Option>
@@ -865,7 +866,7 @@ class Feature extends Component {
                             span={ 24 }
                         >
                             <FormItem
-                                { ...formItemLayoutTransfer }
+                                { ...formItemLayoutRow }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5081" /> }>
@@ -899,7 +900,7 @@ class Feature extends Component {
                             span={ 24 }
                         >
                             <FormItem
-                                { ...formItemLayoutTransfer }
+                                { ...formItemLayoutRow }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5296" /> }>
@@ -1108,7 +1109,8 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.skip_auth_timetype ? settings.skip_auth_timetype : '0'
+                                    initialValue: settings.skip_auth_timetype ? settings.skip_auth_timetype + '' : '0',
+                                    className: this.state.bypass_outrt_auth === 'bytime' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
@@ -1139,7 +1141,8 @@ class Feature extends Component {
                                 { getFieldDecorator('enablehotdesk', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enablehotdesk ? (settings.enablehotdesk === 'yes') : false
+                                    initialValue: settings.enablehotdesk ? (settings.enablehotdesk === 'yes') : false,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1182,7 +1185,8 @@ class Feature extends Component {
                                 { getFieldDecorator('enable_webrtc', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_webrtc ? (settings.enable_webrtc === 'yes') : false
+                                    initialValue: settings.enable_webrtc ? (settings.enable_webrtc === 'yes') : false,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1240,7 +1244,8 @@ class Feature extends Component {
                                 { getFieldDecorator('room', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.room ? (settings.room === 'yes') : false
+                                    initialValue: settings.room ? (settings.room === 'yes') : false,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -1282,7 +1287,8 @@ class Feature extends Component {
                             >
                                 { getFieldDecorator('maximumTime', {
                                     rules: [],
-                                    initialValue: settings.maximumTime
+                                    initialValue: settings.maximumTime,
+                                    className: this.state.out_limitime ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
@@ -1305,7 +1311,8 @@ class Feature extends Component {
                                 { getFieldDecorator('custom_autoanswer', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.custom_autoanswer ? (settings.custom_autoanswer === 'yes') : false
+                                    initialValue: settings.custom_autoanswer ? (settings.custom_autoanswer === 'yes') : false,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }

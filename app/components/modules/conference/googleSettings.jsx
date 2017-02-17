@@ -14,7 +14,10 @@ class GoogleSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            accountSettings: {}
+            accountSettings: {},
+            authorBlank: 'hidden',
+            authorHref: '',
+            requestCode: ''
         }
     }
     componentDidMount() {
@@ -103,6 +106,80 @@ class GoogleSettings extends Component {
             }
         })
     }
+    _getAuthorUrl = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'updateOauthJsonFile',
+                client_name: 'calendar'
+            },
+            type: 'json',
+            async: false,
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    var res = data.response.result,
+                        openRes = window.open(res, '_blank')
+
+                    if (!openRes) {
+                        this.setState({
+                            authorHref: res,
+                            authorBlank: 'display-block'
+                        })
+                    } else {
+                        this.setState({
+                            authorBlank: 'hidden'
+                        })
+                    }
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _updateCertificate = () => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG905" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: "POST",
+            data: {
+                action: 'updateCertificate',
+                client_name: 'calendar',
+                request_code: this.state.requestCode
+            },
+            type: 'json',
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+                    this.setState({
+                        request_code: ''
+                    })
+                }
+            }.bind(this)
+        })
+    }
+    _requestCode = (e) => {
+        this.setState({
+            requestCode: e.target.value
+        })
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -114,7 +191,7 @@ class GoogleSettings extends Component {
         let accountSettings = this.state.accountSettings
 
         return (
-            <div className="app-content-main">
+            <div className="app-content-main app-content-conference">
                 <div className="content">
                     <div className="top-button">
                         <Button icon="plus" type="primary" size="default" onClick={ this._calendarSettings }>
@@ -175,29 +252,32 @@ class GoogleSettings extends Component {
                             </Col>
                         </Row>
                         <div>
-                            <div>
-                                <span>1</span>
-                                <span>{ formatMessage({id: "LANG4411"}) }</span>
-                                <Button type="primary" size="default">
+                            <div className="step-content">
+                                <span className="step">1</span>
+                                <span style={{ marginRight: 20 }}>{ formatMessage({id: "LANG4411"}) }</span>
+                                <Button type="primary" size="default" onClick={ this._getAuthorUrl }>
                                     { formatMessage({id: "LANG4387"}) }
                                 </Button>
+                                <div className={ this.state.authorBlank } style={{ marginTop: 10 }}>
+                                    <span style={{ marginRight: 10 }}>{ formatMessage({id: "LANG4388"}) }</span>
+                                    <a href={ this.state.authorHref } target="_blank">{ formatMessage({id: "LANG4387"}) }</a>
+                                </div>
                             </div>
-                            <div>
-                                <span>2</span>
+                            <div className="step-content">
+                                <span className="step">2</span>
                                 <span>{ formatMessage({id: "LANG4412"}) }</span>
-                                <p>{ formatMessage({id: "LANG4412"}) }</p>
                             </div>
-                            <div>
-                                <span>3</span>
+                            <div className="step-content">
+                                <span className="step">3</span>
                                 <span>{ formatMessage({id: "LANG4413"}) }</span>
                             </div>
-                            <div>
-                                <span>4</span>
+                            <div className="step-content">
+                                <span className="step">4</span>
                                 <span>{ formatMessage({id: "LANG4414"}) }</span>
-                                <div>
-                                    <span>Status update</span>
-                                    <Input id="request_code" />
-                                    <Button type="primary" size="default">
+                                <div style={{ marginTop: 10 }}>
+                                    <span style={{ marginRight: 20, marginLeft: 50 }}>{ formatMessage({id: "LANG3794"}) }</span>
+                                    <Input style={{ width: 400, marginRight: 20 }} onChange={ this._requestCode } value={ this.state.requestCode } />
+                                    <Button type="primary" size="default" onClick={ this._updateCertificate }>
                                         { formatMessage({id: "LANG3518"}) }
                                     </Button>
                                 </div>

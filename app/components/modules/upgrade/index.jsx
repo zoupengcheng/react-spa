@@ -157,7 +157,11 @@ class Upgrade extends Component {
         let username = upgrade.username
         let password = upgrade.password
 
-        document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG619"})})
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 1: formatMessage({id: "LANG619"})
+        })
 
         const props = {
             name: 'file',

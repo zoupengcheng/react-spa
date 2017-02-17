@@ -21,7 +21,8 @@ class EditVoipTrunk extends Component {
         this.state = {
             openPort: [],
             telUri: "disabled",
-            enableCc: false
+            enableCc: false,
+            refs: {}
         }
     }
     componentDidMount() {
@@ -205,13 +206,16 @@ class EditVoipTrunk extends Component {
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             let me = this
+            let refs = me.state.refs
+
             for (let key in values) {
                 if (values.hasOwnProperty(key)) {
-                    if (me.refs["div_" + key] && 
-                        me.refs["div_" + key].props &&
-                        ((me.refs["div_" + key].props.className &&
-                        me.refs["div_" + key].props.className.indexOf("hidden") === -1) ||
-                        typeof me.refs["div_" + key].props.className === "undefined")) {
+                    let divKey = refs["div_" + key]
+                    if (divKey && 
+                       divKey.props &&
+                        ((divKey.props.className &&
+                        divKey.props.className.indexOf("hidden") === -1) ||
+                        typeof divKey.props.className === "undefined")) {
                         if (!err || (err && typeof err[key] === "undefined")) {
                             action[key] = UCMGUI.transCheckboxVal(values[key])   
                         } else {
@@ -243,6 +247,11 @@ class EditVoipTrunk extends Component {
             })
         })
     }
+    _getRefs = (refs) => {
+        this.setState({
+            refs: _.extend(this.state.refs, refs)
+        })
+    }
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
@@ -264,11 +273,17 @@ class EditVoipTrunk extends Component {
         })
         return (
             <div className="app-content-main" id="app-content-main">
-                <Title headerTitle={ headerTitle } onSubmit={ this._handleSubmit.bind(this) } onCancel={ this._handleCancel } isDisplay='display-block' />
+                <Title 
+                    headerTitle={ headerTitle } 
+                    onSubmit={ this._handleSubmit.bind(this) } 
+                    onCancel={ this._handleCancel } 
+                    isDisplay='display-block' 
+                />
                 <Form>
                     <Tabs defaultActiveKey="1" onChange={this._onChange}>
                         <TabPane tab={formatMessage({id: "LANG2217"})} key="1">
                             <BasicSettings form={ this.props.form }
+                                getRefs={ this._getRefs.bind(this) }
                                 trunk={ this.state.trunk }
                                 trunkType = {trunkType}
                                 technology = {technology}
@@ -277,6 +292,7 @@ class EditVoipTrunk extends Component {
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG542"})} key="2">
                             <AdvanceSettings form={ this.props.form }
+                                getRefs={ this._getRefs.bind(this) }
                                 trunk={ this.state.trunk }
                                 trunkType = {trunkType}
                                 technology = {technology}

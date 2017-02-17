@@ -9,169 +9,238 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import _ from 'underscore'
 
+let detailNum = 0,
+    detailObj = {}
+
 class OperLogUsrList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            visible: false,
-            recordFiles: []
+            visible: false
         }
-    }
-    _sendDownloadRequest = () => {
-        const { formatMessage } = this.props.intl
-
-        message.loading(formatMessage({ id: "LANG3774" }))
-
-        $.ajax({
-            type: "GET",
-            url: "/cgi?action=reloadCDRRecordFile&reflush_Record=all",
-            error: function(e) {
-                message.error(e.statusText)
-            },
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    message.destroy()
-                    window.open("/cgi?action=downloadFile&type=cdr_recording&data=Master.csv" +
-                        "&_location=cdr&_=" + (new Date().getTime()), '_self')
-                }
-            }.bind(this)
-        })
-    }
-    _sendDownloadSearchRequest = () => {
-        const { formatMessage } = this.props.intl
-
-        message.loading(formatMessage({ id: "LANG3774" }))
-
-        let action = this.props.dataSource
-
-        action['action'] = 'CreateCdrRecord'
-        action['condition'] = 1
-
-        $.ajax({
-            type: "POST",
-            url: api.apiHost,
-            data: action,
-            error: function(e) {
-                message.error(e.statusText)
-            },
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    message.destroy()
-                    window.open("/cgi?action=downloadCdrRecord&type=cdr_recording&data=Master_condition.csv" +
-                        "&_location=cdr&_=" + (new Date().getTime()), '_self')
-                }
-            }.bind(this)
-        })
-    }
-    _showRecordFile = (list) => {
-        this.setState({
-            visible: true,
-            recordFiles: list
-        })
     }
     _handleCancel = () => {
         this.setState({
             visible: false
         })
     }
-    _autoDownloadSettings = () => {
-        browserHistory.push('/cdr/autoDownload')
-    }
-    _createStatus = (text, record, index) => {
-        const {formatMessage} = this.props.intl
+    _getOptStr = (obj) => {
+        const { formatMessage } = this.props.intl
 
-        let status
+        let optStr = "",
+            data = obj.data,
+            options2Lang = obj.options2Lang,
+            locationObj = obj.locationObj,
+            action = obj.action,
+            count = obj.count,
+            maxLen = obj.maxLen
 
-        if (text.indexOf("ANSWERED") > -1) {
-            status = <span className="sprite sprit-cdr-answer" title={ formatMessage({ id: "LANG4863" }) }></span>
-        } else if (text.indexOf("NO ANSWER") > -1) {
-            status = <span className="sprite sprite-cdr-no-answer" title={ formatMessage({ id: "LANG4864" }) }></span>
-        } else if (text.indexOf("FAILED") > -1) {
-            status = <span className="sprite sprite-cdr-fail" title={ formatMessage({ id: "LANG2405" }) }></span>
-        } else if (text.indexOf("BUSY") > -1) {
-            status = <span className="sprite sprite-cdr-busy" title={ formatMessage({ id: "LANG2237" }) }></span>
+        for (let prop in data) {
+            if (data.hasOwnProperty(prop) && prop !== "action" && prop !== "_location" && prop !== "_") {
+                let param = prop,
+                    options2LangAction = options2Lang[action]
+
+                if (count && maxLen) {
+                    if (count > maxLen) {
+                        break
+                    }
+
+                    count++
+                }
+
+                if (locationObj && locationObj[prop]) {
+                    param = "<span>" + formatMessage({id: locationObj[prop]}) + "</span>"
+                }
+
+                if (options2LangAction && options2LangAction[prop]) {
+                    param = "<span>" + formatMessage({id: options2LangAction[prop]}) + "</span>"
+                }
+
+                optStr += param + ": " + (data[prop] ? data[prop] : "") + ";  "
+            }
         }
 
-        return status
+        return {
+            data: optStr,
+            count: count
+        }
     }
-    _createTalkTime = (text, record, index) => {
-        let s = parseInt(text, 10),
-            h = Math.floor(s / 3600)
+    _jumpPage = () => {
 
-        s = s % 3600
-
-        let m = Math.floor(s / 60)
-
-        s = s % 60
-
-        return h + ":" + (m < 10 ? ("0" + m) : m) + ":" + (s < 10 ? ("0" + s) : s)
     }
-    _createRecordFile = (text, record, index) => {
+    _transResults = (cellvalue, options, rowObject) => {
         const {formatMessage} = this.props.intl
 
-        let record_list = text,
-            options = ''
+        var erroeCodes = UCMGUI.initConfig.errorCodes,
+            val = erroeCodes[cellvalue]
 
-        if (record_list.length > 0) {
-            let list = record_list.split('@')
-            list.pop()
-            options = <div>
-                        <span className="sprite sptite-record-icon" onClick={ this._showRecordFile.bind(this, list) }></span>
-                        <span className="record-num">{ list.length }</span>
-                      </div>
+        if (!val) {
+            val = "LANG3910" // Operate Successfully 
+        }
+
+        return <span>{ formatMessage({id: val}) }</span>       
+    }
+    _transAction = (cellvalue, options, rowObject) => {
+        const {formatMessage} = this.props.intl
+
+        let _location = rowObject.operation._location,
+            options2Lang = this.props.options2Lang,
+            locationObj = options2Lang[_location],
+            page = ""
+
+        if (options2Lang && locationObj) {
+            var lang = locationObj["_LOCATION"]
+
+            if (lang && _location !== "operationLog") {
+                page = <span className='jumpPage' onClick={ this._jumpPage(_location) } title={ formatMessage({id: 'LANG3984'}) } jumpPage={ _location }>{ formatMessage({id: lang}) + ":" } </span>
+            } else {
+                page = <span>{ formatMessage({id: lang}) + ":" }</span>
+            }
+        }
+
+        if (locationObj && locationObj[cellvalue]) {
+            var sVal = locationObj[cellvalue]
+
+            if (sVal.match(/\sLANG\d+$/)) {
+                var aTranLang = sVal.split(' ')
+
+                cellvalue = <span>{ formatMessage({id: aTranLang[0]}, {0: formatMessage({id: aTranLang[1]})}) }</span>
+            } else {
+                cellvalue = <span>{ formatMessage({id: locationObj[cellvalue]}) }</span>
+            }
+        } else if (options2Lang && options2Lang[cellvalue]) {
+            var _LOCATION = options2Lang[cellvalue]["_LOCATION"]
+
+            if (_LOCATION) {
+                cellvalue = <span>{ formatMessage({id: _LOCATION}) }</span>
+            } else {
+                cellvalue = <span>{ formatMessage({id: options2Lang[cellvalue]}) }</span>
+            }
+        }
+
+        return <div>
+                { page } 
+                { cellvalue }
+            </div>
+    }
+    _transOperation = (cellvalue, options, rowObject) => {
+        const { formatMessage } = this.props.intl
+
+        let optStr = "",
+            _location = rowObject.operation._location,
+            action = rowObject.action,
+            options2Lang = this.props.options2Lang,
+            locationObj = options2Lang[_location],
+            detailedLog = rowObject.detailed_log
+
+        if (detailedLog) {
+            if (_.size(cellvalue) > 1) {
+                let obj = this._getOptStr({
+                    data: cellvalue,
+                    options2Lang: options2Lang,
+                    locationObj: locationObj,
+                    action: action
+                })
+
+                optStr += obj.data
+            } else {
+                let count = 0,
+                    maxLen = 3,
+                    obj = this._getOptStr({
+                        data: cellvalue,
+                        options2Lang: options2Lang,
+                        locationObj: locationObj,
+                        action: action,
+                        count: count,
+                        maxLen: maxLen
+                    })
+
+                optStr += obj.data
+            }
+
+            let id = "detail" + detailNum
+
+            optStr += "<button type='button' id='" + id + "' class='options detail' title='" + formatMessage({id: 'LANG3923'}) + "'></button>"
+
+            rowObject.detailed_log["action"] = action
+
+            detailObj[id] = rowObject.detailed_log
+
+            detailNum++
         } else {
-            options = formatMessage({id: "LANG2317"}, {0: formatMessage({id: "LANG2640"})})
+            let count = 0,
+                maxLen = 3,
+                obj = this._getOptStr({
+                    data: cellvalue,
+                    options2Lang: options2Lang,
+                    locationObj: locationObj,
+                    action: action,
+                    count: count,
+                    maxLen: maxLen
+                })
+
+            optStr += obj.data
+            count = obj.count
+
+            if (count > maxLen) {
+                let id = "detail" + detailNum
+
+                optStr += "<button type='button' id='" + id + "' class='options detail' title='" + formatMessage({id: 'LANG3923'}) + "'></button>"
+
+                // rowObject.detailed_log["action"] = action;
+                detailObj[id] = cellvalue
+
+                detailNum++
+            } else {
+                if (action === "updateCountryCodes") {
+                    optStr = '<div>' + optStr.substr(0, 40) + '<span class="more">...</span><span class="more-content">' + optStr.substr(40) + '</span>' + '</div>'
+                }
+            }
         }
 
-        return options
+        if (/;\s+$/.test(optStr)) {
+            optStr = optStr.replace(/;\s+$/, ".")
+        }
+
+        return <div dangerouslySetInnerHTML={{__html: optStr}} ></div>
     }
     render() {
         const {formatMessage} = this.props.intl
 
         const columns = [
             {
-                title: formatMessage({id: "LANG186"}),
-                dataIndex: 'status',
+                title: formatMessage({id: "LANG203"}),
+                dataIndex: 'date'
+            }, {
+                title: formatMessage({id: "LANG2809"}),
+                dataIndex: 'user_name'
+            }, {
+                title: formatMessage({id: "LANG155"}),
+                dataIndex: 'ipaddress'
+            }, {
+                title: formatMessage({id: "LANG3909"}),
+                dataIndex: 'result',
                 render: (text, record, index) => (
-                    this._createStatus(text, record, index)
+                    this._transResults(text, index, record)
                 )
             }, {
-                title: formatMessage({id: "LANG581"}),
-                dataIndex: 'callFrom'
-            }, {
-                title: formatMessage({id: "LANG582"}),
-                dataIndex: 'callTo'
-            }, {
-                title: formatMessage({id: "LANG5134"}),
-                dataIndex: 'actionType'
-            }, {
-                title: formatMessage({id: "LANG169"}),
-                dataIndex: 'startTime',
-                sorter: (a, b) => a > b
-            }, {
-                title: formatMessage({id: "LANG2238"}),
-                dataIndex: 'talkTime',
+                title: formatMessage({id: "LANG3922"}),
+                dataIndex: 'action',
+                sorter: (a, b) => a > b,
                 render: (text, record, index) => (
-                    this._createTalkTime(text, record, index)
+                    this._transAction(text, index, record)
                 )
             }, {
-                title: formatMessage({id: "LANG4569"}),
-                dataIndex: 'password'
-            }, {
-                title: formatMessage({id: "LANG4096"}),
-                dataIndex: 'recordingFile',
+                title: formatMessage({id: "LANG3927"}),
+                dataIndex: 'operation',
                 render: (text, record, index) => (
-                    this._createRecordFile(text, record, index)
+                    this._transOperation(text, index, record)
                 )
             }
         ]
 
         const pagination = {
-            total: this.props.cdrData.length,
+            total: this.props.operationData.length,
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                 console.log('Current: ', current, '; PageSize: ', pageSize)
@@ -184,7 +253,7 @@ class OperLogUsrList extends Component {
         return (
             <div className="content">
                 <div className="top-button">
-                    <Button type="primary" icon="delete" size='default' onClick={ this._sendDownloadRequest }>
+                    <Button type="primary" icon="delete" size='default' onClick={ this.props.deleteSearch }>
                         { formatMessage({id: "LANG4071" }, { 0: formatMessage({id: "LANG4146"})}) }
                     </Button>
                     <Button type="primary" icon="delete" size='default' onClick={ this.props.deleteAll }>
@@ -194,23 +263,10 @@ class OperLogUsrList extends Component {
                 <Table
                     bordered
                     columns={ columns }
-                    dataSource={ this.props.cdrData }
+                    dataSource={ this.props.operationData }
                     pagination={ pagination }
-                    showHeader={ !!this.props.cdrData.length } 
+                    showHeader={ !!this.props.operationData.length } 
                 />
-                <Modal title={ formatMessage({id: "LANG2640"}) } visible={ this.state.visible } onCancel={ this._handleCancel } footer={ false }>
-                    <div>
-                        { this.state.recordFiles.map(function(value, index) {
-                            return <div>
-                                    <span></span>
-                                    <span>{ value }</span>
-                                    <span className="sprite sprite-play"></span>
-                                    <span className="sprite sprite-download"></span>
-                                    <span className="sprite sprite-del"></span>
-                               </div>
-                        }) }
-                    </div>
-                </Modal>
             </div>
         )
     }

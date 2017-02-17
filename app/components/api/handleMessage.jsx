@@ -19,91 +19,93 @@ export const handleRequest = (msg, store) => {
         } else if (msg.eventname === "EquipmentCapacityStatus") {
 
         } else if (msg.eventname === "CallQueueStatus") {
-            let callQueueList = state.callQueueList
+            let currentQueue = state.currentQueue
 
             if (eventBody.length) {
-                callQueueList = _.filter(callQueueList, function(item) {
-                        return (item.extension !== eventBody[0].extension)
-                    })
+                const queue = eventBody[0]
 
-                callQueueList.push(eventBody[0])
+                if (_.has(queue, 'member')) {
+                    if (queue.member.length && (currentQueue === queue.extension)) {
+                        const member = queue.member[0]
+                        const action = member.queue_action
 
-                callQueueList = _.sortBy(callQueueList, function(item) { return item.extension })
+                        if (action === 'CallQueueAddMember' || action === 'CallQueueUpdateMember' || action === 'CallQueueDeleteMember') {
+                            let queueMembers = state.queueMembers
+
+                            queueMembers = _.filter(queueMembers, function(item) {
+                                    return (item.member_extension !== member.member_extension)
+                                })
+
+                            if (action !== 'CallQueueDeleteMember') {
+                                queueMembers.push(member)
+                            }
+
+                            queueMembers = _.sortBy(queueMembers, function(item) { return item.member_extension })
+
+                            store.dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
+                        } else if (action === 'CallQueueWaiting') {
+                            let waitingCallings = state.waitingCallings
+
+                            waitingCallings = _.filter(waitingCallings, function(item) {
+                                    return (item.callerid !== member.callerid)
+                                })
+
+                            waitingCallings.push(member)
+
+                            waitingCallings = _.sortBy(waitingCallings, function(item) { return item.position })
+
+                            store.dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: waitingCallings})
+                        } else if (action === 'CallQueueAnswered') {
+                            let answerCallings = state.answerCallings
+                            let waitingCallings = state.waitingCallings
+
+                            if (member.callerchannel && member.calleechannel) {
+                                answerCallings = _.filter(answerCallings, function(item) {
+                                        return (item.callerchannel !== member.callerchannel &&
+                                                item.calleechannel !== member.calleechannel)
+                                    })
+
+                                answerCallings.push(member)
+
+                                answerCallings = _.sortBy(answerCallings, function(item) { return item.bridge_time })
+
+                                waitingCallings = _.filter(waitingCallings, function(item) {
+                                        return (item.callerchannel !== member.callerchannel)
+                                    })
+
+                                store.dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
+                                store.dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: waitingCallings})
+                            }
+                        } else if (action === 'CallQueueHangup') {
+                            let answerCallings = state.answerCallings
+                            let waitingCallings = state.waitingCallings
+
+                            answerCallings = _.filter(answerCallings, function(item) {
+                                    return (item.callerchannel !== member.callerchannel)
+                                })
+
+                            waitingCallings = _.filter(waitingCallings, function(item) {
+                                    return (item.callerchannel !== member.callerchannel)
+                                })
+
+                            store.dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
+                            store.dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: waitingCallings})
+                        }
+                    }
+                } else {
+                    let callQueueList = state.callQueueList
+
+                    callQueueList = _.filter(callQueueList, function(item) {
+                            return (item.extension !== queue.extension)
+                        })
+
+                    callQueueList.push(queue)
+
+                    callQueueList = _.sortBy(callQueueList, function(item) { return item.extension })
+
+                    store.dispatch({type: 'GET_QUEUEBYCHAIRMAN', callQueueList: callQueueList})
+                }
             }
-
-            store.dispatch({type: 'GET_QUEUEBYCHAIRMAN', callQueueList: callQueueList})
-        } else if (msg.eventname === "CallQueueMemberStatus" || msg.eventname === "CallQueueMemberAddedStatus") {
-            let currentQueue = state.currentQueue
-            let queueMembers = state.queueMembers
-
-            if (eventBody.length && (currentQueue === eventBody[0].extension)) {
-                queueMembers = _.filter(queueMembers, function(item) {
-                        return (item.member_extension !== eventBody[0].member_extension)
-                    })
-
-                queueMembers.push(eventBody[0])
-
-                queueMembers = _.sortBy(queueMembers, function(item) { return item.member_extension })
-            }
-
-            store.dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
-        } else if (msg.eventname === "CallQueueCallersStatus") {
-            let currentQueue = state.currentQueue
-            let waitingCallings = state.waitingCallings
-
-            if (eventBody.length && (currentQueue === eventBody[0].extension)) {
-                waitingCallings = _.filter(waitingCallings, function(item) {
-                        return (item.callerid !== eventBody[0].callerid)
-                    })
-
-                waitingCallings.push(eventBody[0])
-
-                waitingCallings = _.sortBy(waitingCallings, function(item) { return item.position })
-            }
-
-            store.dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: waitingCallings})
-        } else if (msg.eventname === "CallQueueCallerLeaveStatus") {
-            let currentQueue = state.currentQueue
-            let answerCallings = state.answerCallings
-
-            if (eventBody.length &&
-                eventBody[0].channel1 &&
-                eventBody[0].channel2 &&
-                (currentQueue === eventBody[0].extension)) {
-                answerCallings = _.filter(answerCallings, function(item) {
-                        return (item.channel1 !== eventBody[0].channel1 &&
-                                item.channel2 !== eventBody[0].channel2)
-                    })
-
-                answerCallings.push(eventBody[0])
-
-                answerCallings = _.sortBy(answerCallings, function(item) { return item.channel1 })
-            }
-
-            store.dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
-        } else if (msg.eventname === "CallQueueCallersHangupStatus") {
-            let currentQueue = state.currentQueue
-            let answerCallings = state.answerCallings
-            let waitingCallings = state.waitingCallings
-
-            if (eventBody.length && (currentQueue === eventBody[0].extension)) {
-                answerCallings = _.filter(answerCallings, function(item) {
-                        return (item.channel1 !== eventBody[0].channel1)
-                    })
-            }
-
-            store.dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
-        } else if (msg.eventname === "CallQueueMemberRemovedStatus") {
-            let currentQueue = state.currentQueue
-            let queueMembers = state.queueMembers
-
-            if (eventBody.length && (currentQueue === eventBody[0].extension)) {
-                queueMembers = _.filter(queueMembers, function(item) {
-                        return (item.member_extension !== eventBody[0].member_extension)
-                    })
-            }
-
-            store.dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
         }
     }
 }

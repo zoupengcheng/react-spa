@@ -2,12 +2,14 @@
 
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Modal } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
+import { browserHistory } from 'react-router'
 
 const Option = Select.Option
+const confirm = Modal.confirm
 
 const CustomizedForm = injectIntl(Form.create({
     onFieldsChange(props, changedFields) {
@@ -28,6 +30,11 @@ const CustomizedForm = injectIntl(Form.create({
     const formItemLayout = {
         labelCol: { span: 6 },
         wrapperCol: { span: 6 }
+    }
+
+    const formItemPromptLayout = {
+        labelCol: { span: 6 },
+        wrapperCol: { span: 9 }
     }
 
     return (
@@ -53,29 +60,36 @@ const CustomizedForm = injectIntl(Form.create({
                     </FormItem>
                     <FormItem
                         className={ basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? "hidden" : "display-block" }
-                        { ...formItemLayout }
+                        { ...formItemPromptLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG4859" />}>
                                 <span>{formatMessage({id: "LANG4859"})}</span>
                             </Tooltip>
                         }>
-                        { getFieldDecorator('wakeup_prompt', {
-                            rules: [],
-                            initialValue: basicSettings.wakeup_prompt
-                        })(
-                            <Select>
-                                {
-                                    fileList.map(function(item) {
-                                        return <Option
-                                                key={ item.text }
-                                                value={ item.val }>
-                                                { item.text }
-                                            </Option>
+                        <Row>
+                            <Col span={16}>
+                                { getFieldDecorator('wakeup_prompt', {
+                                    rules: [],
+                                    initialValue: basicSettings.wakeup_prompt
+                                })(
+                                    <Select>
+                                        {
+                                            fileList.map(function(item) {
+                                                return <Option
+                                                        key={ item.text }
+                                                        value={ item.val }>
+                                                        { item.text }
+                                                    </Option>
+                                                }
+                                            ) 
                                         }
-                                    ) 
-                                }
-                            </Select>
-                        ) }
+                                    </Select>
+                                ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ props._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
+                        </Row>
                     </FormItem>
                     <FormItem
                         className={ basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile" ? "display-block" : "hidden" }
@@ -169,6 +183,21 @@ class Basic extends Component {
     _handleFormChange = (changedFields) => {
         _.extend(this.props.dataSource, changedFields)
     }
+    _gotoPromptOk = () => {
+        browserHistory.push('/pbx-settings/voicePrompt')
+    }
+    _gotoPrompt = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                __this._gotoPromptOk()
+            },
+            onCancel() {}
+        })
+    }
     render() {
         const {formatMessage} = this.props.intl
         let basicSettings = this.props.dataSource
@@ -176,7 +205,7 @@ class Basic extends Component {
  
         return (
             <div className="app-content-main" id="app-content-main">
-                <CustomizedForm onChange={ this._handleFormChange.bind(this) } dataSource={basicSettings} fileList={fileList} />
+                <CustomizedForm _gotoPrompt={ this._gotoPrompt } onChange={ this._handleFormChange.bind(this) } dataSource={basicSettings} fileList={fileList} />
             </div>
         )
     }

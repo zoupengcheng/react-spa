@@ -18,9 +18,11 @@ class Media extends Component {
     constructor(props) {
         super(props)
 
-        const targetKeys = this.props.settings.allow
         const alertinfo = this.props.settings.alertinfo
         const strategy_ipacl = this.props.settings.strategy_ipacl
+        const targetKeys = this.props.settings.allow
+                            ? this.props.settings.allow
+                            : 'ulaw,alaw,gsm,g726,g722,g729,h264,ilbc'
 
         this.state = {
             alertinfo: alertinfo ? alertinfo : 'none',
@@ -179,7 +181,7 @@ class Media extends Component {
 
         const formItemLayoutRow = {
             labelCol: { span: 4 },
-            wrapperCol: { span: 6 }
+            wrapperCol: { span: 8 }
         }
 
         const formItemLayoutTransfer = {
@@ -230,7 +232,12 @@ class Media extends Component {
                                         }
                                     : {}
                             ],
-                            initialValue: item.new ? '' : settings[`local_network${item.key}`]
+                            initialValue: item.new ? '' : settings[`local_network${item.key}`],
+                            className: (extension_type === 'fxs'
+                                    ? 'hidden'
+                                    : this.state.strategy_ipacl === '1'
+                                        ? 'display-block'
+                                        : 'hidden')
                         })(
                             <Input />
                         ) }
@@ -280,7 +287,8 @@ class Media extends Component {
                                 { getFieldDecorator('nat', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.nat ? (settings.nat === 'yes') : true
+                                    initialValue: settings.nat ? (settings.nat === 'yes') : true,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -304,7 +312,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.directmedia ? settings.directmedia : 'no'
+                                    initialValue: settings.directmedia ? settings.directmedia : 'no',
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
@@ -331,7 +340,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.dtmfmode ? settings.dtmfmode : 'rfc2833'
+                                    initialValue: settings.dtmfmode ? settings.dtmfmode : 'rfc2833',
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='rfc2833'>{ 'RFC2833' }</Option>
@@ -384,7 +394,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.tel_uri ? settings.tel_uri : 'disabled'
+                                    initialValue: settings.tel_uri ? settings.tel_uri : 'disabled',
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='disabled'>{ formatMessage({id: "LANG2770"}) }</Option>
@@ -437,7 +448,8 @@ class Media extends Component {
                                 { getFieldDecorator('callwaiting', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.callwaiting ? (settings.callwaiting === 'yes') : false
+                                    initialValue: settings.callwaiting ? (settings.callwaiting === 'yes') : false,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -457,7 +469,8 @@ class Media extends Component {
                                 { getFieldDecorator('sharpissendkey', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.sharpissendkey ? (settings.sharpissendkey === 'yes') : true
+                                    initialValue: settings.sharpissendkey ? (settings.sharpissendkey === 'yes') : true,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -482,7 +495,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxgain ? settings.rxgain : 0
+                                    initialValue: settings.rxgain ? settings.rxgain : 0,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber min={ -30 } max={ 6 } />
                                 ) }
@@ -507,7 +521,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.txgain ? settings.txgain : 0
+                                    initialValue: settings.txgain ? settings.txgain : 0,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber min={ -30 } max={ 6 } />
                                 ) }
@@ -556,7 +571,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxflash_min ? settings.rxflash_min : 200
+                                    initialValue: settings.rxflash_min ? settings.rxflash_min : 200,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber min={ 30 } max={ 1000 } />
                                 ) }
@@ -581,7 +597,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxflash ? settings.rxflash : 1250
+                                    initialValue: settings.rxflash ? settings.rxflash : 1250,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber />
                                 ) }
@@ -601,7 +618,8 @@ class Media extends Component {
                                 { getFieldDecorator('answeronpolarityswitch', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.answeronpolarityswitch ? (settings.answeronpolarityswitch === 'yes') : true
+                                    initialValue: settings.answeronpolarityswitch ? (settings.answeronpolarityswitch === 'yes') : true,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -652,7 +670,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.echocancel ? settings.echocancel : 'yes'
+                                    initialValue: settings.echocancel ? settings.echocancel : 'yes',
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='yes'>{ formatMessage({id: "LANG139"}) }</Option>
@@ -681,7 +700,8 @@ class Media extends Component {
                                 { getFieldDecorator('threewaycalling', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.threewaycalling ? (settings.threewaycalling === 'yes') : true
+                                    initialValue: settings.threewaycalling ? (settings.threewaycalling === 'yes') : true,
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -705,7 +725,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.sendcalleridafter ? settings.sendcalleridafter : '1'
+                                    initialValue: settings.sendcalleridafter ? settings.sendcalleridafter + '' : '1',
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='1'>{ '1' }</Option>
@@ -738,7 +759,8 @@ class Media extends Component {
                                     rules: [
                                         { type: 'integer' }
                                     ],
-                                    initialValue: settings.maxcallnumbers
+                                    initialValue: settings.maxcallnumbers,
+                                    className: extension_type === 'iax' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber />
                                 ) }
@@ -793,7 +815,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.requirecalltoken ? settings.requirecalltoken : 'yes'
+                                    initialValue: settings.requirecalltoken ? settings.requirecalltoken : 'yes',
+                                    className: extension_type === 'iax' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
@@ -826,7 +849,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.alertinfo ? settings.alertinfo : 'none'
+                                    initialValue: settings.alertinfo ? settings.alertinfo : 'none',
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Select onChange={ this._onChangeAlertInfo }>
                                         <Option value='none'>{ formatMessage({id: "LANG133"}) }</Option>
@@ -875,7 +899,10 @@ class Media extends Component {
                                                 }
                                             : {}
                                     ],
-                                    initialValue: settings.custom_alert_info
+                                    initialValue: settings.custom_alert_info,
+                                    className: (extension_type === 'sip' && this.state.alertinfo === 'custom')
+                                            ? 'display-block'
+                                            : 'hidden'
                                 })(
                                     <Input />
                                 ) }
@@ -922,7 +949,8 @@ class Media extends Component {
                                 { getFieldDecorator('t38_udptl', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.t38_udptl ? settings.t38_udptl === 'yes' : false
+                                    initialValue: settings.t38_udptl ? settings.t38_udptl === 'yes' : false,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -949,7 +977,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.encryption ? settings.encryption : 'no'
+                                    initialValue: settings.encryption ? settings.encryption : 'no',
+                                    className: extension_type === 'fxs' ? 'hidden' : 'display-block'
                                 })(
                                     <Select>
                                         <Option value='no'>{ formatMessage({id: "LANG4377"}) }</Option>
@@ -980,7 +1009,8 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.strategy_ipacl ? settings.strategy_ipacl.toString() : '0'
+                                    initialValue: settings.strategy_ipacl ? settings.strategy_ipacl.toString() : '0',
+                                    className: extension_type === 'fxs' ? 'hidden' : 'display-block'
                                 })(
                                     <Select onChange={ this._onChangeStrategy }>
                                         <Option value='0'>{ formatMessage({id: "LANG1139"}) }</Option>
@@ -1018,7 +1048,12 @@ class Media extends Component {
                                                 }
                                             : {}
                                     ],
-                                    initialValue: settings.specific_ip
+                                    initialValue: settings.specific_ip,
+                                    className: (extension_type === 'fxs'
+                                            ? 'hidden'
+                                            : this.state.strategy_ipacl === '2'
+                                                ? 'display-block'
+                                                : 'hidden')
                                 })(
                                     <Input />
                                 ) }
@@ -1052,7 +1087,12 @@ class Media extends Component {
                                                 }
                                             : {}
                                     ],
-                                    initialValue: settings.local_network1
+                                    initialValue: settings.local_network1,
+                                    className: (extension_type === 'fxs'
+                                            ? 'hidden'
+                                            : this.state.strategy_ipacl === '1'
+                                                ? 'display-block'
+                                                : 'hidden')
                                 })(
                                     <Input />
                                 ) }
@@ -1069,7 +1109,7 @@ class Media extends Component {
                             className={ extension_type === 'fxs' ? 'hidden' : 'display-block' }
                         >
                             <FormItem
-                                { ...formItemLayoutTransfer }
+                                { ...formItemLayoutRow }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1150" /> }>

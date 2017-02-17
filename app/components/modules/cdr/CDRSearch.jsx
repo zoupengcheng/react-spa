@@ -10,263 +10,8 @@ import Validator from "../../api/validator"
 import _ from 'underscore'
 
 const FormItem = Form.Item
-
-const CustomizedForm = injectIntl(Form.create({
-    onFieldsChange(props, changedFields) {
-        props.onChange(changedFields)
-    }
-})((props) => {
-    const { formatMessage, formatHTMLMessage } = props.intl
-    const { getFieldDecorator } = props.form
-
-    const formItemLayout = {
-        labelCol: { span: 6 },
-        wrapperCol: { span: 12 }
-    }
-
-    const formItemLayoutCheckGroup = {
-        labelCol: { span: 3 },
-        wrapperCol: { span: 12 }
-    }
-
-    const Option = Select.Option
-    const CheckboxGroup = Checkbox.Group
-
-    const callTypeOptions = [
-        {label: formatMessage({id: "LANG193"}), value: 'Inbound'},
-        {label: formatMessage({id: "LANG194"}), value: 'Outbound'},
-        {label: formatMessage({id: "LANG195"}), value: 'Internal'},
-        {label: formatMessage({id: "LANG196"}), value: 'External'}
-    ]
-    const statusOptions = [
-        {label: formatMessage({id: "LANG4863"}), value: 'ANSWERED'},
-        {label: formatMessage({id: "LANG4864"}), value: 'NO ANSWER'},
-        {label: formatMessage({id: "LANG2237"}), value: 'BUSY'},
-        {label: formatMessage({id: "LANG2405"}), value: 'FAILED'}
-    ]
-
-    const actionTypeList = props.actionTypeList,
-          accountCodes = props.accountCodes,
-          all_trunks = props.all_trunks
-
-    return (
-        <Form id="cdr-form" className={ props.isDisplaySearch }>
-            <Row>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG1048"})} >
-                                    <span>{formatMessage({id: "LANG1048"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('fromtime')(
-                            <DatePicker showTime format="YYYY-MM-DD HH:mm" />
-                        )}
-                    </FormItem>
-                </Col>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={<FormattedHTMLMessage id="LANG1049" />}>
-                                    <span>{formatMessage({id: "LANG1049"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('totime')(
-                            <DatePicker showTime format="YYYY-MM-DD HH:mm" />
-                        )}
-                    </FormItem>
-                </Col>
-            </Row>
-
-            <Row>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={<FormattedHTMLMessage id="LANG4021" />}>
-                                    <span>{formatMessage({id: "LANG2216"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('src')(
-                            <Input />
-                        )}
-                    </FormItem>
-                </Col>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG2234"})}>
-                                    <span>{formatMessage({id: "LANG2234"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('caller_name')(
-                            <Input />
-                        )}
-                    </FormItem>
-                </Col>
-            </Row>
-
-            <Row>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG2793"})}>
-                                    <span>{formatMessage({id: "LANG2793"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('dst')(
-                            <Input />
-                        )}
-                    </FormItem>
-                </Col>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG4569"})}>
-                                    <span>{formatMessage({id: "LANG4569"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('accountcode')(
-                            <Select multiple>
-                                {
-                                    accountCodes.map(function(value, index) {
-                                        return <Option value={ value } key={ index }>{ value }</Option>
-                                    })
-                                }
-                            </Select>
-                        )}
-                    </FormItem>
-                </Col>
-            </Row>
-
-            <Row>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG5132"})}>
-                                    <span>{formatMessage({id: "LANG5132"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('src_trunk_name')(
-                            <Select multiple>
-                                {
-                                    all_trunks.map(function(value, index) {
-                                        return <Option value={ 'trunk_' + value.trunk_index } key={ index }>{ value.trunk_name }</Option>
-                                    })
-                                }
-                            </Select>
-                        )}
-                    </FormItem>
-                </Col>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG5133"})}>
-                                    <span>{formatMessage({id: "LANG5133"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('dst_trunk_name')(
-                            <Select multiple>
-                                {
-                                    all_trunks.map(function(value, index) {
-                                        return <Option value={ 'trunk_' + value.trunk_index } key={ index }>{ value.trunk_name }</Option>
-                                    })
-                                }
-                            </Select>
-                        )}
-                    </FormItem>
-                </Col>
-            </Row>
-
-            <Row>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Tooltip title={formatMessage({id: "LANG5134"})}>
-                                    <span>{formatMessage({id: "LANG5134"})}</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        {getFieldDecorator('action_type')(
-                            <Select multiple>
-                                {
-                                    actionTypeList.map(function(value, index) {
-                                        return <Option value={ value} key={ index }>{ value }</Option>
-                                    })
-                                }
-                            </Select>
-                        )}
-                    </FormItem>
-                </Col>
-            </Row>
-
-            <FormItem
-                { ...formItemLayoutCheckGroup }
-                label={(
-                    <span>
-                        <Tooltip title={<FormattedHTMLMessage id="LANG4783" />}>
-                            <span>{formatMessage({id: "LANG2235"})}</span>
-                        </Tooltip>
-                    </span>
-                )}
-            >
-                {getFieldDecorator('userfield')(
-                    <CheckboxGroup options={callTypeOptions} />
-                )}
-            </FormItem>
-
-            <FormItem
-                { ...formItemLayoutCheckGroup }
-                label={(
-                    <span>
-                        <Tooltip title={formatMessage({id: "LANG186"})}>
-                            <span>{formatMessage({id: "LANG186"})}</span>
-                        </Tooltip>
-                    </span>
-                )}
-            >
-                {getFieldDecorator('disposition')(
-                    <CheckboxGroup options={statusOptions} />
-                )}
-            </FormItem>
-            <div className="hide_search sprite sprite-slide-bar" onClick={ props._hideSearch }></div>
-        </Form>
-    )
-}))
+const Option = Select.Option
+const CheckboxGroup = Checkbox.Group
 
 class CDRSearch extends Component {
     constructor(props) {
@@ -410,16 +155,226 @@ class CDRSearch extends Component {
             callback('no match')
         }
     }
-    _handleFormChange = (changedFields) => {
-        _.extend(this.props.dataSource, changedFields)
-    }
     render() {
-        let cdrSettings = this.props.dataSource
+        const { formatMessage, formatHTMLMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
+
+        const formItemLayout = {
+            labelCol: { span: 6 },
+            wrapperCol: { span: 12 }
+        }
+        const formItemLayoutCheckGroup = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 21 }
+        }
+
+        const callTypeOptions = [
+            {label: formatMessage({id: "LANG193"}), value: 'Inbound'},
+            {label: formatMessage({id: "LANG194"}), value: 'Outbound'},
+            {label: formatMessage({id: "LANG195"}), value: 'Internal'},
+            {label: formatMessage({id: "LANG196"}), value: 'External'}
+        ]
+        const statusOptions = [
+            {label: formatMessage({id: "LANG4863"}), value: 'ANSWERED'},
+            {label: formatMessage({id: "LANG4864"}), value: 'NO ANSWER'},
+            {label: formatMessage({id: "LANG2237"}), value: 'BUSY'},
+            {label: formatMessage({id: "LANG2405"}), value: 'FAILED'}
+        ]
+
+        const actionTypeList = this.state.actionTypeList,
+              accountCodes = this.state.accountCodes,
+              all_trunks = this.state.all_trunks
 
         return (
-            <CustomizedForm onChange={ this._handleFormChange.bind(this) } dataSource={ cdrSettings }
-            actionTypeList = { this.state.actionTypeList } accountCodes = { this.state.accountCodes }
-            all_trunks = { this.state.all_trunks } _hideSearch = { this.props._hideSearch } isDisplaySearch={ this.props.isDisplaySearch } />
+            <div className="content">
+                <Form id="cdr-form" className={ this.props.isDisplaySearch }>
+                    <Row>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG1048"})} >
+                                        <span>{formatMessage({id: "LANG1048"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('fromtime')(
+                                    <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                                )}
+                            </FormItem>
+                        </Col>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG1049" />}>
+                                        <span>{formatMessage({id: "LANG1049"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('totime')(
+                                    <DatePicker showTime format="YYYY-MM-DD HH:mm" />
+                                )}
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG4021" />}>
+                                        <span>{formatMessage({id: "LANG2216"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('src')(
+                                    <Input />
+                                )}
+                            </FormItem>
+                        </Col>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG2234"})}>
+                                        <span>{formatMessage({id: "LANG2234"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('caller_name')(
+                                    <Input />
+                                )}
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG2793"})}>
+                                        <span>{formatMessage({id: "LANG2793"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('dst')(
+                                    <Input />
+                                )}
+                            </FormItem>
+                        </Col>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG4569"})}>
+                                        <span>{formatMessage({id: "LANG4569"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('accountcode')(
+                                    <Select multiple>
+                                        {
+                                            accountCodes.map(function(value, index) {
+                                                return <Option value={ value } key={ index }>{ value }</Option>
+                                            })
+                                        }
+                                    </Select>
+                                )}
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG5132"})}>
+                                        <span>{formatMessage({id: "LANG5132"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('src_trunk_name')(
+                                    <Select multiple>
+                                        {
+                                            all_trunks.map(function(value, index) {
+                                                return <Option value={ 'trunk_' + value.trunk_index } key={ index }>{ value.trunk_name }</Option>
+                                            })
+                                        }
+                                    </Select>
+                                )}
+                            </FormItem>
+                        </Col>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG5133"})}>
+                                        <span>{formatMessage({id: "LANG5133"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('dst_trunk_name')(
+                                    <Select multiple>
+                                        {
+                                            all_trunks.map(function(value, index) {
+                                                return <Option value={ 'trunk_' + value.trunk_index } key={ index }>{ value.trunk_name }</Option>
+                                            })
+                                        }
+                                    </Select>
+                                )}
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <Tooltip title={formatMessage({id: "LANG5134"})}>
+                                        <span>{formatMessage({id: "LANG5134"})}</span>
+                                    </Tooltip>
+                                )}
+                            >
+                                {getFieldDecorator('action_type')(
+                                    <Select multiple>
+                                        {
+                                            actionTypeList.map(function(value, index) {
+                                                return <Option value={ value} key={ index }>{ value }</Option>
+                                            })
+                                        }
+                                    </Select>
+                                )}
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <FormItem
+                        { ...formItemLayoutCheckGroup }
+                        label={(
+                            <Tooltip title={<FormattedHTMLMessage id="LANG4783" />}>
+                                <span>{formatMessage({id: "LANG2235"})}</span>
+                            </Tooltip>
+                        )}
+                    >
+                        {getFieldDecorator('userfield')(
+                            <CheckboxGroup options={callTypeOptions} />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        { ...formItemLayoutCheckGroup }
+                        label={(
+                            <Tooltip title={formatMessage({id: "LANG186"})}>
+                                <span>{formatMessage({id: "LANG186"})}</span>
+                            </Tooltip>
+                        )}
+                    >
+                        {getFieldDecorator('disposition')(
+                            <CheckboxGroup options={statusOptions} />
+                        )}
+                    </FormItem>
+                    <div className="hide_search sprite sprite-slide-bar" onClick={ this.props._hideSearch }></div>
+                </Form>
+            </div>
         )
     }
 }

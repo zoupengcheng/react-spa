@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Badge, Button, Card, Dropdown, Icon, Menu, message, Modal, Table, Tag } from 'antd'
+import { Badge, Button, Card, Col, Dropdown, Icon, Menu, message, Modal, Row, Table, Tag } from 'antd'
 
 const confirm = Modal.confirm
 
@@ -18,7 +18,7 @@ class SwitchBoardItem extends Component {
     }
     componentDidMount() {
     }
-    _createMemberShip = (text, record, index) => {
+    _createAgentOptions = (text, record, index) => {
         let status
         const { formatMessage } = this.props.intl
         const enableAgentLogin = this.props.queueDetail.enable_agent_login
@@ -68,6 +68,30 @@ class SwitchBoardItem extends Component {
 
         return status
     }
+    _createMemberShip = (text, record, index) => {
+        let status
+        const { formatMessage } = this.props.intl
+        const enableAgentLogin = this.props.queueDetail.enable_agent_login
+
+        // console.log(text)
+        // console.log(enableAgentLogin)
+
+        if (enableAgentLogin === 'yes') {
+            if (text && text === 'loggin') {
+                status = formatMessage({ id: "LANG5186" })
+            } else if (text && text === 'logoff') {
+                status = formatMessage({ id: "LANG5187" })
+            }
+        } else {
+            if (text && text === 'dynamic') {
+                status = formatMessage({ id: "LANG5440" })
+            } else if (text && text === 'static') {
+                status = formatMessage({ id: "LANG220" })
+            }
+        }
+
+        return status
+    }
     _createStatus = (text, record, index) => {
         let status
         const { formatMessage } = this.props.intl
@@ -78,7 +102,7 @@ class SwitchBoardItem extends Component {
                             className="sprite sprite-status-unavailable"
                             title={ formatMessage({ id: "LANG113" }) }
                         ></span>
-                        { record.member_extension + ' ( ' + formatMessage({ id: "LANG113" }) + ' )' }
+                        <Tag>{ formatMessage({ id: "LANG113" }) }</Tag>
                     </div>
         } else if (text === 'Idle') {
             status = <div className="status-container idle">
@@ -86,7 +110,7 @@ class SwitchBoardItem extends Component {
                             className="sprite sprite-status-idle"
                             title={ formatMessage({ id: "LANG2232" }) }
                         ></span>
-                        { record.member_extension + ' ( ' + formatMessage({ id: "LANG2232" }) + ' )' }
+                        <Tag>{ formatMessage({ id: "LANG2232" }) }</Tag>
                     </div>
         } else if (text === 'InUse') {
             status = <div className="status-container inuse">
@@ -94,7 +118,7 @@ class SwitchBoardItem extends Component {
                             className="sprite sprite-status-inuse"
                             title={ formatMessage({ id: "LANG2242" }) }
                         ></span>
-                        { record.member_extension + ' ( ' + formatMessage({ id: "LANG2242" }) + ' )' }
+                        <Tag>{ formatMessage({ id: "LANG2242" }) }</Tag>
                     </div>
         } else if (text === 'Ringing') {
             status = <div className="status-container ringing">
@@ -102,7 +126,7 @@ class SwitchBoardItem extends Component {
                             className="sprite sprite-status-ringing"
                             title={ formatMessage({ id: "LANG111" }) }
                         ></span>
-                        { record.member_extension + ' ( ' + formatMessage({ id: "LANG111" }) + ' )' }
+                        <Tag>{ formatMessage({ id: "LANG111" }) }</Tag>
                     </div>
         } else if (text === 'Busy') {
             status = <div className="status-container busy">
@@ -110,7 +134,7 @@ class SwitchBoardItem extends Component {
                             className="sprite sprite-status-busy"
                             title={ formatMessage({ id: "LANG2237" }) }
                         ></span>
-                        { record.member_extension + ' ( ' + formatMessage({ id: "LANG2237" }) + ' )' }
+                        <Tag>{ formatMessage({ id: "LANG2237" }) }</Tag>
                     </div>
         }
 
@@ -138,21 +162,36 @@ class SwitchBoardItem extends Component {
     }
     render() {
         const { formatMessage } = this.props.intl
+        const enableAgentLogin = this.props.queueDetail.enable_agent_login
 
-        const columns = [{
+        let loginTime = {
+                key: 'logintime',
+                dataIndex: 'logintime',
+                title: formatMessage({id: "LANG5435"})
+            }
+
+        let agentOptions = {
+                key: 'option',
+                dataIndex: 'option',
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return <span
+                                className="sprite sprite-callcenter-loggin"
+                            ></span>
+                }
+            }
+
+        let generalColumns = [{
                 key: 'status',
                 dataIndex: 'status',
-                title: formatMessage({id: "LANG85"}),
+                title: formatMessage({id: "LANG5214"}),
                 render: (text, record, index) => (
                     this._createStatus(text, record, index)
                 )
             }, {
-                key: 'membership',
-                dataIndex: 'membership',
-                title: formatMessage({id: "LANG81"}),
-                render: (text, record, index) => (
-                    this._createMemberShip(text, record, index)
-                )
+                key: 'member_extension',
+                dataIndex: 'member_extension',
+                title: formatMessage({id: "LANG85"})
             }, {
                 key: 'answer',
                 dataIndex: 'answer',
@@ -162,33 +201,92 @@ class SwitchBoardItem extends Component {
                 dataIndex: 'abandon',
                 title: formatMessage({id: "LANG5364"})
             }, {
-                key: 'logintime',
-                dataIndex: 'logintime',
-                title: formatMessage({id: "LANG5435"})
-            }, {
                 key: 'talktime',
                 dataIndex: 'talktime',
                 title: formatMessage({id: "LANG2238"})
-            }]
-
-        const answerColumns = [{
-                key: 'channel1',
-                dataIndex: 'channel1',
-                title: formatMessage({id: "LANG581"})
             }, {
-                key: 'channel2',
-                dataIndex: 'channel2',
-                title: formatMessage({id: "LANG582"})
+                key: 'membership',
+                dataIndex: 'membership',
+                title: formatMessage({id: "LANG5439"}),
+                render: (text, record, index) => (
+                    this._createMemberShip(text, record, index)
+                )
             }]
 
-        const waitingColumns = [{
-                key: 'queuechannel',
-                dataIndex: 'queuechannel',
-                title: formatMessage({id: "LANG581"})
+        if (enableAgentLogin === 'yes') {
+            generalColumns.splice(4, 0, loginTime)
+            generalColumns.push(agentOptions)
+        }
+
+        let answerColumns = [{
+                key: 'status',
+                dataIndex: 'status',
+                title: formatMessage({id: "LANG81"}),
+                render: (text, record, index) => {
+                    return <span
+                                title={ formatMessage({ id: "LANG4287" }) }
+                                className="sprite sprite-callcenter-calling"
+                            ></span>
+                }
+            }, {
+                key: 'callerchannel',
+                dataIndex: 'callerchannel',
+                title: formatMessage({id: "LANG2646"})
+            }, {
+                key: 'calleechannel',
+                dataIndex: 'calleechannel',
+                title: formatMessage({id: "LANG2647"})
+            }, {
+                key: 'bridge_time',
+                dataIndex: 'bridge_time',
+                title: formatMessage({id: "LANG2238"})
+            }, {
+                key: 'option',
+                dataIndex: 'option',
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return <span
+                                title={ formatMessage({ id: "LANG74" }) }
+                                className="sprite sprite-callcenter-options"
+                            ></span>
+                }
+            }]
+
+        let waitingColumns = [{
+                key: 'status',
+                dataIndex: 'status',
+                title: formatMessage({id: "LANG81"}),
+                render: (text, record, index) => {
+                    return <span
+                                title={ formatMessage({ id: "LANG111" }) }
+                                className="sprite sprite-callcenter-ringing"
+                            ></span>
+                }
+            }, {
+                key: 'callerchannel',
+                dataIndex: 'callerchannel',
+                title: formatMessage({id: "LANG2646"})
             }, {
                 key: 'extension',
                 dataIndex: 'extension',
-                title: formatMessage({id: "LANG582"})
+                title: formatMessage({id: "LANG2647"}),
+                render: (text, record, index) => {
+                    return this.props.queueDetail.extension
+                }
+            }, {
+                key: 'starttime',
+                dataIndex: 'starttime',
+                title: formatMessage({id: "LANG2238"})
+            }, {
+                key: 'option',
+                dataIndex: 'option',
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return <span
+                                title={ formatMessage({ id: "LANG3007" }) }
+                                className="sprite sprite-callcenter-hangup"
+                            ></span>
+                }
             }]
 
         return (
@@ -200,38 +298,44 @@ class SwitchBoardItem extends Component {
                     >
                         <Table
                             rowKey="member_extension"
-                            columns={ columns }
+                            columns={ generalColumns }
                             dataSource={ this.props.queueMembers }
                             showHeader={ !!this.props.queueMembers.length }
                             pagination={ this._pagination(this.props.queueMembers) }
                         />
                     </Card>
-                    <Card
-                        className={ 'ant-card-custom-head' }
-                        title={ formatMessage({id: "LANG5441"}) }
-                        style={{ 'marginTop': '10px' }}
-                    >
-                        <Table
-                            rowKey="channel1"
-                            columns={ answerColumns }
-                            dataSource={ this.props.answerCallings }
-                            showHeader={ !!this.props.answerCallings.length }
-                            pagination={ this._pagination(this.props.answerCallings) }
-                        />
-                    </Card>
-                    <Card
-                        className={ 'ant-card-custom-head' }
-                        title={ formatMessage({id: "LANG5440"}) }
-                        style={{ 'marginTop': '10px' }}
-                    >
-                        <Table
-                            rowKey="position"
-                            columns={ waitingColumns }
-                            dataSource={ this.props.waitingCallings }
-                            showHeader={ !!this.props.waitingCallings.length }
-                            pagination={ this._pagination(this.props.waitingCallings) }
-                        />
-                    </Card>
+                    <Row gutter={ 32 }>
+                        <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
+                            <Card
+                                style={{ 'marginTop': '10px' }}
+                                className={ 'ant-card-custom-head' }
+                                title={ formatMessage({id: "LANG111"}) }
+                            >
+                                <Table
+                                    rowKey="position"
+                                    pagination={ false }
+                                    columns={ waitingColumns }
+                                    style={{ height: '240px' }}
+                                    dataSource={ this.props.waitingCallings }
+                                />
+                            </Card>
+                        </Col>
+                        <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
+                            <Card
+                                style={{ 'marginTop': '10px' }}
+                                className={ 'ant-card-custom-head' }
+                                title={ formatMessage({id: "LANG4287"}) }
+                            >
+                                <Table
+                                    rowKey="channel1"
+                                    pagination={ false }
+                                    columns={ answerColumns }
+                                    style={{ height: '240px' }}
+                                    dataSource={ this.props.answerCallings }
+                                />
+                            </Card>
+                        </Col>
+                    </Row>
                 </div>
             </div>
         )

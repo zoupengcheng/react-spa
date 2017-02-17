@@ -51,7 +51,7 @@ class BasicSettings extends Component {
     _getLanguages = () => {
         const { formatMessage } = this.props.intl
 
-        let languages = UCMGUI.isExist.getList('getLanguage')
+        let languages = UCMGUI.isExist.getList('getLanguage', formatMessage)
 
         this.setState({
             languages: languages
@@ -179,7 +179,6 @@ class BasicSettings extends Component {
                         <Col span={ 24 }>
                             <FormItem
                                 { ...formItemLayoutRow }
-                                className={ !currentEditId ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5417" /> }>
@@ -195,7 +194,8 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: extension_type
+                                    initialValue: extension_type,
+                                    className: (!currentEditId ? 'display-block' : 'hidden')
                                 })(
                                     <Select onChange={ this._onChangeExtensionType }>
                                         <Option value='sip'>{ formatMessage({id: "LANG2927"}) }</Option>
@@ -208,7 +208,6 @@ class BasicSettings extends Component {
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
-                                className={ !currentEditId ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5418" /> }>
@@ -235,9 +234,9 @@ class BasicSettings extends Component {
                             <FormItem
                                 { ...formItemLayout }
                                 className={ (!currentEditId && this.state.add_method === 'batch')
-                                                ? 'display-block'
-                                                : 'hidden'
-                                            }
+                                                    ? 'display-block'
+                                                    : 'hidden'
+                                                }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1158" /> }>
@@ -254,7 +253,10 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: this.state.batch_number
+                                    initialValue: this.state.batch_number,
+                                    className: (!currentEditId && this.state.add_method === 'batch')
+                                                    ? 'display-block'
+                                                    : 'hidden'
                                 })(
                                     <InputNumber min={ 1 } max={ 100 } />
                                 ) }
@@ -299,7 +301,6 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
-                                className={ extension_type === 'fxs' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1092" /> }>
@@ -315,7 +316,8 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.dahdi ? settings.dahdi : '1'
+                                    initialValue: settings.dahdi ? settings.dahdi + '' : '1',
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='1'>{ 'FXS 1' }</Option>
@@ -378,7 +380,6 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
-                                className={ extension_type === 'fxs' ? 'hidden' : 'display-block' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1076" /> }>
@@ -390,11 +391,12 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('secret', {
                                     rules: [
                                         {
-                                            required: true,
+                                            required: (extension_type !== 'fxs'),
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.secret ? settings.secret : secret
+                                    initialValue: settings.secret ? settings.secret : secret,
+                                    className: extension_type === 'fxs' ? 'hidden' : 'display-block'
                                 })(
                                     <Input />
                                 ) }
@@ -406,7 +408,6 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
-                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG2488" /> }>
@@ -417,7 +418,8 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('authid', {
                                     rules: [],
-                                    initialValue: settings.authid
+                                    initialValue: settings.authid,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
@@ -493,7 +495,6 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
-                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1106" /> }>
@@ -505,9 +506,10 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('enable_qualify', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_qualify === 'yes'
+                                    initialValue: settings.enable_qualify === 'yes',
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
-                                    <Checkbox onChange={ this._onChangeQualify }/>
+                                    <Checkbox onChange={ this._onChangeQualify } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -517,7 +519,6 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
-                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG1108" /> }>
@@ -534,7 +535,8 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.qualifyfreq ? settings.qualifyfreq : 60
+                                    initialValue: settings.qualifyfreq ? settings.qualifyfreq : 60,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber disabled={ !this.state.enable_qualify } />
                                 ) }
@@ -692,7 +694,6 @@ class BasicSettings extends Component {
                         >
                             <FormItem
                                 { ...formItemLayout }
-                                className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG4223" /> }>
@@ -709,7 +710,8 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.max_contacts ? settings.max_contacts : 1
+                                    initialValue: settings.max_contacts ? settings.max_contacts : 1,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <InputNumber />
                                 ) }

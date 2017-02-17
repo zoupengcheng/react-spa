@@ -142,6 +142,7 @@ class UserList extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._edit.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -150,7 +151,7 @@ class UserList extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._delete.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                             </Popconfirm>
                         </div>
                 }

@@ -284,12 +284,13 @@ const Login = React.createClass({
                                     >
                                         {
                                            this.state.countryArr.map(function(it) {
-                                            const lang = it.languages
+                                                const lang = it.languages
 
-                                            return <Option key={ lang } value={ lang }>
-                                                   { it.localName }
-                                                </Option>
-                                        })}
+                                                return <Option key={ lang } value={ lang }>
+                                                       { it.localName }
+                                                    </Option>
+                                            })
+                                       }
                                     </Select>
                                 </FormItem>
                                 <Row>

@@ -17,6 +17,8 @@ class EmailSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            activeKey: this.props.params.id ? this.props.params.id : '1',
+            isDisplay: "display-block"
         }
     }
     componentDidMount() {
@@ -24,34 +26,38 @@ class EmailSettings extends Component {
     componentWillUnmount() {
 
     }
+    _onChange = (e) => {
+        if (e === "1") {
+            this.setState({
+                activeKey: e,
+                isDisplay: "display-block"
+            })
+        } else {
+            this.setState({
+                activeKey: e,
+                isDisplay: "hidden"
+            })
+        }
+    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
-        let action = {}
 
-        action["trunk_type"] = this.state.trunkType
-
-        this.props.form.validateFieldsAndScroll((err, values) => {
-            let me = this
-
-            for (let key in values) {
-                if (values.hasOwnProperty(key)) {
-                    if (me.refs["div_" + key] && 
-                        me.refs["div_" + key].props &&
-                        ((me.refs["div_" + key].props.className &&
-                        me.refs["div_" + key].props.className.indexOf("hidden") === -1) ||
-                        typeof me.refs["div_" + key].props.className === "undefined")) {
-                        if (!err || (err && typeof err[key] === "undefined")) {
-                            action[key] = UCMGUI.transCheckboxVal(values[key])   
-                        } else {
-                            return
-                        }
-                    }
-                }
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
             }
 
-            console.log('Received values of form: ', values)
-
             message.loading(formatMessage({ id: "LANG826" }), 0)
+
+            let action = {}
+
+            for (let item in values) {
+                if (values[item]) {
+                    action[item] = values[item]
+                }
+            }
+            action.smtp_tls_enable = action.smtp_tls_enable ? 'yes' : 'no'
+            action["action"] = "updateEmailSettings"
 
             $.ajax({
                 url: api.apiHost,
@@ -90,11 +96,13 @@ class EmailSettings extends Component {
                 <Title headerTitle={ formatMessage({id: "LANG717"}) } 
                     onSubmit={ this._handleSubmit.bind(this) } 
                     onCancel={ this._handleCancel } 
-                    isDisplay='display-block' 
+                    isDisplay={ this.state.isDisplay }
                 />
-                <Tabs defaultActiveKey="1" onChange={this.onChange}>
+                <Tabs defaultActiveKey={ this.state.activeKey } onChange={this._onChange}>
                     <TabPane tab={formatMessage({id: "LANG717"})} key="1">
-                        <SMTP />
+                        <SMTP 
+                            form={ this.props.form }
+                        />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG4572"})} key="2">
                         <EmailTemplate />

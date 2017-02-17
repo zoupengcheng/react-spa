@@ -18,7 +18,8 @@ class pmsRooms extends Component {
             accountList: [],
             accountAryObj: {},
             selectedRowKeys: [],
-            pmsRooms: []
+            pmsRooms: [],
+            batchDeleteModalVisible: false
         }
     }
     componentDidMount() {
@@ -63,6 +64,11 @@ class pmsRooms extends Component {
             browserHistory.push('/value-added-features/pmsRooms/batchadd')
         }
     }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRowKeys: []
+        })
+    }
     _delete = (record) => {
         let loadingMessage = ''
         let successMessage = ''
@@ -90,6 +96,7 @@ class pmsRooms extends Component {
                     message.success(successMessage)
 
                     this._getPmsRooms()
+                    this._clearSelectRows()
                 }
             }.bind(this),
             error: function(e) {
@@ -97,7 +104,17 @@ class pmsRooms extends Component {
             }
         })
     }
-    _batchdelete = (record) => {
+    _batchdelete = () => {
+        this.setState({
+            batchDeleteModalVisible: true
+        })
+    }
+    _batchdeleteCancel = () => {
+        this.setState({
+            batchDeleteModalVisible: false
+        })
+    }
+    _batchdeleteOk = (record) => {
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
@@ -106,6 +123,10 @@ class pmsRooms extends Component {
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
         message.loading(loadingMessage)
+
+        this.setState({
+            batchDeleteModalVisible: false
+        })
 
         $.ajax({
             url: api.apiHost,
@@ -124,6 +145,7 @@ class pmsRooms extends Component {
                     message.success(successMessage)
 
                     this._getPmsRooms()
+                    this._clearSelectRows()
                 }
             }.bind(this),
             error: function(e) {
@@ -271,6 +293,7 @@ class pmsRooms extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._edit.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -279,7 +302,7 @@ class pmsRooms extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._delete.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                             </Popconfirm>
                         </div>
                 }
@@ -321,9 +344,22 @@ class pmsRooms extends Component {
                             type="primary"
                             size='default'
                             onClick={ this._batchdelete }
+                            disabled={ !this.state.selectedRowKeys.length }
                         >
                             { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG4969"}) }) }
                         </Button>
+                        <Modal
+                            onOk={ this._batchdeleteOk }
+                            onCancel={ this._batchdeleteCancel }
+                            title={ formatMessage({id: "LANG543"}) }
+                            okText={ formatMessage({id: "LANG727"}) }
+                            cancelText={ formatMessage({id: "LANG726"}) }
+                            visible={ this.state.batchDeleteModalVisible }
+                        >
+                            <span dangerouslySetInnerHTML=
+                                {{__html: formatMessage({id: "LANG2710"}, {0: formatMessage({id: "LANG4969"}), 1: this.state.selectedRowKeys.join('  ')})}}
+                            ></span>
+                        </Modal>
                         <Button
                             icon="plus"
                             type="primary"

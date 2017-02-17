@@ -243,14 +243,14 @@ export const getInterfaceStatus = () => (dispatch) => {
     })
 }
 
-export const getQueueByChairman = (chairman) => (dispatch) => {
+export const getCallQueuesMessage = (chairman) => (dispatch) => {
     let data = {}
 
     if (chairman) {
         data.chairman = chairman
     }
 
-    data.action = 'getQueueByChairman'
+    data.action = 'getCallQueuesMessage'
 
     $.ajax({
         data: data,
@@ -259,7 +259,7 @@ export const getQueueByChairman = (chairman) => (dispatch) => {
         url: api.apiHost,
         success: function(res) {
             const response = res.response || {}
-            const callQueueList = response.CallQueues || []
+            const callQueueList = response.CallQueuesMessage || []
             const activeTabKey = callQueueList.length ? callQueueList[0].extension : ''
 
             dispatch({type: 'SET_CURRENTQUEUE', currentQueue: activeTabKey})
@@ -275,12 +275,16 @@ export const getQueueByChairman = (chairman) => (dispatch) => {
                 method: 'post',
                 url: api.apiHost,
                 data: {
-                    queuename: activeTabKey,
-                    action: 'getQueueByChairman'
+                    extension: activeTabKey,
+                    action: 'getCallQueuesMemberMessage'
                 },
                 success: function(res) {
+                    let queueMembers = []
                     const response = res.response || {}
-                    const queueMembers = response.QueueMembers || []
+
+                    if (response.CallQueueMembersMessage && response.CallQueueMembersMessage.member) {
+                        queueMembers = response.CallQueueMembersMessage.member
+                    }
 
                     dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
                 },
@@ -295,12 +299,16 @@ export const getQueueByChairman = (chairman) => (dispatch) => {
                 url: api.apiHost,
                 data: {
                     role: 'answer',
-                    queuename: activeTabKey,
+                    extension: activeTabKey,
                     action: 'getQueueCalling'
                 },
                 success: function(res) {
+                    let answerCallings = []
                     const response = res.response || {}
-                    const answerCallings = response.CallQueues || []
+
+                    if (response.CallQueues && response.CallQueues.member) {
+                        answerCallings = response.CallQueues.member
+                    }
 
                     dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
                 },
@@ -315,12 +323,16 @@ export const getQueueByChairman = (chairman) => (dispatch) => {
                 url: api.apiHost,
                 data: {
                     role: '',
-                    queuename: activeTabKey,
+                    extension: activeTabKey,
                     action: 'getQueueCalling'
                 },
                 success: function(res) {
+                    let waitingCallings = []
                     const response = res.response || {}
-                    const waitingCallings = response.CallQueues || []
+
+                    if (response.CallQueues && response.CallQueues.member) {
+                        waitingCallings = response.CallQueues.member
+                    }
 
                     dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: _.sortBy(waitingCallings, function(item) { return item.position })})
                 },
@@ -335,18 +347,22 @@ export const getQueueByChairman = (chairman) => (dispatch) => {
     })
 }
 
-export const getQueueMembers = (queue) => (dispatch) => {
+export const getCallQueuesMemberMessage = (queue) => (dispatch) => {
     $.ajax({
         type: 'json',
         method: 'post',
         url: api.apiHost,
         data: {
-            queuename: queue,
-            action: 'getQueueByChairman'
+            extension: queue,
+            action: 'getCallQueuesMemberMessage'
         },
         success: function(res) {
+            let queueMembers = []
             const response = res.response || {}
-            const queueMembers = response.QueueMembers || []
+
+            if (response.CallQueueMembersMessage && response.CallQueueMembersMessage.member) {
+                queueMembers = response.CallQueueMembersMessage.member
+            }
 
             dispatch({type: 'SET_CURRENTQUEUE', currentQueue: queue})
             dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
@@ -364,12 +380,16 @@ export const getQueueCallingAnswered = (queue) => (dispatch) => {
         url: api.apiHost,
         data: {
             role: 'answer',
-            queuename: queue,
+            extension: queue,
             action: 'getQueueCalling'
         },
         success: function(res) {
+            let answerCallings = []
             const response = res.response || {}
-            const answerCallings = response.CallQueues || []
+
+            if (response.CallQueues && response.CallQueues.member) {
+                answerCallings = response.CallQueues.member
+            }
 
             dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
         },
@@ -386,12 +406,16 @@ export const getQueueCallingWaiting = (queue) => (dispatch) => {
         url: api.apiHost,
         data: {
             role: '',
-            queuename: queue,
+            extension: queue,
             action: 'getQueueCalling'
         },
         success: function(res) {
+            let waitingCallings = []
             const response = res.response || {}
-            const waitingCallings = response.CallQueues || []
+
+            if (response.CallQueues && response.CallQueues.member) {
+                waitingCallings = response.CallQueues.member
+            }
 
             dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: _.sortBy(waitingCallings, function(item) { return item.position })})
         },

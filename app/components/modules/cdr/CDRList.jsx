@@ -73,7 +73,7 @@ class CDRList extends Component {
             recordFiles: list
         })
     }
-    _handleCancel = () => {
+    _hideRecordFile = () => {
         this.setState({
             visible: false
         })
@@ -239,35 +239,35 @@ class CDRList extends Component {
         const columns = [
             {
                 title: formatMessage({id: "LANG186"}),
-                dataIndex: 'status',
+                dataIndex: 'disposition',
                 render: (text, record, index) => (
                     this._createStatus(text, record, index)
                 )
             }, {
                 title: formatMessage({id: "LANG581"}),
-                dataIndex: 'callFrom'
+                dataIndex: 'src'
             }, {
                 title: formatMessage({id: "LANG582"}),
-                dataIndex: 'callTo'
+                dataIndex: 'dst'
             }, {
                 title: formatMessage({id: "LANG5134"}),
-                dataIndex: 'actionType'
+                dataIndex: 'action_type'
             }, {
                 title: formatMessage({id: "LANG169"}),
-                dataIndex: 'startTime',
+                dataIndex: 'start',
                 sorter: (a, b) => a > b
             }, {
                 title: formatMessage({id: "LANG2238"}),
-                dataIndex: 'talkTime',
+                dataIndex: 'billsec',
                 render: (text, record, index) => (
                     this._createTalkTime(text, record, index)
                 )
             }, {
                 title: formatMessage({id: "LANG4569"}),
-                dataIndex: 'password'
+                dataIndex: 'accountcode'
             }, {
                 title: formatMessage({id: "LANG4096"}),
-                dataIndex: 'recordingFile',
+                dataIndex: 'recordfiles',
                 render: (text, record, index) => (
                     this._createRecordFile(text, record, index)
                 )
@@ -306,9 +306,13 @@ class CDRList extends Component {
                     columns={ columns }
                     dataSource={ this.props.cdrData }
                     pagination={ pagination }
-                    showHeader={ !!this.props.cdrData.length } 
-                />
-                <Modal title={ formatMessage({id: "LANG2640"}) } visible={ this.state.visible } onCancel={ this._handleCancel } footer={ false }>
+                    showHeader={ !!this.props.cdrData.length } />
+                <Modal
+                    title={ formatMessage({id: "LANG2640"}) }
+                    visible={ this.state.visible }
+                    onCancel={ this._hideRecordFile }
+                    footer={ false }
+                >
                     <div id="cdr-record">
                         { 
                             this.state.recordFiles.map(function(value, index) {
@@ -316,9 +320,21 @@ class CDRList extends Component {
                                             <span className="sprite sprite-record"></span>
                                             <span className="record-item">{ value }</span>
                                             <div className="record-btn">
-                                                <span className="sprite sprite-play" onClick={ this._playRecord.bind(this, value) }></span>
-                                                <span className="sprite sprite-download" onClick={ this._downloadRecord.bind(this, value) }></span>
-                                                <span className="sprite sprite-del" onClick={ this._deleteRecord.bind(this, value, index) }></span>
+                                                <span
+                                                    className="sprite sprite-play"
+                                                    onClick={ this._playRecord.bind(this, value) }
+                                                >
+                                                </span>
+                                                <span
+                                                    className="sprite sprite-download"
+                                                    onClick={ this._downloadRecord.bind(this, value) }
+                                                >
+                                                </span>
+                                                <span
+                                                    className="sprite sprite-del"
+                                                    onClick={ this._deleteRecord.bind(this, value, index) }
+                                                >
+                                                </span>
                                             </div>
                                        </div>
                             }.bind(this))

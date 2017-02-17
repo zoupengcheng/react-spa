@@ -10,10 +10,12 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker, Modal, Row } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
+const CheckboxGroup = Checkbox.Group
 
 class WakeupServiceItem extends Component {
     constructor(props) {
@@ -30,16 +32,8 @@ class WakeupServiceItem extends Component {
             weekShow: "hidden",
             customDateCheck: false,
             weekList: [],
-            WeekBox: {
-                "week_0": false,
-                "week_1": false,
-                "week_2": false,
-                "week_3": false,
-                "week_4": false,
-                "week_5": false,
-                "week_6": false,
-                "week_all": false
-            }
+            weekAll: false,
+            plainOptions: []
         }
     }
     componentWillMount() {
@@ -80,10 +74,32 @@ class WakeupServiceItem extends Component {
         let wakeupService = {}
         let customCheck = false
         let weekList = []
-        let WeekBox = {}
+        let weekAll = false
         const __this = this
         const { formatMessage } = this.props.intl
         const wakeupServiceId = this.props.params.id
+        const plainOptions = [{
+                label: formatMessage({id: "LANG250"}),
+                value: '0'
+            }, {
+                label: formatMessage({id: "LANG251"}),
+                value: '1'
+            }, {
+                label: formatMessage({id: "LANG252"}),
+                value: '2'
+            }, {
+                label: formatMessage({id: "LANG253"}),
+                value: '3'
+            }, {
+                label: formatMessage({id: "LANG254"}),
+                value: '4'
+            }, {
+                label: formatMessage({id: "LANG255"}),
+                value: '5'
+            }, {
+                label: formatMessage({id: "LANG256"}),
+                value: '6'
+            }]
 
         $.ajax({
             url: api.apiHost,
@@ -164,35 +180,10 @@ class WakeupServiceItem extends Component {
                             customCheck = true
                             weekList = wakeupService.custom_date.split(',')
                         }
-                        weekList.map(function(item) {
-                            if (item === "0") {
-                                WeekBox.week_0 = true
-                            }
-                            if (item === "1") {
-                                WeekBox.week_1 = true
-                            }
-                            if (item === "2") {
-                                WeekBox.week_2 = true
-                            }
-                            if (item === "3") {
-                                WeekBox.week_3 = true
-                            }
-                            if (item === "4") {
-                                WeekBox.week_4 = true
-                            }
-                            if (item === "5") {
-                                WeekBox.week_5 = true
-                            }
-                            if (item === "6") {
-                                WeekBox.week_6 = true
-                            }
-                        })
+                        
                         if (weekList.length === 7) {
-                            WeekBox.week_all = true
+                            weekAll = true
                         }
-                        this.setState({
-                            WeekBox: WeekBox
-                        })
                     }
                 }.bind(this),
                 error: function(e) {
@@ -209,11 +200,28 @@ class WakeupServiceItem extends Component {
             weekShow: (customCheck ? "display-block" : "hidden"),
             dateShow: (customCheck ? "hidden" : "display-block"),
             customDateCheck: customCheck,
-            weekList: weekList
+            weekList: weekList,
+            weekAll: weekAll,
+            plainOptions: plainOptions
         })
     }
     _handleCancel = () => {
         browserHistory.push('/value-added-features/wakeupService')
+    }
+    _gotoPromptOk = () => {
+        browserHistory.push('/pbx-settings/voicePrompt')
+    }
+    _gotoPrompt = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                __this._gotoPromptOk()
+            },
+            onCancel() {}
+        })
     }
     _onCustomChange = (e) => {
         if (!e.target.checked) {
@@ -229,26 +237,21 @@ class WakeupServiceItem extends Component {
         }
     }
     _onWeekallChange = (e) => {
-        let WeekBox = this.state.WeekBox
-        if (e.target.checked) {
-            WeekBox.week_0 = true
-            WeekBox.week_1 = true
-            WeekBox.week_2 = true
-            WeekBox.week_3 = true
-            WeekBox.week_4 = true
-            WeekBox.week_5 = true
-            WeekBox.week_6 = true
-        } else {
-            WeekBox.week_0 = false
-            WeekBox.week_1 = false
-            WeekBox.week_2 = false
-            WeekBox.week_3 = false
-            WeekBox.week_4 = false
-            WeekBox.week_5 = false
-            WeekBox.week_6 = false
-        }
+        const plainOptions = this.state.plainOptions
+        let checkedList = []
+        plainOptions.map(function(item) {
+            checkedList.push(item.value)
+        })
         this.setState({
-            WeekBox: WeekBox
+            weekList: e.target.checked ? checkedList : [],
+            weekAll: e.target.checked
+        })
+    }
+    _onChangeWeek = (checkedList) => {
+        const plainOptions = this.state.plainOptions
+        this.setState({
+            weekList: checkedList,
+            weekAll: checkedList.length === plainOptions.length
         })
     }
     _handleSubmit = () => {
@@ -281,29 +284,7 @@ class WakeupServiceItem extends Component {
                 action.prompt = values.prompt
                 action.time = values.time.format('HH:mm')
                 if (values.custom) {
-                    let weeklist = []
-                    if (values.week_0) {
-                        weeklist.push('0') 
-                    }
-                    if (values.week_1) {
-                        weeklist.push('1') 
-                    }
-                    if (values.week_2) {
-                        weeklist.push('2') 
-                    }
-                    if (values.week_3) {
-                        weeklist.push('3') 
-                    }
-                    if (values.week_4) {
-                        weeklist.push('4') 
-                    }
-                    if (values.week_5) {
-                        weeklist.push('5') 
-                    }
-                    if (values.week_6) {
-                        weeklist.push('6') 
-                    }
-                    action.custom_date = weeklist.join(',')
+                    action.custom_date = this.state.weekList.sort().join(',')
                 } else {
                     action.custom_date = values.custom_date.format('YYYY-MM-DD')
                 }
@@ -358,6 +339,10 @@ class WakeupServiceItem extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
+        const formItemPromptLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
+        }
         const formItemTransferLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 18 }
@@ -371,7 +356,10 @@ class WakeupServiceItem extends Component {
                 : formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG4858"}) }))
 
         const wakeupServiceItem = this.state.wakeupServiceItem || {}
-        const name = wakeupServiceItem.wakeup_name        
+        const name = wakeupServiceItem.wakeup_name
+
+        const plainOptions = this.state.plainOptions
+        const checkedList = this.state.weekList
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -471,34 +459,41 @@ class WakeupServiceItem extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_prompt"
-                            { ...formItemLayout }
+                            { ...formItemPromptLayout }
 
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG1484" />}>
                                     <span>{formatMessage({id: "LANG1484"})}</span>
                                 </Tooltip>
                             )}>
-                            { getFieldDecorator('prompt', {
-                                rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }],
-                                width: 100,
-                                initialValue: wakeupServiceItem.prompt ? wakeupServiceItem.prompt : "wakeup-call"
-                            })(
-                                <Select>
-                                    {
-                                        this.state.fileList.map(function(item) {
-                                            return <Option
-                                                    key={ item.text }
-                                                    value={ item.val }>
-                                                    { item.text }
-                                                </Option>
+                            <Row>
+                                <Col span={16}>
+                                    { getFieldDecorator('prompt', {
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
+                                        width: 100,
+                                        initialValue: wakeupServiceItem.prompt ? wakeupServiceItem.prompt : "wakeup-call"
+                                    })(
+                                        <Select>
+                                            {
+                                                this.state.fileList.map(function(item) {
+                                                    return <Option
+                                                            key={ item.text }
+                                                            value={ item.val }>
+                                                            { item.text }
+                                                        </Option>
+                                                    }
+                                                ) 
                                             }
-                                        ) 
-                                    }
-                                </Select>
-                            ) }
+                                        </Select>
+                                    ) }
+                                </Col>
+                                <Col span={6} offset={1} >
+                                    <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                                </Col>
+                            </Row>
                         </FormItem>
                         <FormItem
                             ref="div_custom"
@@ -547,84 +542,9 @@ class WakeupServiceItem extends Component {
                                     <span>{formatMessage({id: "LANG203"})}</span>
                                 </Tooltip>
                             )}>
+                            <CheckboxGroup options={ plainOptions } value={ checkedList } onChange={ this._onChangeWeek } />
                             <Col span={ 2 }>
-                                { getFieldDecorator('week_0', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_0
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG250"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_1', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_1
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG251"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_2', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_2
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG252"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_3', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_3
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG253"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_4', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_4
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG254"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_5', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_5
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG255"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_6', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_6
-                                })(
-                                        <Checkbox />
-                                ) }
-                            </Col>
-                            <Col span={ 6 }>{formatMessage({id: "LANG256"})}</Col>
-                            <Col span={ 2 }>
-                                { getFieldDecorator('week_all', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.WeekBox.week_all
-                                })(
-                                        <Checkbox onChange={ this._onWeekallChange } />
-                                ) }
+                                 <Checkbox checked={ this.state.weekAll } onChange={ this._onWeekallChange } />
                             </Col>
                             <Col span={ 6 }>{formatMessage({id: "LANG104"})}</Col>
                         </FormItem>

@@ -101,7 +101,7 @@
     .ant-form-item-label {
         text-align: left;
 
-        label {
+        label span {
             cursor: help;
             /* color: #596600 */
         }
@@ -112,7 +112,7 @@
     }
 
     .ant-input-number-lg {
-        height: 30px;
+        height: 28px;
 
         input {
             height: 28px;
@@ -264,5 +264,33 @@
         &:hover {
             box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
         }
+    }
+}
+
+.ant-select-tree {
+    height: 250px;
+    overflow-y: auto;
+}
+
+.ant-select-lg .ant-select-selection--multiple {
+    overflow-y: auto;
+    max-height: 100px;
+}
+
+.ant-select-selection__placeholder,
+.ant-select-search__field__placeholder {
+    padding: 0 7px;
+}
+
+.ant-popover .ant-popover-inner-content {
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+.anticon {
+    transition: all .3s;
+
+    &:hover {
+        transform: scale(1.2);
     }
 }

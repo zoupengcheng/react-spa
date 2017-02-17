@@ -333,20 +333,50 @@
 }
 
 .status-container {
+    .ant-tag {
+        width: 85px;
+        text-align: center;
+        border-radius: 4px;
+
+        .ant-tag-text {
+            font-weight: bold;
+        }
+    }
+
     &.unavailable {
-        color: #c0c5cc;
+        /* color: #c0c5cc; */
+
+        .ant-tag {
+            color: #fff;
+            background-color: #c0c5cc;
+        }
     }
 
     &.idle {
         color: #48dc6b;
+
+        .ant-tag {
+            color: #fff;
+            background-color: #48dc6b;
+        }
     }
 
     &.inuse, &.busy {
         color: #fe980e;
+
+        .ant-tag {
+            color: #fff;
+            background-color: #fe980e;
+        }
     }
 
     &.ringing {
         color: #3f7bf2;
+
+        .ant-tag {
+            color: #fff;
+            background-color: #3f7bf2;
+        }
     }
 
     &.email-status-sent {
@@ -367,5 +397,25 @@
 
     .sprite {
         margin-right: 10px;
+    }
+}
+
+.tree-container {
+    border: 1px solid #b8bdcc;
+
+    .custom-tree {
+        height: 300px;
+
+        &.autoFlow {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        &.rightBorder {
+            float: left;
+            width: 250px;
+            overflow: hidden;
+            border-right: 1px solid #b8bdcc;
+        }
     }
 }

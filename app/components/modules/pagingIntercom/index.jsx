@@ -81,7 +81,7 @@ class PagingIntercom extends Component {
             }
         })
     }
-    _deleteBatch = (record) => {
+    _deleteBatchOK = (record) => {
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
@@ -114,6 +114,26 @@ class PagingIntercom extends Component {
                 message.error(e.statusText)
             }
         })
+    }
+    _deleteBatch = (record) => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+
+        if (this.state.selectedRowKeys.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG604"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG818"}, {0: this.state.selectedRowKeys.join('  ')})}} ></span>,
+                onOk() {
+                    __this._deleteBatchOK(record)
+                },
+                onCancel() {}
+            })
+        }
     }
     _edit = (record) => {
         browserHistory.push('/call-features/pagingIntercom/edit/' + record.extension + '/' + record.paginggroup_name)
@@ -177,6 +197,7 @@ class PagingIntercom extends Component {
         return <div>
                     <span
                         className="sprite sprite-edit"
+                        title={ formatMessage({id: "LANG738"}) }
                         onClick={ this._edit.bind(this, record) }>
                     </span>
                     <Popconfirm
@@ -185,7 +206,7 @@ class PagingIntercom extends Component {
                         cancelText={ formatMessage({id: "LANG726"}) }
                         onConfirm={ this._delete.bind(this, record) }
                     >
-                        <span className="sprite sprite-del"></span>
+                        <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                     </Popconfirm>
                 </div>
     }

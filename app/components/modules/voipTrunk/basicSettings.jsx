@@ -25,6 +25,7 @@ class BasicSettings extends Component {
     }
     componentDidMount() {
         this._getNameList()
+        this.props.getRefs(this.refs)
     }
     _onChangeTelUri = (e) => {
         this.props.telUri = e.target.checked

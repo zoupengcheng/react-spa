@@ -136,6 +136,7 @@ class Ivr extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._edit.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -144,7 +145,7 @@ class Ivr extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._delete.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                             </Popconfirm>
                         </div>
                 }
@@ -166,6 +167,10 @@ class Ivr extends Component {
         
         return (
             <div className="app-content-main" id="app-content-main">
+                <Title
+                    headerTitle={ formatMessage({id: "LANG647"}) }
+                    isDisplay= "hidden"
+                />
                 <div className="content">
                     <div className="top-button">
                         <Button 

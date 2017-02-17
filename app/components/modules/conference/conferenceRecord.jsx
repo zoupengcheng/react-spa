@@ -95,6 +95,7 @@ class ConferenceRecord extends Component {
                                 message.success(successMessage)
 
                                 this._getConferenceRecord()
+                                this._clearSelectRows()
                             }
                         }.bind(this),
                         error: function(e) {
@@ -199,6 +200,7 @@ class ConferenceRecord extends Component {
                             message.success(successMessage)
 
                             self._getConferenceRecord()
+                            self._clearSelectRows()
                         }
                     }.bind(this),
                     error: function(e) {
@@ -254,6 +256,7 @@ class ConferenceRecord extends Component {
                 if (bool) {
                     message.destroy()
                     window.open("/cgi?action=downloadFile&type=" + actionType + "&data=batchMeetmeRecordFiles.tgz", '_self')
+                    this._clearSelectRows()
                 }
             }.bind(this),
             error: function(e) {
@@ -399,7 +402,13 @@ class ConferenceRecord extends Component {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
         // console.log('selectedRow changed: ', selectedRows)
 
-        this.setState({ selectedRowKeys })
+        this.setState({ selectedRowKeys, selectedRows })
+    }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRows: [],
+            selectedRowKeys: []
+        })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -437,9 +446,13 @@ class ConferenceRecord extends Component {
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
+
+                    this._clearSelectRows()
                 },
                 onChange: (current) => {
                     console.log('Current: ', current)
+
+                    this._clearSelectRows()
                 }
             }
         const rowSelection = {
@@ -459,7 +472,8 @@ class ConferenceRecord extends Component {
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._batchDelete }>
+                            onClick={ this._batchDelete }
+                            disabled={ !this.state.selectedRowKeys.length }>
                             { formatMessage({id: "LANG3488"}) }
                         </Button>
                         <Button
@@ -471,7 +485,8 @@ class ConferenceRecord extends Component {
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._batchDownload }>
+                            onClick={ this._batchDownload }
+                            disabled={ !this.state.selectedRowKeys.length }>
                             { formatMessage({id: "LANG4761"}, {
                                 0: formatMessage({id: "LANG2640"})
                             }) }

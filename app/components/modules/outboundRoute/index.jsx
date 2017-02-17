@@ -14,6 +14,7 @@ const confirm = Modal.confirm
 class OutboundRoute extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
             accountList: [],
             accountAryObj: {},
@@ -22,30 +23,29 @@ class OutboundRoute extends Component {
         }
     }
     componentDidMount() {
-        // this._getAccountList()
         this._getOutboundRoutes()
     }
     _add = () => {
         let confirmContent = ''
         const { formatMessage } = this.props.intl
 
-        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2698" })}}></span>
 
-        if (!this.state.accountList.length) {
+        if (!this.state.trunkList.length) {
             confirm({
                 title: '',
                 content: confirmContent,
                 onOk() {
-                    browserHistory.push('/extension-trunk/extension')
+                    browserHistory.push('/extension-trunk/voipTrunk')
                 },
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/extension-trunk/outboundRoute/add')
         }
     }
     _blacklist = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/extension-trunk/outboundRoute/blacklist')
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -61,8 +61,8 @@ class OutboundRoute extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                "action": "deleteOutboundRoute",
+                "outbound_route": record.outbound_rt_index
             },
             type: 'json',
             async: true,
@@ -73,7 +73,7 @@ class OutboundRoute extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getoutboundRoutes()
+                    this._getOutboundRoutes()
                 }
             }.bind(this),
             error: function(e) {
@@ -82,7 +82,7 @@ class OutboundRoute extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/extension-trunk/outboundRoute/edit/' + record.outbound_rt_index + '/' + record.outbound_rt_name)
     }
     _createName = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -156,36 +156,6 @@ class OutboundRoute extends Component {
 
         return permission
     }
-    _getAccountList = () => {
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getAccountList' },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    let obj = {}
-                    let response = res.response || {}
-                    let extension = response.extension || []
-
-                    extension.map(function(item) {
-                        obj[item.extension] = item
-                    })
-
-                    this.setState({
-                        accountAryObj: obj,
-                        accountList: extension
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
     _getOutboundRoutes = () => {
         const { formatMessage } = this.props.intl
 
@@ -208,7 +178,8 @@ class OutboundRoute extends Component {
                     const outboundRoutes = response.outbound_route || []
 
                     this.setState({
-                        outboundRoutes: outboundRoutes
+                        outboundRoutes: outboundRoutes,
+                        trunkList: UCMGUI.isExist.getList('getTrunkList', formatMessage)
                     })
                 }
             }.bind(this),

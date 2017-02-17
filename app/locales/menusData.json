@@ -201,6 +201,9 @@
         }, {
             "name": "LANG2640",
             "path": "recordingFile"
+        }, {
+            "name": "LANG3003",
+            "path": "cdrApi"
         }]
     }, {
         "name": "value-added-features",

@@ -17,8 +17,10 @@ class WakeupService extends Component {
         this.state = {
             accountList: [],
             accountAryObj: {},
+            selectedRowName: "",
             selectedRowKeys: [],
-            wakeupService: []
+            wakeupService: [],
+            batchDeleteModalVisible: false
         }
     }
     componentDidMount() {
@@ -43,6 +45,11 @@ class WakeupService extends Component {
         } else {
             browserHistory.push('/value-added-features/wakeupService/add')
         }
+    }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRowKeys: []
+        })
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -71,6 +78,68 @@ class WakeupService extends Component {
                     message.success(successMessage)
 
                     this._getWakeupService()
+                    this._clearSelectRows()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _deleteBatch = () => {
+        let selectedRowName = this.state.selectedRowKeys.join('  ')
+        const selectedRowKeys = this.state.selectedRowKeys
+        let selectedRowList = []
+
+        this.state.wakeupService.map(function(item) {
+            for (let i = 0; i < selectedRowKeys.length; i++) {
+                if (selectedRowKeys[i] === item.wakeup_index) {
+                    selectedRowList.push(item.wakeup_name)
+                }
+            }
+        })
+        selectedRowName = selectedRowList.join('  ')
+        this.setState({
+            batchDeleteModalVisible: true,
+            selectedRowName: selectedRowName
+        })
+    }
+    _deleteBatchCancel = () => {
+        this.setState({
+            batchDeleteModalVisible: false
+        })
+    }
+    _deleteBatchOk = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+        this.setState({
+            batchDeleteModalVisible: false
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deleteWakeupSchedule",
+                "wakeup_index": this.state.selectedRowKeys.join(',')
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getWakeupService()
+                    this._clearSelectRows()
                 }
             }.bind(this),
             error: function(e) {
@@ -251,6 +320,7 @@ class WakeupService extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
+                                title={ formatMessage({id: "LANG738"}) }
                                 onClick={ this._edit.bind(this, record) }>
                             </span>
                             <Popconfirm
@@ -259,7 +329,7 @@ class WakeupService extends Component {
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._delete.bind(this, record) }
                             >
-                                <span className="sprite sprite-del"></span>
+                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) } ></span>
                             </Popconfirm>
                         </div>
                 }
@@ -304,10 +374,23 @@ class WakeupService extends Component {
                             icon="delete"
                             type="primary"
                             size='default'
-                            onClick={ this._delete }
+                            onClick={ this._deleteBatch }
+                            disabled={ !this.state.selectedRowKeys.length }
                         >
                             { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG4858"}) }) }
                         </Button>
+                        <Modal
+                            onOk={ this._deleteBatchOk }
+                            onCancel={ this._deleteBatchCancel }
+                            title={ formatMessage({id: "LANG543"}) }
+                            okText={ formatMessage({id: "LANG727"}) }
+                            cancelText={ formatMessage({id: "LANG726"}) }
+                            visible={ this.state.batchDeleteModalVisible }
+                        >
+                            <span dangerouslySetInnerHTML=
+                                {{__html: formatMessage({id: "LANG2710"}, {0: formatMessage({id: "LANG4858"}), 1: this.state.selectedRowName})}}
+                            ></span>
+                        </Modal>
                     </div>
                     <Table
                         rowKey="wakeup_index"

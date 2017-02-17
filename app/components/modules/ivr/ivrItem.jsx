@@ -20,6 +20,7 @@ class IvrItem extends Component {
         super(props)
 
         this.state = {
+            checkedList: {},
             activeKey: "1",
             currentEditId: this.props.params.id,
             settings: {},
@@ -36,15 +37,22 @@ class IvrItem extends Component {
             directoryList: [],
             callbackList: [],
             fileList: [],
+            ivrNameList: [],
+            numberList: [],
             ivrItem: {},
-            ivrItemMembers: {}
+            ivrItemMembers: {},
+            ivrStart: '7000',
+            ivrEnd: '7100',
+            disable_extension_ranges: 'no',
+            newIvrNum: ''
         }
     }
     componentDidMount() {
         
     }
     componentWillMount() {
-        this._getInitDate()
+        this._getIVRRange()
+        this._getInitData()
     }
     componentWillUnmount() {
     }
@@ -67,7 +75,44 @@ class IvrItem extends Component {
             }
         }
     }
-    _getInitDate = () => {
+    _getIVRRange = () => {
+        let prefSetting = {}
+        let ivrStart = this.state.ivrStart
+        let ivrEnd = this.state.ivrEnd
+        let disable_extension_ranges = this.state.disable_extension_ranges
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getExtenPrefSettings'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    prefSetting = res.response.extension_pref_settings || {}
+                    ivrStart = prefSetting.vme_start
+                    ivrEnd = prefSetting.vme_end
+                    disable_extension_ranges = prefSetting.disable_extension_ranges
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        this.setState({
+            ivrStart: ivrStart,
+            ivrEnd: ivrEnd,
+            disable_extension_ranges: disable_extension_ranges
+        })
+    }
+    _getInitData = () => {
         const { formatMessage } = this.props.intl
         const ivrId = this.props.params.id
         const __this = this
@@ -85,8 +130,11 @@ class IvrItem extends Component {
         let directoryList = []
         let callbackList = []
         let fileList = []
+        let ivrNameList = []
+        let numberList = []
         let ivrItem = {}
         let ivrItemMembers = {}
+        let newIvrNum = ''
 
         let getList = []
         getList.push({"getAccountList": ""})
@@ -101,6 +149,8 @@ class IvrItem extends Component {
         getList.push({"getFaxList": ""})
         getList.push({"getDISAList": ""})
         getList.push({"getCallbackList": ""})
+        getList.push({"getIVRNameList": ""})
+        getList.push({"getNumberList": ""})
         $.ajax({
             url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(getList),
             method: 'GET',
@@ -123,6 +173,9 @@ class IvrItem extends Component {
                     const getFaxList = response.getFaxList || {}
                     const getDISAList = response.getDISAList || {}
                     const getCallbackList = response.getCallbackList || {}
+                    const getIVRNameList = response.getIVRNameList || {}
+                    const getNumberList = response.getNumberList || {}
+
                     const getAccountList_extension = getAccountList.extension || []
                     const getVoicemailList_extension = getVoicemailList.extension || []
                     const getConferenceList_extension = getConferenceList.extension || []
@@ -218,6 +271,8 @@ class IvrItem extends Component {
                                 value: item.callback_id
                             }
                     })
+                    numberList = getNumberList.number || []
+                    ivrNameList = getIVRNameList.ivr_name || []
                 }
             }.bind(this),
             error: function(e) {
@@ -274,12 +329,31 @@ class IvrItem extends Component {
                         const response = res.response || {}
                         ivrItem = response.ivr
                         ivrItemMembers = response.members
+
+                        if (ivrItem.extension) {
+                            numberList = _.without(numberList, ivrItem.extension)
+                        }
+                        if (ivrItem.ivr_name) {
+                            ivrNameList = _.without(ivrNameList, ivrItem.ivr_name)
+                        }
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
+        } else {
+            const ivrStart = this.state.ivrStart
+            const ivrEnd = this.state.ivrEnd
+            
+            let noNeedBreak = true
+            for (let i = parseInt(ivrStart); i < parseInt(ivrEnd) && noNeedBreak; i++) {
+                if (($.inArray((i + ''), numberList) > -1)) {
+                } else {
+                    newIvrNum = i + ''
+                    noNeedBreak = false
+                }
+            }
         }
 
         this.setState({
@@ -296,8 +370,11 @@ class IvrItem extends Component {
             directoryList: directoryList,
             callbackList: callbackList,
             fileList: fileList,
+            numberList: numberList,
+            ivrNameList: ivrNameList, 
             ivrItem: ivrItem,
-            ivrItemMembers: ivrItemMembers
+            ivrItemMembers: ivrItemMembers,
+            newIvrNum: newIvrNum
         })
     }
     _getNameValue = (e, name) => {
@@ -710,9 +787,17 @@ class IvrItem extends Component {
                     }
                 }
             })
-            let aa = action
-            let llist = this.state.accountList
-            let i = this.state.ivrItem
+            action['dial_extension'] = 'no'
+            action['dial_conference'] = 'no'
+            action['dial_queue'] = 'no'
+            action['dial_ringgroup'] = 'no'
+            action['dial_paginggroup'] = 'no'
+            action['dial_vmgroup'] = 'no'
+            action['dial_fax'] = 'no'
+            action['dial_directory'] = 'no'
+            this.state.checkedList.map(function(item) {
+                action[item] = "yes"
+            })
 
             if (IvrId) {
                 action["action"] = "updateIVR"
@@ -743,6 +828,11 @@ class IvrItem extends Component {
                         this._handleCancel()
                     }.bind(this)
                 })
+        })
+    }
+    _getSpecialState = (checkedList) => {
+        this.setState({
+            checkedList: checkedList
         })
     }
     render() {
@@ -779,6 +869,11 @@ class IvrItem extends Component {
                                 settings={ this.state.settings }
                                 fileList={ this.state.fileList }
                                 ivrItem={ this.state.ivrItem }
+                                numberList={ this.state.numberList }
+                                ivrNameList={ this.state.ivrNameList }
+                                newIvrNum={ this.state.newIvrNum }
+                                getSpecialState={ this._getSpecialState.bind(this) }
+                                ivrId={ this.props.params.id }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG648"}) } key="2">

@@ -1,31 +1,69 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
-import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
-const FormItem = Form.Item
+import $ from 'jquery'
 import _ from 'underscore'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import React, { Component, PropTypes } from 'react'
+import { FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
 import Validator from "../../api/validator"
+
+const FormItem = Form.Item
 
 class smtpSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            email_settings: {}
         }
     }
     componentDidMount() {
+        this._getInitData()
     }
     componentWillUnmount() {
 
     }
-    _handleFormChange = (changedFields) => {
-        _.extend(this.props.dataSource, changedFields)
+    _getInitData = () => {
+        const { formatMessage } = this.props.intl
+        let email_settings = this.state.email_settings
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getEmailSettings'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    email_settings = response.email_settings || []
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            email_settings: email_settings
+        })
+    }
+    _onChangeType = (value) => {
+        let email_settings = this.state.email_settings
+        email_settings.smtp_type = value
+        this.setState({
+            email_settings: email_settings
+        })
     }
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
+        const email_settings = this.state.email_settings
         const formItemLayout = {
-            labelCol: { span: 6 },
+            labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
 
@@ -43,7 +81,7 @@ class smtpSettings extends Component {
                         { getFieldDecorator('smtp_tls_enable', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: false
+                            initialValue: email_settings.smtp_tls_enable === "yes"
                         })(
                             <Checkbox />
                         ) }
@@ -58,9 +96,9 @@ class smtpSettings extends Component {
                         }>
                         { getFieldDecorator('smtp_type', {
                             rules: [],
-                            initialValue: ""
+                            initialValue: email_settings.smtp_type
                         })(
-                            <Select>
+                            <Select onChange={ this._onChangeType } >
                                  <Option value="client">{formatMessage({id: "LANG2044"})}</Option>
                                  <Option value="mta">{formatMessage({id: "LANG2045"})}</Option>
                              </Select>
@@ -76,7 +114,7 @@ class smtpSettings extends Component {
                         }>
                         { getFieldDecorator('mail_context_mode', {
                             rules: [],
-                            initialValue: ""
+                            initialValue: email_settings.mail_context_mode
                         })(
                             <Select>
                                  <Option value="html">{formatMessage({id: "LANG5230"})}</Option>
@@ -86,6 +124,7 @@ class smtpSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_smtp_domain"
+                        className={ email_settings.smtp_type === 'client' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2051" />}>
@@ -93,15 +132,18 @@ class smtpSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('smtp_domain', {
-                            rules: [],
-                            initialValue: ""
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2050"})
+                            }],
+                            initialValue: email_settings.smtp_domain
                         })(
                             <Input maxLength="60" />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_smtp_server"
-                        className="hidden"
+                        className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2053" />}>
@@ -109,15 +151,18 @@ class smtpSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('smtp_server', {
-                            rules: [],
-                            initialValue: ""
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2052"})
+                            }],
+                            initialValue: email_settings.smtp_server
                         })(
                             <Input maxLength="60" />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_smtp_username"
-                        className="hidden"
+                        className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2054" />}>
@@ -125,15 +170,18 @@ class smtpSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('smtp_username', {
-                            rules: [],
-                            initialValue: ""
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: email_settings.smtp_username
                         })(
                             <Input maxLength="60" />
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_smtp_password"
-                        className="hidden"
+                        className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2055" />}>
@@ -141,8 +189,11 @@ class smtpSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('smtp_password', {
-                            rules: [],
-                            initialValue: ""
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: email_settings.smtp_password
                         })(
                             <Input maxLength="60" />
                         ) }
@@ -156,8 +207,11 @@ class smtpSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('fromstring', {
-                            rules: [],
-                            initialValue: ""
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: email_settings.fromstring
                         })(
                             <Input maxLength="64" />
                         ) }
@@ -171,8 +225,11 @@ class smtpSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('serveremail', {
-                            rules: [],
-                            initialValue: ""
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: email_settings.serveremail
                         })(
                             <Input maxLength="120" />
                         ) }
@@ -186,4 +243,4 @@ class smtpSettings extends Component {
 smtpSettings.propTypes = {
 }
 
-export default Form.create()(injectIntl(smtpSettings))
+export default injectIntl(smtpSettings)

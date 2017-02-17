@@ -62,15 +62,7 @@ module.exports = {
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "subscribe", 
-                "eventnames": [
-                    "CallQueueStatus",
-                    "CallQueueMemberStatus",
-                    "CallQueueCallersStatus",
-                    "CallQueueMemberAddedStatus",
-                    "CallQueueCallerLeaveStatus",
-                    "CallQueueCallersHangupStatus",
-                    "CallQueueMemberRemovedStatus"
-                ]
+                "eventnames": ["CallQueueStatus"]
             }
         }],
         "unsubscribe": [{
@@ -78,15 +70,7 @@ module.exports = {
             "message": {
                 "transactionid": "123456789zxc",
                 "action": "unsubscribe",
-                "eventnames": [
-                    "CallQueueStatus",
-                    "CallQueueMemberStatus",
-                    "CallQueueCallersStatus",
-                    "CallQueueMemberAddedStatus",
-                    "CallQueueCallerLeaveStatus",
-                    "CallQueueCallersHangupStatus",
-                    "CallQueueMemberRemovedStatus"
-                ]
+                "eventnames": ["CallQueueStatus"]
             }
         }]
     }

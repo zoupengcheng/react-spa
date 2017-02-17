@@ -8,11 +8,13 @@ import Title from '../../../views/title'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
+import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
+const CheckboxGroup = Checkbox.Group
 
 class BasicSettings extends Component {
     constructor(props) {
@@ -25,33 +27,85 @@ class BasicSettings extends Component {
             ivrblackwhiteShow: false,
             fileList: [],
             accountList: [],
+            numberList: [],
+            ivrNameList: [],
             select_alertinfo: "",
             custom_alertinfo: "",
             targetKeys: [],
-            dialBox: {
-                dial_extension: true,
-                dial_conference: false,
-                dial_queue: false,
-                dial_ringgroup: false,
-                dial_paginggroup: false,
-                dial_vmgroup: false,
-                dial_fax: false,
-                dial_directory: false,
-                dial_all: false
-            }
+            plainOptions: [],
+            checkedList: ['dial_extension'],
+            dialList: [
+                'dial_extension',
+                'dial_conference',
+                'dial_queue',
+                'dial_ringgroup',
+                'dial_paginggroup',
+                'dial_vmgroup',
+                'dial_fax',
+                'dial_directory'
+            ],
+            dialAll: false
         }
     }
     componentWillMount() {
-        this._getInitDate()
+        this._getInitData()
         this._getLanguages()
     }
     componentDidMount() {
+
     }
-    _getInitDate = () => {
+    _checkName = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.ivrNameList, value) > -1) {
+            callback(formatMessage({id: "LANG2137"}))
+        } else {
+            callback()
+        }
+    }
+    _checkExtension = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.numberList, value) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
+        } else {
+            callback()
+        }
+    }
+    _getInitData = () => {
         const ivrItem = this.props.ivrItem || {}
+        const ivrId = this.props.ivrId
+        const { formatMessage } = this.props.intl
+        const plainOptions = [{
+                label: formatMessage({id: "LANG85"}),
+                value: 'dial_extension'
+            }, {
+                label: formatMessage({id: "LANG18"}),
+                value: 'dial_conference'
+            }, {
+                label: formatMessage({id: "LANG607"}),
+                value: 'dial_queue'
+            }, {
+                label: formatMessage({id: "LANG600"}),
+                value: 'dial_ringgroup'
+            }, {
+                label: formatMessage({id: "LANG604"}),
+                value: 'dial_paginggroup'
+            }, {
+                label: formatMessage({id: "LANG21"}),
+                value: 'dial_vmgroup'
+            }, {
+                label: formatMessage({id: "LANG1268"}),
+                value: 'dial_fax'
+            }, {
+                label: formatMessage({id: "LANG2884"}),
+                value: 'dial_directory'
+            }]
 
         let accountList = this.props.accountList
         let fileList = this.props.fileList
+        let numberList = this.props.numberList || []
+        let ivrNameList = this.props.ivrNameList || []
 
         let ivrblackwhiteShow = false
         let isDialTrunk = false
@@ -60,29 +114,19 @@ class BasicSettings extends Component {
         let select_alertinfo = ""
         let custom_alertinfo = ""
         let targetKeys = ivrItem.ivr_blackwhite_list ? ivrItem.ivr_blackwhite_list.split(',') || [] : []
-        let dialBox = this.state.dialBox || {}
+        let checkedList = this.state.checkedList || []
+        let dialAll = this.state.dialAll
 
-        if (ivrItem.dial_extension) {
-            dialBox.dial_extension = ivrItem.dial_extension === "yes"
-            dialBox.dial_conference = ivrItem.dial_conference === "yes"
-            dialBox.dial_queue = ivrItem.dial_queue === "yes"
-            dialBox.dial_ringgroup = ivrItem.dial_ringgroup === "yes"
-            dialBox.dial_paginggroup = ivrItem.dial_paginggroup === "yes"
-            dialBox.dial_vmgroup = ivrItem.dial_vmgroup === "yes"
-            dialBox.dial_fax = ivrItem.dial_fax === "yes"
-            dialBox.dial_directory = ivrItem.dial_directory === "yes"
+        if (ivrId && ivrItem) {
+            checkedList = []
+            this.state.dialList.map(function(item) {
+                if (ivrItem[item] === 'yes') {
+                    checkedList.push(item)
+                }
+            })
         }
 
-        if (dialBox.dial_extension === true &&
-                dialBox.dial_conference === true &&
-                dialBox.dial_queue === true &&
-                dialBox.dial_ringgroup === true &&
-                dialBox.dial_paginggroup === true &&
-                dialBox.dial_vmgroup === true &&
-                dialBox.dial_fax === true &&
-                dialBox.dial_directory === true) {
-            dialBox.dial_all = true
-        }
+        dialAll = checkedList.length === plainOptions.length
 
         if (ivrItem.switch === 'black' || ivrItem.switch === "white") {
             ivrblackwhiteShow = true
@@ -106,7 +150,11 @@ class BasicSettings extends Component {
             select_alertinfo: select_alertinfo,
             custom_alertinfo: custom_alertinfo,
             targetKeys: targetKeys,
-            dialBox: dialBox
+            checkedList: checkedList,
+            numberList: numberList,
+            ivrNameList: ivrNameList,
+            dialAll: dialAll,
+            plainOptions: plainOptions
         })
     }
     _getLanguages = () => {
@@ -144,30 +192,25 @@ class BasicSettings extends Component {
 
         form.validateFields([e.target.id], { force: true })
     }
-    _onDialallChange = (e) => {
-        let dialBox = this.state.dialBox || {}
-        if (e.target.checked) {
-            dialBox.dial_extension = true
-            dialBox.dial_conference = true
-            dialBox.dial_queue = true
-            dialBox.dial_ringgroup = true
-            dialBox.dial_paginggroup = true
-            dialBox.dial_vmgroup = true
-            dialBox.dial_fax = true
-            dialBox.dial_directory = true
-        } else {
-            dialBox.dial_extension = false
-            dialBox.dial_conference = false
-            dialBox.dial_queue = false
-            dialBox.dial_ringgroup = false
-            dialBox.dial_paginggroup = false
-            dialBox.dial_vmgroup = false
-            dialBox.dial_fax = false
-            dialBox.dial_directory = false
-        }
+    _onChangeDial = (checkedList) => {
+        const plainOptions = this.state.plainOptions
         this.setState({
-            dialBox: dialBox
+            checkedList: checkedList,
+            dialAll: checkedList.length === plainOptions.length
         })
+        this.props.getSpecialState(checkedList)
+    }
+    _onDialallChange = (e) => {
+        let checkedList = []
+        const plainOptions = this.state.plainOptions
+        plainOptions.map(function(item) {
+            checkedList.push(item.value)
+        })
+        this.setState({
+            checkedList: e.target.checked ? checkedList : [],
+            dialAll: e.target.checked
+        })
+        this.props.getSpecialState(checkedList)
     }
     _onChangeDialTrunk = (e) => {
         if (e.target.checked) {
@@ -221,6 +264,21 @@ class BasicSettings extends Component {
         console.log('sourceSelectedKeys: ', sourceSelectedKeys)
         console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
+    _gotoPromptOk = () => {
+        browserHistory.push('/pbx-settings/voicePrompt')
+    }
+    _gotoPrompt = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                __this._gotoPromptOk()
+            },
+            onCancel() {}
+        })
+    }
     _renderItem = (item) => {
         const customLabel = (
                 <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
@@ -240,11 +298,18 @@ class BasicSettings extends Component {
         const { getFieldDecorator } = this.props.form
         const currentEditId = this.props.currentEditId
         const ivrItem = this.props.ivrItem || {}
-        const dialBox = this.state.dialBox || {}
+        const newIvrNum = this.props.newIvrNum
+        const checkedList = this.state.checkedList
+        const plainOptions = this.state.plainOptions
 
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
+        }
+
+        const formItemPromptLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
         }
 
         const formItemLayoutTime = {
@@ -307,9 +372,19 @@ class BasicSettings extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.minlength(data, value, callback, formatMessage, 2)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.numeric_pound_star(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: this._checkExtension
                             }],
                             width: 100,
-                            initialValue: ivrItem.extension
+                            initialValue: ivrItem.extension ? ivrItem.extension : newIvrNum
                         })(
                             <Input maxLength='127' />
                         ) }
@@ -357,7 +432,7 @@ class BasicSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
-                        ref="div_dial_extension"
+                        ref="div_dial_box"
                         { ...formItemLayout }
 
                         label={(
@@ -365,94 +440,9 @@ class BasicSettings extends Component {
                                 <span>{formatMessage({id: "LANG1445"})}</span>
                             </Tooltip>
                         )}>
+                        <CheckboxGroup options={ plainOptions } value={ checkedList } onChange={ this._onChangeDial } />
                         <Col span={ 2 }>
-                            { getFieldDecorator('dial_extension', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_extension
-                            })(
-                                <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG85"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_conference', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_conference
-                            })(
-                                    <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG18"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_queue', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_queue
-                            })(
-                                    <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG607"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_ringgroup', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_ringgroup
-                            })(
-                                    <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG600"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_paginggroup', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_paginggroup
-                            })(
-                                    <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG604"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_vmgroup', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_vmgroup
-                            })(
-                                    <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG21"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_fax', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_fax
-                            })(
-                                    <Checkbox />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG1268"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_directory', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_directory
-                            })(
-                                    <Checkbox onChange={ this._onWeekallChange } />
-                            ) }
-                        </Col>
-                        <Col span={ 6 }>{formatMessage({id: "LANG2884"})}</Col>
-                        <Col span={ 2 }>
-                            { getFieldDecorator('dial_all', {
-                                rules: [],
-                                valuePropName: 'checked',
-                                initialValue: dialBox.dial_all
-                            })(
-                                    <Checkbox onChange={ this._onDialallChange } />
-                            ) }
+                            <Checkbox checked={ this.state.dialAll } onChange={ this._onDialallChange } />
                         </Col>
                         <Col span={ 6 }>{formatMessage({id: "LANG104"})}</Col>
                     </FormItem>
@@ -600,35 +590,42 @@ class BasicSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_welcome_prompt"
-                        { ...formItemLayout }
+                        { ...formItemPromptLayout }
 
                         label={(
                             <Tooltip title={<FormattedHTMLMessage id="LANG1484" />}>
                                 <span>{formatMessage({id: "LANG1484"})}</span>
                             </Tooltip>
                         )}>
-                        { getFieldDecorator('welcome_prompt', {
-                            rules: [{
-                                required: true,
-                                message: formatMessage({id: "LANG2150"})
-                            }],
-                            width: 100,
-                            initialValue: (ivrItem.welcome_prompt ? ivrItem.welcome_prompt : "welcome")
-                        })(
-                            <Select>
-                                <Option value="welcome">welcome</Option>  
-                                {
-                                    this.state.fileList.map(function(item) {
-                                        return <Option
-                                                key={ item.text }
-                                                value={ item.val }>
-                                                { item.text }
-                                            </Option>
+                        <Row>
+                            <Col span={16} >
+                                { getFieldDecorator('welcome_prompt', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
+                                    width: 100,
+                                    initialValue: (ivrItem.welcome_prompt ? ivrItem.welcome_prompt : "welcome")
+                                })(
+                                    <Select>
+                                        <Option value="welcome">welcome</Option>  
+                                        {
+                                            this.state.fileList.map(function(item) {
+                                                return <Option
+                                                        key={ item.text }
+                                                        value={ item.val }>
+                                                        { item.text }
+                                                    </Option>
+                                                }
+                                            ) 
                                         }
-                                    ) 
-                                }
-                            </Select>
-                        ) }
+                                    </Select>
+                                ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
+                        </Row>
                     </FormItem>
                     <FormItem
                         ref="div_digit_timeout"
@@ -672,67 +669,81 @@ class BasicSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_timeout_prompt"
-                        { ...formItemLayout }
+                        { ...formItemPromptLayout }
 
                         label={(
                             <Tooltip title={<FormattedHTMLMessage id="LANG1475" />}>
                                 <span>{formatMessage({id: "LANG1474"})}</span>
                             </Tooltip>
                         )}>
-                        { getFieldDecorator('timeout_prompt', {
-                            rules: [{
-                                required: true,
-                                message: formatMessage({id: "LANG2150"})
-                            }],
-                            width: 100,
-                            initialValue: (ivrItem.timeout_prompt ? ivrItem.timeout_prompt : "ivr-create-timeout")
-                        })(
-                            <Select>
-                                <Option value="ivr-create-timeout">ivr-create-timeout</Option>  
-                                {
-                                    this.state.fileList.map(function(item) {
-                                        return <Option
-                                                key={ item.text }
-                                                value={ item.val }>
-                                                { item.text }
-                                            </Option>
+                        <Row>
+                            <Col span={16}>
+                                { getFieldDecorator('timeout_prompt', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
+                                    width: 100,
+                                    initialValue: (ivrItem.timeout_prompt ? ivrItem.timeout_prompt : "ivr-create-timeout")
+                                })(
+                                    <Select>
+                                        <Option value="ivr-create-timeout">ivr-create-timeout</Option>  
+                                        {
+                                            this.state.fileList.map(function(item) {
+                                                return <Option
+                                                        key={ item.text }
+                                                        value={ item.val }>
+                                                        { item.text }
+                                                    </Option>
+                                                }
+                                            ) 
                                         }
-                                    ) 
-                                }
-                            </Select>
-                        ) }
+                                    </Select>
+                                ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
+                        </Row>
                     </FormItem>
                     <FormItem
                         ref="div_invalid_prompt"
-                        { ...formItemLayout }
+                        { ...formItemPromptLayout }
 
                         label={(
                             <Tooltip title={<FormattedHTMLMessage id="LANG1454" />}>
                                 <span>{formatMessage({id: "LANG1453"})}</span>
                             </Tooltip>
                         )}>
-                        { getFieldDecorator('invalid_prompt', {
-                            rules: [{
-                                required: true,
-                                message: formatMessage({id: "LANG2150"})
-                            }],
-                            width: 100,
-                            initialValue: (ivrItem.invalid_prompt ? ivrItem.invalid_prompt : "invalid")
-                        })(
-                            <Select>
-                                <Option value="invalid">invalid</Option>
-                                {
-                                    this.state.fileList.map(function(item) {
-                                        return <Option
-                                                key={ item.text }
-                                                value={ item.val }>
-                                                { item.text }
-                                            </Option>
+                        <Row>
+                            <Col span={16}>
+                                { getFieldDecorator('invalid_prompt', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
+                                    width: 100,
+                                    initialValue: (ivrItem.invalid_prompt ? ivrItem.invalid_prompt : "invalid")
+                                })(
+                                    <Select>
+                                        <Option value="invalid">invalid</Option>
+                                        {
+                                            this.state.fileList.map(function(item) {
+                                                return <Option
+                                                        key={ item.text }
+                                                        value={ item.val }>
+                                                        { item.text }
+                                                    </Option>
+                                                }
+                                            ) 
                                         }
-                                    ) 
-                                }
-                            </Select>
-                        ) }
+                                    </Select>
+                                ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
+                        </Row>
                     </FormItem>
                     <FormItem
                         ref="div_tloop"

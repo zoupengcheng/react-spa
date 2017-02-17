@@ -45,7 +45,7 @@ class PagingIntercomItem extends Component {
         const { formatMessage } = this.props.intl
 
         if (value && _.indexOf(this.state.numberList, value) > -1) {
-            callback(formatMessage({id: "LANG2137"}))
+            callback(formatMessage({id: "LANG2126"}))
         } else {
             callback()
         }
@@ -104,7 +104,7 @@ class PagingIntercomItem extends Component {
                     const extgroupLabel = formatMessage({id: "LANG2714"})
 
                     numberList = getNumberList.number || []
-                    groupNameList = getPaginggroupNameList.group_name || []
+                    groupNameList = getPaginggroupNameList.paginggroup_name || []
                     const getAccountList_extension = getAccountList.extension
                     const getExtensionGroupList_extension = getExtensionGroupList.extension_groups
 
@@ -192,6 +192,12 @@ class PagingIntercomItem extends Component {
             })
         }
 
+        if (pagingIntercom.paginggroup_name) {
+            groupNameList = _.without(groupNameList, pagingIntercom.paginggroup_name)
+        }
+        if (pagingIntercom.extension) {
+            numberList = _.without(numberList, pagingIntercom.extension)
+        }
         // if (extensionGroupName) {
         //     groupNameList = _.without(groupNameList, extensionGroupName)
         // }

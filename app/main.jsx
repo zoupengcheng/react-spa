@@ -166,10 +166,13 @@ const startSocket = () => {
     if (Socketjs.isSupported()) {
         // connect to the server
         // const socket = Socketjs.connect(`${location.hostname}:7681`)
-        const socket = Socketjs.connect("192.168.124.137:7681")
+        const socket = Socketjs.connect("192.168.124.106:7681")
         window.socket = socket
-        let LEAVEPAGE = "login"
+        let LEAVEPAGE = "login",
+            ISREFRESHPAGE = false
+
         window.LEAVEPAGE = LEAVEPAGE
+        window.ISREFRESHPAGE = ISREFRESHPAGE
         // log messages as they arrive
         socket.receive('response', function(msg) {
             handleResponse(msg, store)

@@ -34,7 +34,10 @@ import CreateEditDodTrunk from '../components/modules/voipTrunk/createEditDodTru
 import SLAStation from '../components/modules/slaStation/index'
 import SLAStationItem from '../components/modules/slaStation/slaStationItem'
 import OutboundRoute from '../components/modules/outboundRoute/index'
+import OutboundRouteItem from '../components/modules/outboundRoute/outboundRouteItem'
+import OutboundBlackList from '../components/modules/outboundRoute/outboundBlackList'
 import InboundRoute from '../components/modules/inboundRoute/index'
+import InboundRouteItem from '../components/modules/inboundRoute/inboundRouteItem'
 
 // Call Features
 import Conference from '../components/modules/conference/index'
@@ -68,6 +71,8 @@ import Callback from '../components/modules/callback/index'
 import EventList from '../components/modules/eventList/index'
 import FeatureCode from '../components/modules/featureCode/index'
 import Fax from '../components/modules/fax/index'
+import FaxItem from '../components/modules/fax/faxItem'
+import FaxSetting from '../components/modules/fax/faxSetting'
 
 // PBX Settings
 import PBXGeneralSettings from '../components/modules/pbxGeneralSettings/index'
@@ -77,7 +82,8 @@ import RTPSettings from '../components/modules/rtpSettings/index'
 import MusicOnHold from '../components/modules/musicOnHold/index'
 import VoicePrompt from '../components/modules/voicePrompt/index'
 import JitterBuffer from '../components/modules/jitterBuffer/index'
-import InterfaceSettings from '../components/modules/interfaceSettings/index'
+import InterfaceSettings from '../components/modules/interfaceSettings/'
+import DigitalHardwareItem from '../components/modules/interfaceSettings/digitalHardwareItem'
 import RecordingStorageSettings from '../components/modules/recordingStorageSettings/index'
 
 // System Settings
@@ -88,6 +94,10 @@ import DDNSSettings from '../components/modules/ddnsSettings/index'
 import SecuritySettings from '../components/modules/securitySettings/index'
 import LDAPServer from '../components/modules/ldapServer/index'
 import TimeSettings from '../components/modules/timeSettings/index'
+import OfficeTime from '../components/modules/timeSettings/officetime'
+import OfficeTimeItem from '../components/modules/timeSettings/officetimeItem'
+import HolidayTime from '../components/modules/timeSettings/holidaytime'
+import HolidayTimeItem from '../components/modules/timeSettings/holidaytimeItem'
 import EmailSettings from '../components/modules/emailSettings/index'
 
 // Maintenance
@@ -97,6 +107,10 @@ import ChangePassword from '../components/modules/changePassword/index'
 import OperationLog from '../components/modules/operationLog/index'
 import SystemLog from '../components/modules/systemLog/index'
 import SystemEvent from '../components/modules/systemEvent/index'
+import Warning from '../components/modules/systemEvent/warning'
+import WarningEventsList from '../components/modules/systemEvent/warningEventsList'
+import WarningEventsListItem from '../components/modules/systemEvent/warningEventsListItem'
+import WarningContact from '../components/modules/systemEvent/warningContact'
 import Upgrade from '../components/modules/upgrade/index'
 import Backup from '../components/modules/backup/index'
 import CleanReset from '../components/modules/cleanReset/index'
@@ -107,10 +121,13 @@ import CDR from '../components/modules/cdr/index'
 import AutoDownload from '../components/modules/cdr/autoDownload'
 import Statistics from '../components/modules/statistics/index'
 import RecordingFile from '../components/modules/recordingFile/index'
+import CdrApi from '../components/modules/cdrApi/index'
 
 // Value-added Features
 import ZeroConfig from '../components/modules/zeroConfig/index'
 import AMI from '../components/modules/ami/index'
+import AMIItem from '../components/modules/ami/amiItem'
+import AMISetting from '../components/modules/ami/amiSetting'
 import CTIServer from '../components/modules/ctiServer/index'
 import CRM from '../components/modules/crm/index'
 import PMS from '../components/modules/pms/index'
@@ -167,7 +184,20 @@ const routes = (state, currentLocaleData) => {
             return false
         }
         if (window.socket) {
-            unSubscribeEvent(data, window.LEAVEPAGE)
+            if (!window.ISREFRESHPAGE) {
+                let loginSubscribe = SubscribeEvent.login
+
+                loginSubscribe.message.username = cookie.load("username")
+                loginSubscribe.message.cookie = cookie.load("session-identify")
+                window.ISREFRESHPAGE = true
+                window.socket.send(loginSubscribe)
+
+                setTimeout(() => {
+                    unSubscribeEvent(data, window.LEAVEPAGE)
+                }, 500)
+            } else {                
+                unSubscribeEvent(data, window.LEAVEPAGE)
+            }
         }
         // return state.isLogin
     }
@@ -230,8 +260,17 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ SLAStationItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ SLAStationItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
-                    <Route path="outboundRoute" onEnter={ requireAuth } component={ OutboundRoute } breadcrumbName={ currentLocaleData["LANG14"] } />
-                    <Route path="inboundRoute" onEnter={ requireAuth } component={ InboundRoute } breadcrumbName={ currentLocaleData["LANG15"] } />
+                    <Route path="outboundRoute" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG14"] }>
+                        <IndexRoute component={ OutboundRoute } />
+                        <Route path="add" onEnter={ requireAuth } component={ OutboundRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="blacklist" onEnter={ requireAuth } component={ OutboundBlackList } breadcrumbName={ currentLocaleData["LANG5336"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ OutboundRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="inboundRoute" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG15"] }>
+                        <IndexRoute component={ InboundRoute } />
+                        <Route path="add" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                 </Route>
 
                 {/* Call Features */}
@@ -295,7 +334,12 @@ const routes = (state, currentLocaleData) => {
                     <Route path="callback" onEnter={ requireAuth } component={ Callback } breadcrumbName={ currentLocaleData["LANG3741"] } />
                     <Route path="eventList" onEnter={ requireAuth } component={ EventList } breadcrumbName={ currentLocaleData["LANG2474"] } />
                     <Route path="featureCode" onEnter={ requireAuth } component={ FeatureCode } breadcrumbName={ currentLocaleData["LANG26"] } />
-                    <Route path="fax" onEnter={ requireAuth } component={ Fax } breadcrumbName={ currentLocaleData["LANG29"] } />
+                    <Route path="fax" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG29"] } >
+                        <IndexRoute component={ Fax } />
+                        <Route path="add" onEnter={ requireAuth } component={ FaxItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ FaxItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="setting" onEnter={ requireAuth } component={ FaxSetting } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                 </Route>
 
                 {/* PBX Settings */}
@@ -309,6 +353,10 @@ const routes = (state, currentLocaleData) => {
                     <Route path="voicePrompt" onEnter={ requireAuth } component={ VoicePrompt } breadcrumbName={ currentLocaleData["LANG4752"] } />
                     <Route path="jitterBuffer" onEnter={ requireAuth } component={ JitterBuffer } breadcrumbName={ currentLocaleData["LANG40"] } />
                     <Route path="interfaceSettings" onEnter={ requireAuth } component={ InterfaceSettings } breadcrumbName={ currentLocaleData["LANG5303"] } />
+                    <Route path="interfaceSettings" breadcrumbName={ currentLocaleData["LANG5303"] }>
+                        <IndexRoute component={ InterfaceSettings } />
+                        <Route path="digitalHardwareItem/:type/:span" onEnter={ requireAuth } component={ DigitalHardwareItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                    </Route>
                     <Route path="recordingStorageSettings" onEnter={ requireAuth } component={ RecordingStorageSettings } breadcrumbName={ currentLocaleData["LANG5304"] } />
                 </Route>
 
@@ -321,7 +369,20 @@ const routes = (state, currentLocaleData) => {
                     <Route path="ddnsSettings" onEnter={ requireAuth } component={ DDNSSettings } breadcrumbName={ currentLocaleData["LANG4040"] } />
                     <Route path="securitySettings" onEnter={ requireAuth } component={ SecuritySettings } breadcrumbName={ currentLocaleData["LANG5301"] } />
                     <Route path="ldapServer" onEnter={ requireAuth } component={ LDAPServer } breadcrumbName={ currentLocaleData["LANG56"] } />
-                    <Route path="timeSettings" onEnter={ requireAuth } component={ TimeSettings } breadcrumbName={ currentLocaleData["LANG718"] } />
+                    <Route path="timeSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG718"] }>
+                        <IndexRoute component={ TimeSettings } />
+                        <Route path=":id" onEnter={ requireAuth } component={ TimeSettings } breadcrumbName={ currentLocaleData["LANG4855"] } />
+                    </Route>
+                    <Route path="officetime" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ OfficeTime } />
+                        <Route path="add" onEnter={ requireAuth } component={ OfficeTimeItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ OfficeTimeItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="holidaytime" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ HolidayTime } />
+                        <Route path="add" onEnter={ requireAuth } component={ HolidayTimeItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ HolidayTimeItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="emailSettings" onEnter={ requireAuth } component={ EmailSettings } breadcrumbName={ currentLocaleData["LANG58"] } />
                 </Route>
 
@@ -336,7 +397,16 @@ const routes = (state, currentLocaleData) => {
                     <Route path="changePassword" onEnter={ requireAuth } component={ ChangePassword } breadcrumbName={ currentLocaleData["LANG55"] } />
                     <Route path="operationLog" onEnter={ requireAuth } component={ OperationLog } breadcrumbName={ currentLocaleData["LANG3908"] } />
                     <Route path="systemLog" onEnter={ requireAuth } component={ SystemLog } breadcrumbName={ currentLocaleData["LANG67"] } />
-                    <Route path="systemEvent" onEnter={ requireAuth } component={ SystemEvent } breadcrumbName={ currentLocaleData["LANG2580"] } />
+                    <Route path="systemEvent" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4855"] } >
+                        <IndexRoute component={ SystemEvent } />
+                        <Route path=":id" onEnter={ requireAuth } component={ SystemEvent } breadcrumbName={ currentLocaleData["LANG2580"] } />
+                    </Route>
+                    <Route path="warning" onEnter={ requireAuth } component={ Warning } breadcrumbName={ currentLocaleData["LANG61"] } />
+                    <Route path="warningEventsList" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG61"] } >
+                        <IndexRoute component={ WarningEventsList } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ WarningEventsListItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="warningContact" onEnter={ requireAuth } component={ WarningContact } breadcrumbName={ currentLocaleData["LANG61"] } />
                     <Route path="upgrade" onEnter={ requireAuth } component={ Upgrade } breadcrumbName={ currentLocaleData["LANG61"] } />
                     <Route path="backup" onEnter={ requireAuth } component={ Backup } breadcrumbName={ currentLocaleData["LANG62"] } />
                     <Route path="cleanReset" onEnter={ requireAuth } component={ CleanReset } breadcrumbName={ currentLocaleData["LANG5302"] } />
@@ -349,6 +419,7 @@ const routes = (state, currentLocaleData) => {
                     <Route path="cdr" onEnter={ requireAuth } component={ CDR } breadcrumbName={ currentLocaleData["LANG7"] } />
                     <Route path="statistics" onEnter={ requireAuth } component={ Statistics } breadcrumbName={ currentLocaleData["LANG8"] } />
                     <Route path="recordingFile" onEnter={ requireAuth } component={ RecordingFile } breadcrumbName={ currentLocaleData["LANG2640"] } />
+                    <Route path="cdrApi" onEnter={ requireAuth } component={ CdrApi } breadcrumbName={ currentLocaleData["LANG3003"] } />
                     <Route path="autoDownload" onEnter={ requireAuth } component={ AutoDownload } breadcrumbName={ currentLocaleData["LANG3955"] } />
                 </Route>
 
@@ -356,7 +427,12 @@ const routes = (state, currentLocaleData) => {
                 <Route path="value-added-features" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG4066"] }>
                     <IndexRoute component={ ZeroConfig } />
                     <Route path="zeroConfig" onEnter={ requireAuth } component={ ZeroConfig } breadcrumbName={ currentLocaleData["LANG16"] } />
-                    <Route path="ami" onEnter={ requireAuth } component={ AMI } breadcrumbName={ currentLocaleData["LANG3525"] } />
+                    <Route path="ami" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3525"] } >
+                    <IndexRoute component={ AMI } />
+                        <Route path="add" onEnter={ requireAuth } component={ AMIItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ AMIItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="setting" onEnter={ requireAuth } component={ AMISetting } breadcrumbName={ currentLocaleData["LANG3827"] } />
+                    </Route>
                     <Route path="ctiServer" onEnter={ requireAuth } component={ CTIServer } breadcrumbName={ currentLocaleData["LANG4815"] } />
                     <Route path="crm" onEnter={ requireAuth } component={ CRM } breadcrumbName={ currentLocaleData["LANG5110"] } />
                     <Route path="pms" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4855"] } >

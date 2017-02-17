@@ -18,55 +18,101 @@ class OperationLog extends Component {
         this.state = {
             isDisplay: 'display-block-filter',
             isDisplaySearch: 'hidden',
-            cdrData: [],
-            cdrSettings: {},
-            cdrSearchDownload: {}
+            operationData: [],
+            options2Lang: {},
+            searchAction: {}
         }
     }
     componentDidMount () {
-        this._getCdrData()
+        this._getOperationLogData()
+        this._getUserLists()
+        this._getOptions2Lang()
     }
-    _getCdrData = () => {
+    _getOperationLogData = () => {
         $.ajax({
             url: api.apiHost,
             data: {
-                action: 'listCDRDB',
-                sidx: 'start',
-                sord: 'desc'
+                "action": 'listOperationLog',
+                "options": "date,user_name,ipaddress,result,action,operation,detailed_log"
             },
             type: 'POST',
             dataType: 'json',
-            async: false,
-            success: function(res) {
-                let acctid = res.response.acctid || [],
-                    cdrData = []
-
-                for (let i = 0; i < acctid.length; i++) {
-                    cdrData.push({
-                        key: i,
-                        status: acctid[i].disposition,
-                        callFrom: acctid[i].src,
-                        callTo: acctid[i].dst,
-                        actionType: acctid[i].action_type,
-                        startTime: acctid[i].start,
-                        talkTime: acctid[i].billsec,
-                        password: acctid[i].accountcode,
-                        recordingFile: acctid[i].recordfiles
-                    })
-                }
-
-                this.setState({
-                    cdrData: cdrData
-                })
-            }.bind(this),
+            async: true,
             error: function(e) {
                 message.error(e.statusText)
-            }
+            },
+            success: function(res) {
+                let operation = res.response.operation || []
+
+                this.setState({
+                    operationData: operation
+                })
+            }.bind(this)
         })
+    }
+    _getUserLists = () => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            type: "post",
+            url: "../cgi",
+            async: true,
+            data: {
+                "action": "listUser",
+                "options": "user_name"
+            },
+            error: function(jqXHR, textStatus, errorThrown) {},
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    let userLists = data.response.user_id,
+                        arr = []
+
+                    arr.push({
+                        val: "",
+                        text: formatMessage({id: "LANG3921"})
+                    })
+
+                    for (var i = 0; i < userLists.length; i++) {
+                        var obj = {}
+
+                        obj["val"] = userLists[i].user_name
+
+                        arr.push(obj)
+                    }
+                    this.setState({
+                        userLists: arr
+                    })
+                }
+            }.bind(this)
+        })        
+    }
+    _getOptions2Lang = () => {
+        $.ajax({
+            type: "GET",
+            url: "../locale/locale.params.json",
+            async: false,
+            error: function(jqXHR, textStatus, errorThrown) {},
+            success: function(data) {
+                this.setState({
+                    options2Lang: JSON.parse(data)
+                })
+            }.bind(this)
+        })        
     }
     _deleteAll = () => {
         const {formatMessage} = this.props.intl,
-                self = this
+            self = this
+
+        let operActionData = {
+            "action": "deleteOperationLog",
+            "acctid": '0',
+            "start_date": "",
+            "end_date": "",
+            "ipaddress": "",
+            "user_name": ""
+        }
 
         Modal.confirm({
             title: formatMessage({id: "LANG543" }),
@@ -80,7 +126,7 @@ class OperationLog extends Component {
                     async: false,
                     url: api.apiHost,
                     data: {
-                        "action": 'deleteCDRDB',
+                        "action": 'deleteOperationLog',
                         "acctid": '0'
                     },
                     error: function(e) {
@@ -88,7 +134,86 @@ class OperationLog extends Component {
                     },
                     success: function(data) {
                         self.setState({
-                            cdrData: []
+                            operationData: []
+                        })
+
+                        Modal.success({
+                            title: formatMessage({id: "LANG543" }),
+                            content: formatMessage({id: "LANG819" }),
+                            okText: formatMessage({id: "LANG727" }),
+                            onOk() {}
+                        })
+                    }
+                })
+            },
+            onCancel() {}
+        })
+    }
+    _deleteSearch = () => {
+        const {formatMessage} = this.props.intl,
+            self = this
+
+        let dataPost = {},
+            operActionData = {
+                "action": "deleteOperationLog"
+            },
+            flag = false
+
+        _.each(this.state.searchAction, function(item, key) {
+            if (_.isObject(item)) {
+                if (item.errors === undefined) {
+                    if (item.name.match(/start_date|end_date/)) {
+                        if (item.value) {
+                            dataPost[key] = item.value.format('YYYY-MM-DD HH:mm')
+                        } else {
+                            delete dataPost[key]
+                        }
+                    } else if (item.name.match(/ipaddress|user_name/)) {
+                        if (item.value) {
+                            dataPost[key] = item.value
+                        } else {
+                            delete dataPost[key]
+                        }
+                    } else {
+                        if (item.value.length) {
+                            dataPost[key] = item.value.join()
+                        } else {
+                            delete dataPost[key]
+                        } 
+                    }
+                } else {
+                    flag = true
+                    return
+                }
+            } else {
+                dataPost[key] = item
+            }
+        })
+
+        if (flag) {
+            return
+        }
+
+        _.extend(operActionData, dataPost)
+
+        Modal.confirm({
+            title: formatMessage({id: "LANG543" }),
+            content: formatMessage({id: "LANG4072" }),
+            okText: formatMessage({id: "LANG727" }),
+            cancelText: formatMessage({id: "LANG726" }),
+            onOk() {
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    async: false,
+                    url: api.apiHost,
+                    data: operActionData,
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        self.setState({
+                            operationData: []
                         })
 
                         Modal.success({
@@ -116,33 +241,32 @@ class OperationLog extends Component {
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/cdr/cdr')
+        browserHistory.push('/maintenance/operationLog')
     }
     _handleSubmit = () => {
         const { formatMessage } = this.props.intl
 
         message.loading(formatMessage({ id: "LANG3773" }), 0)
 
-        let cdrData = [],
+        let operationData = [],
             acctid = [],
             dataPost = {},
-            cdrSearchData = {
-                action: 'listCDRDB',
-                sidx: 'start',
-                sord: 'desc'
+            operationSearchData = {
+                "action": "listOperationLog",
+                "options": "date,user_name,ipaddress,result,action,operation,detailed_log"
             },
             flag = false
 
-        _.each(this.state.cdrSettings, function(item, key) {
+        _.each(this.state.searchAction, function(item, key) {
             if (_.isObject(item)) {
                 if (item.errors === undefined) {
-                    if (item.name.match(/fromtime|totime/)) {
+                    if (item.name.match(/start_date|end_date/)) {
                         if (item.value) {
                             dataPost[key] = item.value.format('YYYY-MM-DD HH:mm')
                         } else {
                             delete dataPost[key]
                         }
-                    } else if (item.name.match(/src|caller_name|dst/)) {
+                    } else if (item.name.match(/ipaddress|user_name/)) {
                         if (item.value) {
                             dataPost[key] = item.value
                         } else {
@@ -168,15 +292,11 @@ class OperationLog extends Component {
             return
         }
 
-        this.setState({
-            cdrSearchDownload: dataPost
-        })
-
-        _.extend(cdrSearchData, dataPost)
+        _.extend(operationSearchData, dataPost)
 
         $.ajax({
             url: api.apiHost,
-            data: cdrSearchData,
+            data: operationSearchData,
             type: 'POST',
             dataType: 'json',
             error: function(e) {
@@ -188,24 +308,8 @@ class OperationLog extends Component {
                 if (bool) {
                     message.destroy()
 
-                    acctid = data.response.acctid || []
-
-                    for (let i = 0; i < acctid.length; i++) {
-                        cdrData.push({
-                            key: i,
-                            status: acctid[i].disposition,
-                            callFrom: acctid[i].clid,
-                            callTo: acctid[i].dst,
-                            actionType: acctid[i].action_type,
-                            startTime: acctid[i].start,
-                            talkTime: acctid[i].billsec,
-                            password: acctid[i].accountcode,
-                            recordingFile: acctid[i].recordfiles
-                        })
-                    }
-
                     this.setState({
-                        cdrData: cdrData
+                        operationData: data.response.operation
                     })
                 }
             }.bind(this)
@@ -215,7 +319,12 @@ class OperationLog extends Component {
         const {formatMessage} = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
-        document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG7"})})
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 
+            1: formatMessage({id: "LANG7"})
+        })
 
         return (
             <div className="app-content-main app-content-cdr">
@@ -223,17 +332,21 @@ class OperationLog extends Component {
                     headerTitle={ formatMessage({id: "LANG3908"}) } 
                     onSubmit={ this._handleSubmit }
                     onCancel={ this._handleCancel } 
-                    onSearch = { this._handleSearch } 
+                    onSearch = { this._handleSearch }
+                    saveTxt= { formatMessage({id: "LANG803"}) }
+                    cancelTxt= { formatMessage({id: "LANG750"}) } 
                     isDisplay= { this.state.isDisplay }
                 />
-                <OperationLogSearch 
-                    dataSource = { this.state.cdrSettings } 
+                <OperationLogSearch
+                    userLists = { this.state.userLists} 
+                    dataSource = { this.state.searchAction } 
                     isDisplaySearch={ this.state.isDisplaySearch }
                     _hideSearch={ this._hideSearch } />
-                <OperationLogList 
-                    cdrData={ this.state.cdrData } 
+                <OperationLogList
+                    options2Lang={ this.state.options2Lang } 
+                    operationData={ this.state.operationData } 
                     deleteAll={ this._deleteAll }
-                    dataSource = { this.state.cdrSearchDownload } 
+                    deleteSearch={ this._deleteSearch}
                 />
             </div>
         )

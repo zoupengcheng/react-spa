@@ -10,7 +10,7 @@ import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Modal, message } from 'antd'
+import { Modal, message, Form } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 
 class CDR extends Component {
@@ -20,7 +20,6 @@ class CDR extends Component {
             isDisplay: 'display-block-filter',
             isDisplaySearch: 'hidden',
             cdrData: [],
-            cdrSettings: {},
             cdrSearchDownload: {}
         }
     }
@@ -39,22 +38,7 @@ class CDR extends Component {
             dataType: 'json',
             async: false,
             success: function(res) {
-                let acctid = res.response.acctid || [],
-                    cdrData = []
-
-                for (let i = 0; i < acctid.length; i++) {
-                    cdrData.push({
-                        key: i,
-                        status: acctid[i].disposition,
-                        callFrom: acctid[i].src,
-                        callTo: acctid[i].dst,
-                        actionType: acctid[i].action_type,
-                        startTime: acctid[i].start,
-                        talkTime: acctid[i].billsec,
-                        password: acctid[i].accountcode,
-                        recordingFile: acctid[i].recordfiles
-                    })
-                }
+                let cdrData = res.response.acctid || []
 
                 this.setState({
                     cdrData: cdrData
@@ -110,64 +94,52 @@ class CDR extends Component {
             isDisplaySearch: 'hidden'
         })
     }
-    _handleSearch = () => {
+    _showSearch = () => {
         this.setState({
             isDisplay: 'display-block',
             isDisplaySearch: 'display-block'
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/cdr/cdr')
+        const { form } = this.props
+
+        form.resetFields()
+
+        this._getCdrData()
     }
-    _handleSubmit = () => {
+    _handleSubmit = (value) => {
         const { formatMessage } = this.props.intl
+        const { form } = this.props
 
         message.loading(formatMessage({ id: "LANG3773" }), 0)
 
         let cdrData = [],
-            acctid = [],
             dataPost = {},
             cdrSearchData = {
                 action: 'listCDRDB',
                 sidx: 'start',
                 sord: 'desc'
-            },
-            flag = false
+            }
 
-        _.each(this.state.cdrSettings, function(item, key) {
-            if (_.isObject(item)) {
-                if (item.errors === undefined) {
-                    if (item.name.match(/fromtime|totime/)) {
-                        if (item.value) {
-                            dataPost[key] = item.value.format('YYYY-MM-DD HH:mm')
-                        } else {
-                            delete dataPost[key]
-                        }
-                    } else if (item.name.match(/src|caller_name|dst/)) {
-                        if (item.value) {
-                            dataPost[key] = item.value
-                        } else {
-                            delete dataPost[key]
-                        }
+        let all = form.getFieldsValue()
+
+        _.each(all, function(item, key) {
+            if (item !== undefined) {
+                if (_.isObject(item)) {
+                    if (key.match(/fromtime|totime/)) {
+                        dataPost[key] = item.format('YYYY-MM-DD HH:mm')
                     } else {
-                        if (item.value.length) {
-                            dataPost[key] = item.value.join()
+                        if (item.length) {
+                            dataPost[key] = item.join()
                         } else {
                             delete dataPost[key]
                         } 
                     }
                 } else {
-                    flag = true
-                    return
+                    dataPost[key] = item
                 }
-            } else {
-                dataPost[key] = item
             }
         })
-
-        if (flag) {
-            return
-        }
 
         this.setState({
             cdrSearchDownload: dataPost
@@ -189,21 +161,7 @@ class CDR extends Component {
                 if (bool) {
                     message.destroy()
 
-                    acctid = data.response.acctid || []
-
-                    for (let i = 0; i < acctid.length; i++) {
-                        cdrData.push({
-                            key: i,
-                            status: acctid[i].disposition,
-                            callFrom: acctid[i].clid,
-                            callTo: acctid[i].dst,
-                            actionType: acctid[i].action_type,
-                            startTime: acctid[i].start,
-                            talkTime: acctid[i].billsec,
-                            password: acctid[i].accountcode,
-                            recordingFile: acctid[i].recordfiles
-                        })
-                    }
+                    cdrData = data.response.acctid || []
 
                     this.setState({
                         cdrData: cdrData
@@ -224,12 +182,12 @@ class CDR extends Component {
                     headerTitle={ formatMessage({id: "LANG7"}) }
                     onSubmit={ this._handleSubmit }
                     onCancel={ this._handleCancel }
-                    onSearch = { this._handleSearch }
+                    onSearch = { this._showSearch }
                     isDisplay= { this.state.isDisplay} 
                     saveTxt = { formatMessage({id: "LANG1288" }) }
                     cancelTxt = { formatMessage({id: "LANG750" }) } />
                 <CDRSearch
-                    dataSource = { this.state.cdrSettings }
+                    form = { this.props.form }
                     isDisplaySearch={ this.state.isDisplaySearch }
                     _hideSearch={ this._hideSearch } />
                 <CDRList
@@ -241,4 +199,4 @@ class CDR extends Component {
     }
 }
 
-export default injectIntl(CDR)
+export default Form.create()(injectIntl(CDR))
