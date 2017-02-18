@@ -193,6 +193,7 @@ class CDR extends Component {
                 <CDRList
                     cdrData={ this.state.cdrData }
                     deleteAll={ this._deleteAll }
+                    getCdrData = { this._getCdrData }
                     dataSource = { this.state.cdrSearchDownload } />
             </div>
         )

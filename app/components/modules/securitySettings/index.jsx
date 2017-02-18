@@ -1,27 +1,231 @@
 'use strict'
 
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
+import {injectIntl} from 'react-intl'
+import Security from './security'
+import DynamicDefense from './dynamicDefense'
+import Fail2ban from './fail2ban'
+import SSH from './sshAccess'
+import $ from 'jquery'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
+import { Form, Tabs, message } from 'antd'
+const TabPane = Tabs.TabPane
+import _ from 'underscore'
 
-const ActivityCalls = React.createClass({
-    getDefaultProps() {
-
-    },
-    getInitialState() {
-        return {
+class SecuritySettings extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            activeKey: this.props.params.id ? this.props.params.id : '1',
+            isDisplay: "display-block"
         }
-    },
+    }
     componentDidMount() {
+    }
+    componentWillUnmount() {
 
-    },
-    componentWillReceiveProps(nextProps) {
+    }
+    _onChange = (e) => {
+        if (e === "1") {
+            this.setState({
+                activeKey: e,
+                isDisplay: "display-block"
+            })
+        } else {
+            this.setState({
+                activeKey: e,
+                isDisplay: "hidden"
+            })
+        }
+    }
+    _handleSubmit = (e) => {
+        const { formatMessage } = this.props.intl
 
-    },
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
+                message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                let action_fail2ban = {}
+                let action_static = {}
+                let action_dynamic = {}
+
+                if (values.fail2ban_enable !== undefined) {
+                    action_fail2ban.action = 'updateFail2ban'
+                    action_fail2ban.fail2ban_enable = values.fail2ban_enable ? 1 : 0
+                    action_fail2ban.enabled = values.enabled
+                    action_fail2ban.bantime = values.bantime
+                    action_fail2ban.findtime = values.findtime
+                    action_fail2ban.maxretry = values.maxretry
+                    action_fail2ban.asterisk_maxretry = values.asterisk_maxretry
+                    action_fail2ban.ignoreip1 = values.ignoreip1
+                    let ignoreip_list = []
+                    if (values.ignoreip2 != null) {
+                        ignoreip_list.push('ignoreip2')
+                    }
+                    if (values.ignoreip3 != null) {
+                        ignoreip_list.push('ignoreip3')
+                    }
+                    if (values.ignoreip4 != null) {
+                        ignoreip_list.push('ignoreip4')
+                    }
+                    if (values.ignoreip5 !== null) {
+                        ignoreip_list.push('ignoreip5')
+                    }
+                    if (ignoreip_list.length > 0) {
+                        ignoreip_list.map(function(item, index) {
+                            action_fail2ban[`ignoreip${index + 2}`] = values[`${item}`]
+                        })
+                    }
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action_fail2ban,
+                        type: 'json',
+                        async: false,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                            }
+                        }.bind(this)
+                    })
+                }
+                if (values.dynamic_enable !== undefined) {
+                    let whiteArray = values.whitelist.split('\n')
+                    let whitelist = []
+                    for (let i = 0; i < whiteArray.length; i++) {
+                        let item = whiteArray[i]
+
+                        if (item) {
+                            if (UCMGUI.isIPv6(whiteArray[i])) {
+                                item = item.replace("[", "").replace("]", "")
+                            }
+                            whitelist.push(item)
+                        }
+                    }
+                    action_dynamic.action = 'updateDynamicDefense'
+                    action_dynamic.enable = values.dynamic_enable ? 'yes' : 'no'
+                    action_dynamic.threshold = values.threshold
+                    action_dynamic.timeout = values.timeout
+                    action_dynamic.block_timeout = values.block_timeout
+                    action_dynamic.white_addr = whitelist.join('\n')
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action_dynamic,
+                        type: 'json',
+                        async: false,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                            }
+                        }.bind(this)
+                    })
+                }
+                if (values.reject_all !== undefined) {
+                    let ping_enable_list = []
+                    let ping_of_death_list = []
+                    if (values.ping_enable_wan) {
+                        ping_enable_list.push('WAN')
+                    }
+                    if (values.ping_enable_lan) {
+                        ping_enable_list.push('LAN')
+                    }
+                    if (values.ping_of_death_wan) {
+                        ping_of_death_list.push('WAN')
+                    }
+                    if (values.ping_of_death_lan) {
+                        ping_of_death_list.push('LAN')
+                    }
+                    action_static.action = 'updateTypicalFirewallSettings'
+                    action_static.reject_all = values.reject_all ? 'yes' : 'no'
+                    action_static.syn_flood = ''
+                    action_static.ping_of_death = ping_of_death_list.join(',')
+                    action_static.ping_enable = ping_enable_list.join(',')
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action_static,
+                        type: 'json',
+                        async: false,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                            }
+                        }.bind(this)
+                    })
+                }
+            }
+        })
+    }
     render() {
+        const { getFieldDecorator } = this.props.form
+        const { formatMessage } = this.props.intl
+        const formItemLayout = {
+            labelCol: { span: 6 },
+            wrapperCol: { span: 6 }
+        }
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: model_info.model_name,
+                    1: formatMessage({id: "LANG5301"})
+                })
+
         return (
-            <div>
+            <div className="app-content-main" id="app-content-main">
+                <Title headerTitle={ formatMessage({id: "LANG5301"}) } 
+                    onSubmit={ this._handleSubmit.bind(this) } 
+                    onCancel={ this._handleCancel } 
+                    isDisplay='display-block'
+                />
+                <Tabs defaultActiveKey={ this.state.activeKey } onChange={this._onChange}>
+                    <TabPane tab={formatMessage({id: "LANG38"})} key="1">
+                        <Security 
+                            form={ this.props.form }
+                        />
+                    </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG2303"})} key="2">
+                        <DynamicDefense
+                            form={ this.props.form }
+                        />
+                    </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG2600"})} key="3">
+                        <Fail2ban
+                            form={ this.props.form }
+                        />
+                    </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG4179"})} key="4">
+                        <SSH
+                            form={ this.props.form }
+                        />
+                    </TabPane>
+                </Tabs>
             </div>
         )
     }
-})
+}
 
-module.exports = ActivityCalls
+SecuritySettings.propTypes = {
+}
+
+export default Form.create()(injectIntl(SecuritySettings))

@@ -36,9 +36,9 @@ class DigitalHardwareItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            hardhdlcOpts: [],
             priSettingsInfo: {},
-            refs: {}
+            refs: {},
+            hardhdlcOpts: []
         }
     }
     componentDidMount() {
@@ -151,64 +151,19 @@ class DigitalHardwareItem extends Component {
     _updateDigitalHardwareSettings = () => {
         const { formatMessage } = this.props.intl
         const form = this.props.form
-        const me = this
 
         let spanTypeVal = form.getFieldValue("span_type"),
-            params = ["clock", "lbo", "rxgain", "signalling", "span_type", "txgain", "codec", "coding",
-                "nsf", "priindication", "resetinterval", "switchtype", "hardhdlc", "priplaylocalrbt", "em_rxwink", "emoutbandcalldialdelay"
-            ],
-            ss7NotSend = ["nsf", "priindication", "resetinterval", "switchtype"],
             action = {},
-            signallingVal = $("#signalling").val()
+            digitalHardwareSettingsAction = {},
+            signallingVal = form.getFieldValue("signalling")
 
         if (!this._isChangeSignallingForDataTrunk()) {
             message.error(formatMessage({ id: "LANG3978"}, { 0: form.getFieldValue("hardhdlc") }))
             return false
         }
-        let resetGroups = (action, noNeedDialog) => {
-            if (action && action['group'] && action['group'].length > 0) {
-                $.ajax({
-                    type: "post",
-                    url: baseServerURl,
-                    async: false,
-                    data: {
-                        action: "updateAllDigitalGroup",
-                        group: JSON.stringify(action)
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        message.error(errorThrown)
-                    },
-                    success: function(data) {
-                        let bool = UCMGUI.errorHandler(data)
-
-                        if (bool) {
-                            if (me._isModifyGroupChanneOfDataTrunk("updateDigitalHardware")) {
-                                Modal.confirm({
-                                    title: 'Confirm',
-                                    content: formatMessage({ id: "LANG927" }),
-                                    okText: formatMessage({id: "LANG727"}),
-                                    cancelText: formatMessage({id: "LANG726"}),
-                                    onOk: this._applyChangeAndReboot,
-                                    onCancel: () => {
-                                        browserHistory.push('/pbx-settings/interfaceSettings/')
-                                    }
-                                })
-                            } else if (!noNeedDialog) {
-                                message.success(<span dangerouslySetInnerHTML=
-                                        {{ __html: formatMessage({ id: "LANG4782" }) }}
-                                    ></span>)
-                            } 
-                            browserHistory.push('/pbx-settings/interfaceSettings/')
-                        }
-                    }
-                })
-            } else {
-                return
-            }
-        }
 
         let digitalGroupInfo = [],
-            hardhdlc = Number($("#hardhdlc").val()),
+            hardhdlc = Number(form.getFieldValue("hardhdlc")),
             totalGroupChanArr = [],
             usedChannelArr = [],
             arr = [],
@@ -253,176 +208,12 @@ class DigitalHardwareItem extends Component {
         }
         actionObj["group"] = arr
 
-        let digitalHardwareSettingsAction = function() {
-            let actions = {},
-                signallingVal = form.getFieldValue("signalling")
-
-            if (spanTypeVal !== "E1") {
-                actions["crc"] = "none"
-            } else {
-                actions["crc"] = form.getFieldValue("crc")
-            }
-
-            actions['framing'] = form.getFieldValue("framing")
-
-            actions["bchan"] = me._getBchan(global.bchanTotalChans)
-            actions["action"] = "updateDigitalHardwareSettings"
-
-            // for (let i = 0, length = params.length; i < length; i++) {
-            //     let paramsIndex = params[i],
-            //         paramsEle = $("#" + params[i]),
-            //         paramsEleDom = paramsEle.get(0),
-            //         signalling = $("#signalling").val()
-
-            //     if ((paramsEle.is(":hidden") && paramsEle.closest(".prioptions").length === 0) || (signalling === "ss7" && ss7NotSend.indexOf(paramsIndex) !== -1)) {
-            //         continue
-            //     }
-            //     if ((paramsEle.is(":disabled")) || (signalling === "ss7" && ss7NotSend.indexOf(paramsIndex) !== -1)) {
-            //         continue
-            //     }
-            //     if (paramsEleDom.type === "checkbox") {
-            //         actions[params[i]] = (paramsEleDom.checked === true) ? "yes" : "no"
-            //     } else {
-            //         actions[params[i]] = paramsEle.val()
-            //     }
-            // }
-            actions = _.extend(actions, form.getFieldsValue(params))
-
-            if (signallingVal === "mfcr2") {
-                actions["hardhdlc"] = "16"
-            } else if (signallingVal === "em" || signallingVal === "em_w") {
-                actions["hardhdlc"] = "0"
-            } else if (signallingVal.indexOf('pri') > -1) {
-                actions["pri_timer_t310"] = form.getFieldValue("pri_timer_t310")
-            }
-            return actions
-        }
-
-        let updateDigitalHardware = () => {
-            _.map(digitalHardwareSettingsAction, function(item, index) {
-                if (action[item] === true) {
-                    action[item] = "yes"
-                } else if (action[item] === false) {
-                    action[item] = "no"
-                }
-            })
-            $.ajax({
-                type: "post",
-                url: baseServerURl,
-                data: digitalHardwareSettingsAction,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    message.error(errorThrown)
-                },
-                success: function(data) {
-                    const bool = UCMGUI.errorHandler(data, null, formatMessage)
-
-                    if (bool) {
-                        resetGroups(actionObj)
-                    }
-                }
-            })
-        }
-        let updateDigitalR2Hardware = () => {
-            let fieldsObj = form.getFieldValue(),
-                actions = {}
-
-            actions["mfcr2_variant"] = form.getFieldValue("mfcr2_variant")
-            actions["mfcr2_get_ani_first"] = form.getFieldValue("mfcr2_get_ani_first")
-            actions["mfcr2_category"] = form.getFieldValue("mfcr2_category")
-            actions["mfcr2_play_local_rbt"] = form.getFieldValue("mfcr2_play_local_rbt")
-
-            let R2AdvancedParams = ["mfcr2_mfback_timeout", "mfcr2_metering_pulse_timeout", "mfcr2_allow_collect_calls", 
-                                    "mfcr2_double_answer", "mfcr2_double_answer_timeout", "mfcr2_accept_on_offer", "networkindicator", 
-                                    "mfcr2_charge_calls"]
-            actions = _.extend(actions, form.getFieldsValue(R2AdvancedParams))
-
-            actions["mf_advanced_settings"] = form.getFieldValue("mf_advanced_settings")
-
-            if (form.getFieldValue("mf_advanced_settings")) {
-                let otherR2AdvancedParams = ["mf_ga_tones__request_next_dnis_digit", "mf_ga_tones__request_dnis_minus_1",
-                                        "mf_ga_tones__request_dnis_minus_2", "mf_ga_tones__request_dnis_minus_3", "mf_ga_tones__request_all_dnis_again",
-                                        "mf_ga_tones__request_next_ani_digit", "mf_ga_tones__request_category", "mf_ga_tones__request_category_and_change_to_gc",
-                                        "mf_ga_tones__request_change_to_g2", "mf_ga_tones__address_complete_charge_setup", "mf_ga_tones__network_congestion",
-                                        "mf_gb_tones__accept_call_with_charge", "mf_gb_tones__accept_call_no_charge", "mf_gb_tones__busy_number", "mf_gb_tones__network_congestion",
-                                        "mf_gb_tones__unallocated_number", "mf_gb_tones__line_out_of_order", "mf_gb_tones__special_info_tone", "mf_gb_tones__reject_collect_call",
-                                        "mf_gb_tones__number_changed", "mf_gc_tones__request_next_ani_digit", "mf_gc_tones__request_change_to_g2", "mf_gc_tones__request_next_dnis_digit_and_change_to_ga",
-                                        "mf_g1_tones__no_more_dnis_available", "mf_g1_tones__no_more_ani_available", "mf_g1_tones__caller_ani_is_restricted",
-                                        "mf_g2_tones__national_subscriber", "mf_g2_tones__national_priority_subscriber", "mf_g2_tones__international_subscriber",
-                                        "mf_g2_tones__international_priority_subscriber", "mf_g2_tones__collect_call", "timers__mf_back_cycle", "timers__mf_fwd_safety",
-                                        "timers__r2_seize", "timers__r2_answer", "timers__r2_metering_pulse", "timers__r2_double_answer", "timers__r2_answer_delay",
-                                        "timers__cas_persistence_check", "timers__dtmf_start_dial", "mf_threshold"]
-
-                actions = _.extend(actions, form.getFieldsValue(otherR2AdvancedParams))
-            }
-
-            actions["action"] = "updateDigitalHardwareR2Settings"
-            actions["span"] = this.props.params.span
-            actions["mfcr2_max_ani"] = 32
-            actions["mfcr2_max_dnis"] = 32
-
-            if (this.state.refs.mfcr2_get_ani_first && this.state.refs.mfcr2_get_ani_first.props.disabled) {
-                actions["mfcr2_get_ani_first"] = "no"
-            }
-            if (this.state.refs.mfcr2_skip_category && this.state.refs.mfcr2_skip_category.props.disabled) {
-                actions["mfcr2_skip_category"] = "no"
-            }
-
-            if (form.getFieldValue("mfcr2_variant") === "br") {
-                actions["mfcr2_forced_release"] = $("#mfcr2_forced_release").is(":checked") ? "yes" : "no"
-            } else {
-                actions["mfcr2_forced_release"] = "no"
-            }
-
-            if (form.getFieldValue("mfcr2_double_answer")) {
-                actions["mfcr2_double_answer_timeout"] = form.getFieldValue("mfcr2_double_answer_timeout")
-            } else {
-                actions["mfcr2_double_answer_timeout"] = "-1"
-            }
-
-            if (action["mfcr2_mfback_timeout"] === "") {
-                actions["mfcr2_mfback_timeout"] = "-1"
-            }
-            if (action["mfcr2_metering_pulse_timeout"] === "") {
-                actions["mfcr2_metering_pulse_timeout"] = "-1"
-            }
-            if (action["mfcr2_double_answer_timeout"] === "") {
-                actions["mfcr2_double_answer_timeout"] = "-1"
-            }
-
-            _.map(actions, function(item, index) {
-                if (action[item] === true) {
-                    action[item] = "yes"
-                } else if (action[item] === false) {
-                    action[item] = "no"
-                }
-            })
-
-            $.ajax({
-                type: "post",
-                url: baseServerURl,
-                data: actions,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    message.error(errorThrown)
-                },
-                success: function(data) {
-                    const bool = UCMGUI.errorHandler(data, null, formatMessage)
-
-                    if (bool) {
-                        if ((this.state.refs.otherR2Advanced && this.state.refs.otherR2Advanced.props.className === "display-block") && form.getFieldValue("signalling") === "mfcr2") {
-                            resetGroups(actionObj, "noNeedDialog")
-                        } else {
-                            resetGroups(actionObj)
-                        }
-                    }
-                }
-            })
-        }
-
         if (signallingVal === "ss7") {
-            digitalHardwareSettingsAction = digitalHardwareSettingsAction()
+            digitalHardwareSettingsAction = this._digitalHardwareSettingsAction()
+
             action["action"] = "updateDigitalHardwareSS7Settings"
             action["sigchan"] = form.getFieldValue("hardhdlc")
-            action["span"] = me.props.params.span
+            action["span"] = this.props.params.span
             action["ss7type"] = form.getFieldValue("ss7type")
             action["pointcode"] = form.getFieldValue("pointcode")
             action["defaultdpc"] = form.getFieldValue("defaultdpc")
@@ -430,10 +221,10 @@ class DigitalHardwareItem extends Component {
             action["networkindicator"] = form.getFieldValue("networkindicator")
             action["sigchan_assign_cic"] = form.getFieldValue("sigchan_assign_cic")
         } else if (signallingVal === "mfcr2") {
-            action = digitalHardwareSettingsAction()
+            action = this._digitalHardwareSettingsAction()
             action["codec"] = "alaw"
         } else {
-            action = digitalHardwareSettingsAction()
+            action = this._digitalHardwareSettingsAction()
             action["facilityenable"] = form.getFieldValue("facilityenable") ? 'yes' : 'no'
             action["priexclusive"] = form.getFieldValue("priexclusive") ? 'yes' : 'no'
             action["overlapdial"] = form.getFieldValue("overlapdial")
@@ -463,6 +254,7 @@ class DigitalHardwareItem extends Component {
                 action[item] = "no"
             }
         })
+
         $.ajax({
             type: "post",
             url: baseServerURl,
@@ -476,14 +268,223 @@ class DigitalHardwareItem extends Component {
 
                 if (bool) {
                     if (signallingVal === "ss7") {
-                        updateDigitalHardware()
+                        this._updateDigitalHardware(digitalHardwareSettingsAction, actionObj)
                     } else if (signallingVal === "mfcr2") {
-                        updateDigitalR2Hardware()
+                        this._updateDigitalR2Hardware(action, actionObj)
                     } else {
-                        resetGroups(actionObj)
+                        this._resetGroups(actionObj)
                     }
                 }
+            }.bind(this)
+        })
+    }
+    _resetGroups = (action, noNeedDialog) => {
+        const { formatMessage } = this.props.intl
+
+        if (action && action['group'] && action['group'].length > 0) {
+            $.ajax({
+                type: "post",
+                url: baseServerURl,
+                async: false,
+                data: {
+                    action: "updateAllDigitalGroup",
+                    group: JSON.stringify(action)
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    message.error(errorThrown)
+                },
+                success: function(data) {
+                    let bool = UCMGUI.errorHandler(data)
+
+                    if (bool) {
+                        if (this._isModifyGroupChanneOfDataTrunk("updateDigitalHardware")) {
+                            Modal.confirm({
+                                title: 'Confirm',
+                                content: formatMessage({ id: "LANG927" }),
+                                okText: formatMessage({id: "LANG727"}),
+                                cancelText: formatMessage({id: "LANG726"}),
+                                onOk: this._applyChangeAndReboot,
+                                onCancel: () => {
+                                    browserHistory.push('/pbx-settings/interfaceSettings/')
+                                }
+                            })
+                        } else if (!noNeedDialog) {
+                            message.success(<span dangerouslySetInnerHTML=
+                                    {{ __html: formatMessage({ id: "LANG4782" }) }}
+                                ></span>)
+                        } 
+                        browserHistory.push('/pbx-settings/interfaceSettings/')
+                    }
+                }.bind(this)
+            })
+        } else {
+            return
+        }
+    }
+    _digitalHardwareSettingsAction = () => {
+        const form = this.props.form
+
+        let actions = {},
+            signallingVal = form.getFieldValue("signalling"),
+            spanTypeVal = form.getFieldValue("span_type"),
+            params = ["clock", "lbo", "rxgain", "signalling", "span_type", "txgain", "codec", "coding",
+                "nsf", "priindication", "resetinterval", "switchtype", "hardhdlc", "priplaylocalrbt", "em_rxwink", "emoutbandcalldialdelay"
+            ],
+            ss7NotSend = ["nsf", "priindication", "resetinterval", "switchtype"],
+            paramsArr = []
+
+        if (spanTypeVal !== "E1") {
+            actions["crc"] = "none"
+        } else {
+            actions["crc"] = form.getFieldValue("crc")
+        }
+
+        actions['framing'] = form.getFieldValue("framing")
+
+        actions["bchan"] = this._getBchan(global.bchanTotalChans)
+        actions["action"] = "updateDigitalHardwareSettings"
+
+        for (let i = 0, length = params.length; i < length; i++) {
+            let paramsIndex = params[i]
+
+            if (signallingVal === "ss7" && ss7NotSend.indexOf(paramsIndex) !== -1) {
+                continue
             }
+            paramsArr.push(paramsIndex)
+        }
+        actions = _.extend(actions, form.getFieldsValue(paramsArr))
+
+        if (signallingVal === "mfcr2") {
+            actions["hardhdlc"] = "16"
+        } else if (signallingVal === "em" || signallingVal === "em_w") {
+            actions["hardhdlc"] = "0"
+        } else if (signallingVal.indexOf('pri') > -1) {
+            actions["pri_timer_t310"] = form.getFieldValue("pri_timer_t310")
+        }
+        return actions
+    }
+    _updateDigitalHardware = (digitalHardwareSettingsAction, actionObj) => {
+        const { formatMessage } = this.props.intl
+
+        _.map(digitalHardwareSettingsAction, function(item, index) {
+            if (digitalHardwareSettingsAction[item] === true) {
+                digitalHardwareSettingsAction[item] = "yes"
+            } else if (digitalHardwareSettingsAction[item] === false) {
+                digitalHardwareSettingsAction[item] = "no"
+            }
+        })
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: digitalHardwareSettingsAction,
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                if (bool) {
+                    this._resetGroups(actionObj)
+                }
+            }.bind(this)
+        })
+    }
+    _updateDigitalR2Hardware = (action, actionObj) => {
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
+
+        let fieldsObj = form.getFieldValue(),
+            actions = {}
+
+        actions["mfcr2_variant"] = form.getFieldValue("mfcr2_variant")
+        actions["mfcr2_get_ani_first"] = form.getFieldValue("mfcr2_get_ani_first")
+        actions["mfcr2_category"] = form.getFieldValue("mfcr2_category")
+        actions["mfcr2_play_local_rbt"] = form.getFieldValue("mfcr2_play_local_rbt")
+
+        let R2AdvancedParams = ["mfcr2_mfback_timeout", "mfcr2_metering_pulse_timeout", "mfcr2_allow_collect_calls", 
+                                "mfcr2_double_answer", "mfcr2_double_answer_timeout", "mfcr2_accept_on_offer", "networkindicator", 
+                                "mfcr2_charge_calls"]
+        actions = _.extend(actions, form.getFieldsValue(R2AdvancedParams))
+
+        actions["mf_advanced_settings"] = form.getFieldValue("mf_advanced_settings")
+
+        if (form.getFieldValue("mf_advanced_settings")) {
+            let otherR2AdvancedParams = ["mf_ga_tones__request_next_dnis_digit", "mf_ga_tones__request_dnis_minus_1",
+                                    "mf_ga_tones__request_dnis_minus_2", "mf_ga_tones__request_dnis_minus_3", "mf_ga_tones__request_all_dnis_again",
+                                    "mf_ga_tones__request_next_ani_digit", "mf_ga_tones__request_category", "mf_ga_tones__request_category_and_change_to_gc",
+                                    "mf_ga_tones__request_change_to_g2", "mf_ga_tones__address_complete_charge_setup", "mf_ga_tones__network_congestion",
+                                    "mf_gb_tones__accept_call_with_charge", "mf_gb_tones__accept_call_no_charge", "mf_gb_tones__busy_number", "mf_gb_tones__network_congestion",
+                                    "mf_gb_tones__unallocated_number", "mf_gb_tones__line_out_of_order", "mf_gb_tones__special_info_tone", "mf_gb_tones__reject_collect_call",
+                                    "mf_gb_tones__number_changed", "mf_gc_tones__request_next_ani_digit", "mf_gc_tones__request_change_to_g2", "mf_gc_tones__request_next_dnis_digit_and_change_to_ga",
+                                    "mf_g1_tones__no_more_dnis_available", "mf_g1_tones__no_more_ani_available", "mf_g1_tones__caller_ani_is_restricted",
+                                    "mf_g2_tones__national_subscriber", "mf_g2_tones__national_priority_subscriber", "mf_g2_tones__international_subscriber",
+                                    "mf_g2_tones__international_priority_subscriber", "mf_g2_tones__collect_call", "timers__mf_back_cycle", "timers__mf_fwd_safety",
+                                    "timers__r2_seize", "timers__r2_answer", "timers__r2_metering_pulse", "timers__r2_double_answer", "timers__r2_answer_delay",
+                                    "timers__cas_persistence_check", "timers__dtmf_start_dial", "mf_threshold"]
+
+            actions = _.extend(actions, form.getFieldsValue(otherR2AdvancedParams))
+        }
+
+        actions["action"] = "updateDigitalHardwareR2Settings"
+        actions["span"] = this.props.params.span
+        actions["mfcr2_max_ani"] = 32
+        actions["mfcr2_max_dnis"] = 32
+
+        if (this.state.refs.mfcr2_get_ani_first && this.state.refs.mfcr2_get_ani_first.props.disabled) {
+            actions["mfcr2_get_ani_first"] = "no"
+        }
+        if (this.state.refs.mfcr2_skip_category && this.state.refs.mfcr2_skip_category.props.disabled) {
+            actions["mfcr2_skip_category"] = "no"
+        }
+
+        if (form.getFieldValue("mfcr2_variant") === "br") {
+            actions["mfcr2_forced_release"] = form.getFieldValue("mfcr2_forced_release") ? "yes" : "no"
+        } else {
+            actions["mfcr2_forced_release"] = "no"
+        }
+
+        if (form.getFieldValue("mfcr2_double_answer")) {
+            actions["mfcr2_double_answer_timeout"] = form.getFieldValue("mfcr2_double_answer_timeout")
+        } else {
+            actions["mfcr2_double_answer_timeout"] = "-1"
+        }
+
+        if (action["mfcr2_mfback_timeout"] === "") {
+            actions["mfcr2_mfback_timeout"] = "-1"
+        }
+        if (action["mfcr2_metering_pulse_timeout"] === "") {
+            actions["mfcr2_metering_pulse_timeout"] = "-1"
+        }
+        if (action["mfcr2_double_answer_timeout"] === "") {
+            actions["mfcr2_double_answer_timeout"] = "-1"
+        }
+
+        _.map(actions, function(item, index) {
+            if (actions[item] === true) {
+                actions[item] = "yes"
+            } else if (action[item] === false) {
+                actions[item] = "no"
+            }
+        })
+
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: actions,
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                if (bool) {
+                    if ((this.state.refs.otherR2Advanced && this.state.refs.otherR2Advanced.props.className === "display-block") && form.getFieldValue("signalling") === "mfcr2") {
+                        this._resetGroups(actionObj)
+                    } else {
+                        this._resetGroups(actionObj)
+                    }
+                }
+            }.bind(this)
         })
     }
     _applyChangeAndReboot = () => {
@@ -797,8 +798,10 @@ class DigitalHardwareItem extends Component {
         return totalChannelArr
     }
     _getBchan = (bchanTotalChans) => {
-        let hardhdlc = Number($("#hardhdlc").val()),
-            signallingVal = $("#signalling").val(),
+        const form = this.props.form
+
+        let hardhdlc = Number(form.getFieldValue("hardhdlc")),
+            signallingVal = form.getFieldValue("signalling"),
             dataTrunkChansArr = this._getDataTrunkChansArr(),
             totalArr = this._getTotalArr(dataTrunkChansArr)
 
@@ -857,6 +860,10 @@ class DigitalHardwareItem extends Component {
                                 form={ this.props.form }
                                 priSettingsInfo={ this.state.priSettingsInfo }
                                 getRefs={ this._getRefs.bind(this) }
+                                isChangeSignallingForDataTrunk={ this._isChangeSignallingForDataTrunk }
+                                getDataTrunkChansArr ={ this._getDataTrunkChansArr }
+                                getTotalArr={ this._getTotalArr }
+                                hardhdlcOpts={ this.state.hardhdlcOpts }
                             />
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG542"})} key="2">
@@ -864,7 +871,6 @@ class DigitalHardwareItem extends Component {
                                 form={ this.props.form }
                                 priSettingsInfo={ this.state.priSettingsInfo }
                                 getRefs={ this._getRefs.bind(this) }
-                                hardhdlcOpts={ this.state.hardhdlcOpts }
                             />
                         </TabPane>
                     </Tabs>

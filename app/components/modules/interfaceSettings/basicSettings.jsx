@@ -21,7 +21,16 @@ class BasicSettings extends Component {
         this.state = {
             mfcr2ForcedReleaseDivStyle: "hidden",
             mfcr2SkipCategoryChecked: false,
-            mfcr2GetAniFirstChecked: false
+            mfcr2GetAniFirstChecked: false,
+            framingOpts: [],
+            hardhdlcOpts: [],
+            codingOpts: [],
+            crcOpts: [],
+            signallingOpts: [{
+                text: "NET",
+                val: "pri_net"
+            }],
+            crcDivStyle: "display-block"
         }
     }
     componentWillMount() {
@@ -32,13 +41,16 @@ class BasicSettings extends Component {
     }
     _initVal = () => {
         const form = this.props.form
+
         if (form.getFieldValue("mfcr2_variant") === "br") {
             this.setState({ 
-                mfcr2ForcedReleaseDivStyle: "display-block"
+                mfcr2ForcedReleaseDivStyle: "display-block",
+                hardhdlcOpts: this.props.hardhdlcOpts
             })
         } else {
             this.setState({ 
-                mfcr2ForcedReleaseDivStyle: "hidden"
+                mfcr2ForcedReleaseDivStyle: "hidden",
+                hardhdlcOpts: this.props.hardhdlcOpts
             })
         }
     }
@@ -47,8 +59,8 @@ class BasicSettings extends Component {
             mfcr2GetAniFirstChecked: e.target.checked
         })
     }
-    _onChangeSignalling = () => {
-        // var value = $(this).val(),
+    _onChangeSignalling = (val) => {
+        // let value = $(this).val(),
         //     hardhdlcEle = $("#hardhdlc"),
         //     hardhdlcDiv = $("#hardhdlcDiv"),
         //     opts = hardhdlcEle.children(),
@@ -56,9 +68,9 @@ class BasicSettings extends Component {
         //     flag = true;
 
         // if (value == "ss7") {
-        //     var totleChans = getTotalChans(),
-        //         dataTrunkChansArr = this._getDataTrunkChansArr(),
-        //         allChansArr = this._getTotalArr(dataTrunkChansArr);
+        //     let totleChans = getTotalChans(),
+        //         dataTrunkChansArr = this.props.getDataTrunkChansArr(),
+        //         allChansArr = this.props.getTotalArr(dataTrunkChansArr);
         //     hardhdlcDiv.show();
 
         //     if ((allChansArr.length + 1) >= totleChans && noneOpt.length == 0) {
@@ -66,11 +78,11 @@ class BasicSettings extends Component {
         //     } else if ((allChansArr.length + 1) < totleChans) {
         //         noneOpt.remove();
         //     }
-        //     for (var i = 0; i < opts.length; i++) {
-        //         var index = opts[i];
+        //     for (let i = 0; i < opts.length; i++) {
+        //         let index = opts[i];
         //         index.disabled = false;
         //     };
-        //     var ss7Settings = mWindow.ss7Settings[0];
+        //     let ss7Settings = mWindow.ss7Settings[0];
         //     if (ss7Settings) {
         //         $("#ss7_called_nai").val(ss7Settings["ss7_called_nai"]);
         //         $("#ss7_calling_nai").val(ss7Settings["ss7_calling_nai"]);
@@ -98,17 +110,17 @@ class BasicSettings extends Component {
         //     flag = false;
         //     $("#mfcR2Div, #priT310Div, #ss7Options, #lboDiv, #R2Advanced, #otherAdvanced_btn, #subscriberprefixDiv, #priPlayLocalRbtDiv, #mfcr2PlayLocaRbtDiv, #SS7dialplanDIV, #callerIdPrefix, #switchtypeDiv, #pridialplanDIV, #specialDiv").hide();
         // } else {
-        //     var totleChans = getTotalChans(),
-        //         dataTrunkChansArr = this._getDataTrunkChansArr(),
-        //         allChansArr = this._getTotalArr(dataTrunkChansArr);
+        //     let totleChans = getTotalChans(),
+        //         dataTrunkChansArr = this.props.getDataTrunkChansArr(),
+        //         allChansArr = this.props.getTotalArr(dataTrunkChansArr);
         //     hardhdlcDiv.show();
         //     if ((allChansArr.length + 1) >= totleChans && noneOpt.length == 0) {
         //         hardhdlcEle.prepend("<option value='0'>" + $P.lang("LANG133") + "</option>");
         //     } else if ((allChansArr.length + 1) < totleChans) {
         //         noneOpt.remove();
         //     }
-        //     for (var i = 0; i < opts.length; i++) {
-        //         var index = opts[i];
+        //     for (let i = 0; i < opts.length; i++) {
+        //         let index = opts[i];
         //         index.disabled = false;
         //     };
         //     UCMGUI.domFunction.updateDocument(priSettingsInfo, $(".prioptions").get(0));
@@ -124,7 +136,7 @@ class BasicSettings extends Component {
         // }
 
         // if ($("#span_type").val() == "E1") {
-        //     var opts;
+        //     let opts;
 
         //     if (hardhdlcEle.children().filter("[value=" + oldHardhdlc + "]").length != 0) {
         //         hardhdlcEle.val(oldHardhdlc);
@@ -142,10 +154,9 @@ class BasicSettings extends Component {
         //         }];
         //     }
 
-        //     selectbox.appendOpts({
-        //         el: "framing",
-        //         opts: opts
-        //     }, doc);
+            // this.setState({
+            //     framingOpts: opts
+            // })
 
         //     opts = [];
         // }
@@ -163,7 +174,7 @@ class BasicSettings extends Component {
         // } else if (value == "em" || value == "em_w") {
         //     hardhdlcEle.val(0);
         // }
-        // var val = $("#span_type").val();
+        // let val = $("#span_type").val();
         // if (val == "T1" || val == "J1") {
         //     if (oldCoding == "hdb3") {
         //         $('#coding').val("b8zs");
@@ -174,14 +185,6 @@ class BasicSettings extends Component {
         //     }
         // }
         // oldSingnaling = value;
-        // if (text == undefined) {
-        //     top.Custom.init(doc);
-        // }
-
-        // top.dialog.currentDialogType = "iframe";
-        // top.dialog.repositionDialog();
-
-        // ev.stopPropagation();
     }
     _onChangeFraming = (val) => {
         global.oldFraming = val
@@ -211,7 +214,7 @@ class BasicSettings extends Component {
             //     mfcr2ForcedReleaseDivStyle: "hidden"
             // })
         // }
-        // var mfcR2Settings = mWindow.mfcR2Settings[0];
+        // let mfcR2Settings = mWindow.mfcR2Settings[0];
         // resetCheckbox(text);
 
         // if (val == "ve") {
@@ -221,13 +224,13 @@ class BasicSettings extends Component {
 
         // if (mfcR2Settings) {
         //     if ($("#mfcr2_variant").val() == mfcR2Settings.mfcr2_variant) {
-        //         var mfcr2GetAniFirstVal = (mfcR2Settings.mfcr2_get_ani_first == "yes") ? true : false;
-        //         var mfcr2AllowCollectCallsVal = (mfcR2Settings.mfcr2_allow_collect_calls == "yes") ? true : false;
-        //         var mfcr2DoubleAnswerVal = (mfcR2Settings.mfcr2_double_answer == "yes") ? true : false;
-        //         //var mfcr2ImmediateAcceptVal = (mfcR2Settings.mfcr2_immediate_accept == "yes") ? true : false;
-        //         var mfcr2AcceptOnOfferVal = (mfcR2Settings.mfcr2_accept_on_offer == "yes") ? true : false;
-        //         var mfcr2SkipCategoryVal = (mfcR2Settings.mfcr2_skip_category == "yes") ? true : false;
-        //         var mfcr2ChargeCallsVal = (mfcR2Settings.mfcr2_charge_calls == "yes") ? true : false;
+        //         let mfcr2GetAniFirstVal = (mfcR2Settings.mfcr2_get_ani_first == "yes") ? true : false;
+        //         let mfcr2AllowCollectCallsVal = (mfcR2Settings.mfcr2_allow_collect_calls == "yes") ? true : false;
+        //         let mfcr2DoubleAnswerVal = (mfcR2Settings.mfcr2_double_answer == "yes") ? true : false;
+        //         //let mfcr2ImmediateAcceptVal = (mfcR2Settings.mfcr2_immediate_accept == "yes") ? true : false;
+        //         let mfcr2AcceptOnOfferVal = (mfcR2Settings.mfcr2_accept_on_offer == "yes") ? true : false;
+        //         let mfcr2SkipCategoryVal = (mfcR2Settings.mfcr2_skip_category == "yes") ? true : false;
+        //         let mfcr2ChargeCallsVal = (mfcR2Settings.mfcr2_charge_calls == "yes") ? true : false;
 
         //         $("#mfcr2_get_ani_first").get(0).checked = mfcr2GetAniFirstVal;
         //         $("#mfcr2_category").val(mfcR2Settings.mfcr2_category);
@@ -254,256 +257,221 @@ class BasicSettings extends Component {
         // }
 
         // $("#advanced_area").text(":" + $(this).find("option:selected").text());
-
-        // if (text == undefined) {
-        //     top.Custom.init(doc);
-        // }
     }
-    _onChangeSpanType = () => {
-        // var hardhdlcEle = $("#hardhdlc"),
-        //     signalling = $('#signalling').val(),
-        //     opts;
+    _onChangeSpanType = (val) => {
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
 
-        // if ($(this).val() == "E1") {
+        let oldSingnaling = global.oldSingnaling,
+            oldCoding = global.oldCoding,
+            bchanTotalChans = global.bchanTotalChans,
+            oldHardhdlc = global.oldHardhdlc,
+            oldFraming = global.oldFraming
 
-        //     bchanTotalChans = 31;
-        //     hardhdlcEle.val(bchanTotalChans);
-        //     //$("#hardhdlc").val(16).trigger("change");
+        let hardhdlcEle = this.refs.hardhdlcDiv,
+            signalling = form.getFieldValue('signalling'),
+            opts = []
 
-        //     if (signalling === 'mfcr2') {
-        //         opts = [{
-        //             val: "cas"
-        //         }];
-        //     } else {
-        //         opts = [{
-        //             val: "ccs"
-        //         }];
-        //     }
+        if (val === "E1") {
+            bchanTotalChans = 31
 
-        //     selectbox.appendOpts({
-        //         el: "framing",
-        //         opts: opts
-        //     }, doc);
-        //     opts = [];
-        //     var dataTrunkChansArr = this._getDataTrunkChansArr();
-        //     var allChansArr = this._getTotalArr(dataTrunkChansArr);
-        //     if (((allChansArr.length + 1) == bchanTotalChans) || (allChansArr.length == bchanTotalChans)) {
-        //         opts = [{
-        //             text: $P.lang("LANG133"),
-        //             val: "0"
-        //         }];
-        //     }
-        //     for (var i = 1; i <= bchanTotalChans; i++) {
-        //         opts.push({
-        //             val: i
-        //         });
-        //     }
-        //     hardhdlcEle.empty();
-        //     selectbox.appendOpts({
-        //         el: "hardhdlc",
-        //         opts: opts
-        //     }, doc);
-        //     hardhdlcEle.val(oldHardhdlc);
+            let framingOpts = []
+            if (signalling === 'mfcr2') {
+                framingOpts = [{
+                    val: "cas"
+                }]
+            } else {
+                framingOpts = [{
+                    val: "ccs"
+                }]
+            }
 
-        //     opts = [{
-        //         val: "hdb3",
-        //         text: "HDB3"
-        //     }, {
-        //         val: "ami",
-        //         text: "AMI"
-        //     }];
+            let hardhdlcOpts = [],
+                dataTrunkChansArr = this.props.getDataTrunkChansArr(),
+                allChansArr = this.props.getTotalArr(dataTrunkChansArr)
 
-        //     selectbox.appendOpts({
-        //         el: "coding",
-        //         opts: opts
-        //     }, doc);
+            if (((allChansArr.length + 1) === bchanTotalChans) || (allChansArr.length === bchanTotalChans)) {
+                hardhdlcOpts = [{
+                    text: formatMessage({ id: "LANG133" }),
+                    val: "0"
+                }]
+            }
+            for (let i = 1; i <= bchanTotalChans; i++) {
+                hardhdlcOpts.push({
+                    val: i
+                })
+            }
 
-        //     opts = [{
-        //         text: "None",
-        //         val: "none"
-        //     }, {
-        //         val: "crc4",
-        //         text: "CRC4"
-        //     }];
+            let codingOpts = [{
+                    val: "hdb3",
+                    text: "HDB3"
+                }, {
+                    val: "ami",
+                    text: "AMI"
+                }],
 
-        //     selectbox.appendOpts({
-        //         el: "crc",
-        //         opts: opts
-        //     }, doc);
+                crcOpts = [{
+                    text: "None",
+                    val: "none"
+                }, {
+                    val: "crc4",
+                    text: "CRC4"
+                }],
 
-        //     opts = [{
-        //         val: "pri_net",
-        //         text: "PRI_NET"
-        //     }, {
-        //         val: "pri_cpe",
-        //         text: "PRI_CPE"
-        //     }, {
-        //         val: "ss7",
-        //         text: "SS7"
-        //     }, {
-        //         val: "mfcr2",
-        //         text: "MFC/R2"
-        //     }];
+                signallingOpts = [{
+                    val: "pri_net",
+                    text: "PRI_NET"
+                }, {
+                    val: "pri_cpe",
+                    text: "PRI_CPE"
+                }, {
+                    val: "ss7",
+                    text: "SS7"
+                }, {
+                    val: "mfcr2",
+                    text: "MFC/R2"
+                }]
 
-        //     selectbox.appendOpts({
-        //         el: "signalling",
-        //         opts: opts
-        //     }, doc);
+            form.setFieldsValue({
+               hardhdlc: oldHardhdlc,
+               switchtype: "euroisdn"
+            })
 
-        //     $("#switchtype").val("euroisdn");
+            this.setState({
+                framingOpts: framingOpts,
+                hardhdlcOpts: hardhdlcOpts,
+                codingOpts: codingOpts,
+                crcOpts: crcOpts,
+                signallingOpts: signallingOpts,
+                crcDivStyle: "display-block"
+            })
+        } else if (val === "T1" || val === "J1") {
+            bchanTotalChans = 24
 
-        //     $('#crcDiv').css({
-        //         "display": "block"
-        //     });
-        // } else if ($(this).val() == "T1" || $(this).val() == "J1") {
+            let framingOpts = [{
+                val: "esf"
+            }, {
+                val: 'd4'
+            }]
 
-        //     bchanTotalChans = 24;
-        //     var opts = [{
-        //         val: "esf"
-        //     }, {
-        //         val: 'd4'
-        //     }];
+            if (hardhdlcEle.props.children.props.children.length > 25) {
+                let hardhdlcOpts = []
+                let dataTrunkChansArr = this.props.getDataTrunkChansArr(),
+                    allChansArr = this.props.getTotalArr(dataTrunkChansArr)
 
-        //     selectbox.appendOpts({
-        //         el: "framing",
-        //         opts: opts
-        //     }, doc);
+                if ((allChansArr.length + 1) === bchanTotalChans) {
+                    hardhdlcOpts = [{
+                        text: formatMessage({ id: "LANG133" }),
+                        val: "0"
+                    }]
+                }
+                for (let i = 1; i <= bchanTotalChans; i++) {
+                    hardhdlcOpts.push({
+                        val: i
+                    })
+                }
+                this.setState({
+                    hardhdlcOpts: hardhdlcOpts
+                })
+                form.setFieldsValue({
+                   hardhdlc: oldHardhdlc
+                })
+            }
 
-        //     if (hardhdlcEle.children().length > 25) {
-        //         hardhdlcEle.empty();
-        //         opts = [];
-        //         var dataTrunkChansArr = this._getDataTrunkChansArr(),
-        //             allChansArr = this._getTotalArr(dataTrunkChansArr);
-        //         if ((allChansArr.length + 1) == bchanTotalChans) {
-        //             opts = [{
-        //                 text: $P.lang("LANG133"),
-        //                 val: "0"
-        //             }];
-        //         }
-        //         for (var i = 1; i <= bchanTotalChans; i++) {
-        //             opts.push({
-        //                 val: i
-        //             });
-        //         }
-        //         selectbox.appendOpts({
-        //             el: "hardhdlc",
-        //             opts: opts
-        //         }, doc);
-        //         hardhdlcEle.val(oldHardhdlc);
-        //     }
+            let codingOpts = [{
+                val: "b8zs",
+                text: "B8ZS"
+            }, {
+                val: "ami",
+                text: "AMI"
+            }]
 
-        //     opts = [{
-        //         val: "b8zs",
-        //         text: "B8ZS"
-        //     }, {
-        //         val: "ami",
-        //         text: "AMI"
-        //     }];
+            let crcOpts = [{
+                val: "none"
+            }]
 
-        //     selectbox.appendOpts({
-        //         el: "coding",
-        //         opts: opts
-        //     }, doc);
+            let signallingOpts = [{
+                val: "pri_net",
+                text: "PRI_NET"
+            }, {
+                val: "pri_cpe",
+                text: "PRI_CPE"
+            }, {
+                val: "ss7",
+                text: "SS7"
+            }, {
+                val: "em",
+                text: "E&M Immediate"
+            }, {
+                val: "em_w",
+                text: "E&M Wink"
+            }]
 
-        //     opts = [{
-        //         val: "none"
-        //     }];
+            if (val === "J1") {
+                signallingOpts.length = 3
+            }
 
-        //     selectbox.appendOpts({
-        //         el: "crc",
-        //         opts: opts
-        //     }, doc);
+            this.setState({
+                framingOpts: framingOpts,
+                codingOpts: codingOpts,
+                crcOpts: crcOpts,
+                signallingOpts: signallingOpts,
+                crcDivStyle: "hidden"
+            })
 
-        //     opts = [{
-        //         val: "pri_net",
-        //         text: "PRI_NET"
-        //     }, {
-        //         val: "pri_cpe",
-        //         text: "PRI_CPE"
-        //     }, {
-        //         val: "ss7",
-        //         text: "SS7"
-        //     }, {
-        //         val: "em",
-        //         text: "E&M Immediate"
-        //     }, {
-        //         val: "em_w",
-        //         text: "E&M Wink"
-        //     }];
+            form.setFieldsValue({
+                switchtype: "national"
+            })
 
-        //     if ($(this).val() === "J1") {
-        //         opts.length = 3;
-        //     }
+            let hardhdlc = form.getFieldValue("hardhdlc")
 
-        //     selectbox.appendOpts({
-        //         el: "signalling",
-        //         opts: opts
-        //     }, doc);
+            if ((Number(hardhdlc) > 24)) {
+                message.error(formatMessage({ id: "LANG3968" }))
+            }
+        }
+        if (!this.props.isChangeSignallingForDataTrunk()) {
+            message.error(formatMessage({ id: "LANG3978" }, { 0: form.getFieldValue("hardhdlc") }))
+        }
+        if (oldSingnaling) {
+            let isExsit = _.find(this.refs.signallingDiv.props.children.props.children, function(it) {
+                let key = it.key
+                return oldSingnaling === key
+            })
+            if (typeof isExsit !== "undefined") {
+                form.setFieldsValue({
+                    signalling: "pri_net"
+                })
+            } else {
+                form.setFieldsValue({
+                    signalling: oldSingnaling
+                })
+            }
+        }
+        form.setFieldsValue({
+            coding: oldCoding
+        })
 
-        //     $("#switchtype").val("national");
+        if (val === "T1" || val === "J1") {
+            if (oldSingnaling === "mfcr2") {
+                form.setFieldsValue({
+                    signalling: "pri_cpe"
+                })
+            }
 
-        //     $('#crcDiv').hide();
-        //     var hardhdlc = hardhdlcEle.val();
-        //     if (!text && (Number(hardhdlc) > 24)) {
-        //         //top.dialog.clearDialog();
+            if (oldFraming && oldFraming !== 'ccs' && oldFraming !== 'cas') {
+                form.setFieldsValue({
+                    framing: oldFraming
+                })
+            }
+        }
 
-        //         top.dialog.dialogMessage({
-        //             type: 'error',
-        //             content: $P.lang("LANG3968"),
-        //             callback: function() {
-        //                 top.dialog.container.show();
-        //                 top.dialog.shadeDiv.show();
-        //             }
-        //         });
-        //     }
-        // }
-        // if (!text && !isChangeSignallingForDataTrunk()) {
-        //     top.dialog.dialogMessage({
-        //         type: 'error',
-        //         content: $P.lang("LANG3978").format($("#hardhdlc").val()),
-        //         callback: function() {
-        //             top.dialog.container.show();
-        //             top.dialog.shadeDiv.show();
-        //         }
-        //     });
-        // }
-        // if (oldSingnaling) {
-        //     if ($('#signalling').children().filter("[value='" + oldSingnaling + "']").length == 0) {
-        //         $('#signalling').val("pri_net");
-        //     } else {
-        //         $('#signalling').val(oldSingnaling);
-        //     }
-        // }
-        // $('#coding').val(oldCoding);
-        // top.Custom.init(doc, $("#hardhdlc")[0]);
-
-        // if ($(this).val() == "T1" || $(this).val() == "J1") {
-        //     if (oldSingnaling == "mfcr2") {
-        //         $('#signalling').val("pri_cpe");
-        //     }
-        //     //$('#coding').val("b8zs");
-
-        //     if (oldFraming && oldFraming !== 'ccs' && oldFraming !== 'cas') {
-        //         $('#framing').val(oldFraming);
-        //     }
-        // }
-
-        // if ($(this).val() == "E1") {
-        //     if (oldSingnaling == "em" || oldSingnaling == "em_w") {
-        //         $('#signalling').val("pri_cpe");
-        //     }
-        // }
-
-        // $('#signalling').trigger("change", text);
-
-        // top.dialog.currentDialogType = "iframe";
-        // top.dialog.repositionDialog();
-        // if (text == undefined) {
-        //     top.Custom.init(doc);
-        // }
-        // ev.stopPropagation();
-
-        // // trigger("change", "firstLoad");
+        if (val === "E1") {
+            if (oldSingnaling === "em" || oldSingnaling === "em_w") {
+                form.setFieldsValue({
+                    signalling: "pri_cpe"
+                })
+            }
+        }
     }
     _onChangeSs7type = (val) => {
         // if ($(this).val() == "itu") {
@@ -557,11 +525,8 @@ class BasicSettings extends Component {
         //                 return $("#defaultdpc").val() != $("#pointcode").val();
         //             }
         //         ]
-        //     });
-        //     $P("#pointcode, #defaultdpc", document).valid();
+        //     })
         // }
-        // //$P("#pointcode, #defaultdpc", document).valid()
-        // ev.stopPropagation();
     }
     _onChangeMfcr2SkipCategory = (e) => {
         this.setState({
@@ -572,6 +537,11 @@ class BasicSettings extends Component {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
+        let hardhdlcOpts = this.props.hardhdlcOpts
+
+        if (this.state.hardhdlcOpts.length !== 0) {
+            hardhdlcOpts = this.state.hardhdlcOpts
+        }
 
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -643,7 +613,7 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref=""
+                                ref="signallingDiv"
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3108" />}>
@@ -655,12 +625,47 @@ class BasicSettings extends Component {
                                     initialValue: priSettingsInfo.signalling ? priSettingsInfo.signalling : "pri_net"
                                 })(
                                     <Select onChange= { this._onChangeSignalling }>
-                                        <Option value="pri_net">NET</Option>
+                                    {
+                                        this.state.signallingOpts.map(function(it) {
+                                            const text = it.text
+                                            const value = String(it.val)
+
+                                            return <Option key={ value } value={ value }>
+                                                   { text ? text : value }
+                                                </Option>
+                                        })
+                                    }
                                     </Select>
                                 ) }
                             </FormItem>
                         </Col>
                         <Col span={ 12 }>
+                            <FormItem
+                                ref="hardhdlcDiv"
+                                { ...formItemLayout }
+                                label={                            
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG3134" />}>
+                                        <span>{formatMessage({id: "LANG3133"})}</span>
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('hardhdlc', {
+                                    rules: [],
+                                    initialValue: priSettingsInfo.hardhdlc
+                                })(
+                                    <Select>
+                                    {
+                                        hardhdlcOpts.map(function(it) {
+                                            const text = it.text
+                                            const value = String(it.val)
+
+                                            return <Option key={ value } value={ value }>
+                                                   { text ? text : value }
+                                                </Option>
+                                        })
+                                    }
+                                    </Select>
+                                ) }
+                            </FormItem>
                         </Col>
                     </Row>
                     <div ref="ss7Options">
@@ -814,19 +819,20 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
+                                    ref="mfcr2ForcedReleaseDiv"
+                                    className={ this.state.mfcr2ForcedReleaseDivStyle }
                                     { ...formItemLayout }
                                     label={                            
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3293" /> }>
-                                            <span>{ formatMessage({id: "LANG3292"}) }</span>
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG3318" />}>
+                                            <span>{formatMessage({id: "LANG3317"})}</span>
                                         </Tooltip>
                                     }>
-                                    { getFieldDecorator('mfcr2_get_ani_first', {
+                                    { getFieldDecorator('mfcr2_forced_release', {
                                         rules: [],
                                         valuePropName: 'checked',
-                                        initialValue: mfcr2GeAniFirstValue
+                                        initialValue: priSettingsInfo.mfcr2_forced_release === "yes" ? true : false
                                     })(
-                                        <Checkbox onChange= { this._onChangeMfcr2GetAniFirst } disabled={ this.state.mfcr2SkipCategoryChecked } />
+                                        <Checkbox />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -857,20 +863,19 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="mfcr2ForcedReleaseDiv"
-                                    className={ this.state.mfcr2ForcedReleaseDivStyle }
+                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3318" />}>
-                                            <span>{formatMessage({id: "LANG3317"})}</span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3293" /> }>
+                                            <span>{ formatMessage({id: "LANG3292"}) }</span>
                                         </Tooltip>
                                     }>
-                                    { getFieldDecorator('mfcr2_forced_release', {
+                                    { getFieldDecorator('mfcr2_get_ani_first', {
                                         rules: [],
                                         valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mfcr2_forced_release === "yes" ? true : false
+                                        initialValue: mfcr2GeAniFirstValue
                                     })(
-                                        <Checkbox />
+                                        <Checkbox onChange= { this._onChangeMfcr2GetAniFirst } disabled={ this.state.mfcr2SkipCategoryChecked } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -904,6 +909,32 @@ class BasicSettings extends Component {
                             </FormItem>
                         </Col>
                         <Col span={ 12 }>
+                            <FormItem
+                                ref=""
+                                { ...formItemLayout }
+                                label={                            
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG3100" />}>
+                                        <span>{formatMessage({id: "LANG3099"})}</span>
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('coding', {
+                                    rules: [],
+                                    initialValue: priSettingsInfo.coding
+                                })(
+                                    <Select>
+                                    {   
+                                        this.state.codingOpts.map(function(it) {
+                                            const text = it.text
+                                            const value = String(it.val)
+
+                                            return <Option key={ value } value={ value }>
+                                                   { text ? text : value }
+                                                </Option>
+                                        })
+                                    }
+                                    </Select>
+                                ) }
+                            </FormItem>
                         </Col>
                     </Row>
                     <div ref="rtxDiv">
@@ -1114,17 +1145,48 @@ class BasicSettings extends Component {
                                     initialValue: priSettingsInfo.framing
                                 })(
                                     <Select onChange={ this._onChangeFraming }>
-                                    {/*
-                                        <Option value="ccs">ccs</Option>
-                                        <Option value="cas">cas</Option>
-                                        <Option value="esf">esf</Option>
-                                        <Option value="d4">d4</Option>
-                                    */}
+                                    {
+                                        this.state.framingOpts.map(function(it) {
+                                            const text = it.text
+                                            const value = String(it.val)
+
+                                            return <Option key={ value } value={ value }>
+                                                   { text ? text : value }
+                                                </Option>
+                                        })
+                                    }
                                     </Select>
                                 ) }
                             </FormItem>
                         </Col>
                         <Col span={ 12 }>
+                            <FormItem
+                                ref="crcDiv"
+                                className={ this.state.crcDivStyle }
+                                { ...formItemLayout }
+                                label={                            
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG3102" />}>
+                                        <span>{formatMessage({id: "LANG3101"})}</span>
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('crc', {
+                                    rules: [],
+                                    initialValue: priSettingsInfo.crc
+                                })(
+                                    <Select>
+                                    {   
+                                        this.state.crcOpts.map(function(it) {
+                                            const text = it.text
+                                            const value = String(it.val)
+
+                                            return <Option key={ value } value={ value }>
+                                                   { text ? text : value }
+                                                </Option>
+                                        })
+                                    }
+                                    </Select>
+                                ) }
+                            </FormItem>
                         </Col>
                     </Row>   
                 </div>

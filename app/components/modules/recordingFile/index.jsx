@@ -63,7 +63,7 @@ class CdrRecord extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -120,7 +120,7 @@ class CdrRecord extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG905" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG961" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -214,7 +214,7 @@ class CdrRecord extends Component {
                 loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
                 successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
-                message.loading(loadingMessage)
+                message.loading(loadingMessage, 0)
                 $.ajax({
                     url: api.apiHost,
                     method: 'post',
@@ -271,7 +271,7 @@ class CdrRecord extends Component {
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -324,7 +324,7 @@ class CdrRecord extends Component {
                 loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
                 successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG871" })}}></span>
 
-                message.loading(loadingMessage)
+                message.loading(loadingMessage, 0)
                 $.ajax({
                     url: api.apiHost,
                     method: 'post',
@@ -370,7 +370,7 @@ class CdrRecord extends Component {
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -512,20 +512,23 @@ class CdrRecord extends Component {
                             type="primary"
                             size='default'
                             onClick={ this._batchDelete }
-                            disabled={ !this.state.selectedRowKeys.length }>
+                            disabled={ !this.state.selectedRowKeys.length }
+                        >
                             { formatMessage({id: "LANG3488"}) }
                         </Button>
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._deleteAll }>
+                            onClick={ this._deleteAll }
+                        >
                             { formatMessage({id: "LANG3439"}) }
                         </Button>
                         <Button
                             type="primary"
                             size='default'
                             onClick={ this._batchDownload }
-                            disabled={ !this.state.selectedRowKeys.length }>
+                            disabled={ !this.state.selectedRowKeys.length }
+                        >
                             { formatMessage({id: "LANG4761"}, {
                                 0: formatMessage({id: "LANG2640"})
                             }) }
@@ -533,7 +536,8 @@ class CdrRecord extends Component {
                         <Button
                             type="primary"
                             size='default'
-                            onClick={ this._downloadAll }>
+                            onClick={ this._downloadAll }
+                        >
                             { formatMessage({id: "LANG741"}, {
                                 0: formatMessage({id: "LANG2640"})
                             }) }

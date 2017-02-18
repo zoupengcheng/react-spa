@@ -60,44 +60,7 @@ class InboundRoute extends Component {
         // }
     }
     _blacklist = (record) => {
-        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.group_id + '/' + record.group_name)
-    }
-    _delete = (record) => {
-        let loadingMessage = ''
-        let successMessage = ''
-        const { formatMessage } = this.props.intl
-
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
-
-        message.loading(loadingMessage)
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
-            },
-            type: 'json',
-            async: true,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    message.destroy()
-                    message.success(successMessage)
-
-                    this._getInboundRoutes()
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _edit = (record) => {
-        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/extension-trunk/inboundRoute/blacklist')
     }
     _createDestination = (text, record, index) => {
         const __this = this
@@ -243,6 +206,43 @@ class InboundRoute extends Component {
                     }
                 </span>
     }
+    _delete = (record) => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                "action": "deleteExtensionGroup",
+                "extension_group": record.group_id
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
+                    this._getInboundRoutes()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _edit = (record) => {
+        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.group_id + '/' + record.group_name)
+    }
     _getDisplayName = (type, id_key, id_value, display_key) => {
         let display_name = ''
 
@@ -351,6 +351,9 @@ class InboundRoute extends Component {
         // console.log('selectedRow changed: ', selectedRows)
 
         this.setState({ selectedRowKeys })
+    }
+    _settings = (record) => {
+        browserHistory.push('/extension-trunk/inboundRoute/settings')
     }
     _showDestination = (lang, val, type, inbondModeText, index) => {
         let destination = ''
@@ -629,7 +632,7 @@ class InboundRoute extends Component {
                             icon="setting"
                             type="primary"
                             size='default'
-                            onClick={ this._inboundModeSettings }
+                            onClick={ this._settings }
                         >
                             { formatMessage({id: "LANG4543"}) }
                         </Button>

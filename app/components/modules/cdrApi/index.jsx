@@ -254,7 +254,9 @@ class CdrApi extends Component {
         }
 
         getFieldDecorator('keys', { initialValue: keyList })
+
         const keys = getFieldValue('keys')
+
         const formIPItems = keys.map((k, index) => {
             return (
             <FormItem

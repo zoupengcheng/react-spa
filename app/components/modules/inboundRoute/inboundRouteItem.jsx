@@ -23,17 +23,13 @@ class InBoundRouteItem extends Component {
 
         this.state = {
             members: [],
+            otherTC: [],
             treeData: [],
-            pinSetList: [],
+            defaultTC: [],
+            otherTCMode: '',
             accountList: [],
-            pin_sets_id: '',
-            failoverTrunk: [],
-            timeCondition: [],
-            enable_wlist: false,
-            outBoundRouteItem: {},
-            enable_out_limitime: false,
-            permissionTooltipTitle: '',
-            permissionTooltipVisible: false
+            defaultTCMode: '',
+            outBoundRouteItem: {}
         }
     }
     componentWillMount() {
@@ -50,29 +46,51 @@ class InBoundRouteItem extends Component {
             callback()
         }
     }
-    _cancelFailoverTrunk = () => {
+    _addDefaultTC = () => {
+        this.setState({
+            defaultTCMode: 'add'
+        })
+    }
+    _cancelDefaultTC = () => {
+        this.setState({
+            defaultTCMode: ''
+        })
+    }
+    _editDefaultTC = () => {
+        this.setState({
+            defaultTCMode: 'edit'
+        })
+    }
+    _deleteDefaultTC = () => {
 
     }
-    _editFailoverTrunk = () => {
+    _saveDefaultTC = () => {
+        this.setState({
+            defaultTCMode: ''
+        })
+    }
+    _addOtherTC = () => {
+        this.setState({
+            otherTCMode: 'add'
+        })
+    }
+    _cancelOtherTC = () => {
+        this.setState({
+            otherTCMode: ''
+        })
+    }
+    _editOtherTC = () => {
+        this.setState({
+            otherTCMode: 'edit'
+        })
+    }
+    _deleteOtherTC = () => {
 
     }
-    _deleteFailoverTrunk = () => {
-
-    }
-    _saveFailoverTrunk = () => {
-
-    }
-    _cancelTimeCondition = () => {
-
-    }
-    _editTimeCondition = () => {
-
-    }
-    _deleteTimeCondition = () => {
-
-    }
-    _saveTimeCondition = () => {
-
+    _saveOtherTC = () => {
+        this.setState({
+            otherTCMode: ''
+        })
     }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
@@ -339,6 +357,11 @@ class InBoundRouteItem extends Component {
             wrapperCol: { span: 12 }
         }
 
+        const formItemRowLayout = {
+            labelCol: { span: 4 },
+            wrapperCol: { span: 6 }
+        }
+
         const treeSelectProps = {
             multiple: true,
             treeCheckable: true,
@@ -381,7 +404,7 @@ class InBoundRouteItem extends Component {
                 }
             }]
 
-        const timeConditionColumns = [{
+        const defaultTCColumns = [{
                 key: 'timetype',
                 dataIndex: 'timetype',
                 title: formatMessage({id: "LANG1557"})
@@ -397,12 +420,39 @@ class InBoundRouteItem extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
-                                onClick={ this._editTimeCondition.bind(this, record) }
+                                onClick={ this._editDefaultTC.bind(this, record) }
                             >
                             </span>
                             <span
                                 className="sprite sprite-del"
-                                onClick={ this._deleteTimeCondition.bind(this, record) }>
+                                onClick={ this._deleteDefaultTC.bind(this, record) }>
+                            ></span>
+                        </div>
+                }
+            }]
+
+        const otherTCColumns = [{
+                key: 'timetype',
+                dataIndex: 'timetype',
+                title: formatMessage({id: "LANG1557"})
+            }, {
+                key: 'time',
+                dataIndex: 'time',
+                title: formatMessage({id: "LANG247"})
+            }, {
+                key: 'options',
+                dataIndex: 'options',
+                title: formatMessage({id: "LANG74"}),
+                render: (text, record, index) => {
+                    return <div>
+                            <span
+                                className="sprite sprite-edit"
+                                onClick={ this._editOtherTC.bind(this, record) }
+                            >
+                            </span>
+                            <span
+                                className="sprite sprite-del"
+                                onClick={ this._deleteOtherTC.bind(this, record) }>
                             ></span>
                         </div>
                 }
@@ -433,22 +483,28 @@ class InBoundRouteItem extends Component {
                                     { ...formItemLayout }
                                     label={(
                                         <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1534" /> }>
-                                                <span>{ formatMessage({id: "LANG1533"}) }</span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3493" /> }>
+                                                <span>{ formatMessage({id: "LANG83"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('outbound_rt_name', {
+                                    { getFieldDecorator('trunk_index', {
                                         rules: [
                                             {
                                                 required: true,
                                                 message: formatMessage({id: "LANG2150"})
                                             }
                                         ],
-                                        initialValue: settings.outbound_rt_name
+                                        initialValue: settings.trunk_index
                                     })(
-                                        <Input />
+                                        <Select>
+                                            <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
+                                            <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
+                                            <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
+                                            <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
+                                            <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
+                                        </Select>
                                     ) }
                                 </FormItem>
                             </Col>
@@ -463,14 +519,38 @@ class InBoundRouteItem extends Component {
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('match', {
+                                    { getFieldDecorator('did_pattern_match', {
                                         rules: [
                                             {
                                                 required: true,
                                                 message: formatMessage({id: "LANG2150"})
                                             }
                                         ],
-                                        initialValue: settings.match
+                                        initialValue: settings.did_pattern_match
+                                    })(
+                                        <Input placeholder={ formatMessage({id: "LANG5448"}) } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1560" /> }>
+                                                <span>{ formatMessage({id: "LANG2748"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('did_pattern_allow', {
+                                        rules: [
+                                            {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        ],
+                                        initialValue: settings.did_pattern_allow
                                     })(
                                         <Input placeholder={ formatMessage({id: "LANG5448"}) } />
                                     ) }
@@ -501,30 +581,109 @@ class InBoundRouteItem extends Component {
                                     { ...formItemLayout }
                                     label={(
                                         <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4558" /> }>
-                                                <span>{ formatMessage({id: "LANG4553"}) }</span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2749" /> }>
+                                                <span>{ formatMessage({id: "LANG2745"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('pin_sets_id', {
+                                    { getFieldDecorator('prepend_trunk_name', {
                                         rules: [],
-                                        initialValue: this.state.pin_sets_id ? this.state.pin_sets_id : 'none'
+                                        valuePropName: 'checked',
+                                        initialValue: settings.prepend_trunk_name ? (settings.prepend_trunk_name === 'yes') : false
                                     })(
-                                        <Select
-                                            onChange={ this._onChangePinSet }
-                                        >
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5033" /> }>
+                                                <span>{ formatMessage({id: "LANG5032"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    <Col span={ 2 }>
+                                        { getFieldDecorator('prepend_inbound_name_enable', {
+                                            rules: [],
+                                            valuePropName: 'checked',
+                                            initialValue: settings.prepend_inbound_name_enable ? (settings.prepend_inbound_name_enable === 'yes') : false
+                                        })(
+                                            <Checkbox />
+                                        ) }
+                                    </Col>
+                                    <Col span={ 21 } offset={ 1 }>
+                                        { getFieldDecorator('prepend_inbound_name', {
+                                            rules: [
+                                                {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            ],
+                                            initialValue: settings.prepend_inbound_name
+                                        })(
+                                            <Input />
+                                        ) }
+                                    </Col>
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4291" /> }>
+                                                <span>{ formatMessage({id: "LANG4290"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('en_multi_mode', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.en_multi_mode ? (settings.en_multi_mode === 'yes') : false
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3249" /> }>
+                                                <span>{ formatMessage({id: "LANG3248"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('alertinfo', {
+                                        rules: [],
+                                        initialValue: settings.alertinfo
+                                    })(
+                                        <Select>
                                             <Option value='none'>{ formatMessage({id: "LANG133"}) }</Option>
-                                            {
-                                                this.state.pinSetList.map(function(item) {
-                                                    return <Option
-                                                                key={ item.pin_sets_id }
-                                                                value={ item.pin_sets_id }
-                                                            >
-                                                                { item.pin_sets_name }
-                                                            </Option>
-                                                })
-                                            }
+                                            <Option value='ring1'>{ 'Ring 1' }</Option>
+                                            <Option value='ring2'>{ 'Ring 2' }</Option>
+                                            <Option value='ring3'>{ 'Ring 3' }</Option>
+                                            <Option value='ring4'>{ 'Ring 4' }</Option>
+                                            <Option value='ring5'>{ 'Ring 5' }</Option>
+                                            <Option value='ring6'>{ 'Ring 6' }</Option>
+                                            <Option value='ring7'>{ 'Ring 7' }</Option>
+                                            <Option value='ring8'>{ 'Ring 8' }</Option>
+                                            <Option value='ring9'>{ 'Ring 9' }</Option>
+                                            <Option value='ring10'>{ 'Ring 10' }</Option>
+                                            <Option value="Bellcore-dr1">{ 'Bellcore-dr1' }</Option>
+                                            <Option value="Bellcore-dr2">{ 'Bellcore-dr2' }</Option>
+                                            <Option value="Bellcore-dr3">{ 'Bellcore-dr3' }</Option>
+                                            <Option value="Bellcore-dr4">{ 'Bellcore-dr4' }</Option>
+                                            <Option value="Bellcore-dr5">{ 'Bellcore-dr5' }</Option>
+                                            <Option value="custom">{ formatMessage({id: "LANG231"}) }</Option>
                                         </Select>
                                     ) }
                                 </FormItem>
@@ -534,17 +693,17 @@ class InBoundRouteItem extends Component {
                                     { ...formItemLayout }
                                     label={(
                                         <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1540" /> }>
-                                                <span>{ formatMessage({id: "LANG73"}) }</span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3250" /> }>
+                                                <span>{ formatMessage({id: "LANG3250"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('password', {
+                                    { getFieldDecorator('custom_alert_info', {
                                         rules: [],
-                                        initialValue: settings.password
+                                        initialValue: settings.custom_alert_info
                                     })(
-                                        <Input disabled={ !!this.state.pin_sets_id } />
+                                        <Input />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -553,93 +712,8 @@ class InBoundRouteItem extends Component {
                                     { ...formItemLayout }
                                     label={(
                                         <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1544" /> }>
-                                                <span>{ formatMessage({id: "LANG1543"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    <Tooltip
-                                        placement="bottomRight"
-                                        trigger={ ['hover'] }
-                                        overlayClassName="numeric-input"
-                                        title={ this.state.permissionTooltipTitle }
-                                        visible={ !this.state.pin_sets_id && !this.state.enable_wlist && this.state.permissionTooltipVisible }
-                                    >
-                                        { getFieldDecorator('permission', {
-                                            rules: [],
-                                            initialValue: settings.permission ? settings.permission : 'local'
-                                        })(
-                                            <Select
-                                                onChange={ this._onChangePermission }
-                                                disabled={ !!this.state.pin_sets_id || this.state.enable_wlist }
-                                            >
-                                                <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
-                                                <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
-                                                <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
-                                                <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
-                                                <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
-                                            </Select>
-                                        ) }
-                                    </Tooltip>
-                                </FormItem>
-                            </Col>
-                            <Col span={ 24 }>
-                                <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG2699"}) }</span>
-                                </div>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2700" /> }>
-                                                <span>{ formatMessage({id: "LANG2699"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('enable_wlist', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: this.state.enable_wlist
-                                    })(
-                                        <Checkbox
-                                            onChange={ this._onChangeWlist }
-                                            disabled={ !!this.state.pin_sets_id }
-                                        />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    className={ this.state.enable_wlist ? 'display-block' : 'hidden' }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4472" /> }>
-                                                <span>{ formatMessage({id: "LANG2703"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('custom_member', {
-                                        rules: [],
-                                        initialValue: settings.custom_member
-                                    })(
-                                        <Input disabled={ !!this.state.pin_sets_id } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    className={ this.state.enable_wlist ? 'display-block' : 'hidden' }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2701" /> }>
-                                                <span>{ formatMessage({id: "LANG2701"}) }</span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5305" /> }>
+                                                <span>{ formatMessage({id: "LANG5295"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
@@ -649,281 +723,16 @@ class InBoundRouteItem extends Component {
                             </Col>
                             <Col span={ 24 }>
                                 <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG3025"}) }</span>
-                                </div>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3026" /> }>
-                                                <span>{ formatMessage({id: "LANG3025"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('enable_out_limitime', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: this.state.enable_out_limitime
-                                    })(
-                                        <Checkbox onChange={ this._onChangeLimitime } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col
-                                span={ 12 }
-                                className={ this.state.enable_out_limitime ? 'display-block' : 'hidden' }
-                            >
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3018" /> }>
-                                                <span>{ formatMessage({id: "LANG3017"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('maximumTime', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
-                                        initialValue: settings.maximumTime
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col
-                                span={ 12 }
-                                className={ this.state.enable_out_limitime ? 'display-block' : 'hidden' }
-                            >
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3020" /> }>
-                                                <span>{ formatMessage({id: "LANG3019"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('warningTime', {
-                                        rules: [],
-                                        initialValue: settings.warningTime
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col
-                                span={ 12 }
-                                className={ this.state.enable_out_limitime ? 'display-block' : 'hidden' }
-                            >
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3022" /> }>
-                                                <span>{ formatMessage({id: "LANG3021"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('repeatTime', {
-                                        rules: [],
-                                        initialValue: settings.repeatTime
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 24 }>
-                                <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG1553"}) }</span>
-                                </div>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1552" /> }>
-                                                <span>{ formatMessage({id: "LANG1551"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('default_trunk_index', {
-                                        rules: [],
-                                        initialValue: settings.default_trunk_index
-                                    })(
-                                        <Select>
-                                            <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
-                                            <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
-                                            <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
-                                            <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
-                                            <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1548" /> }>
-                                                <span>{ formatMessage({id: "LANG245"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('stripx', {
-                                        rules: [],
-                                        initialValue: settings.stripx
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1542" /> }>
-                                                <span>{ formatMessage({id: "LANG1541"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('prepend', {
-                                        rules: [],
-                                        initialValue: settings.prepend
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 24 }>
-                                <div className="section-title">
-                                    <Tooltip title={ <FormattedHTMLMessage id="LANG1550" /> }>
-                                        <span>{ formatMessage({id: "LANG1549"}) }</span>
-                                    </Tooltip>
-                                </div>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1550" /> }>
-                                                <span>{ formatMessage({id: "LANG1536"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('failover_trunk', {
-                                        rules: [],
-                                        initialValue: settings.failover_trunk
-                                    })(
-                                        <Select>
-                                            <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
-                                            <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
-                                            <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
-                                            <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
-                                            <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1548" /> }>
-                                                <span>{ formatMessage({id: "LANG245"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('failover_stripx', {
-                                        rules: [],
-                                        initialValue: settings.failover_stripx
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1542" /> }>
-                                                <span>{ formatMessage({id: "LANG1541"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('failover_prepend', {
-                                        rules: [],
-                                        initialValue: settings.failover_prepend
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 24 } style={{ 'padding': '10px 0' }}>
-                                <Button
-                                    icon="plus"
-                                    type="primary"
-                                    size='small'
-                                    onClick={ this._saveFailoverTrunk }
-                                >
-                                    { formatMessage({id: "LANG769"}) }
-                                </Button>
-                                <Button
-                                    icon="solution"
-                                    type="primary"
-                                    size='small'
-                                    onClick={ this._cancelFailoverTrunk }
-                                >
-                                    { formatMessage({id: "LANG726"}) }
-                                </Button>
-                            </Col>
-                            <Col span={ 24 }>
-                                <Table
-                                    pagination={ false }
-                                    rowKey="failover_trunk_index"
-                                    columns={ failoverTrunkColumns }
-                                    dataSource={ this.state.failoverTrunk }
-                                />
-                            </Col>
-                            <Col span={ 24 }>
-                                <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG1557"}) }</span>
+                                    <span>{ formatMessage({id: "LANG4288"}) }</span>
                                 </div>
                             </Col>
                             <Col span={ 24 }>
-                                <div className="function-description">
-                                    <span>{ formatMessage({id: "LANG1532"}) }</span>
-                                </div>
-                            </Col>
-                            <Col span={ 12 }>
                                 <FormItem
-                                    { ...formItemLayout }
+                                    { ...formItemRowLayout }
                                     label={(
                                         <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1557" /> }>
-                                                <span>{ formatMessage({id: "LANG1557"}) }</span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2389" /> }>
+                                                <span>{ formatMessage({id: "LANG1558"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
@@ -943,20 +752,63 @@ class InBoundRouteItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 24 } style={{ 'padding': '10px 0' }}>
+                            <div
+                                className={ this.state.defaultTCMode ? 'display-block' : 'hidden' }
+                            >
+                                <Col span={ 24 }>
+                                    <div className="function-description">
+                                        <span>{ formatMessage({id: "LANG1532"}) }</span>
+                                    </div>
+                                </Col>
+                                <Col span={ 12 }>
+                                    <FormItem
+                                        { ...formItemLayout }
+                                        label={(
+                                            <span>
+                                                <Tooltip title={ <FormattedHTMLMessage id="LANG1557" /> }>
+                                                    <span>{ formatMessage({id: "LANG1557"}) }</span>
+                                                </Tooltip>
+                                            </span>
+                                        )}
+                                    >
+                                        { getFieldDecorator('office', {
+                                            rules: [],
+                                            initialValue: settings.office ? settings.office : '1'
+                                        })(
+                                            <Select>
+                                                <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
+                                                <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
+                                                <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
+                                                <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
+                                                <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
+                                                <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                            </Select>
+                                        ) }
+                                    </FormItem>
+                                </Col>
+                            </div>
+                            <Col span={ 24 } style={{ 'padding': '0 0 10px 0' }}>
                                 <Button
                                     icon="plus"
                                     type="primary"
-                                    size='small'
-                                    onClick={ this._saveTimeCondition }
+                                    onClick={ this._addDefaultTC }
+                                    className={ !this.state.defaultTCMode ? 'display-inline' : 'hidden' }
                                 >
                                     { formatMessage({id: "LANG769"}) }
                                 </Button>
                                 <Button
-                                    icon="solution"
+                                    icon="check"
                                     type="primary"
-                                    size='small'
-                                    onClick={ this._cancelTimeCondition }
+                                    onClick={ this._saveDefaultTC }
+                                    className={ this.state.defaultTCMode ? 'display-inline' : 'hidden' }
+                                >
+                                    { formatMessage({id: "LANG728"}) }
+                                </Button>
+                                <Button
+                                    icon="cross"
+                                    type="primary"
+                                    onClick={ this._cancelDefaultTC }
+                                    className={ this.state.defaultTCMode ? 'display-inline' : 'hidden' }
                                 >
                                     { formatMessage({id: "LANG726"}) }
                                 </Button>
@@ -965,8 +817,108 @@ class InBoundRouteItem extends Component {
                                 <Table
                                     rowKey="sequence"
                                     pagination={ false }
-                                    columns={ timeConditionColumns }
-                                    dataSource={ this.state.timeCondition }
+                                    columns={ defaultTCColumns }
+                                    dataSource={ this.state.defaultTC }
+                                />
+                            </Col>
+                            <Col span={ 24 }>
+                                <div className="section-title">
+                                    <span>{ formatMessage({id: "LANG4289"}, {0: '1'}) }</span>
+                                </div>
+                            </Col>
+                            <Col span={ 24 }>
+                                <FormItem
+                                    { ...formItemRowLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2389" /> }>
+                                                <span>{ formatMessage({id: "LANG1558"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('office', {
+                                        rules: [],
+                                        initialValue: settings.office ? settings.office : '1'
+                                    })(
+                                        <Select>
+                                            <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
+                                            <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
+                                            <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
+                                            <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
+                                            <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
+                                            <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <div
+                                className={ this.state.otherTCMode ? 'display-block' : 'hidden' }
+                            >
+                                <Col span={ 24 }>
+                                    <div className="function-description">
+                                        <span>{ formatMessage({id: "LANG1532"}) }</span>
+                                    </div>
+                                </Col>
+                                <Col span={ 12 }>
+                                    <FormItem
+                                        { ...formItemLayout }
+                                        label={(
+                                            <span>
+                                                <Tooltip title={ <FormattedHTMLMessage id="LANG1557" /> }>
+                                                    <span>{ formatMessage({id: "LANG1557"}) }</span>
+                                                </Tooltip>
+                                            </span>
+                                        )}
+                                    >
+                                        { getFieldDecorator('office', {
+                                            rules: [],
+                                            initialValue: settings.office ? settings.office : '1'
+                                        })(
+                                            <Select>
+                                                <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
+                                                <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
+                                                <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
+                                                <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
+                                                <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
+                                                <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                            </Select>
+                                        ) }
+                                    </FormItem>
+                                </Col>
+                            </div>
+                            <Col span={ 24 } style={{ 'padding': '0 0 10px 0' }}>
+                                <Button
+                                    icon="plus"
+                                    type="primary"
+                                    onClick={ this._addOtherTC }
+                                    className={ !this.state.otherTCMode ? 'display-inline' : 'hidden' }
+                                >
+                                    { formatMessage({id: "LANG769"}) }
+                                </Button>
+                                <Button
+                                    icon="check"
+                                    type="primary"
+                                    onClick={ this._saveOtherTC }
+                                    className={ this.state.otherTCMode ? 'display-inline' : 'hidden' }
+                                >
+                                    { formatMessage({id: "LANG728"}) }
+                                </Button>
+                                <Button
+                                    icon="cross"
+                                    type="primary"
+                                    onClick={ this._cancelOtherTC }
+                                    className={ this.state.otherTCMode ? 'display-inline' : 'hidden' }
+                                >
+                                    { formatMessage({id: "LANG726"}) }
+                                </Button>
+                            </Col>
+                            <Col span={ 24 }>
+                                <Table
+                                    rowKey="sequence"
+                                    pagination={ false }
+                                    columns={ otherTCColumns }
+                                    dataSource={ this.state.otherTC }
                                 />
                             </Col>
                         </Row>

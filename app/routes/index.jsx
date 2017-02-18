@@ -38,6 +38,8 @@ import OutboundRouteItem from '../components/modules/outboundRoute/outboundRoute
 import OutboundBlackList from '../components/modules/outboundRoute/outboundBlackList'
 import InboundRoute from '../components/modules/inboundRoute/index'
 import InboundRouteItem from '../components/modules/inboundRoute/inboundRouteItem'
+import InboundBlackList from '../components/modules/inboundRoute/inboundBlackList'
+import InboundSettings from '../components/modules/inboundRoute/inboundSettings'
 
 // Call Features
 import Conference from '../components/modules/conference/index'
@@ -92,6 +94,8 @@ import NetworkSettings from '../components/modules/networkSettings/index'
 import OpenVPN from '../components/modules/openVPN/index'
 import DDNSSettings from '../components/modules/ddnsSettings/index'
 import SecuritySettings from '../components/modules/securitySettings/index'
+import Security from '../components/modules/securitySettings/security'
+import SecurityItem from '../components/modules/securitySettings/rules'
 import LDAPServer from '../components/modules/ldapServer/index'
 import TimeSettings from '../components/modules/timeSettings/index'
 import OfficeTime from '../components/modules/timeSettings/officetime'
@@ -269,6 +273,8 @@ const routes = (state, currentLocaleData) => {
                     <Route path="inboundRoute" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG15"] }>
                         <IndexRoute component={ InboundRoute } />
                         <Route path="add" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="settings" onEnter={ requireAuth } component={ InboundSettings } breadcrumbName={ currentLocaleData["LANG4543"] } />
+                        <Route path="blacklist" onEnter={ requireAuth } component={ InboundBlackList } breadcrumbName={ currentLocaleData["LANG2278"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                 </Route>
@@ -367,7 +373,15 @@ const routes = (state, currentLocaleData) => {
                     <Route path="networkSettings" onEnter={ requireAuth } component={ NetworkSettings } breadcrumbName={ currentLocaleData["LANG48"] } />
                     <Route path="openVPN" onEnter={ requireAuth } component={ OpenVPN } breadcrumbName={ currentLocaleData["LANG3990"] } />
                     <Route path="ddnsSettings" onEnter={ requireAuth } component={ DDNSSettings } breadcrumbName={ currentLocaleData["LANG4040"] } />
-                    <Route path="securitySettings" onEnter={ requireAuth } component={ SecuritySettings } breadcrumbName={ currentLocaleData["LANG5301"] } />
+                    <Route path="securitySettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG718"] }>
+                        <IndexRoute component={ SecuritySettings } />
+                        <Route path=":id" onEnter={ requireAuth } component={ SecuritySettings } breadcrumbName={ currentLocaleData["LANG4855"] } />
+                    </Route>
+                    <Route path="security" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ Security } />
+                        <Route path="add" onEnter={ requireAuth } component={ SecurityItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ SecurityItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="ldapServer" onEnter={ requireAuth } component={ LDAPServer } breadcrumbName={ currentLocaleData["LANG56"] } />
                     <Route path="timeSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG718"] }>
                         <IndexRoute component={ TimeSettings } />

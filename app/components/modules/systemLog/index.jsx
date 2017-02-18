@@ -8,50 +8,32 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Button, message, Modal, Table, Card, Select, Form, Tooltip, Input, InputNumber, Checkbox } from 'antd'
+import { Button, message, Modal, Table, Card, Select, Form, Tooltip, Input, InputNumber, Checkbox, BackTop, Col } from 'antd'
 
 const confirm = Modal.confirm
 const Option = Select.Option
 const FormItem = Form.Item
+const CheckboxGroup = Checkbox.Group
+const Search = Input.Search
 
 class SystemLog extends Component {
     constructor(props) {
         super(props)
         this.state = {
             staticSwitch: [],
+            staticSwitchAll: [],
             dynamicSwitch: [],
+            dynamicSwitchList: [],
             logServer: {},
             logSwitch: {},
-            logSwitchList: [{
-                id: 0,
-                module_name: 'all',
-                enable: '0'
-            }, {
-                id: 1,
-                module_name: 'cdrapi',
-                enable: '0'
-            }, {
-                id: 2,
-                module_name: 'pbxmid',
-                enable: '0'
-            }, {
-                id: 3,
-                module_name: 'apply_python',
-                enable: '0'
-            }, {
-                id: 4,
-                module_name: 'cgi',
-                enable: '0'
-            }, {
-                id: 5,
-                module_name: 'warning',
-                enable: '0'
-            }, {
-                id: 6,
-                module_name: 'zeroconfig',
-                enable: '0'
-            }],
-            selectedRowKeys: []
+            plainOptions: [],
+            plainOptions_dynamic: [],
+            logSwitchList: [],
+            switchAll: false,
+            dynamicAll: false,
+            selectedRowKeys: [],
+            searchText: '',
+            filterDropdownVisible: false
         }
     }
     componentDidMount() {
@@ -59,27 +41,43 @@ class SystemLog extends Component {
     }
     _onChangeLevel = (record, level, e) => {
         let staticSwitch = this.state.staticSwitch
+        let staticSwitchAll = this.state.staticSwitchAll
 
         if (record.id === 0) {
             if (level === 'ERROR') {
                 staticSwitch.map(function(item, index) {
                     staticSwitch[index].ERROR = e.target.checked ? '1' : '0'
                 })
+                staticSwitchAll.map(function(item, index) {
+                    staticSwitchAll[index].ERROR = e.target.checked ? '1' : '0'
+                })
             } else if (level === 'WARN') {
                 staticSwitch.map(function(item, index) {
                     staticSwitch[index].WARN = e.target.checked ? '1' : '0'
+                })
+                staticSwitchAll.map(function(item, index) {
+                    staticSwitchAll[index].WARN = e.target.checked ? '1' : '0'
                 })
             } else if (level === 'NOTIC') {
                 staticSwitch.map(function(item, index) {
                     staticSwitch[index].NOTIC = e.target.checked ? '1' : '0'
                 })
+                staticSwitchAll.map(function(item, index) {
+                    staticSwitchAll[index].NOTIC = e.target.checked ? '1' : '0'
+                })
             } else if (level === 'DEBUG') {
                 staticSwitch.map(function(item, index) {
                     staticSwitch[index].DEBUG = e.target.checked ? '1' : '0'
                 })
+                staticSwitchAll.map(function(item, index) {
+                    staticSwitchAll[index].DEBUG = e.target.checked ? '1' : '0'
+                })
             } else if (level === 'VERB') {
                 staticSwitch.map(function(item, index) {
                     staticSwitch[index].VERB = e.target.checked ? '1' : '0'
+                })
+                staticSwitchAll.map(function(item, index) {
+                    staticSwitchAll[index].VERB = e.target.checked ? '1' : '0'
                 })
             }
         } else {
@@ -89,10 +87,20 @@ class SystemLog extends Component {
                         staticSwitch[index].ERROR = e.target.checked ? '1' : '0'
                     }
                 })
+                staticSwitchAll.map(function(item, index) {
+                    if (item.id === record.id) {
+                        staticSwitchAll[index].ERROR = e.target.checked ? '1' : '0'
+                    }
+                })
             } else if (level === 'WARN') {
                 staticSwitch.map(function(item, index) {
                     if (item.id === record.id) {
                         staticSwitch[index].WARN = e.target.checked ? '1' : '0'
+                    }
+                })
+                staticSwitchAll.map(function(item, index) {
+                    if (item.id === record.id) {
+                        staticSwitchAll[index].WARN = e.target.checked ? '1' : '0'
                     }
                 })
             } else if (level === 'NOTIC') {
@@ -101,16 +109,31 @@ class SystemLog extends Component {
                         staticSwitch[index].NOTIC = e.target.checked ? '1' : '0'
                     }
                 })
+                staticSwitchAll.map(function(item, index) {
+                    if (item.id === record.id) {
+                        staticSwitchAll[index].NOTIC = e.target.checked ? '1' : '0'
+                    }
+                })
             } else if (level === 'DEBUG') {
                 staticSwitch.map(function(item, index) {
                     if (item.id === record.id) {
                         staticSwitch[index].DEBUG = e.target.checked ? '1' : '0'
                     }
                 })
+                staticSwitchAll.map(function(item, index) {
+                    if (item.id === record.id) {
+                        staticSwitchAll[index].DEBUG = e.target.checked ? '1' : '0'
+                    }
+                })
             } else if (level === 'VERB') {
                 staticSwitch.map(function(item, index) {
                     if (item.id === record.id) {
                         staticSwitch[index].VERB = e.target.checked ? '1' : '0'
+                    }
+                })
+                staticSwitchAll.map(function(item, index) {
+                    if (item.id === record.id) {
+                        staticSwitchAll[index].VERB = e.target.checked ? '1' : '0'
                     }
                 })
             } else if (level === 'ALL') {
@@ -121,6 +144,15 @@ class SystemLog extends Component {
                         staticSwitch[index].NOTIC = e.target.checked ? '1' : '0'
                         staticSwitch[index].DEBUG = e.target.checked ? '1' : '0'
                         staticSwitch[index].VERB = e.target.checked ? '1' : '0'
+                    }
+                })
+                staticSwitchAll.map(function(item, index) {
+                    if (item.id === record.id) {
+                        staticSwitchAll[index].ERROR = e.target.checked ? '1' : '0'
+                        staticSwitchAll[index].WARN = e.target.checked ? '1' : '0'
+                        staticSwitchAll[index].NOTIC = e.target.checked ? '1' : '0'
+                        staticSwitchAll[index].DEBUG = e.target.checked ? '1' : '0'
+                        staticSwitchAll[index].VERB = e.target.checked ? '1' : '0'
                     }
                 })
             }
@@ -145,19 +177,6 @@ class SystemLog extends Component {
         }
         this.setState({
             dynamicSwitch: dynamicSwitch
-        })
-    }
-    _onChangeProcess = (record, e) => {
-        let logSwitchList = this.state.logSwitchList
-        if (record.id === 0) {
-            logSwitchList.map(function(item, index) {
-                logSwitchList[index].enable = e.target.checked ? '1' : '0'
-            })
-        } else {
-            logSwitchList[record.id].enable = e.target.checked ? '1' : '0'
-        }
-        this.setState({
-            logSwitchList: logSwitchList
         })
     }
     _createID = (text, record, index) => {
@@ -274,37 +293,6 @@ class SystemLog extends Component {
             <Checkbox checked={ isChecked } onChange={ this._onChangeDynamic.bind(this, record) } />
         </div>
     }
-    _createProcessName = (text, record, index) => {
-        const { formatMessage } = this.props.intl
-        const processName = [<span>{ formatMessage({id: "LANG4160"}) }</span>,
-            <span>{ formatMessage({id: "LANG5142"}) }</span>,
-            <span>{ formatMessage({id: "LANG5143"}) }</span>,
-            <span>{ formatMessage({id: "LANG5144"}) }</span>,
-            <span>{ formatMessage({id: "LANG5145"}) }</span>,
-            <span>{ formatMessage({id: "LANG2581"}) }</span>,
-            <span>{ formatMessage({id: "LANG5189"}) }</span>
-        ]
-        const cellvalue = processName[index]
-        return <div>
-            { cellvalue }
-        </div>
-    }
-    _createProcessSwitch = (text, record, index) => {
-        const logSwitchList = this.state.logSwitchList
-        let isChecked = true
-        if (record.id === 0) {
-            logSwitchList.map(function(item) {
-                if (item.enable === '0' && item.id !== 0) {
-                    isChecked = false
-                }
-            })
-        } else {
-            isChecked = record.enable === '1'
-        }
-        return <div>
-            <Checkbox checked={ isChecked } onChange={ this._onChangeProcess.bind(this, record) } />
-        </div>
-    }
     _download = (fileName) => {
         window.open("/cgi?action=downloadFile&type=syslog")
     }
@@ -342,9 +330,44 @@ class SystemLog extends Component {
         const { formatMessage } = this.props.intl
         let logServer = this.state.logServer
         let dynamicSwitch = this.state.dynamicSwitch
+        let dynamicSwitchList = this.state.dynamicSwitchList
         let staticSwitch = this.state.staticSwitch
         let logSwitch = this.state.logSwitch
         let logSwitchList = this.state.logSwitchList
+        let switchAll = this.state.switchAll
+        let dynamicAll = this.state.dynamicAll
+        const plainOptions = [{
+                label: formatMessage({id: "LANG5142"}),
+                value: 'cdrapi'
+            }, {
+                label: formatMessage({id: "LANG5143"}),
+                value: 'pbxmid'
+            }, {
+                label: formatMessage({id: "LANG5144"}),
+                value: 'apply_python'
+            }, {
+                label: formatMessage({id: "LANG5145"}),
+                value: 'cgi'
+            }, {
+                label: formatMessage({id: "LANG2581"}),
+                value: 'warning'
+            }, {
+                label: formatMessage({id: "LANG5189"}),
+                value: 'zeroconfig'
+            }]
+        const plainOptions_dynamic = [{
+                label: 'DTMF',
+                value: 'DTMF'
+            }, {
+                label: 'CC',
+                value: 'CC'
+            }, {
+                label: 'FAX',
+                value: 'FAX'
+            }, {
+                label: 'SECURITY',
+                value: 'SECURITY'
+            }]
 
         $.ajax({
             url: api.apiHost + 'action=getSyslogValue&syslog-server&syslogbk_interval&syslogbk_enabled',
@@ -389,7 +412,13 @@ class SystemLog extends Component {
                             id: item.id,
                             switch: item.switch
                         })
+                        if (item.switch === '1') {
+                            dynamicSwitchList.push(item.dlevel)
+                        }
                     })
+                    if (dynamicSwitchList.length === 4) {
+                        dynamicAll = true
+                    }
                 }
             }.bind(this),
             error: function(e) {
@@ -452,24 +481,46 @@ class SystemLog extends Component {
                 if (bool) {
                     const response = res.response || {}
                     logSwitch = response || {}
-                    logSwitchList[1].enable = logSwitch.cdrapi
-                    logSwitchList[2].enable = logSwitch.pbxmid
-                    logSwitchList[3].enable = logSwitch.apply_python
-                    logSwitchList[4].enable = logSwitch.cgi
-                    logSwitchList[5].enable = logSwitch.warning
-                    logSwitchList[6].enable = logSwitch.zeroconfig
+                    if (logSwitch.cdrapi === '1') {
+                        logSwitchList.push('cdrapi')
+                    }
+                    if (logSwitch.pbxmid === '1') {
+                        logSwitchList.push('pbxmid')
+                    }
+                    if (logSwitch.apply_python === '1') {
+                        logSwitchList.push('apply_python')
+                    }
+                    if (logSwitch.cgi === '1') {
+                        logSwitchList.push('cgi')
+                    }
+                    if (logSwitch.warning === '1') {
+                        logSwitchList.push('warning')
+                    }
+                    if (logSwitch.zeroconfig === '1') {
+                        logSwitchList.push('zeroconfig')
+                    }
+                    if (logSwitchList.length === 6) {
+                        switchAll = true
+                    }
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
         })
+        const staticSwitchAll = _.clone(staticSwitch)
         this.setState({
             logServer: logServer,
             dynamicSwitch: dynamicSwitch,
+            dynamicSwitchList: dynamicSwitchList,
             staticSwitch: staticSwitch,
             logSwitch: logSwitch,
-            logSwitchList: logSwitchList
+            logSwitchList: logSwitchList,
+            plainOptions: plainOptions,
+            plainOptions_dynamic: plainOptions_dynamic,
+            switchAll: switchAll,
+            staticSwitchAll: staticSwitchAll,
+            dynamicAll: dynamicAll
         })
     }
     _onChangeSyslogbk = (e) => {
@@ -484,13 +535,49 @@ class SystemLog extends Component {
             logServer: logServer
         })
     }
+    _onChangeSwitch = (checkedList) => {
+        const plainOptions = this.state.plainOptions
+        this.setState({
+            logSwitchList: checkedList,
+            switchAll: checkedList.length === plainOptions.length
+        })
+    }
+    _onChangeSwitchAll = (e) => {
+        const plainOptions = this.state.plainOptions
+        let checkedList = []
+        plainOptions.map(function(item) {
+            checkedList.push(item.value)
+        })
+        this.setState({
+            logSwitchList: e.target.checked ? checkedList : [],
+            switchAll: e.target.checked
+        })
+    }
+    _onChangeDynamic = (checkedList) => {
+        const plainOptions = this.state.plainOptions_dynamic
+        this.setState({
+            dynamicSwitchList: checkedList,
+            dynamicAll: checkedList.length === plainOptions.length
+        })
+    }
+    _onChangeDynamicAll = (e) => {
+        const plainOptions = this.state.plainOptions_dynamic
+        let checkedList = []
+        plainOptions.map(function(item) {
+            checkedList.push(item.value)
+        })
+        this.setState({
+            dynamicSwitchList: e.target.checked ? checkedList : [],
+            dynamicAll: e.target.checked
+        })
+    }
     _handleCancel = () => {
         browserHistory.push('/maintenance/systemEvent/1')
     }
     _handleSubmit = () => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
-        const staticSwitch = this.state.staticSwitch
+        const staticSwitchAll = this.state.staticSwitchAll
         const dynamicSwitch = this.state.dynamicSwitch
         const logSwitchList = this.state.logSwitchList
         const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
@@ -518,7 +605,7 @@ class SystemLog extends Component {
                 action_static.VERB = ''
                 action_static.DEBUG = ''
                 let static_data = []
-                staticSwitch.map(function(item) {
+                staticSwitchAll.map(function(item) {
                     if (item.id !== 0) {
                         let itemData = []
                         itemData.push(item.id)
@@ -539,13 +626,18 @@ class SystemLog extends Component {
                 action_dynamic.action = 'updateLogSwitchDynamic'
                 action_dynamic.switch = ''
                 let dynamic_data = []
-                dynamicSwitch.map(function(item) {
-                    if (item.id !== 0) {
-                        let itemData = []
-                        itemData.push(item.id)
-                        itemData.push(parseInt(item.switch))
-                        dynamic_data.push(itemData)
+                let plainOptions_dynamic = this.state.plainOptions_dynamic
+                let dynamicSwitchList = this.state.dynamicSwitchList
+                plainOptions_dynamic.map(function(item, index) {
+                    let itemData = []
+                    if (($.inArray(item.value, dynamicSwitchList) > -1)) {
+                        itemData.push(index + 1)
+                        itemData.push(1)
+                    } else {
+                        itemData.push(index + 1)
+                        itemData.push(0)
                     }
+                    dynamic_data.push(itemData)
                 })
                 action_dynamic.log_switch_dynamic = JSON.stringify({
                             "SCHEMA": ["id", "switch"],
@@ -554,12 +646,15 @@ class SystemLog extends Component {
                         })
 
                 action_logswitch.action = 'setLogSwitch'
-                action_logswitch.cdrapi = logSwitchList[1].enable
-                action_logswitch.pbxmid = logSwitchList[2].enable
-                action_logswitch.apply_python = logSwitchList[3].enable
-                action_logswitch.cgi = logSwitchList[4].enable
-                action_logswitch.warning = logSwitchList[5].enable
-                action_logswitch.zeroconfig = logSwitchList[6].enable
+                action_logswitch.cdrapi = '0'
+                action_logswitch.pbxmid = '0'
+                action_logswitch.apply_python = '0'
+                action_logswitch.cgi = '0'
+                action_logswitch.warning = '0'
+                action_logswitch.zeroconfig = '0'
+                logSwitchList.map(function(item) {
+                    action_logswitch[item] = '1'
+                })
 
                 if (ret) {
                     $.ajax({
@@ -667,6 +762,36 @@ class SystemLog extends Component {
             }
         })
     }
+    _onInputChange = (e) => {
+        this.setState({
+            searchText: e.target.value
+        })
+    }
+    _onSearch = () => {
+        const { searchText } = this.state
+        const reg = new RegExp(searchText, 'gi')
+        let staticSwitch = this.state.staticSwitch
+        let staticSwitchAll = this.state.staticSwitchAll
+        this.setState({
+            filterDropdownVisible: false,
+            staticSwitch: staticSwitchAll.map((record) => {
+                const match = record.module_name.match(reg)
+                if (!match) {
+                  return null
+                }
+            return {
+                ...record,
+                module_name: (
+                    <span>
+                        {record.module_name.split(reg).map((text, i) => (
+                            i > 0 ? [<span className="highlight">{match[0]}</span>, text] : text
+                        ))}
+                    </span>
+                )
+            }
+          }).filter(record => !!record)
+        })
+    }
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -690,23 +815,6 @@ class SystemLog extends Component {
                     this._createDynamicSwitch(text, record, index)
                 )
             }]
-        const colums_process = [{
-                key: 'module_name',
-                dataIndex: 'dlevel',
-                title: formatMessage({id: "LANG5141"}),
-                width: 150,
-                render: (text, record, index) => (
-                    this._createProcessName(text, record, index)
-                )
-            }, {
-                key: 'enable',
-                dataIndex: 'switch',
-                title: formatMessage({id: "LANG4162"}),
-                width: 150,
-                render: (text, record, index) => (
-                    this._createProcessSwitch(text, record, index)
-                )
-            }]
         const columns = [{
                 key: 'id',
                 dataIndex: 'id',
@@ -719,6 +827,19 @@ class SystemLog extends Component {
                 key: 'module_name',
                 dataIndex: 'module_name',
                 title: formatMessage({id: "LANG4159"}),
+                filterDropdown: (
+                    <div className="custom-filter-dropdown">
+                        <Input
+                            placeholder={ formatMessage({id: "LANG803"}) + formatMessage({id: "LANG4159"}) }
+                            value={ this.state.searchText }
+                            onChange={ this._onInputChange }
+                            onPressEnter={ this._onSearch }
+                        />
+                        <Button type="primary" onClick={ this._onSearch }>{ formatMessage({id: "LANG803"}) }</Button>
+                    </div>
+                ),
+                filterDropdownVisible: this.state.filterDropdownVisible,
+                onFilterDropdownVisibleChange: visible => this.setState({ filterDropdownVisible: visible }),
                 width: 150
             }, {
                 key: 'ERROR',
@@ -777,6 +898,10 @@ class SystemLog extends Component {
                 onChange: this._onSelectChange,
                 selectedRowKeys: this.state.selectedRowKeys
             }
+        const checkedList = this.state.logSwitchList
+        const plainOptions = this.state.plainOptions
+        const checkedList_dynamic = this.state.dynamicSwitchList 
+        const plainOptions_dynamic = this.state.plainOptions_dynamic
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -791,6 +916,22 @@ class SystemLog extends Component {
                     onCancel={ this._handleCancel } 
                     isDisplay= "display-block"
                 />
+                <div className="content">
+                    <div className="section-title">
+                        <p><span>
+                                { formatMessage({id: "LANG67" })}
+                            </span>
+                        </p>
+                    </div>
+                    <div className="top-button">
+                        <Button type="primary" icon="download" size='default' onClick={ this._download }>
+                            { formatMessage({id: "LANG759" }, { 0: formatMessage({id: "LANG4146"})}) }
+                        </Button>
+                        <Button type="primary" icon="clear" size='default' onClick={ this._clean }>
+                            { formatMessage({id: "LANG743"}) }
+                        </Button>
+                    </div>
+                </div>
                 <Form id="systemLog-form">
                     <FormItem
                         { ...formItemLayout }
@@ -843,53 +984,46 @@ class SystemLog extends Component {
                     </FormItem>
                 </Form>
                 <div className="content">
-                    <div className="section-title">
-                        <p><span>
-                                { formatMessage({id: "LANG67" })}
-                            </span>
-                        </p>
-                    </div>
                     <div className="top-button">
-                        <Button type="primary" icon="download" size='default' onClick={ this._download }>
-                            { formatMessage({id: "LANG759" }, { 0: formatMessage({id: "LANG4146"})}) }
-                        </Button>
-                        <Button type="primary" icon="clear" size='default' onClick={ this._clean }>
-                            { formatMessage({id: "LANG743"}) }
-                        </Button>
+                        <Card title={ formatMessage({id: "LANG5141" })} >
+                            <Col span={ 1 }>
+                                 <Checkbox checked={ this.state.switchAll } onChange={ this._onChangeSwitchAll } />
+                            </Col>
+                            <Col span={ 2 }>{formatMessage({id: "LANG4160"})}</Col>
+                            <CheckboxGroup options={ plainOptions } value={ checkedList } onChange={ this._onChangeSwitch } />
+                        </Card>
                     </div>
-                </div>
-                <div className="content">
                     <div className="top-button">
                         <Card title={ formatMessage({id: "LANG662" })}>
+                            <div className="content">
+                                <Search
+                                    placeholder={ formatMessage({id: "LANG803"}) + formatMessage({id: "LANG4159"}) }
+                                    value={ this.state.searchText }
+                                    onChange={ this._onInputChange }
+                                    onPressEnter={ this._onSearch }
+                                    onSearch={ this._onSearch }
+                                />
+                            </div>
                             <Table
                                 rowKey="id"
                                 columns={ columns }
                                 pagination={ pagination }
                                 dataSource={ this.state.staticSwitch }
                                 showHeader={ !!this.state.staticSwitch.length }
-                                scroll={{ y: 240 }}
                             />
-                            <Table
-                                style={{ width: '50%' }}
-                                rowKey="id"
-                                columns={ columns_dynamic }
-                                pagination={ false }
-                                dataSource={ this.state.dynamicSwitch }
-                                showHeader={ !!this.state.dynamicSwitch.length }
-                            />
+                            <div className="section-title">
+                                <span>{ formatMessage({id: "LANG4161"}) }</span>
+                            </div>
+                            <Col span={ 1 }>
+                                 <Checkbox checked={ this.state.dynamicAll } onChange={ this._onChangeDynamicAll } />
+                            </Col>
+                            <Col span={ 2 }>{formatMessage({id: "LANG4160"})}</Col>
+                            <CheckboxGroup options={ plainOptions_dynamic } value={ checkedList_dynamic } onChange={ this._onChangeDynamic } />
                         </Card>
                     </div>
-                    <div className="top-button">
-                        <Card title={ formatMessage({id: "LANG5141" })} style={{ width: '50%' }}>
-                            <Table
-                                rowKey="id"
-                                columns={ colums_process }
-                                pagination={ false }
-                                dataSource={ this.state.logSwitchList }
-                                showHeader={ !!this.state.logSwitchList.length }
-                            />
-                        </Card>
-                    </div>
+                </div>
+                <div>
+                    <BackTop />
                 </div>
             </div>
         )

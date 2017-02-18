@@ -52,9 +52,6 @@ class AdvanceSettings extends Component {
             customOptions: !this.state.customOptions
         })
     }
-    _onChangeHardhdlc = () => {
-        // $P("#hardhdlc", document).valid();
-    }
     _onChangeMfcr2DoubleAnswer = (e) => {
         if (e.target.checked) {
             this.setState({ 
@@ -72,6 +69,8 @@ class AdvanceSettings extends Component {
         })
     }
     _resetAdvanceDefault = () => {
+        const form = this.props.form
+
         let oAdvanceDefault = {
             "itu": {
                 "mf_ga_tones__request_next_dnis_digit": "1",
@@ -557,39 +556,9 @@ class AdvanceSettings extends Component {
                 "timers__dtmf_start_dial": "500",
                 "mf_threshold": "0"
             }
-        }
-
-        let sAraeVal = ""
-
-        $("#otherR2AdvancedContent select, #otherR2AdvancedContent input").filter(":visible").each(function() {
-            $(this).val(oAdvanceDefault[$("#mfcr2_variant").val()][this.id])
-        })
-        $(".mcr2_default").removeClass("mcr2_default")
-
-        // $('#otherAdvanced_btn').bind("click", function(ev) {
-        //     if ($("#signalling").val() === "mfcr2" && $(".prioptions").is(":visible")) {
-        //         $("#otherR2AdvancedContent div[tooltip]").filter(":visible").each(function() {
-        //             let oItem = $(this).siblings(".field-content").find("select")[0] || $(this).siblings(".field-content").find("input")[0]
-        //             sAraeVal = $("#mfcr2_variant").val()
-        //             let nDefault = oAdvanceDefault[sAraeVal][oItem.id]
-        //             $(this).attr("tooltip", nDefault)
-        //             if (oItem.value != nDefault) {
-        //                 $(this).addClass("mcr2_default")
-        //             } else {
-        //                 $(this).removeClass("mcr2_default")
-        //             }
-        //         })
-        //     }
-        // })
-
-        // $("#otherR2AdvancedContent input, #otherR2AdvancedContent select").on('change', function() {
-        //     let nDefault = oAdvanceDefault[sAraeVal][this.id]
-        //     if (this.value != nDefault) {
-        //         $(this).closest(".field-content").siblings(".field-label").addClass("mcr2_default")
-        //     } else {
-        //         $(this).closest(".field-content").siblings(".field-label").removeClass("mcr2_default")
-        //     }
-        // })
+        },
+        mfcr2VariantVal = form.getFieldValue("mfcr2_variant")
+        form.setFieldsValue(oAdvanceDefault[mfcr2VariantVal])
     }
     render() {
         const form = this.props.form
@@ -645,27 +614,6 @@ class AdvanceSettings extends Component {
                             </FormItem>
                         </Col>
                         <Col span={ 12 }>
-                            <FormItem
-                                ref=""
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3100" />}>
-                                        <span>{formatMessage({id: "LANG3099"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('coding', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.coding
-                                })(
-                                    <Select>
-                                    {/*
-                                        <Option value="hdb3">hdb3</Option>
-                                        <Option value="b8zs">b8zs</Option>
-                                        <Option value="ami">ami</Option> 
-                                    */}
-                                    </Select>
-                                ) }
-                            </FormItem>
                         </Col>
                     </Row>
                     <Row>
@@ -706,27 +654,7 @@ class AdvanceSettings extends Component {
                     </Row>
                     <Row>
                         <Col span={ 12 }>
-                            <FormItem
-                                ref="crcDiv"
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3102" />}>
-                                        <span>{formatMessage({id: "LANG3101"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('crc', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.crc
-                                })(
-                                    <Select>
-                                    {/*
-                                        <Option value="none">none</Option>
-                                        <Option value="crc4">crc4</Option>
-                                        <Option value="crc6">crc6</Option>
-                                    */}
-                                    </Select>
-                                ) }
-                            </FormItem>
+
                         </Col>
                         <Col span={ 12 }>
                         </Col>
@@ -837,32 +765,6 @@ class AdvanceSettings extends Component {
                     </div>
                     <Row>
                         <Col span={ 12 }>
-                             <FormItem
-                                ref="hardhdlcDiv"
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3134" />}>
-                                        <span>{formatMessage({id: "LANG3133"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('hardhdlc', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.hardhdlc ? priSettingsInfo.hardhdlc : this.props.hardhdlcOpts[0].val
-                                })(
-                                    <Select onClick={ this._onChangeHardhdlc }>
-                                    {
-                                        this.props.hardhdlcOpts.map(function(it) {
-                                            const text = it.text
-                                            const value = String(it.val)
-
-                                            return <Option key={ value } value={ value }>
-                                                   { text ? text : value }
-                                                </Option>
-                                        })
-                                    }
-                                    </Select>
-                                ) }
-                            </FormItem>
                         </Col>
                         <Col span={ 12 }>
                         </Col>

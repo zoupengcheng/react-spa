@@ -2,12 +2,14 @@
 
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Form, Icon, Table, Button, message, Modal } from 'antd'
+import { Form, Icon, Table, Button, message, Modal, Popconfirm } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import _ from 'underscore'
+
+const confirm = Modal.confirm
 
 class CDRList extends Component {
     constructor(props) {
@@ -200,8 +202,17 @@ class CDRList extends Component {
         })
     }
     _deleteRecord = (value, index) => {
-        var file = value, 
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        let file = value, 
             type
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+
+        message.loading(loadingMessage, 0)
 
         if (file.indexOf("auto-") > -1) {
             type = 'voice_recording'
@@ -224,11 +235,16 @@ class CDRList extends Component {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+
                     let recordFiles = this.state.recordFiles
                     recordFiles.splice(index, 1)
                     this.setState({
                         recordFiles: recordFiles
                     })
+
+                    this.props.getCdrData()
                 }
             }.bind(this)
         })
@@ -330,11 +346,14 @@ class CDRList extends Component {
                                                     onClick={ this._downloadRecord.bind(this, value) }
                                                 >
                                                 </span>
-                                                <span
-                                                    className="sprite sprite-del"
-                                                    onClick={ this._deleteRecord.bind(this, value, index) }
+                                                <Popconfirm
+                                                    title={ formatMessage({id: "LANG841"}) }
+                                                    okText={ formatMessage({id: "LANG727"}) }
+                                                    cancelText={ formatMessage({id: "LANG726"}) }
+                                                    onConfirm={ this._deleteRecord.bind(this, value, index) }
                                                 >
-                                                </span>
+                                                    <span className="sprite sprite-del"></span>
+                                                </Popconfirm>
                                             </div>
                                        </div>
                             }.bind(this))
