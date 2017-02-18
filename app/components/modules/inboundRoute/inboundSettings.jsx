@@ -5,6 +5,7 @@ import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
@@ -54,14 +55,14 @@ class InboundBlackList extends Component {
             callback()
         }
     }
-    _checkPattern = (rule, value, callback) => {
+    _checkNumberExists = (rule, value, callback) => {
         let val = $.trim(value)
         const { formatMessage } = this.props.intl
 
-        if (!val || (val && (/^[0-9a-zA-Z!\-\.\?\+\*\#]+[0-9]+$/.test(val) || !/\//.test(val)))) {
-            callback()
+        if (val && this.state.numberListWithoutFCodes.indexOf(val) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
         } else {
-            callback(formatMessage({id: "LANG2994"}))
+            callback()
         }
     }
     _getInitData = () => {
@@ -291,12 +292,16 @@ class InboundBlackList extends Component {
                                 )}
                             >
                                 { getFieldDecorator('fcode_inbound_mode_zero', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.numeric_pound_star(data, value, callback, formatMessage)
                                         }
-                                    ],
+                                    }, {
+                                        validator: this._checkNumberExists
+                                    }],
                                     initialValue: settings.fcode_inbound_mode_zero ? settings.fcode_inbound_mode_zero : '*61'
                                 })(
                                     <Input disabled={ !this.state.enableMultiMode } />
@@ -313,12 +318,16 @@ class InboundBlackList extends Component {
                                 )}
                             >
                                 { getFieldDecorator('fcode_inbound_mode_one', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.numeric_pound_star(data, value, callback, formatMessage)
                                         }
-                                    ],
+                                    }, {
+                                        validator: this._checkNumberExists
+                                    }],
                                     initialValue: settings.fcode_inbound_mode_one ? settings.fcode_inbound_mode_one : '*62'
                                 })(
                                     <Input disabled={ !this.state.enableMultiMode } />
