@@ -30,37 +30,56 @@ class InboundBlackList extends Component {
     componentDidMount() {
         this._getInitData()
     }
-    _checkExist = (rule, value, callback) => {
-        let exist
-        let val = $.trim(value)
-        const { formatMessage } = this.props.intl
+    _checkConfictWithOtherFCodes = (value, exceptId) => {
+        let featureCodes = this.state.featureCodes
 
-        exist = _.find(this.state.customBlacklist, function(data) {
-            return data.blacklist === val
-        })
-
-        if (val && exist) {
-            callback(formatMessage({id: "LANG5342"}))
-        } else {
-            callback()
+        for (let key in featureCodes) {
+            if ((key.indexOf('enable_') === -1) && (key !== exceptId) && (featureCodes[key] === value)) {
+                return true
+            }
         }
+
+        return false
     }
-    _checkFormat = (rule, value, callback) => {
+    _checkFeatureCode = (rule, value, callback) => {
+        let conflict = false
         let val = $.trim(value)
         const { formatMessage } = this.props.intl
 
-        if (val && /[^a-zA-Z0-9\#\*\.!\-\+\/]/.test(val)) {
-            callback(formatMessage({id: "LANG5343"}))
+        conflict = this._checkConfictWithOtherFCodes(val, rule.field)
+
+        if (val === this.state.featureSettings.parkext) {
+            conflict = true
+        }
+
+        if (val && conflict) {
+            callback(formatMessage({id: "LANG2209"}))
         } else {
             callback()
         }
     }
     _checkNumberExists = (rule, value, callback) => {
         let val = $.trim(value)
+        let numberListWithoutFCodes = this.state.numberListWithoutFCodes
+
         const { formatMessage } = this.props.intl
 
-        if (val && this.state.numberListWithoutFCodes.indexOf(val) > -1) {
+        if (val && numberListWithoutFCodes.length && numberListWithoutFCodes.indexOf(val) > -1) {
             callback(formatMessage({id: "LANG2126"}))
+        } else {
+            callback()
+        }
+    }
+    _checkPrefix = (rule, value, callback) => {
+        let val = $.trim(value)
+        let pickup = this.state.featureCodes.fcode_pickup
+
+        const { formatMessage } = this.props.intl
+
+        val = val.substring(0, pickup.length)
+
+        if (val && (val === pickup)) {
+            callback(formatMessage({id: "LANG5205"}))
         } else {
             callback()
         }
@@ -206,10 +225,22 @@ class InboundBlackList extends Component {
             }
         })
     }
-    _onChange = (e) => {
+    _onChangeEnable = (e) => {
         this.setState({
             enableMultiMode: e.target.checked
         })
+    }
+    _onChangeField = (e) => {
+        const form = this.props.form
+        let featureCodes = this.state.featureCodes
+
+        featureCodes[e.target.id] = e.target.value
+
+        this.setState({
+            featureCodes: featureCodes
+        })
+
+        form.validateFields(['fcode_inbound_mode_zero', 'fcode_inbound_mode_one'], { force: true })
     }
     render() {
         const form = this.props.form
@@ -258,7 +289,7 @@ class InboundBlackList extends Component {
                                     valuePropName: 'checked',
                                     initialValue: this.state.enableMultiMode
                                 })(
-                                    <Checkbox onChange={ this._onChange } />
+                                    <Checkbox onChange={ this._onChangeEnable } />
                                 ) }
                             </FormItem>
                             <FormItem
@@ -301,10 +332,17 @@ class InboundBlackList extends Component {
                                         }
                                     }, {
                                         validator: this._checkNumberExists
+                                    }, {
+                                        validator: this._checkFeatureCode
+                                    }, {
+                                        validator: this._checkPrefix
                                     }],
                                     initialValue: settings.fcode_inbound_mode_zero ? settings.fcode_inbound_mode_zero : '*61'
                                 })(
-                                    <Input disabled={ !this.state.enableMultiMode } />
+                                    <Input
+                                        onChange={ this._onChangeField }
+                                        disabled={ !this.state.enableMultiMode }
+                                    />
                                 ) }
                             </FormItem>
                             <FormItem
@@ -327,10 +365,17 @@ class InboundBlackList extends Component {
                                         }
                                     }, {
                                         validator: this._checkNumberExists
+                                    }, {
+                                        validator: this._checkFeatureCode
+                                    }, {
+                                        validator: this._checkPrefix
                                     }],
                                     initialValue: settings.fcode_inbound_mode_one ? settings.fcode_inbound_mode_one : '*62'
                                 })(
-                                    <Input disabled={ !this.state.enableMultiMode } />
+                                    <Input
+                                        onChange={ this._onChangeField }
+                                        disabled={ !this.state.enableMultiMode }
+                                    />
                                 ) }
                             </FormItem>
                         </Row>

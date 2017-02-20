@@ -44,8 +44,8 @@ class DynamicDefense extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteFax",
-                "fax": record.extension
+                "action": "delFail2banList",
+                "param": record.bandType + ',' + record.ip
             },
             type: 'json',
             async: true,
@@ -69,7 +69,7 @@ class DynamicDefense extends Component {
         const { formatMessage } = this.props.intl
         let fail2ban = this.state.fail2ban
         let fail2ban_enable = this.state.fail2ban_enable
-        let fail2banlist = this.state.fail2banlist
+        let fail2banlist = []
         let ignoreip_list = this.state.ignoreip_list
 
         $.ajax({
@@ -118,7 +118,20 @@ class DynamicDefense extends Component {
 
                 if (bool) {
                     const response = res.response || {}
-                    fail2banlist = response.fail2banlist || []
+                    const tmp_fail2banlist = response.fail2banlist || []
+                    tmp_fail2banlist.map(function(item) {
+                        for (let tmp in item) {
+                            if (item.hasOwnProperty(tmp)) {
+                                let ips = item[tmp]
+                                ips.map(function(ip_item) {
+                                    fail2banlist.push({
+                                        bandType: tmp,
+                                        ip: ip_item
+                                    })
+                                })
+                            }
+                        }
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -200,10 +213,10 @@ class DynamicDefense extends Component {
                 title: formatMessage({id: "LANG4813"}),
                 sorter: (a, b) => a.bandType.length - b.bandType.length
             }, {
-                key: 'blacklist',
-                dataIndex: 'blacklist',
+                key: 'ip',
+                dataIndex: 'ip',
                 title: formatMessage({id: "LANG2293"}),
-                sorter: (a, b) => a.blacklist.length - b.blacklist.length
+                sorter: (a, b) => a.ip.length - b.ip.length
             }, {
                 key: 'options',
                 dataIndex: 'options',

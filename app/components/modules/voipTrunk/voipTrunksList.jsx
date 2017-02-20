@@ -13,26 +13,69 @@ class VoipTrunksList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            voipTrunk: []
+            voipTrunk: [],
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
         this._listVoipTrunk()
     }
-    _listVoipTrunk = () => {
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+
+        this._listVoipTrunk({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field,
+            sord: sorter.order === "ascend" ? "asc" : "desc",
+            ...filters
+        })
+    }
+    _listVoipTrunk = (
+        params = {                
+            item_num: 10,
+            sidx: "trunk_name",
+            sord: "asc",
+            page: 1 
+        }) => {
+        this.setState({ loading: true })
+
         $.ajax({
             url: api.apiHost,
             method: 'post',
-            data: { 
+            data: {
                 action: 'listVoIPTrunk',
-                options: "trunk_index,trunk_name,host,trunk_type,username,technology,ldap_sync_enable,trunks.out_of_service"
+                options: "trunk_index,trunk_name,host,trunk_type,username,technology,ldap_sync_enable",
+                ...params
             },
             type: 'json',
             async: true,
             success: function(res) {
                 let voipTrunk = res.response.voip_trunk
+                const pagination = this.state.pagination
+                // Read total count from server
+                pagination.total = res.response.total_item
+
                 this.setState({
-                    voipTrunk: voipTrunk
+                    loading: false,
+                    voipTrunk: voipTrunk,
+                    pagination
                 })
             }.bind(this),
             error: function(e) {
@@ -260,23 +303,24 @@ class VoipTrunksList extends Component {
         const columns = [
             {
                 title: formatMessage({id: "LANG1382"}),
-                dataIndex: 'trunk_name'
-            }, {
-                title: formatMessage({id: "LANG273"}),
-                dataIndex: 'out_of_service',
-                sorter: (a, b) => a.age - b.age
+                dataIndex: 'trunk_name',
+                sorter: true
             }, {
                 title: formatMessage({id: "LANG623"}),
-                dataIndex: 'technology'
+                dataIndex: 'technology',
+                sorter: true
             }, {
                 title: formatMessage({id: "LANG84"}),
-                dataIndex: 'trunk_type'
+                dataIndex: 'trunk_type',
+                sorter: true
             }, {
                 title: formatMessage({id: "LANG1395"}),
-                dataIndex: 'host'
+                dataIndex: 'host',
+                sorter: true
             }, {
                 title: formatMessage({id: "LANG72"}),
-                dataIndex: 'username'
+                dataIndex: 'username',
+                sorter: true
             }, { 
                 title: formatMessage({id: "LANG74"}), 
                 dataIndex: '', 
@@ -315,25 +359,26 @@ class VoipTrunksList extends Component {
                 disabled: record.name === 'Disabled User'    // Column configuration not to be checked
             })
         }
-        const pagination = {
-            total: this.state.voipTrunk.length,
-            showSizeChanger: true,
-            onShowSizeChange(current, pageSize) {
-                console.log('Current: ', current, '; PageSize: ', pageSize)
-            },
-            onChange(current) {
-                console.log('Current: ', current)
-            }
-        }
+        // const pagination = {
+        //     total: this.state.voipTrunk.length,
+        //     showSizeChanger: true,
+        //     onShowSizeChange(current, pageSize) {
+        //         console.log('Current: ', current, '; PageSize: ', pageSize)
+        //     },
+        //     onChange(current) {
+        //         console.log('Current: ', current)
+        //     }
+        // }
 
         return (
             <div className="content">
                 <div className="top-button">
                     {/* <Dropdown overlay={menu}>
-                        <a className="ant-dropdown-link" href="#">
-                        Create Voip Trunk<Icon type="down" />
-                        </a>
-                    </Dropdown> */}
+                            <a className="ant-dropdown-link" href="#">
+                            Create Voip Trunk<Icon type="down" />
+                            </a>
+                        </Dropdown> 
+                    */}
                     <Button icon="plus" type="primary" size="default" onClick={ this._createSipVoipTrunk }>
                         { formatMessage({id: "LANG2908"}) }
                     </Button>
@@ -341,10 +386,19 @@ class VoipTrunksList extends Component {
                         { formatMessage({id: "LANG2909"}) }
                     </Button>
                     {/* <Button type="primary" icon="" onClick={this._deleteVoipTrunk} >
-                        {formatMessage({id: "LANG739"})}
-                    </Button> */}
+                            {formatMessage({id: "LANG739"})}
+                        </Button> 
+                    */}
                 </div>
-                <Table rowSelection={false} columns={columns} dataSource={this.state.voipTrunk} pagination={pagination} />
+                <Table
+                    rowSelection={ false } 
+                    columns={ columns }
+                    rowKey={ record => record.trunk_index }
+                    dataSource={ this.state.voipTrunk }
+                    pagination={ this.state.pagination }
+                    loading={ this.state.loading}
+                    onChange={ this._handleTableChange }
+                />
             </div>
         )
     }

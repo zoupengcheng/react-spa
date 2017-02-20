@@ -471,9 +471,9 @@ class InBoundRouteItem extends Component {
             <div className="app-content-main">
                 <Title
                     headerTitle={ title }
+                    isDisplay='display-block'
                     onSubmit={ this._handleSubmit }
                     onCancel={ this._handleCancel }
-                    isDisplay='display-block'
                 />
                 <div className="content">
                     <Form>

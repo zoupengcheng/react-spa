@@ -24,7 +24,6 @@ class AdvanceSettings extends Component {
     componentWillMount() {
     }
     componentDidMount() {
-        // this._getOpenPort()
         this.props.getRefs(this.refs)
     }
     _onChangeFaxmode = (val) => {

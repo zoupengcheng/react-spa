@@ -248,10 +248,10 @@ class DigitalHardwareItem extends Component {
         }
 
         _.map(action, function(item, index) {
-            if (action[item] === true) {
-                action[item] = "yes"
-            } else if (action[item] === false) {
-                action[item] = "no"
+            if (action[index] === true) {
+                action[index] = "yes"
+            } else if (action[index] === false) {
+                action[index] = "no"
             }
         })
 
@@ -367,10 +367,10 @@ class DigitalHardwareItem extends Component {
         const { formatMessage } = this.props.intl
 
         _.map(digitalHardwareSettingsAction, function(item, index) {
-            if (digitalHardwareSettingsAction[item] === true) {
-                digitalHardwareSettingsAction[item] = "yes"
-            } else if (digitalHardwareSettingsAction[item] === false) {
-                digitalHardwareSettingsAction[item] = "no"
+            if (digitalHardwareSettingsAction[index] === true) {
+                digitalHardwareSettingsAction[index] = "yes"
+            } else if (digitalHardwareSettingsAction[index] === false) {
+                digitalHardwareSettingsAction[index] = "no"
             }
         })
         $.ajax({
@@ -460,10 +460,10 @@ class DigitalHardwareItem extends Component {
         }
 
         _.map(actions, function(item, index) {
-            if (actions[item] === true) {
-                actions[item] = "yes"
-            } else if (action[item] === false) {
-                actions[item] = "no"
+            if (actions[index] === true) {
+                actions[index] = "yes"
+            } else if (action[index] === false) {
+                actions[index] = "no"
             }
         })
 
@@ -586,9 +586,9 @@ class DigitalHardwareItem extends Component {
             if (priSettingsIndex.span === Number(this.props.params.span)) {
                 priSettingsInfo = priSettingsIndex
 
-                form.setFieldsValue({
-                   span_type: priSettingsInfo.span_type
-                })
+                // form.setFieldsValue({
+                //    span_type: priSettingsInfo.span_type
+                // })
 
                 global.originSpanType = priSettingsInfo.span_type
                 global.oldDigitalGroupName = priSettingsInfo.digital_group_name
@@ -825,6 +825,9 @@ class DigitalHardwareItem extends Component {
             refs: _.extend(this.state.refs, refs)
         })
     }
+    _getSonState = (state) => {
+        this.setState(state)
+    }
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
@@ -864,6 +867,9 @@ class DigitalHardwareItem extends Component {
                                 getDataTrunkChansArr ={ this._getDataTrunkChansArr }
                                 getTotalArr={ this._getTotalArr }
                                 hardhdlcOpts={ this.state.hardhdlcOpts }
+                                getTotalChans = { this._getTotalChans }
+                                getSonState = { this._getSonState }
+                                parentState= { this.state }
                             />
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG542"})} key="2">
@@ -871,6 +877,8 @@ class DigitalHardwareItem extends Component {
                                 form={ this.props.form }
                                 priSettingsInfo={ this.state.priSettingsInfo }
                                 getRefs={ this._getRefs.bind(this) }
+                                getSonState = { this._getSonState }
+                                parentState= { this.state }
                             />
                         </TabPane>
                     </Tabs>

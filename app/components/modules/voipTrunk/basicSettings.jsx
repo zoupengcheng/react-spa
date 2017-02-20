@@ -40,32 +40,6 @@ class BasicSettings extends Component {
             keepcid: e.target.checked
         })  
     }
-    _checkLdapPrefix = (rule, value, callback) => {
-        // var default_ob = $('#ldap_outrt_prefix').val();
-
-        // if (default_ob && default_ob == 'custom' && value == "") {
-        //     return "prefix is required.";
-        // }
-
-        // return true;
-    }
-    _checkOpenPort(rule, value, callback) {
-        // var ele;
-
-        // if (val === loadValue) {
-        //     return true;
-        // }
-
-        // for (var i = 0; i < openPort.length; i++) {
-        //     ele = openPort[i];
-
-        //     if (val == ele) {
-        //         return "LANG3869";
-        //     }
-        // }
-
-        // return true;
-    }
     _transData = (res, cb) => {
         let arr = []
 
@@ -209,9 +183,6 @@ class BasicSettings extends Component {
                              <Option value="udp">{formatMessage({id: "LANG1401"})}</Option>
                              <Option value="tcp">{formatMessage({id: "LANG1402"})}</Option>
                              <Option value="tls">{formatMessage({id: "LANG1403"})}</Option>
-                             {/* <Option value="udp,tcp,tls" locale="LANG1404">All - UDP Primary</Option>
-                             <Option value="tcp,udp,tls" locale="LANG1405">All - TCP Primary</Option>
-                             <Option value="tls,udp,tcp" locale="LANG1406">All - TLS Primary</Option> */}
                          </Select>
                     ) }
                 </FormItem>

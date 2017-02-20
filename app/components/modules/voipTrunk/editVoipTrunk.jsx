@@ -45,6 +45,8 @@ class EditVoipTrunk extends Component {
         // this._getNameList()
         this._getOpenPort()
     }
+    componentWillUnmount() {
+    }
     // _tectFax = () => {
     //     var accountList = UCMGUI.isExist.getList("listAccount").account,
     //         faxList = UCMGUI.isExist.getList("listFax").fax,
@@ -187,9 +189,6 @@ class EditVoipTrunk extends Component {
                 }
             }.bind(this)
         })
-    }
-    componentWillUnmount() {
-
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl

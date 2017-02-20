@@ -18,15 +18,9 @@ class VoipTrunk extends Component {
     componentWillUnmount() {
 
     }
-    onChange(activeKey) {
-        if (activeKey === "1") {
-
-        } else {            
-            
-        }
-    }
     render() {
         const {formatMessage} = this.props.intl
+        
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         document.title = formatMessage({
             id: "LANG584"
@@ -34,6 +28,7 @@ class VoipTrunk extends Component {
             0: model_info.model_name, 
             1: formatMessage({id: "LANG641"})
         })
+
         return (
             <div className="app-content-main" id="app-content-main">
                 <Title 

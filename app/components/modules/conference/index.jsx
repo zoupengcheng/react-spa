@@ -20,15 +20,7 @@ class Conference extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            activeTabKey: '1'
         }
-    }
-    componentWillMount() {
-    }
-    componentDidMount() {
-    }
-    _onTabsChange = (activeTabKey) => {
-        this.setState({ activeTabKey })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -42,7 +34,7 @@ class Conference extends Component {
         return (
             <div className="app-content-main">
                 <Title headerTitle={ formatMessage({id: "LANG18"}) } isDisplay='hidden' />
-                <Tabs activeKey={ this.state.activeTabKey } onChange={ this._onTabsChange }>
+                <Tabs>
                     <TabPane tab={ formatMessage({id: "LANG18"}) } key="1">
                         <Room />
                     </TabPane>

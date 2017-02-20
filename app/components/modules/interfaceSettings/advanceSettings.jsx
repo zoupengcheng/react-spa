@@ -20,7 +20,7 @@ class AdvanceSettings extends Component {
 
         this.state = {
             customOptions: false,
-            mfcr2DoubleSnswerTimeoutDivStyle: "hidden",
+            div_mfcr2DoubleSnswerTimeout_style: "hidden",
             advancedSettingsChecked: false 
         }
     }
@@ -36,11 +36,11 @@ class AdvanceSettings extends Component {
 
         if (form.getFieldValue("mfcr2_double_answer")) {
             this.setState({ 
-                mfcr2DoubleSnswerTimeoutDivStyle: "display-block"
+                div_mfcr2DoubleSnswerTimeout_style: "display-block"
             })
         } else {
             this.setState({ 
-                mfcr2DoubleSnswerTimeoutDivStyle: "hidden"
+                div_mfcr2DoubleSnswerTimeout_style: "hidden"
             })
             form.setFieldsValue({
                mfcr2_double_answer_timeout: "-1"
@@ -55,11 +55,11 @@ class AdvanceSettings extends Component {
     _onChangeMfcr2DoubleAnswer = (e) => {
         if (e.target.checked) {
             this.setState({ 
-                mfcr2DoubleSnswerTimeoutDivStyle: "display-block"
+                div_mfcr2DoubleSnswerTimeout_style: "display-block"
             })
         } else {
             this.setState({ 
-                mfcr2DoubleSnswerTimeoutDivStyle: "hidden"
+                div_mfcr2DoubleSnswerTimeout_style: "hidden"
             })
         }      
     }
@@ -570,17 +570,19 @@ class AdvanceSettings extends Component {
             wrapperCol: { span: 6 }
         }
         let priSettingsInfo = this.props.priSettingsInfo,
-            customOptionsStyle = "hidden"
+            parentState = this.props.parentState,
+            customOptions_style = "hidden"
 
         if (this.state.customOptions) {
-            customOptionsStyle = "display-block"
+            customOptions_style = "display-block"
         }
 
         return (
             <div className="content">
                 <div className="top-button">
                     <Button 
-                        ref="otherAdvanced_btn" 
+                        ref="otherAdvanced_btn"
+                        className={ parentState.otherAdvanced_btn_style } 
                         type="primary"
                         onClick={ this._toggleClickHandler }>
                         { formatMessage({id: "LANG3367"}) }
@@ -590,7 +592,8 @@ class AdvanceSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="switchtypeDiv"
+                                ref="div_switchtype"
+                                className={ parentState.div_switchtype_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3110" />}>
@@ -619,7 +622,8 @@ class AdvanceSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="em_w_outgoing"
+                                ref="div_em_w_outgoing"
+                                className={ parentState.div_em_w_outgoing_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG4139" />}>
@@ -636,7 +640,8 @@ class AdvanceSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="em_immediate_div"
+                                ref="div_em_immediate"
+                                className={ parentState.div_em_immediate_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG4132" />}>
@@ -659,11 +664,10 @@ class AdvanceSettings extends Component {
                         <Col span={ 12 }>
                         </Col>
                     </Row>
-                    <div ref="pridialplanDIV">
+                    <div ref="div_pridialplan" className={ parentState.div_pridialplan_style }>
                         <Row>
                             <Col span={ 12 }>
                                  <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3441" />}>
@@ -688,7 +692,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="prilocaldialplanDIV"
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3443" />}>
@@ -713,11 +716,10 @@ class AdvanceSettings extends Component {
                             </Col>
                         </Row>
                     </div>
-                    <div ref="SS7dialplanDIV">
+                    <div ref="div_SS7dialplan" className={ parentState.div_SS7dialplan_style }>
                         <Row>
                             <Col span={ 12 }>
                                  <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3112" />}>
@@ -740,7 +742,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="prilocaldialplanDIV"
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3114" />}>
@@ -769,11 +770,10 @@ class AdvanceSettings extends Component {
                         <Col span={ 12 }>
                         </Col>
                     </Row>
-                    <div ref="callerIdPrefix">
+                    <div ref="div_callerIdPrefix" className={ parentState.div_callerIdPrefix_style }>
                         <Row>
                             <Col span={ 12 }>
                                  <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3191"}) }>
                                     { getFieldDecorator('internationalprefix', {
@@ -786,7 +786,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="prilocaldialplanDIV"
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3192"}) }>
                                     { getFieldDecorator('nationalprefix', {
@@ -801,7 +800,8 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                  <FormItem
-                                    ref="subscriberprefixDiv"
+                                    ref="div_subscriberprefix"
+                                    className={ parentState.div_subscriberprefix_style }
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3380"}) }>
                                     { getFieldDecorator('subscriberprefix', {
@@ -814,7 +814,8 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="localprefixDiv"
+                                    ref="div_localprefix"
+                                    className={ parentState.div_localprefix_style }
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3193"}) }>
                                     { getFieldDecorator('localprefix', {
@@ -829,7 +830,8 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                  <FormItem
-                                    ref="privateprefixDiv"
+                                    ref="div_privateprefix"
+                                    className={ parentState.div_privateprefix_style }
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3194"}) }>
                                     { getFieldDecorator('privateprefix', {
@@ -842,7 +844,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3195"}) }>
                                     { getFieldDecorator('unknownprefix', {
@@ -857,7 +858,8 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                  <FormItem
-                                    ref="priT310Div"
+                                    ref="div_priT310"
+                                    className={ parentState.div_priT310_style }
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG4368"}) }>
                                     { getFieldDecorator('pri_timer_t310', {
@@ -872,11 +874,10 @@ class AdvanceSettings extends Component {
                             </Col>
                         </Row>
                     </div>
-                    <div ref="specialDiv">
+                    <div ref="div_special" className={ parentState.div_special_style }>
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3116" />}>
@@ -896,7 +897,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG2785" />}>
@@ -921,7 +921,6 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3118" />}>
@@ -939,7 +938,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3122" />}>
@@ -959,7 +957,6 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3120" />}>
@@ -981,7 +978,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3124" />}>
@@ -1004,11 +1000,10 @@ class AdvanceSettings extends Component {
                             </Col>
                         </Row>
                     </div>
-                    <div ref="R2Advanced">
+                    <div ref="div_R2Advanced" className={ parentState.div_R2Advanced_style }>
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3308" />}>
@@ -1025,7 +1020,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3310" />}>
@@ -1044,7 +1038,6 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3306" />}>
@@ -1062,7 +1055,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3322" />}>
@@ -1082,8 +1074,8 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="mfcr2DoubleSnswerTimeoutDiv"
-                                    className={ this.state.mfcr2DoubleSnswerTimeoutDivStyle }
+                                    ref="div_mfcr2DoubleSnswerTimeout"
+                                    className={ this.state.div_mfcr2DoubleSnswerTimeout_style }
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3369" />}>
@@ -1100,7 +1092,6 @@ class AdvanceSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3314" />}>
@@ -1120,7 +1111,6 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG3262" /> }>
@@ -1146,7 +1136,6 @@ class AdvanceSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3320" />}>
@@ -1166,11 +1155,10 @@ class AdvanceSettings extends Component {
                             </Col>
                         </Row>
                     </div>
-                    <div ref="otherR2Advanced">
+                    <div ref="div_otherR2Advanced" className={ customOptions_style }>
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={ formatMessage({id: "LANG3323"}) }>
                                     { getFieldDecorator('mf_advanced_settings', {
@@ -1183,17 +1171,18 @@ class AdvanceSettings extends Component {
                                 </FormItem>
                             </Col>
                             <Col span={ 12 }>
+                            {/*
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label="">
                                     <span>{ formatMessage({id: "LANG3290"}) }</span>
                                     <span ref="advanced_area">:ITU</span>
-                                    <Button ref="advanced_default" type="primary" onClick={ this._resetAdvanceDefault}>{ formatMessage({id: "LANG749"}) }</Button>
                                 </FormItem>
+                            */}
+                            <Button ref="advanced_default" className={ parentState.advanced_default_style } type="primary" onClick={ this._resetAdvanceDefault }>{ formatMessage({id: "LANG749"}) }</Button>
                             </Col>
                         </Row>
-                        <div ref="otherR2AdvancedContent" className={ customOptionsStyle }>
+                        <div ref="otherR2AdvancedContent">
                             <div className="des">
                                 <p>{ formatMessage({ id: "LANG4090"}) }</p>
                             </div>
@@ -1201,7 +1190,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3324"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_next_dnis_digit', {
@@ -1231,7 +1219,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3325"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_dnis_minus_1', {
@@ -1263,7 +1250,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3326"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_dnis_minus_2', {
@@ -1293,7 +1279,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3327"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_dnis_minus_3', {
@@ -1325,7 +1310,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3328"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_all_dnis_again', {
@@ -1355,7 +1339,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3329"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_next_ani_digit', {
@@ -1387,7 +1370,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3330"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_category', {
@@ -1417,7 +1399,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3331"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_category_and_change_to_gc', {
@@ -1449,7 +1430,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3332"}) }>
                                         { getFieldDecorator('mf_ga_tones__request_change_to_g2', {
@@ -1479,7 +1459,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3333"}) }>
                                         { getFieldDecorator('mf_ga_tones__address_complete_charge_setup', {
@@ -1511,7 +1490,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3334"}) }>
                                         { getFieldDecorator('mf_ga_tones__network_congestion', {
@@ -1546,7 +1524,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3335"}) }>
                                         { getFieldDecorator('mf_gb_tones__accept_call_with_charge', {
@@ -1576,7 +1553,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3336"}) }>
                                         { getFieldDecorator('mf_gb_tones__accept_call_no_charge', {
@@ -1608,7 +1584,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3337"}) }>
                                         { getFieldDecorator('mf_gb_tones__busy_number', {
@@ -1638,7 +1613,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3338"}) }>
                                         { getFieldDecorator('mf_gb_tones__network_congestion', {
@@ -1670,7 +1644,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3339"}) }>
                                         { getFieldDecorator('mf_gb_tones__unallocated_number', {
@@ -1700,7 +1673,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3340"}) }>
                                         { getFieldDecorator('mf_gb_tones__line_out_of_order', {
@@ -1732,7 +1704,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3341"}) }>
                                         { getFieldDecorator('mf_gb_tones__special_info_tone', {
@@ -1762,7 +1733,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3342"}) }>
                                         { getFieldDecorator('mf_gb_tones__reject_collect_call', {
@@ -1794,7 +1764,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3343"}) }>
                                         { getFieldDecorator('mf_gb_tones__number_changed', {
@@ -1829,7 +1798,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3339"}) }>
                                         { getFieldDecorator('mf_gc_tones__request_next_ani_digit', {
@@ -1859,7 +1827,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3345"}) }>
                                         { getFieldDecorator('mf_gc_tones__request_change_to_g2', {
@@ -1891,7 +1858,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3346"}) }>
                                         { getFieldDecorator('mf_gc_tones__request_next_dnis_digit_and_change_to_ga', {
@@ -1926,7 +1892,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3347"}) }>
                                         { getFieldDecorator('mf_g1_tones__no_more_dnis_available', {
@@ -1956,7 +1921,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3348"}) }>
                                         { getFieldDecorator('mf_g1_tones__no_more_ani_available', {
@@ -1988,7 +1952,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3349"}) }>
                                         { getFieldDecorator('mf_g1_tones__caller_ani_is_restricted', {
@@ -2023,7 +1986,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3300"}) }>
                                         { getFieldDecorator('mf_g2_tones__national_subscriber', {
@@ -2053,7 +2015,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3301"}) }>
                                         { getFieldDecorator('mf_g2_tones__national_priority_subscriber', {
@@ -2085,7 +2046,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3302"}) }>
                                         { getFieldDecorator('mf_g2_tones__international_subscriber', {
@@ -2115,7 +2075,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3303"}) }>
                                         { getFieldDecorator('mf_g2_tones__international_priority_subscriber', {
@@ -2147,7 +2106,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3304"}) }>
                                         { getFieldDecorator('mf_g2_tones__collect_call', {
@@ -2182,7 +2140,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3300"}) }>
                                         { getFieldDecorator('timers__mf_back_cycle', {
@@ -2195,7 +2152,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3352"}) }>
                                         { getFieldDecorator('timers__mf_fwd_safety', {
@@ -2210,7 +2166,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3353"}) }>
                                         { getFieldDecorator('timers__r2_seize', {
@@ -2223,7 +2178,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3354"}) }>
                                         { getFieldDecorator('timers__r2_answer', {
@@ -2238,7 +2192,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3355"}) }>
                                         { getFieldDecorator('timers__r2_metering_pulse', {
@@ -2251,7 +2204,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3356"}) }>
                                         { getFieldDecorator('timers__r2_double_answer', {
@@ -2266,7 +2218,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3357"}) }>
                                         { getFieldDecorator('timers__r2_answer_delay', {
@@ -2279,7 +2230,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3358"}) }>
                                         { getFieldDecorator('timers__cas_persistence_check', {
@@ -2294,7 +2244,6 @@ class AdvanceSettings extends Component {
                             <Row>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3359"}) }>
                                         { getFieldDecorator('timers__dtmf_start_dial', {
@@ -2307,7 +2256,6 @@ class AdvanceSettings extends Component {
                                 </Col>
                                 <Col span={ 12 }>
                                     <FormItem
-                                        ref=""
                                         { ...formItemLayout }
                                         label={ formatMessage({id: "LANG3360"}) }>
                                         { getFieldDecorator('mf_threshold', {

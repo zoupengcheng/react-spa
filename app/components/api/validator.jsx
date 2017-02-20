@@ -269,10 +269,24 @@ Validator.prototype = {
         } else {
             callback()
         }
-    },    
+    },
     noSpacesInFrontAndEnd: function(data, value, callback, formatMessage) {
         if (value && /^\s+|\s+$/g.test(value)) {
             callback(formatMessage({id: "LANG4113"}))
+        } else {
+            callback()
+        }
+    },
+    alphanumericStarPlusPound: function(data, value, callback, formatMessage) {
+        if (value && !/^[a-zA-Z0-9#\*\+]+$/g.test(value)) {
+            callback(formatMessage({id: "LANG3842"}))
+        } else {
+            callback()
+        }
+    },
+    alphanumericUndDotAt: function(data, value, callback, formatMessage) {
+        if (value && !/^[a-zA-Z_0-9@.]+$/i.test(value)) {
+            callback(formatMessage({id: "LANG4537"}))
         } else {
             callback()
         }

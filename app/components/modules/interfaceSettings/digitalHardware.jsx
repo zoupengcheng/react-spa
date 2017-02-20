@@ -401,7 +401,10 @@ class DigitalHardware extends Component {
             let str = this._getChannelRange(otherArr)
             let strArr = str.split(",")
             let lastOtherArr = this._getGroupChannel(strArr)
-
+            if (lastOtherArr.length === 0) {
+                message.error("No channel.")
+                return
+            }
             let channelEle = form.getFieldValue("digital_channel")
             let lastOtherArrLen = this._getTotalNum(lastOtherArr)
             let lastOtherArrs = []
@@ -860,6 +863,12 @@ class DigitalHardware extends Component {
                     })}
                 </div>
             } else if (record.subOptions) {
+                if (record.spanType.indexOf('DefaultGroup') > -1) {
+                    return <div>
+                        <span className="sprite sprite-edit" title={formatMessage({ id: "LANG3135" })} onClick={ this._editGroup.bind(this, record) }></span>
+                        <span className="sprite sprite-del sprite-del-disabled" title={ formatMessage({ id: "LANG739" }) }></span>
+                    </div>                     
+                }
                 return <div>
                     <span className="sprite sprite-edit" title={formatMessage({ id: "LANG3135" })} onClick={ this._editGroup.bind(this, record) }></span>
                     <Popconfirm 

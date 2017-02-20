@@ -496,7 +496,7 @@ class WarningEventList extends Component {
         if ($.inArray(record.id, this.state.noButtonIds) > -1) {
             return <div>
                     <span
-                        className="sprite sprite-edit-disabled">
+                        className="sprite sprite-edit sprite-edit-disabled">
                     </span>
                 </div>
         } else {

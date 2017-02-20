@@ -19,7 +19,7 @@ class BasicSettings extends Component {
         super(props)
 
         this.state = {
-            mfcr2ForcedReleaseDivStyle: "hidden",
+            div_mfcr2ForcedRelease_style: "hidden",
             mfcr2SkipCategoryChecked: false,
             mfcr2GetAniFirstChecked: false,
             framingOpts: [],
@@ -27,29 +27,78 @@ class BasicSettings extends Component {
             codingOpts: [],
             crcOpts: [],
             signallingOpts: [{
-                text: "NET",
-                val: "pri_net"
+                val: "pri_net",
+                text: "PRI_NET"
+            }, {
+                val: "pri_cpe",
+                text: "PRI_CPE"
+            }, {
+                val: "ss7",
+                text: "SS7"
+            }, {
+                val: "mfcr2",
+                text: "MFC/R2"
             }],
-            crcDivStyle: "display-block"
+            div_crc_style: "display-block",
+            collectCall: false,
+            div_hardhdlc_style: "display-block",
+            firstSpanTypeLoad: true,
+            firstSignallingLoad: true,
+            firstMfcr2VariantLoad: true
         }
     }
-    componentWillMount() {
+    componentWillMount() { 
     }
     componentDidMount() {
         this.props.getRefs(this.refs)
         this._initVal()
+    }
+    componentDidUpdate() {
+        let priSettingsInfo = this.props.priSettingsInfo
+        const form = this.props.form
+
+        let me = this,
+            spanType = priSettingsInfo.span_type,
+            signalling = priSettingsInfo.signalling,
+            mfcr2Variant = priSettingsInfo.mfcr2_variant
+
+        if (this.state.firstSpanTypeLoad && this.state.firstSignallingLoad && spanType && signalling) {
+            me._onChangeSpanType(spanType)
+            form.setFieldsValue({
+                span_type: spanType
+            })
+            me._onChangeSignalling(signalling)
+            form.setFieldsValue({
+                signalling: signalling
+            })
+            
+            me.setState({
+                firstSpanTypeLoad: false,
+                firstSignallingLoad: false
+            })
+        }
+        if (this.state.firstMfcr2VariantLoad && mfcr2Variant) {
+            me._onChangeMfcr2Variant(mfcr2Variant)
+            form.setFieldsValue({
+                mfcr2_variant: mfcr2Variant
+            })
+            
+            me.setState({
+                firstMfcr2VariantLoad: false
+            })
+        } 
     }
     _initVal = () => {
         const form = this.props.form
 
         if (form.getFieldValue("mfcr2_variant") === "br") {
             this.setState({ 
-                mfcr2ForcedReleaseDivStyle: "display-block",
+                div_mfcr2ForcedRelease_style: "display-block",
                 hardhdlcOpts: this.props.hardhdlcOpts
             })
         } else {
             this.setState({ 
-                mfcr2ForcedReleaseDivStyle: "hidden",
+                div_mfcr2ForcedRelease_style: "hidden",
                 hardhdlcOpts: this.props.hardhdlcOpts
             })
         }
@@ -59,132 +108,214 @@ class BasicSettings extends Component {
             mfcr2GetAniFirstChecked: e.target.checked
         })
     }
-    _onChangeSignalling = (val) => {
-        // let value = $(this).val(),
-        //     hardhdlcEle = $("#hardhdlc"),
-        //     hardhdlcDiv = $("#hardhdlcDiv"),
-        //     opts = hardhdlcEle.children(),
-        //     noneOpt = hardhdlcEle.children().filter("[value=0]"),
-        //     flag = true;
+    _onChangeSignalling = (value) => {
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
 
-        // if (value == "ss7") {
-        //     let totleChans = getTotalChans(),
-        //         dataTrunkChansArr = this.props.getDataTrunkChansArr(),
-        //         allChansArr = this.props.getTotalArr(dataTrunkChansArr);
-        //     hardhdlcDiv.show();
+        let hardhdlcEle = this.refs.hardhdlc,
+            // opts = hardhdlcEle.children(),
+            // noneOpt = hardhdlcEle.children().filter("[value=0]"),
+            flag = true,
+            oldCoding = global.oldCoding,
+            oldSingnaling = global.oldSingnaling
 
-        //     if ((allChansArr.length + 1) >= totleChans && noneOpt.length == 0) {
-        //         hardhdlcEle.prepend("<option value='0'>" + $P.lang("LANG133") + "</option>");
-        //     } else if ((allChansArr.length + 1) < totleChans) {
-        //         noneOpt.remove();
-        //     }
-        //     for (let i = 0; i < opts.length; i++) {
-        //         let index = opts[i];
-        //         index.disabled = false;
-        //     };
-        //     let ss7Settings = mWindow.ss7Settings[0];
-        //     if (ss7Settings) {
-        //         $("#ss7_called_nai").val(ss7Settings["ss7_called_nai"]);
-        //         $("#ss7_calling_nai").val(ss7Settings["ss7_calling_nai"]);
-        //         $("#internationalprefix").val(ss7Settings["ss7_internationalprefix"]);
-        //         $("#nationalprefix").val(ss7Settings["ss7_nationalprefix"]);
-        //         $("#subscriberprefix").val(ss7Settings["ss7_subscriberprefix"]);
-        //         $("#unknownprefix").val(ss7Settings["ss7_unknownprefix"]);
-        //         //$("#cicbeginswith").val(ss7Settings["cicbeginswith"]);
-        //         //top.Custom.init(document, $(".prioptions").get(0));
-        //     }
-        //     $("#ss7Options, #callerIdPrefix, #SS7dialplanDIV, #codecDiv, #subscriberprefixDiv, #lboDiv, #rtxDiv").show();
-        //     $("#mfcR2Div, #priT310Div, #switchtypeDiv, #localprefixDiv, #privateprefixDiv, #specialDiv, #pridialplanDIV, #channelDiv, #R2Advanced, #otherAdvanced_btn, #priPlayLocalRbtDiv, #mfcr2PlayLocaRbtDiv, #em_immediate_div, #em_w_outgoing").hide();
-        // } else if (value == "mfcr2") {
-        //     hardhdlcDiv.hide();
-        //     $("#mfcR2Div, #channelDiv, #R2Advanced, #otherAdvanced_btn, #mfcr2PlayLocaRbtDiv, #lboDiv, #rtxDiv").show();
-        //     $("#specialDiv, #priT310Div, #ss7Options, #switchtypeDiv, #callerIdPrefix, #pridialplanDIV, #SS7dialplanDIV, #codecDiv, #priPlayLocalRbtDiv, #em_immediate_div, #em_w_outgoing").hide();
-        // } else if (value == "em" || value == "em_w") {
-        //     $("#em_immediate_div").show();
-        //     if (value === "em_w") {
-        //         $("#em_w_outgoing").show();
-        //     } else {
-        //         $("#em_w_outgoing").hide();
-        //     }
-        //     hardhdlcDiv.hide();
-        //     flag = false;
-        //     $("#mfcR2Div, #priT310Div, #ss7Options, #lboDiv, #R2Advanced, #otherAdvanced_btn, #subscriberprefixDiv, #priPlayLocalRbtDiv, #mfcr2PlayLocaRbtDiv, #SS7dialplanDIV, #callerIdPrefix, #switchtypeDiv, #pridialplanDIV, #specialDiv").hide();
-        // } else {
-        //     let totleChans = getTotalChans(),
-        //         dataTrunkChansArr = this.props.getDataTrunkChansArr(),
-        //         allChansArr = this.props.getTotalArr(dataTrunkChansArr);
-        //     hardhdlcDiv.show();
-        //     if ((allChansArr.length + 1) >= totleChans && noneOpt.length == 0) {
-        //         hardhdlcEle.prepend("<option value='0'>" + $P.lang("LANG133") + "</option>");
-        //     } else if ((allChansArr.length + 1) < totleChans) {
-        //         noneOpt.remove();
-        //     }
-        //     for (let i = 0; i < opts.length; i++) {
-        //         let index = opts[i];
-        //         index.disabled = false;
-        //     };
-        //     UCMGUI.domFunction.updateDocument(priSettingsInfo, $(".prioptions").get(0));
+        if (value === "ss7") {
+            let totleChans = this.props.getTotalChans(),
+                dataTrunkChansArr = this.props.getDataTrunkChansArr(),
+                allChansArr = this.props.getTotalArr(dataTrunkChansArr)
+            
+            this.setState({
+                div_hardhdlc_style: "display-block"
+            })
 
-        //     $("#mfcR2Div, #ss7Options, #R2Advanced, #otherAdvanced_btn, #subscriberprefixDiv, #SS7dialplanDIV, #mfcr2PlayLocaRbtDiv, #em_immediate_div, #em_w_outgoing").hide();
-        //     $("#switchtypeDiv, #priT310Div, #localprefixDiv, #privateprefixDiv, #specialDiv, #channelDiv, #callerIdPrefix, #pridialplanDIV, #codecDiv, #priPlayLocalRbtDiv, #lboDiv, #rtxDiv").show();
-        //     if ($("#span_type").val() == "E1") {
-        //         $("#crcDiv").show();
-        //     }
-        //     if ($("#span_type").val() == "T1" || $("#span_type").val() == "J1") {
-        //         $("#crcDiv").hide();
-        //     }
-        // }
+            // if ((allChansArr.length + 1) >= totleChans && noneOpt.length == 0) {
+            //     hardhdlcEle.prepend("<option value='0'>" + $P.lang("LANG133") + "</option>");
+            // } else if ((allChansArr.length + 1) < totleChans) {
+            //     noneOpt.remove()
+            // }
+            // for (let i = 0; i < opts.length; i++) {
+            //     let index = opts[i]
+            //     index.disabled = false
+            // }
 
-        // if ($("#span_type").val() == "E1") {
-        //     let opts;
+            let ss7Settings = global.ss7Settings[0]
+            if (ss7Settings) {
+                form.setFieldsValue({
+                    ss7_called_nai: ss7Settings["ss7_called_nai"],
+                    ss7_calling_nai: ss7Settings["ss7_calling_nai"],
+                    internationalprefix: ss7Settings["ss7_internationalprefix"],
+                    nationalprefix: ss7Settings["ss7_nationalprefix"],
+                    subscriberprefix: ss7Settings["ss7_subscriberprefix"],
+                    unknownprefix: ss7Settings["ss7_unknownprefix"]
+                })
+            }
 
-        //     if (hardhdlcEle.children().filter("[value=" + oldHardhdlc + "]").length != 0) {
-        //         hardhdlcEle.val(oldHardhdlc);
-        //     } else {
-        //         hardhdlcEle.val(16);
-        //     }
+            let showEles = ["div_ss7Options", "div_callerIdPrefix", "div_SS7dialplan", "div_codec", "div_subscriberprefix", "div_lbo", "div_rtx"],
+                hideEles = ["div_mfcR2", "div_priT310", "div_switchtype", "div_localprefix", "div_privateprefix", "div_special", "div_pridialplan", 
+                            "div_channel", "div_R2Advanced", "otherAdvanced_btn", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_em_immediate", 
+                            "div_em_w_outgoing"],
+                showElesObj = {},
+                hideElesObj = {}
 
-        //     if (value === 'mfcr2') {
-        //         opts = [{
-        //             val: "cas"
-        //         }];
-        //     } else {
-        //         opts = [{
-        //             val: "ccs"
-        //         }];
-        //     }
+            showEles.map(function(it) {
+                showElesObj[it + "_style"] = "display-block"
+            })
+            hideEles.map(function(it) {
+                hideElesObj[it + "_style"] = "hidden"
+            })
 
-            // this.setState({
-            //     framingOpts: opts
-            // })
+            showElesObj = _.extend(showElesObj, hideElesObj)
+            // this.setState(showElesObj)
+            this.props.getSonState(showElesObj)
+        } else if (value === "mfcr2") {
+            let showEles = ["div_mfcR2", "div_channel", "div_R2Advanced", "otherAdvanced_btn", "div_mfcr2PlayLocaRbt", "div_lbo", "div_rtx"],
+                hideEles = ["div_hardhdlc", "div_special", "div_priT310", "div_ss7Options", "div_switchtype", "div_callerIdPrefix", "div_pridialplan", 
+                            "div_SS7dialplan", "div_codec", "div_priPlayLocalRbt", "div_em_immediate", "div_em_w_outgoing"],
+                showElesObj = {},
+                hideElesObj = {}
 
-        //     opts = [];
-        // }
-        // if (($("#span_type").val() == "T1" || $("#span_type").val() == "J1") && flag) {
-        //     if (hardhdlcEle.children().filter("[value=" + oldHardhdlc + "]").length != 0) {
-        //         hardhdlcEle.val(oldHardhdlc);
-        //     } else {
-        //         hardhdlcEle.val(24);
-        //     }
-        // }
+            showEles.map(function(it) {
+                showElesObj[it + "_style"] = "display-block"
+            })
+            hideEles.map(function(it) {
+                hideElesObj[it + "_style"] = "hidden"
+            })
 
-        // $("#coding").val(oldCoding);
-        // if (value == "mfcr2") {
-        //     hardhdlcEle.val("16");
-        // } else if (value == "em" || value == "em_w") {
-        //     hardhdlcEle.val(0);
-        // }
-        // let val = $("#span_type").val();
-        // if (val == "T1" || val == "J1") {
-        //     if (oldCoding == "hdb3") {
-        //         $('#coding').val("b8zs");
-        //     }
-        // } else {
-        //     if (oldCoding == "b8zs") {
-        //         $('#coding').val("hdb3");
-        //     }
-        // }
-        // oldSingnaling = value;
+            showElesObj = _.extend(showElesObj, hideElesObj)
+            // this.setState(showElesObj)
+            this.props.getSonState(showElesObj)
+        } else if (value === "em" || value === "em_w") {
+            let showEles = ["div_em_immediate"],
+                hideEles = [],
+                showElesObj = {},
+                hideElesObj = {}
+
+            if (value === "em_w") {
+                showEles.push("div_em_w_outgoing")
+            } else {
+                hideEles.push("div_em_w_outgoing")
+            }
+            flag = false
+            hideEles.push(["div_hardhdlc", "div_mfcR2", "div_priT310", "div_ss7Options", "div_lbo", "div_R2Advanced", "otherAdvanced_btn", 
+                            "div_subscriberprefix", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_SS7dialplan", "div_callerIdPrefix",
+                            "div_switchtype", "div_pridialplan", "div_special"])
+            
+            showEles.map(function(it) {
+                showElesObj[it + "_style"] = "display-block"
+            })
+            hideEles.map(function(it) {
+                hideElesObj[it + "_style"] = "hidden"
+            })
+
+            showElesObj = _.extend(showElesObj, hideElesObj)
+            // this.setState(showElesObj)
+            this.props.getSonState(showElesObj)
+        } else {
+            let totleChans = this.props.getTotalChans(),
+                dataTrunkChansArr = this.props.getDataTrunkChansArr(),
+                allChansArr = this.props.getTotalArr(dataTrunkChansArr)
+
+            this.setState({
+                div_hardhdlc_style: "display-block"
+            })
+
+            // if ((allChansArr.length + 1) >= totleChans && noneOpt.length == 0) {
+            //     hardhdlcEle.prepend("<option value='0'>" + $P.lang("LANG133") + "</option>");
+            // } else if ((allChansArr.length + 1) < totleChans) {
+            //     noneOpt.remove();
+            // }
+            // for (let i = 0; i < opts.length; i++) {
+            //     let index = opts[i];
+            //     index.disabled = false;
+            // }
+
+            let showEles = ["div_switchtype", "div_priT310", "div_localprefix", "div_privateprefix", "div_special", "div_channel", 
+                            "div_callerIdPrefix", "div_pridialplan", "div_codec", "div_priPlayLocalRbt", "div_lbo", "div_rtx"],
+                hideEles = ["div_mfcR2", "div_ss7Options", "div_R2Advanced", "otherAdvanced_btn", "div_subscriberprefix", 
+                            "div_SS7dialplan", "div_mfcr2PlayLocaRbt", "div_em_immediate", "div_em_w_outgoing"],
+                showElesObj = {},
+                hideElesObj = {},
+                spanTypeVal = form.getFieldValue("span_type")
+            
+            if (spanTypeVal === "E1") {
+                showEles.push("div_crc")
+            }
+            if (spanTypeVal === "T1" || spanTypeVal === "J1") {
+                hideEles.push("div_crc")
+            }
+
+            showEles.map(function(it) {
+                showElesObj[it + "_style"] = "display-block"
+            })
+            hideEles.map(function(it) {
+                hideElesObj[it + "_style"] = "hidden"
+            })
+
+            showElesObj = _.extend(showElesObj, hideElesObj)
+            // this.setState(showElesObj)
+            this.props.getSonState(showElesObj)
+        }
+        let spanTypeVal = form.getFieldValue("span_type")
+
+        if (spanTypeVal === "E1") {
+            let framingOpts = []
+
+            // if (hardhdlcEle.children().filter("[value=" + oldHardhdlc + "]").length != 0) {
+            //     hardhdlcEle.val(oldHardhdlc);
+            // } else {
+            //     hardhdlcEle.val(16);
+            // }
+
+            if (value === 'mfcr2') {
+                framingOpts = [{
+                    val: "cas"
+                }]
+            } else {
+                framingOpts = [{
+                    val: "ccs"
+                }]
+            }
+
+            this.setState({
+                framingOpts: framingOpts
+            })
+        }
+        if ((spanTypeVal === "T1" || spanTypeVal === "J1") && flag) {
+            // if (hardhdlcEle.children().filter("[value=" + oldHardhdlc + "]").length != 0) {
+            //     hardhdlcEle.val(oldHardhdlc)
+            // } else {
+            //     hardhdlcEle.val(24)
+            // }
+        }
+
+        form.setFieldsValue({
+            coding: oldCoding
+        })
+
+        if (value === "mfcr2") {
+            form.setFieldsValue({
+                hardhdlc: "16"
+            })
+        } else if (value === "em" || value === "em_w") {
+            form.setFieldsValue({
+                hardhdlc: "0"
+            })
+        }
+
+        if (spanTypeVal === "T1" || spanTypeVal === "J1") {
+            if (oldCoding === "hdb3") {
+                form.setFieldsValue({
+                    coding: "b8zs"
+                })
+            }
+        } else {
+            if (oldCoding === "b8zs") {
+                form.setFieldsValue({
+                    coding: "hdb3"
+                })
+            }
+        }
+        oldSingnaling = value
     }
     _onChangeFraming = (val) => {
         global.oldFraming = val
@@ -197,66 +328,60 @@ class BasicSettings extends Component {
                mfcr2_get_ani_first: true
             })
         }
-        //     collectCallOption = $("#mfcr2_category option[value='collect_call']");
 
-        // if (val == "br") {
-        //      collectCallOption.attr("disabled", false);
-                // this.setState({ 
-                //     mfcr2ForcedReleaseDivStyle: "display-block"
-                // })
+        if (val === "br") {
+            this.setState({
+                collectCall: false,  
+                div_mfcr2ForcedRelease_style: "display-block"
+            })
+        } else {
+            if (form.getFieldValue("mfcr2_category") === "collect_call") {
+                form.setFieldsValue({
+                    mfcr2_category: "national_subscriber"
+                })
+            }
+            this.setState({
+                collectCall: true, 
+                div_mfcr2ForcedRelease__style: "hidden"
+            })
+        }
+        let mfcR2Settings = global.mfcR2Settings[0]
 
-        // } else {
-        //     if ($("#mfcr2_category").val() == "collect_call") {
-        //         $("#mfcr2_category").val("national_subscriber");
-        //     }
-        //     collectCallOption.attr("disabled", true);
-            // this.setState({ 
-            //     mfcr2ForcedReleaseDivStyle: "hidden"
-            // })
-        // }
-        // let mfcR2Settings = mWindow.mfcR2Settings[0];
-        // resetCheckbox(text);
+        if (val === "ve") {
+            form.setFieldsValue({
+                mfcr2_get_ani_first: true
+            })
+        }
 
-        // if (val == "ve") {
-        //     $("#mfcr2_get_ani_first").get(0).checked = true;
-        //     $("#mfcr2_get_ani_first").trigger("change", text);
-        // }
+        if (mfcR2Settings) {
+            if (form.getFieldValue("mfcr2_variant") === mfcR2Settings.mfcr2_variant) {
+                let mfcr2GetAniFirstVal = (mfcR2Settings.mfcr2_get_ani_first === "yes") ? true : false,
+                    mfcr2AllowCollectCallsVal = (mfcR2Settings.mfcr2_allow_collect_calls === "yes") ? true : false,
+                    mfcr2DoubleAnswerVal = (mfcR2Settings.mfcr2_double_answer === "yes") ? true : false,
+                    mfcr2AcceptOnOfferVal = (mfcR2Settings.mfcr2_accept_on_offer === "yes") ? true : false,
+                    mfcr2SkipCategoryVal = (mfcR2Settings.mfcr2_skip_category === "yes") ? true : false,
+                    mfcr2ChargeCallsVal = (mfcR2Settings.mfcr2_charge_calls === "yes") ? true : false,
+                    mfAdvancedSettingsVal = (mfcR2Settings.mf_advanced_settings === "yes") ? true : false
 
-        // if (mfcR2Settings) {
-        //     if ($("#mfcr2_variant").val() == mfcR2Settings.mfcr2_variant) {
-        //         let mfcr2GetAniFirstVal = (mfcR2Settings.mfcr2_get_ani_first == "yes") ? true : false;
-        //         let mfcr2AllowCollectCallsVal = (mfcR2Settings.mfcr2_allow_collect_calls == "yes") ? true : false;
-        //         let mfcr2DoubleAnswerVal = (mfcR2Settings.mfcr2_double_answer == "yes") ? true : false;
-        //         //let mfcr2ImmediateAcceptVal = (mfcR2Settings.mfcr2_immediate_accept == "yes") ? true : false;
-        //         let mfcr2AcceptOnOfferVal = (mfcR2Settings.mfcr2_accept_on_offer == "yes") ? true : false;
-        //         let mfcr2SkipCategoryVal = (mfcR2Settings.mfcr2_skip_category == "yes") ? true : false;
-        //         let mfcr2ChargeCallsVal = (mfcR2Settings.mfcr2_charge_calls == "yes") ? true : false;
-
-        //         $("#mfcr2_get_ani_first").get(0).checked = mfcr2GetAniFirstVal;
-        //         $("#mfcr2_category").val(mfcR2Settings.mfcr2_category);
-        //         $("#mfcr2_allow_collect_calls").get(0).checked = mfcr2AllowCollectCallsVal;
-        //         $("#mfcr2_double_answer").get(0).checked = mfcr2DoubleAnswerVal;
-        //         //$("#mfcr2_immediate_accept").get(0).checked = mfcr2ImmediateAcceptVal;
-        //         $("#mfcr2_accept_on_offer").get(0).checked = mfcr2AcceptOnOfferVal;
-        //         $("#mfcr2_skip_category").get(0).checked = mfcr2SkipCategoryVal;
-        //         $("#mfcr2_charge_calls").get(0).checked = mfcr2ChargeCallsVal;
-
-        //         $("#mfcr2_mfback_timeout").val(mfcR2Settings.mfcr2_mfback_timeout);
-        //         $("#mfcr2_metering_pulse_timeout").val(mfcR2Settings.mfcr2_metering_pulse_timeout);
-
-        //         $("#mfcr2_get_ani_first").trigger("change", text);
-        //         $("#mfcr2_skip_category").trigger("change", text);
-        //         $("#mfcr2_double_answer").trigger("change", text);
-
-        //         $("#mf_advanced_settings")[0].checked = (mfcR2Settings.mf_advanced_settings == "yes") ? true : false;
-        //         $("#mf_advanced_settings")[0].updateStatus();
-        //     } else {
-        //         $("#mf_advanced_settings")[0].checked = false;
-        //         $("#mf_advanced_settings")[0].updateStatus();
-        //     }
-        // }
-
-        // $("#advanced_area").text(":" + $(this).find("option:selected").text());
+                form.setFieldsValue({
+                    mfcr2_get_ani_first: mfcr2GetAniFirstVal,
+                    mfcr2_category: mfcR2Settings.mfcr2_category,
+                    mfcr2_allow_collect_calls: mfcr2AllowCollectCallsVal,
+                    mfcr2_double_answer: mfcr2DoubleAnswerVal,
+                    mfcr2_accept_on_offer: mfcr2AcceptOnOfferVal,
+                    mfcr2_skip_category: mfcr2SkipCategoryVal,
+                    mfcr2_charge_calls: mfcr2ChargeCallsVal,
+                    mfcr2_mfback_timeout: mfcR2Settings.mfcr2_mfback_timeout,
+                    mfcr2_metering_pulse_timeout: mfcR2Settings.mfcr2_metering_pulse_timeout,
+                    mf_advanced_settings: mfAdvancedSettingsVal
+                })
+            } else {
+                form.setFieldsValue({
+                    mf_advanced_settings: false
+                })
+            }
+        }
+        // $("#advanced_area").text(":" + $(this).find("option:selected").text())
     }
     _onChangeSpanType = (val) => {
         const form = this.props.form
@@ -268,7 +393,7 @@ class BasicSettings extends Component {
             oldHardhdlc = global.oldHardhdlc,
             oldFraming = global.oldFraming
 
-        let hardhdlcEle = this.refs.hardhdlcDiv,
+        let hardhdlcEle = this.refs.div_hardhdlc,
             signalling = form.getFieldValue('signalling'),
             opts = []
 
@@ -343,7 +468,7 @@ class BasicSettings extends Component {
                 codingOpts: codingOpts,
                 crcOpts: crcOpts,
                 signallingOpts: signallingOpts,
-                crcDivStyle: "display-block"
+                div_crc_style: "display-block"
             })
         } else if (val === "T1" || val === "J1") {
             bchanTotalChans = 24
@@ -416,7 +541,7 @@ class BasicSettings extends Component {
                 codingOpts: codingOpts,
                 crcOpts: crcOpts,
                 signallingOpts: signallingOpts,
-                crcDivStyle: "hidden"
+                div_crc_style: "hidden"
             })
 
             form.setFieldsValue({
@@ -433,7 +558,7 @@ class BasicSettings extends Component {
             message.error(formatMessage({ id: "LANG3978" }, { 0: form.getFieldValue("hardhdlc") }))
         }
         if (oldSingnaling) {
-            let isExsit = _.find(this.refs.signallingDiv.props.children.props.children, function(it) {
+            let isExsit = _.find(this.refs.div_signalling.props.children.props.children, function(it) {
                 let key = it.key
                 return oldSingnaling === key
             })
@@ -537,7 +662,9 @@ class BasicSettings extends Component {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
-        let hardhdlcOpts = this.props.hardhdlcOpts
+
+        let hardhdlcOpts = this.props.hardhdlcOpts,
+            parentState = this.props.parentState
 
         if (this.state.hardhdlcOpts.length !== 0) {
             hardhdlcOpts = this.state.hardhdlcOpts
@@ -570,7 +697,6 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref=""
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3130" />}>
@@ -591,7 +717,6 @@ class BasicSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref=""
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3126" />}>
@@ -613,7 +738,8 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="signallingDiv"
+                                ref="div_signalling"
+                                className={ parentState.div_signalling_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3108" />}>
@@ -641,7 +767,8 @@ class BasicSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="hardhdlcDiv"
+                                ref="div_hardhdlc"
+                                className={ this.state.div_hardhdlc_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3134" />}>
@@ -668,11 +795,10 @@ class BasicSettings extends Component {
                             </FormItem>
                         </Col>
                     </Row>
-                    <div ref="ss7Options">
+                    <div ref="div_ss7Options" className={ parentState.div_ss7Options_style }>
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3256" />}>
@@ -693,7 +819,6 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3258" />}>
@@ -712,7 +837,6 @@ class BasicSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3260" />}>
@@ -729,7 +853,6 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG4088" />}>
@@ -748,7 +871,6 @@ class BasicSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG4111" />}>
@@ -768,7 +890,6 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3316" />}>
@@ -786,11 +907,10 @@ class BasicSettings extends Component {
                             </Col>
                         </Row>
                     </div>
-                    <div ref="mfcR2Div">
+                    <div ref="div_mfcR2" className={ parentState.div_mfcR2_style }>
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG3291" /> }>
@@ -819,8 +939,8 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref="mfcr2ForcedReleaseDiv"
-                                    className={ this.state.mfcr2ForcedReleaseDivStyle }
+                                    ref="div_mfcr2ForcedRelease"
+                                    className={ this.state.div_mfcr2ForcedRelease_style }
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3318" />}>
@@ -840,7 +960,6 @@ class BasicSettings extends Component {
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3299" />}>
@@ -856,14 +975,13 @@ class BasicSettings extends Component {
                                             <Option value="national_priority_subscriber">{ formatMessage({ id: "LANG3301"}) }</Option>
                                             <Option value="international_subscriber">{ formatMessage({ id: "LANG3302"}) }</Option>
                                             <Option value="international_priority_subscriber">{ formatMessage({ id: "LANG3303"}) }</Option>
-                                            <Option value="collect_call">{ formatMessage({ id: "LANG3304"}) }</Option>
+                                            <Option value="collect_call" disabled={ this.state.collectCall}>{ formatMessage({ id: "LANG3304"}) }</Option>
                                         </Select>
                                     ) }
                                 </FormItem>
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG3293" /> }>
@@ -884,7 +1002,8 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="lboDiv"
+                                ref="div_lbo"
+                                className={ parentState.div_lbo_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3104" />}>
@@ -910,7 +1029,6 @@ class BasicSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref=""
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3100" />}>
@@ -937,11 +1055,10 @@ class BasicSettings extends Component {
                             </FormItem>
                         </Col>
                     </Row>
-                    <div ref="rtxDiv">
+                    <div ref="div_rtx" className={ parentState.div_rtx_style }>
                         <Row>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3163" />}>
@@ -996,7 +1113,6 @@ class BasicSettings extends Component {
                             </Col>
                             <Col span={ 12 }>
                                 <FormItem
-                                    ref=""
                                     { ...formItemLayout }
                                     label={                            
                                         <Tooltip title={<FormattedHTMLMessage id="LANG3164" />}>
@@ -1054,7 +1170,8 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="codecDiv"
+                                ref="div_codec"
+                                className={ parentState.div_codec_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3106" />}>
@@ -1075,7 +1192,8 @@ class BasicSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="priPlayLocalRbtDiv"
+                                ref="div_priPlayLocalRbt"
+                                className={ parentState.div_priPlayLocalRbt_style }
                                 { ...formItemLayout }
                                 label={(
                                     <span>
@@ -1096,7 +1214,8 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="mfcr2PlayLocaRbtDiv"
+                                ref="div_mfcr2PlayLocaRbt"
+                                className={ parentState.div_mfcr2PlayLocaRbt_style }
                                 { ...formItemLayout }
                                 label={(
                                     <span>
@@ -1115,7 +1234,6 @@ class BasicSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref=""
                                 className="hidden"
                                 { ...formItemLayout }
                                 label={(
@@ -1132,7 +1250,8 @@ class BasicSettings extends Component {
                     <Row>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="priPlayLocalRbtDiv"
+                                ref="div_priPlayLocalRbt"
+                                className={ this.state.priPlayLocalRbtDiv_style }
                                 { ...formItemLayout }
                                 label={(
                                     <span>
@@ -1161,8 +1280,9 @@ class BasicSettings extends Component {
                         </Col>
                         <Col span={ 12 }>
                             <FormItem
-                                ref="crcDiv"
-                                className={ this.state.crcDivStyle }
+                                ref="div_crc"
+                                className={ parentState.div_crc_style }
+                                className={ this.state.div_crc_style }
                                 { ...formItemLayout }
                                 label={                            
                                     <Tooltip title={<FormattedHTMLMessage id="LANG3102" />}>

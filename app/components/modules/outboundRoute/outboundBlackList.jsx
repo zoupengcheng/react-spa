@@ -8,10 +8,9 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Badge, Button, Col, Form, Icon, Input, message, Modal, Popconfirm, Popover, Row, Table, Tag, Tooltip, Tree } from 'antd'
+import { Badge, Form, Icon, Input, message, Popconfirm, Popover, Table, Tag, Tooltip, Tree } from 'antd'
 
 const FormItem = Form.Item
-const confirm = Modal.confirm
 const TreeNode = Tree.TreeNode
 
 class OutboundBlackList extends Component {
@@ -44,7 +43,7 @@ class OutboundBlackList extends Component {
         successMessage = <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG844" }) }}></span>
 
         if (this.state.customBlacklist.length >= this.state.maxOutboundBlacklist) {
-            message.loading(<span dangerouslySetInnerHTML=
+            message.warning(<span dangerouslySetInnerHTML=
                                         {{ __html: formatMessage({ id: "LANG5416" }, {
                                                 0: this.state.maxOutboundBlacklist,
                                                 1: this.state.customBlacklist.length
@@ -497,117 +496,123 @@ class OutboundBlackList extends Component {
                 />
                 <div className="content">
                     <Form>
-                        <Row>
-                            <div className="function-description">
-                                <span>{ formatMessage({id: "LANG5390"}) }</span>
-                            </div>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG2277"}) }</span>
-                            </div>
-                            <FormItem
-                                { ...formItemRowLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4747" /> }>
-                                            <span>{ formatMessage({id: "LANG4746"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                <div className="tree-container clearfix">
-                                    <Tree
-                                        showLine
-                                        onCheck={ this._onCheck }
-                                        onSelect={ this._onSelectLeftTree }
-                                        className="custom-tree rightBorder"
-                                        selectedKeys={ this.state.leftTreeSelectedKeys }
+                        <div className="function-description">
+                            <span>{ formatMessage({id: "LANG5390"}) }</span>
+                        </div>
+                        <FormItem
+                            { ...formItemRowLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG4747" /> }>
+                                        <span>{ formatMessage({id: "LANG4746"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
+                            <div className="tree-container clearfix">
+                                <Tree
+                                    showLine
+                                    onCheck={ this._onCheck }
+                                    onSelect={ this._onSelectLeftTree }
+                                    className="custom-tree rightBorder"
+                                    selectedKeys={ this.state.leftTreeSelectedKeys }
+                                >
+                                    {
+                                        _.map(this.state.countryCodes, (data, key) => {
+                                            return <TreeNode title={ key } key={ key }></TreeNode>
+                                        })
+                                    }
+                                </Tree>
+                                <Tree
+                                    showLine
+                                    checkable
+                                    autoExpandParent={ false }
+                                    className="custom-tree autoFlow"
+                                    onCheck={ this._onCheckRightTree }
+                                    onExpand={ this._onExpandRightTree }
+                                    checkedKeys={ this.state.rightTreeCheckedKeys }
+                                    expandedKeys={ this.state.rightTreeExpandedKeys }
+                                >
+                                    <TreeNode
+                                        key={ leftTreeSelectedKey }
+                                        title={ leftTreeSelectedKey }
                                     >
                                         {
-                                            _.map(this.state.countryCodes, (data, key) => {
-                                                return <TreeNode title={ key } key={ key }></TreeNode>
+                                            _.map(this.state.countryCodes[leftTreeSelectedKey], (data, key) => {
+                                                let code = this._renderCodes(data.country_code)
+
+                                                return <TreeNode
+                                                            key={ data.country }
+                                                            title={
+                                                                    <span>
+                                                                        <span>{ data.country + ' ' }</span>
+                                                                        { code }
+                                                                    </span>
+                                                                }
+                                                        ></TreeNode>
                                             })
                                         }
-                                    </Tree>
-                                    <Tree
-                                        showLine
-                                        checkable
-                                        autoExpandParent={ false }
-                                        className="custom-tree autoFlow"
-                                        onCheck={ this._onCheckRightTree }
-                                        onExpand={ this._onExpandRightTree }
-                                        checkedKeys={ this.state.rightTreeCheckedKeys }
-                                        expandedKeys={ this.state.rightTreeExpandedKeys }
-                                    >
-                                        <TreeNode
-                                            key={ leftTreeSelectedKey }
-                                            title={ leftTreeSelectedKey }
-                                        >
-                                            {
-                                                _.map(this.state.countryCodes[leftTreeSelectedKey], (data, key) => {
-                                                    let code = this._renderCodes(data.country_code)
-
-                                                    return <TreeNode
-                                                                key={ data.country }
-                                                                title={
-                                                                        <span>
-                                                                            <span>{ data.country + ' ' }</span>
-                                                                            { code }
-                                                                        </span>
-                                                                    }
-                                                            ></TreeNode>
-                                                })
-                                            }
-                                        </TreeNode>
-                                    </Tree>
-                                </div>
-                            </FormItem>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5344" /> }>
-                                            <span>{ formatMessage({id: "LANG5338"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('new_number', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }, {
-                                        validator: this._checkFormat
-                                    }, {
-                                        validator: this._checkPattern
-                                    }, {
-                                        validator: this._checkExist
-                                    }],
-                                    initialValue: ''
-                                })(
-                                    <Input />
-                                ) }
-                                <Icon
-                                    type="plus-circle-o"
-                                    style={{
-                                        'top': '7px',
-                                        'right': '-30px',
-                                        'fontSize': '20px',
-                                        'cursor': 'pointer',
-                                        'position': 'absolute'
-                                    }}
-                                    onClick={ this._addBlackList }
-                                />
-                            </FormItem>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG2280"}) }</span>
+                                    </TreeNode>
+                                </Tree>
                             </div>
+                        </FormItem>
+                        <div className="section-title">
+                            <span>{ formatMessage({id: "LANG2277"}) }</span>
+                        </div>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG5344" /> }>
+                                        <span>{ formatMessage({id: "LANG5338"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('new_number', {
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkFormat
+                                }, {
+                                    validator: this._checkPattern
+                                }, {
+                                    validator: this._checkExist
+                                }],
+                                initialValue: ''
+                            })(
+                                <Input />
+                            ) }
+                            <Icon
+                                type="plus-circle-o"
+                                style={{
+                                    'top': '7px',
+                                    'right': '-30px',
+                                    'fontSize': '20px',
+                                    'cursor': 'pointer',
+                                    'position': 'absolute'
+                                }}
+                                onClick={ this._addBlackList }
+                            />
+                        </FormItem>
+                        <FormItem
+                            { ...formItemRowLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG5345" /> }>
+                                        <span>{ formatMessage({id: "LANG2280"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
                             <Table
                                 rowKey="key"
                                 columns={ columns }
                                 pagination={ pagination }
                                 dataSource={ this.state.blacklist }
                             />
-                        </Row>
+                        </FormItem>
                     </Form>
                 </div>
             </div>

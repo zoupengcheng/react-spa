@@ -5,32 +5,25 @@ import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Badge, Button, Col, Form, Icon, Input, message, Modal, Popconfirm, Popover, Row, Table, Tag, Tooltip, Tree } from 'antd'
+import { Button, Checkbox, Form, Icon, Input, message, Popconfirm, Spin, Table, Tooltip, Upload } from 'antd'
 
 const FormItem = Form.Item
-const confirm = Modal.confirm
-const TreeNode = Tree.TreeNode
 
-class OutboundBlackList extends Component {
+class InboundBlackList extends Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            blacklist: [],
-            countryCodes: [],
-            customBlacklist: [],
-            maxCustomBlacklist: 500,
-            rightTreeCheckedKeys: [],
-            leftTreeSelectedKeys: ['North America'],
-            rightTreeExpandedKeys: ['North America']
+            settings: {},
+            blacklist: []
         }
     }
     componentDidMount() {
         this._getInitData()
-        this._getCountryCodes()
     }
     _addBlackList = (e) => {
         // e.preventDefault()
@@ -43,26 +36,14 @@ class OutboundBlackList extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG826" }) }}></span>
         successMessage = <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG844" }) }}></span>
 
-        if (this.state.customBlacklist.length >= this.state.maxOutboundBlacklist) {
-            message.loading(<span dangerouslySetInnerHTML=
-                                        {{ __html: formatMessage({ id: "LANG5416" }, {
-                                                0: this.state.maxOutboundBlacklist,
-                                                1: this.state.customBlacklist.length
-                                            })
-                                        }}
-                                    ></span>)
+        message.loading(loadingMessage)
 
-            return false
-        }
-
-        form.validateFields({ force: true }, (err, values) => {
+        form.validateFields(['new_number'], { force: true }, (err, values) => {
             if (!err) {
                 let action = {
-                        blacklist: values.new_number,
-                        action: 'addOutboundBlacklist'
+                        number: values.new_number,
+                        action: 'addInboundBlacklist'
                     }
-
-                message.loading(loadingMessage)
 
                 $.ajax({
                     data: action,
@@ -90,39 +71,19 @@ class OutboundBlackList extends Component {
             }
         })
     }
-    _checkExist = (rule, value, callback) => {
-        let exist
+    _checkConflict = (rule, value, callback) => {
+        let conflict
         let val = $.trim(value)
         const { formatMessage } = this.props.intl
 
-        exist = _.find(this.state.customBlacklist, function(data) {
-            return data.blacklist === val
+        conflict = _.find(this.state.blacklist, function(data) {
+            return data.number === val
         })
 
-        if (val && exist) {
-            callback(formatMessage({id: "LANG5342"}))
+        if (val && conflict) {
+            callback(formatMessage({id: "LANG2285"}))
         } else {
             callback()
-        }
-    }
-    _checkFormat = (rule, value, callback) => {
-        let val = $.trim(value)
-        const { formatMessage } = this.props.intl
-
-        if (val && /[^a-zA-Z0-9\#\*\.!\-\+\/]/.test(val)) {
-            callback(formatMessage({id: "LANG5343"}))
-        } else {
-            callback()
-        }
-    }
-    _checkPattern = (rule, value, callback) => {
-        let val = $.trim(value)
-        const { formatMessage } = this.props.intl
-
-        if (!val || (val && (/^[0-9a-zA-Z!\-\.\?\+\*\#]+[0-9]+$/.test(val) || !/\//.test(val)))) {
-            callback()
-        } else {
-            callback(formatMessage({id: "LANG2994"}))
         }
     }
     _deleteBlackList = (record) => {
@@ -137,18 +98,8 @@ class OutboundBlackList extends Component {
         message.loading(loadingMessage)
 
         action = {
-            'blacklist': record.country_code,
-            'action': 'deleteOutboundBlacklist'
-        }
-
-        if (record.country !== 'Custom') {
-            action = {
-                'action': 'updateCountryCodes',
-                'country_codes': JSON.stringify([{
-                    disable_code: 'no',
-                    country: record.country
-                }])
-            }
+            'number': record.number,
+            'action': 'deleteInboundBlacklist'
         }
 
         $.ajax({
@@ -164,7 +115,6 @@ class OutboundBlackList extends Component {
                     message.success(successMessage)
 
                     this._getInitData()
-                    this._getCountryCodes()
                 }
             }.bind(this),
             error: function(e) {
@@ -172,33 +122,19 @@ class OutboundBlackList extends Component {
             }
         })
     }
-    _filterCheckedKeys = (country, list) => {
-        let checkedKeys = []
-
-        list.map(function(data, index) {
-            if (data.disable_code === 'yes') {
-                checkedKeys.push(data.country)
-            }
-        })
-
-        if (checkedKeys.length === list.length) {
-            checkedKeys.push(country)
-        }
-
-        return checkedKeys
-    }
-    _getCountryCodes = () => {
-        let countryCodes = []
+    _getInboundBlacklist = () => {
+        let blacklist = []
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const leftTreeSelectedKey = this.state.leftTreeSelectedKeys[0]
 
         $.ajax({
             type: 'json',
             method: 'post',
             url: api.apiHost,
             data: {
-                action: 'getCountryCodes'
+                sord: 'asc',
+                sidx: 'number',
+                action: 'listInboundBlacklist'
             },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -206,41 +142,16 @@ class OutboundBlackList extends Component {
                 if (bool) {
                     const response = res.response || {}
 
-                    countryCodes = response.country_codes || {}
+                    blacklist = response.number || []
 
-                    this.setState({
-                        countryCodes: countryCodes,
-                        rightTreeCheckedKeys: this._filterCheckedKeys(leftTreeSelectedKey, countryCodes[leftTreeSelectedKey])
+                    blacklist = _.map(blacklist, function(data, index) {
+                        data.key = index
+
+                        return data
                     })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getCustomBlacklist = () => {
-        let customBlacklist = []
-        const form = this.props.form
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getOutboundBlacklist'
-            },
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-
-                    customBlacklist = response.outbound_blacklist || []
 
                     this.setState({
-                        customBlacklist: customBlacklist
+                        blacklist: blacklist
                     })
 
                     let newNumber = form.getFieldValue('new_number')
@@ -255,12 +166,8 @@ class OutboundBlackList extends Component {
             }
         })
     }
-    _getInitData = () => {
-        this._getCustomBlacklist()
-        this._getOutboundBlacklist()
-    }
-    _getOutboundBlacklist = () => {
-        let blacklist = []
+    _getInboundBlacklistSettings = () => {
+        let settings = {}
         const { formatMessage } = this.props.intl
 
         $.ajax({
@@ -268,9 +175,7 @@ class OutboundBlackList extends Component {
             method: 'post',
             url: api.apiHost,
             data: {
-                action: 'listOutboundBlacklist',
-                sidx: 'Continent',
-                sord: 'asc'
+                action: 'getInboundBlacklistSettings'
             },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -278,16 +183,10 @@ class OutboundBlackList extends Component {
                 if (bool) {
                     const response = res.response || {}
 
-                    blacklist = response.country_code || []
-
-                    blacklist = _.map(blacklist, function(data, index) {
-                        data.key = index
-
-                        return data
-                    })
+                    settings = response.inbound_blacklist_settings || {}
 
                     this.setState({
-                        blacklist: blacklist
+                        settings: settings
                     })
                 }
             }.bind(this),
@@ -296,132 +195,60 @@ class OutboundBlackList extends Component {
             }
         })
     }
-    _onCheck = (info) => {
-        console.log('onCheck', info)
+    _getInitData = () => {
+        this._getInboundBlacklist()
+        this._getInboundBlacklistSettings()
     }
-    _onCheckRightTree = (info) => {
-        let action = {}
-        let countryCodes = []
+    _handleCancel = (e) => {
+        browserHistory.push('/extension-trunk/inboundRoute')
+    }
+    _handleSubmit = (e) => {
+        // e.preventDefault()
+
         let loadingMessage = ''
         let successMessage = ''
+        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const leftTreeSelectedKey = this.state.leftTreeSelectedKeys[0]
 
-        loadingMessage = <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG826" }) }}></span>
-        successMessage = <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG844" }) }}></span>
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
 
-        message.loading(loadingMessage)
+        form.validateFieldsAndScroll(['enable'], (err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
 
-        _.map(this.state.countryCodes[leftTreeSelectedKey], (data, key) => {
-            let obj = {
-                    country: data.country
-                }
-            
-            if (info.indexOf(data.country) > -1) {
-                obj.disable_code = 'yes'
-            } else {
-                obj.disable_code = 'no'
-            }
+                message.loading(loadingMessage)
 
-            countryCodes.push(obj)
-        })
+                values.enable = values.enable ? 'yes' : 'no'
+                values.action = 'updateInboundBlacklistSettings'
 
-        action = {
-            'action': 'updateCountryCodes',
-            'country_codes': JSON.stringify(countryCodes)
-        }
+                $.ajax({
+                    data: values,
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-        $.ajax({
-            data: action,
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
 
-                if (bool) {
-                    message.destroy()
-                    message.success(successMessage)
-
-                    this.setState({
-                        rightTreeCheckedKeys: info
-                    })
-
-                    this._getInitData()
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _onExpandRightTree = (expandedKeys) => {
-        // if not set autoExpandParent to false, if children expanded, parent can not collapse.
-        // or, you can remove all expanded children keys.
-        this.setState({
-            rightTreeExpandedKeys: expandedKeys
-        })
-    }
-    _onSelectLeftTree = (info) => {
-        let dataSource = {}
-        let country = info.length ? info[0] : ''
-
-        dataSource[country] = this.state.countryCodes[country]
-
-        this.setState({
-            leftTreeSelectedKeys: [country],
-            rightTreeExpandedKeys: [country],
-            rightTreeCheckedKeys: this._filterCheckedKeys(country, dataSource[country])
-        })
-    }
-    _renderCodes = (text, record, index) => {
-        const codes = text ? text.split(',') : []
-
-        if (codes.length <= 5) {
-            return <span>
-                    {
-                        codes.map(function(code, index) {
-                            return <Tag key={ code }>{ code }</Tag>
-                        }.bind(this))
-                    }
-                </span>
-        } else {
-            const content = <span>
-                        {
-                            codes.map(function(code, index) {
-                                if (index >= 4) {
-                                    return <Tag key={ code }>{ code }</Tag>
-                                }
-                            }.bind(this))
+                            this._handleCancel()
                         }
-                    </span>
-
-            return <span>
-                    {
-                        [0, 1, 2, 3].map(function(value, index) {
-                            const code = codes[value]
-
-                            return <Tag key={ code }>{ code }</Tag>
-                        }.bind(this))
-                    }
-                    <Popover
-                        title=""
-                        content={ content }
-                    >
-                        <Badge
-                            overflowCount={ 10 }
-                            count={ codes.length - 4 }
-                            style={{ backgroundColor: '#87d068', cursor: 'pointer' }}
-                        />
-                    </Popover>
-                </span>
-        }
+                    }.bind(this)
+                })
+            }
+        })
     }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
+        const settings = this.state.settings || {}
         const { getFieldDecorator } = this.props.form
-        const leftTreeSelectedKey = this.state.leftTreeSelectedKeys[0]
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const formItemLayout = {
@@ -436,24 +263,10 @@ class OutboundBlackList extends Component {
 
         const columns = [{
                 width: 100,
-                key: 'Continent',
-                dataIndex: 'Continent',
-                title: formatMessage({id: "LANG5340"}),
-                sorter: (a, b) => a.Continent.length - b.Continent.length
-            }, {
-                width: 100,
-                key: 'country',
-                dataIndex: 'country',
-                title: formatMessage({id: "LANG5341"}),
-                sorter: (a, b) => a.country.length - b.country.length
-            }, {
-                width: 150,
-                key: 'country_code',
-                dataIndex: 'country_code',
-                title: formatMessage({id: "LANG5339"}),
-                render: (text, record, index) => {
-                    return this._renderCodes(text, record, index)
-                }
+                key: 'number',
+                dataIndex: 'number',
+                title: formatMessage({id: "LANG4342"}),
+                sorter: (a, b) => a.number - b.number
             }, {
                 width: 50,
                 key: 'options',
@@ -484,130 +297,177 @@ class OutboundBlackList extends Component {
                 }
             }
 
+        const uploadProps = {
+            name: 'file',
+            headers: { authorization: 'authorization-text' },
+            action: api.apiHost + 'action=uploadfile&type=firmware',
+            onChange: (info) => {
+                // message.loading(formatMessage({ id: "LANG979" }), 0)
+                console.log(info.file.status)
+
+                if (info.file.status !== 'uploading') {
+                    console.log(info.file, info.fileList)
+                }
+
+                if (this.state.upgradeLoading) {
+                    this.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
+                    this.setState({upgradeLoading: false})
+                }
+
+                if (info.file.status === 'removed') {
+                    return
+                }
+
+                if (info.file.status === 'done') {
+                    // message.success(`${info.file.name} file uploaded successfully`)
+                    let data = info.file.response
+
+                    if (data) {
+                        let status = data.status,
+                            response = data.response
+
+                        this.props.setSpinLoading({loading: false})
+
+                        if (data.status === 0 && response && response.result === 0) {
+                            message.success(formatMessage({id: "LANG915"}))
+                        } else if (data.status === 4) {
+                            message.error(formatMessage({id: "LANG915"}))
+                        } else if (!_.isEmpty(response)) {
+                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
+                        } else {
+                            message.error(formatMessage({id: "LANG916"}))
+                        }
+                    } else {
+                        message.error(formatMessage({id: "LANG916"}))
+                    }
+                } else if (info.file.status === 'error') {
+                    message.error(`${info.file.name} file upload failed.`)
+                }
+            },
+            onRemove: () => {
+                this.props.setSpinLoading({loading: false})
+                message.destroy()
+            }
+        }
+
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
-                    1: formatMessage({id: "LANG5336"})
+                    1: formatMessage({id: "LANG2316"})
                 })
 
         return (
             <div className="app-content-main">
                 <Title
-                    headerTitle={ formatMessage({id: "LANG5336"}) }
-                    isDisplay='hidden'
+                    isDisplay='display-block'
+                    onSubmit={ this._handleSubmit }
+                    onCancel={ this._handleCancel }
+                    headerTitle={ formatMessage({id: "LANG2316"}) }
                 />
                 <div className="content">
                     <Form>
-                        <Row>
-                            <div className="function-description">
-                                <span>{ formatMessage({id: "LANG5390"}) }</span>
-                            </div>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG2277"}) }</span>
-                            </div>
-                            <FormItem
-                                { ...formItemRowLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4747" /> }>
-                                            <span>{ formatMessage({id: "LANG4746"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                <div className="tree-container clearfix">
-                                    <Tree
-                                        showLine
-                                        onCheck={ this._onCheck }
-                                        onSelect={ this._onSelectLeftTree }
-                                        className="custom-tree rightBorder"
-                                        selectedKeys={ this.state.leftTreeSelectedKeys }
-                                    >
-                                        {
-                                            _.map(this.state.countryCodes, (data, key) => {
-                                                return <TreeNode title={ key } key={ key }></TreeNode>
-                                            })
-                                        }
-                                    </Tree>
-                                    <Tree
-                                        showLine
-                                        checkable
-                                        autoExpandParent={ false }
-                                        className="custom-tree autoFlow"
-                                        onCheck={ this._onCheckRightTree }
-                                        onExpand={ this._onExpandRightTree }
-                                        checkedKeys={ this.state.rightTreeCheckedKeys }
-                                        expandedKeys={ this.state.rightTreeExpandedKeys }
-                                    >
-                                        <TreeNode
-                                            key={ leftTreeSelectedKey }
-                                            title={ leftTreeSelectedKey }
-                                        >
-                                            {
-                                                _.map(this.state.countryCodes[leftTreeSelectedKey], (data, key) => {
-                                                    let code = this._renderCodes(data.country_code)
-
-                                                    return <TreeNode
-                                                                key={ data.country }
-                                                                title={
-                                                                        <span>
-                                                                            <span>{ data.country + ' ' }</span>
-                                                                            { code }
-                                                                        </span>
-                                                                    }
-                                                            ></TreeNode>
-                                                })
-                                            }
-                                        </TreeNode>
-                                    </Tree>
-                                </div>
-                            </FormItem>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5344" /> }>
-                                            <span>{ formatMessage({id: "LANG5338"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('new_number', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }, {
-                                        validator: this._checkFormat
-                                    }, {
-                                        validator: this._checkPattern
-                                    }, {
-                                        validator: this._checkExist
-                                    }],
-                                    initialValue: ''
-                                })(
-                                    <Input />
-                                ) }
-                                <Icon
-                                    type="plus-circle-o"
-                                    style={{
-                                        'top': '7px',
-                                        'right': '-30px',
-                                        'fontSize': '20px',
-                                        'cursor': 'pointer',
-                                        'position': 'absolute'
-                                    }}
-                                    onClick={ this._addBlackList }
-                                />
-                            </FormItem>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG2280"}) }</span>
-                            </div>
+                        <div className="function-description">
+                            <span>{ formatMessage({id: "LANG2291"}) }</span>
+                        </div>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG2288" /> }>
+                                        <span>{ formatMessage({id: "LANG2292"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('enable', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: settings.enable ? (settings.enable === 'yes') : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                        <div className="section-title">
+                            <span>{ formatMessage({id: "LANG2277"}) }</span>
+                        </div>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG3500" /> }>
+                                        <span>{ formatMessage({id: "LANG3499"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('upload', {
+                                valuePropName: 'fileList',
+                                normalize: this._normFile
+                            })(
+                                <Upload { ...uploadProps }>
+                                    <Button type="ghost">
+                                        <Icon type="upload" />{ formatMessage({id: "LANG1607"}) }
+                                    </Button>
+                                </Upload>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG2287" /> }>
+                                        <span>{ formatMessage({id: "LANG2283"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('new_number', {
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.alphanumericStarPlusPound(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._checkConflict
+                                }],
+                                initialValue: ''
+                            })(
+                                <Input />
+                            ) }
+                            <Icon
+                                type="plus-circle-o"
+                                style={{
+                                    'top': '7px',
+                                    'right': '-30px',
+                                    'fontSize': '20px',
+                                    'cursor': 'pointer',
+                                    'position': 'absolute'
+                                }}
+                                onClick={ this._addBlackList }
+                            />
+                        </FormItem>
+                        <FormItem
+                            { ...formItemRowLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG2289" /> }>
+                                        <span>{ formatMessage({id: "LANG2280"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
                             <Table
                                 rowKey="key"
                                 columns={ columns }
                                 pagination={ pagination }
                                 dataSource={ this.state.blacklist }
                             />
-                        </Row>
+                        </FormItem>
                     </Form>
                 </div>
             </div>
@@ -615,4 +475,4 @@ class OutboundBlackList extends Component {
     }
 }
 
-export default Form.create()(injectIntl(OutboundBlackList))
+export default Form.create()(injectIntl(InboundBlackList))

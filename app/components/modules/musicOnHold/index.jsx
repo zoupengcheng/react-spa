@@ -29,7 +29,8 @@ class MusicOnHold extends Component {
             extensionList: [],
             extensionLen: 0,
             mohNameList: [],
-            moh: {}
+            moh: {},
+            delStyle: "sprite sprite-del"
         }
     }
     componentDidMount() {
@@ -213,10 +214,18 @@ class MusicOnHold extends Component {
                 for (let i = 0; i <= moh.length - 1; i++) {
                     moh[i]["key"] = i
                 }
-                this.setState({
-                    mohList: moh,
-                    mohClass: mohClass
-                })
+                if (mohClass === "") {
+                    this.setState({
+                        mohList: moh,
+                        mohClass: mohClass,
+                        delStyle: "sprite sprite-del sprite-del-disabled"
+                    })
+                } else {
+                    this.setState({
+                        mohList: moh,
+                        mohClass: mohClass
+                    })
+                }
             }.bind(this)
         })
         this._getMohInfo()
@@ -374,6 +383,7 @@ class MusicOnHold extends Component {
 
         if (mohClass === "default") {
             mohClass = ""
+            return
         }
 
         let action = {
@@ -523,7 +533,7 @@ class MusicOnHold extends Component {
                                         </Select>
                                     )}
                                     <span className="sprite sprite-edit" style={{position: "relative", top: "5px"}} onClick={this._edit}></span>
-                                    <span className="sprite sprite-del" style={{position: "relative", top: "5px"}} onClick={this._delete}></span>
+                                    <span className={ this.state.delStyle } style={{position: "relative", top: "5px"}} onClick={this._delete}></span>
                                 </FormItem>
                             </Col>
                             <Col span={8}> 

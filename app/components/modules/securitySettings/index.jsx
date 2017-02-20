@@ -10,7 +10,7 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Form, Tabs, message } from 'antd'
+import { Form, Tabs, message, Modal } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 
@@ -19,13 +19,43 @@ class SecuritySettings extends Component {
         super(props)
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
-            isDisplay: "display-block"
+            isDisplay: "display-block",
+            networkSettings: {}
         }
     }
     componentDidMount() {
+        this._getInitData()
     }
     componentWillUnmount() {
 
+    }
+    _getInitData = () => {
+        let networkSettings = this.state.networkSettings
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getNetworkSettings',
+                method: '',
+                port: ''
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    networkSettings = response.network_settings || []
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            networkSettings: networkSettings
+        })
     }
     _onChange = (e) => {
         if (e === "1") {
@@ -51,8 +81,18 @@ class SecuritySettings extends Component {
                 let action_fail2ban = {}
                 let action_static = {}
                 let action_dynamic = {}
+                let pass = false
 
-                if (values.fail2ban_enable !== undefined) {
+                if ((values.ping_enable_wan === true && values.ping_of_death_wan === true) ||
+                    (values.ping_enable_lan === true && values.ping_of_death_lan === true)) {
+                    Modal.warning({
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4105"})}} ></span>,
+                        okText: (formatMessage({id: "LANG727"}))
+                    })
+                    pass = true
+                }
+
+                if (pass === false && values.fail2ban_enable !== undefined) {
                     action_fail2ban.action = 'updateFail2ban'
                     action_fail2ban.fail2ban_enable = values.fail2ban_enable ? 1 : 0
                     action_fail2ban.enabled = values.enabled
@@ -98,7 +138,7 @@ class SecuritySettings extends Component {
                         }.bind(this)
                     })
                 }
-                if (values.dynamic_enable !== undefined) {
+                if (pass === false && values.dynamic_enable !== undefined) {
                     let whiteArray = values.whitelist.split('\n')
                     let whitelist = []
                     for (let i = 0; i < whiteArray.length; i++) {
@@ -136,20 +176,42 @@ class SecuritySettings extends Component {
                         }.bind(this)
                     })
                 }
-                if (values.reject_all !== undefined) {
+                if (pass === false && values.reject_all !== undefined) {
                     let ping_enable_list = []
                     let ping_of_death_list = []
-                    if (values.ping_enable_wan) {
-                        ping_enable_list.push('WAN')
-                    }
-                    if (values.ping_enable_lan) {
-                        ping_enable_list.push('LAN')
-                    }
-                    if (values.ping_of_death_wan) {
-                        ping_of_death_list.push('WAN')
-                    }
-                    if (values.ping_of_death_lan) {
-                        ping_of_death_list.push('LAN')
+                    if (this.state.networkSettings.method === '0') {
+                        if (values.ping_enable_wan === true) {
+                            ping_enable_list.push('WAN')
+                        }
+                        if (values.ping_enable_lan === true) {
+                            ping_enable_list.push('LAN')
+                        }
+                        if (values.ping_of_death_wan === true) {
+                            ping_of_death_list.push('WAN')
+                        }
+                        if (values.ping_of_death_lan === true) {
+                            ping_of_death_list.push('LAN')
+                        }
+                    } else if (this.state.networkSettings.method === '1') {
+                        if (values.ping_enable_lan === true) {
+                            ping_enable_list.push('LAN')
+                        }
+                        if (values.ping_of_death_lan === true) {
+                            ping_of_death_list.push('LAN')
+                        }
+                    } else if (this.state.networkSettings.method === '2') {
+                        if (values.ping_enable_wan === true) {
+                            ping_enable_list.push('LAN1')
+                        }
+                        if (values.ping_enable_lan === true) {
+                            ping_enable_list.push('LAN2')
+                        }
+                        if (values.ping_of_death_wan === true) {
+                            ping_of_death_list.push('LAN1')
+                        }
+                        if (values.ping_of_death_lan === true) {
+                            ping_of_death_list.push('LAN2')
+                        }
                     }
                     action_static.action = 'updateTypicalFirewallSettings'
                     action_static.reject_all = values.reject_all ? 'yes' : 'no'
@@ -174,6 +236,9 @@ class SecuritySettings extends Component {
                             }
                         }.bind(this)
                     })
+                }
+                if (pass === true) {
+                    message.destroy()
                 }
             }
         })
@@ -202,6 +267,7 @@ class SecuritySettings extends Component {
                     <TabPane tab={formatMessage({id: "LANG38"})} key="1">
                         <Security 
                             form={ this.props.form }
+                            networkSettings= { this.state.networkSettings }
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG2303"})} key="2">

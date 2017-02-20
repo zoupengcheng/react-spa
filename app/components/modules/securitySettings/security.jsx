@@ -18,7 +18,6 @@ class Security extends Component {
         super(props)
         this.state = {
             netstatInfo: [],
-            networkSettings: {},
             ruleName: [],
             typicalFirewallsettings: {}
         }
@@ -69,32 +68,9 @@ class Security extends Component {
     _getInitData = () => {
         const { formatMessage } = this.props.intl
         let netstatInfo = this.state.netstatInfo
-        let networkSettings = this.state.networkSettings
         let ruleName = this.state.ruleName
         let typicalFirewallsettings = this.state.typicalFirewallsettings
 
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'getNetworkSettings',
-                method: '',
-                port: ''
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    networkSettings = response.network_settings || []
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -159,7 +135,6 @@ class Security extends Component {
         })
         this.setState({
             netstatInfo: netstatInfo,
-            networkSettings: networkSettings,
             ruleName: ruleName,
             typicalFirewallsettings: typicalFirewallsettings
         })
@@ -206,6 +181,7 @@ class Security extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+        const networkSettings = this.props.networkSettings
         const columns_rules = [{
                 key: 'sequence',
                 dataIndex: 'sequence',
@@ -319,9 +295,9 @@ class Security extends Component {
         if (typicalFirewallsettings.ping_enable) {
             const en_list = typicalFirewallsettings.ping_enable.split(',')
             for (let i = 0; i < en_list.length; i++) {
-                if (en_list[i] === 'WAN') {
+                if (en_list[i] === 'WAN' || en_list[i] === 'LAN1') {
                     ping_enable_wan = true
-                } else if (en_list[i] === 'LAN') {
+                } else if (en_list[i] === 'LAN' || en_list[i] === 'LAN2') {
                     ping_enable_lan = true
                 }
             }
@@ -329,9 +305,9 @@ class Security extends Component {
         if (typicalFirewallsettings.ping_of_death) {
             const en_list = typicalFirewallsettings.ping_of_death.split(',')
             for (let i = 0; i < en_list.length; i++) {
-                if (en_list[i] === 'WAN') {
+                if (en_list[i] === 'WAN' || en_list[i] === 'LAN1') {
                     ping_of_death_wan = true
-                } else if (en_list[i] === 'LAN') {
+                } else if (en_list[i] === 'LAN' || en_list[i] === 'LAN2') {
                     ping_of_death_lan = true
                 }
             }
@@ -408,13 +384,13 @@ class Security extends Component {
                                 <span>{formatMessage({id: "LANG1940"})}</span>
                             </Tooltip>
                         </Col>
-                        <Col span={ 5 } className={ this.state.networkSettings.method === '0' ? 'display-block' : 'hidden' }>
+                        <Col span={ 5 } className={ networkSettings.method === '1' ? 'hidden' : 'display-block' }>
                             <FormItem
                                 { ...formItemPingLayout }
 
                                 label={(
                                     <Tooltip>
-                                        <span>eth1(WAN)</span>
+                                        <span>{ networkSettings.method === '2' ? 'eth0(LAN1)' : 'eth1(WAN)' }</span>
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('ping_enable_wan', {
@@ -433,7 +409,7 @@ class Security extends Component {
 
                                 label={(
                                     <Tooltip>
-                                        <span>eth0(LAN)</span>
+                                        <span>{ networkSettings.method === '2' ? 'eth1(LAN2)' : 'eth0(LAN)' }</span>
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('ping_enable_lan', {
@@ -453,13 +429,13 @@ class Security extends Component {
                                 <span>{formatMessage({id: "LANG1942"})}</span>
                             </Tooltip>
                         </Col>
-                        <Col span={ 5 } className={ this.state.networkSettings.method === '0' ? 'display-block' : 'hidden' }>
+                        <Col span={ 5 } className={ networkSettings.method === '1' ? 'hidden' : 'display-block' }>
                             <FormItem
                                 { ...formItemPingLayout }
 
                                 label={(
                                     <Tooltip>
-                                        <span>eth1(WAN)</span>
+                                        <span>{ networkSettings.method === '2' ? 'eth0(LAN1)' : 'eth1(WAN)' }</span>
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('ping_of_death_wan', {
@@ -478,7 +454,7 @@ class Security extends Component {
 
                                 label={(
                                     <Tooltip>
-                                        <span>eth0(LAN)</span>
+                                        <span>{ networkSettings.method === '2' ? 'eth1(LAN2)' : 'eth0(LAN)' }</span>
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('ping_of_death_lan', {
