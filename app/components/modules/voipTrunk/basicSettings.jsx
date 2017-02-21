@@ -441,7 +441,7 @@ class BasicSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_authid"
-                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
+                    className={ trunk.trunk_type === "register" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG2488" />}>
@@ -461,7 +461,7 @@ class BasicSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_auth_trunk"
-                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
+                    className={ trunk.trunk_type === "register" ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG4262" />}>

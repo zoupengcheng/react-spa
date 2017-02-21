@@ -649,7 +649,7 @@ UCMGUI.prototype = {
                 reboot()
             }
         },
-            confirmReset: function(url, formatMessage) {
+        confirmReset: function(url, formatMessage) {
             // clearInterval(loginInterval);
             // loginInterval = null;
 

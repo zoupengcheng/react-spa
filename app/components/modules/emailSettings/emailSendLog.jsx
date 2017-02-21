@@ -6,17 +6,23 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Table, Popconfirm } from 'antd'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Table, Popconfirm, Modal, DatePicker } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 
+const Option = Select.Option
+
 class EmailSendLog extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            mailSendLog: []
+            mailSendLog: [],
+            infoVisible: false,
+            isDisplay: "display-block-filter",
+            isDisplaySearch: 'hidden',
+            sub_send_mail_log: []
         }
     }
     componentDidMount() {
@@ -25,33 +31,103 @@ class EmailSendLog extends Component {
     componentWillUnmount() {
 
     }
-    _delete = (record) => {
-        let loadingMessage = ''
-        let successMessage = ''
+    _hideSearch = () => {
+        this.setState({
+            isDisplay: 'display-block-filter',
+            isDisplaySearch: 'hidden'
+        })
+    }
+    _handleSearch = () => {
+        this.setState({
+            isDisplay: 'display-block',
+            isDisplaySearch: 'display-block'
+        })
+    }
+    _handleCancel = () => {
+        this._getMailSendLog()
+    }
+    _infoCancel = () => {
+        this.setState({
+            infoVisible: false
+        })
+    }
+    _info = (record) => {
+        const ID = record.id
         const { formatMessage } = this.props.intl
-
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
-
-        message.loading(loadingMessage)
-
+        let sub_send_mail_log = []
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                action: 'getSubMailSendLog',
+                id: ID
             },
             type: 'json',
-            async: true,
+            async: false,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
-                    message.destroy()
-                    message.success(successMessage)
+                    const response = res.response || {}
+                    sub_send_mail_log = response.sub_send_mail_log || []
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
 
-                    this._getExtensionGroups()
+        this.setState({
+            infoVisible: true,
+            sub_send_mail_log: sub_send_mail_log
+        })
+    }
+    _searchMailLog = () => {
+        const { getFieldValues } = this.props.form
+        const { formatMessage } = this.props.intl
+        const { form } = this.props
+        const values = this.props.form.getFieldsValue() 
+
+        let action = {}
+        action.action = 'listMailSendLog'
+        action.options = 'id,date,module,recipient,send_time,send_to,send_result,return_code'
+        action.sidx = 'date'
+        action.sord = 'desc'
+        if (values.start_date !== undefined && values.statr_date !== null && values.start_date !== '') {
+            action.start_date = values.start_date.format('YYYY-MM-DD HH:mm')
+        }
+        if (values.end_date !== undefined && values.end_date !== null && values.end_date !== '') {
+            action.end_date = values.end_date.format('YYYY-MM-DD HH:mm')
+        }
+        if (values.recipient !== undefined && values.recipient !== null && values.recipient !== '') {
+            action.recipient = values.recipient
+        }
+        if (values.send_result !== undefined && values.send_result !== null && values.send_result !== '') {
+            action.send_result = values.send_result
+        }
+        if (values.return_code !== undefined && values.return_code !== null && values.return_code !== '') {
+            action.return_code = values.return_code
+        }
+        if (values.module !== undefined && values.module !== null && values.module !== '') {
+            action.module = values.module
+        }
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: action,
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const mailSendLog = response.mail_send_log || []
+
+                    this.setState({
+                        mailSendLog: mailSendLog
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -59,8 +135,34 @@ class EmailSendLog extends Component {
             }
         })
     }
-    _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+    _deleteAll = () => {
+        const { formatMessage } = this.props.intl
+
+        let action = {}
+        action.action = 'deleteMailSendLogAll'
+        message.loading(formatMessage({ id: "LANG826" }), 0)
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: action,
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                    this._getMailSendLog()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _showAll = () => {
+        this._getMailSendLog()
     }
     _getMailSendLog = () => {
         const { formatMessage } = this.props.intl
@@ -71,7 +173,7 @@ class EmailSendLog extends Component {
             data: {
                 action: 'listMailSendLog',
                 sidx: 'date',
-                sord: 'asc'
+                sord: 'desc'
             },
             type: 'json',
             async: false,
@@ -100,6 +202,7 @@ class EmailSendLog extends Component {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+        const sub_send_mail_log = this.state.sub_send_mail_log
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
@@ -155,16 +258,9 @@ class EmailSendLog extends Component {
                     return <div>
                             <span
                                 className="sprite sprite-edit"
-                                onClick={ this._edit.bind(this, record) }>
+                                title={ formatMessage({id: "LANG3923"}) }
+                                onClick={ this._info.bind(this, record) }>
                             </span>
-                            <Popconfirm
-                                title={ formatMessage({id: "LANG841"}) }
-                                okText={ formatMessage({id: "LANG727"}) }
-                                cancelText={ formatMessage({id: "LANG726"}) }
-                                onConfirm={ this._delete.bind(this, record) }
-                            >
-                                <span className="sprite sprite-del"></span>
-                            </Popconfirm>
                         </div>
                 }
             }]
@@ -182,10 +278,40 @@ class EmailSendLog extends Component {
                 onChange: this._onSelectChange,
                 selectedRowKeys: this.state.selectedRowKeys
             }
+        const columns_info = [{
+                key: 'send_time',
+                dataIndex: 'send_time',
+                title: formatMessage({id: "LANG5392"}),
+                width: 100
+            }, {
+                key: 'send_to',
+                dataIndex: 'send_to',
+                title: formatMessage({id: "LANG5393"}),
+                width: 100
+            }, {
+                key: 'send_result',
+                dataIndex: 'send_result',
+                title: formatMessage({id: "LANG5388"}),
+                width: 100
+            }, {
+                key: 'return_code',
+                dataIndex: 'return_code',
+                title: formatMessage({id: "LANG5389"}),
+                width: 100
+            }]
 
     return (
             <div className="app-content-main" id="app-content-main">
-                <Form>
+                <Title
+                    headerTitle={ formatMessage({id: "LANG2581"}) }
+                    onSubmit={ this._searchMailLog }
+                    onCancel={ this._handleCancel } 
+                    onSearch = { this._handleSearch } 
+                    isDisplay= { this.state.isDisplay }
+                    saveTxt = { formatMessage({id: "LANG1288" }) }
+                    cancelTxt = { formatMessage({id: "LANG750" }) }
+                />
+                <Form className={ this.state.isDisplaySearch }>
                     <FormItem
                         ref="div_start_date"
                         { ...formItemLayout }
@@ -195,10 +321,9 @@ class EmailSendLog extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('start_date', {
-                             rules: [],
-                            initialValue: ""
+                             rules: []
                         })(
-                            <Input maxLength="" />
+                            <DatePicker showTime placeholder={ formatMessage({id: "LANG5373"}) } format="YYYY-MM-DD HH:mm" />
                         ) }
                     </FormItem>
                     <FormItem
@@ -210,10 +335,9 @@ class EmailSendLog extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('end_date', {
-                             rules: [],
-                            initialValue: ""
+                             rules: []
                         })(
-                            <Input maxLength="" />
+                            <DatePicker showTime placeholder={ formatMessage({id: "LANG5373"}) } format="YYYY-MM-DD HH:mm" />
                         ) }
                     </FormItem>
                     <FormItem
@@ -286,59 +410,144 @@ class EmailSendLog extends Component {
                              </Select>
                         ) }
                     </FormItem>
+                    <div className="hide_search sprite sprite-slide-bar" onClick={ this._hideSearch }></div>
                 </Form>
-                <div className="top-button">
-                    <Button type="primary" icon="solution" size='default' >
-                        { formatMessage({id: "LANG803"}) }
-                    </Button>
-                    <Button type="primary" icon="download" size='default' >
+                <div className="content">
+                    <Button type="primary" icon="solution" size='default' onClick={ this._showAll }>
                         { formatMessage({id: "LANG4107"}) }
                     </Button>
-                    <Button type="primary" icon="delete" size='default' >
+                    <Button type="primary" icon="delete" size='default' onClick={ this._deleteAll }>
                         { formatMessage({id: "LANG3911" })}
                     </Button>
                 </div>
-                <div>
-                    <p ><span >250</span> <span >
-                        { formatMessage({id: "LANG5421" })}
+                <div className="content">
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">250</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5421"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">501</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5422"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">535</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5423"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">550</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5424"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">552</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5425"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">553</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5426"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">554</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5427"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p >
+                        <Row>
+                            <Col span={ 1 }>
+                                <span className="error-code">none</span>
+                            </Col>
+                            <Col span={ 23 }>
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5428"})}} >
+                                </span>
+                            </Col>
+                        </Row>
+                    </p>
+                    <p ><span className="lite-desc-warning">
+                        { formatMessage({id: "LANG5429" })}
                     </span></p>
-                    <p ><span >501</span> <span >
-                        { formatMessage({id: "LANG5422" })}
-                    </span></p>
-                    <p ><span >535</span> <span >
-                        { formatMessage({id: "LANG5423" })}
-                    </span></p>
-                    <p ><span >550</span> <span >
-                        { formatMessage({id: "LANG5424" })}
-                    </span></p>
-                    <p ><span >552</span> <span >
-                        { formatMessage({id: "LANG5425" })}
-                    </span></p>
-                    <p ><span >553</span> <span >
-                        { formatMessage({id: "LANG5426" })}
-                    </span></p>
-                    <p ><span >554</span> <span >
-                        { formatMessage({id: "LANG5427" })}
-                    </span></p>
-                    <p ><span >none</span> <span >
-                        { formatMessage({id: "LANG5428" })}
+                    <p ><span className="lite-desc-warning">
+                        { formatMessage({id: "LANG5430" })}
                     </span></p>
                 </div>
-                <Table
-                    rowKey="date"
+                <div>
+                    <Table
+                        rowKey="id"
                         columns={ columns }
                         pagination={ pagination }
                         rowSelection={ rowSelection }
                         dataSource={ this.state.mailSendLog }
                         showHeader={ !!this.state.mailSendLog.length }
+                    >
+                    </Table>
+                </div>
+                <Modal title={ formatMessage({id: "LANG3923"}) }
+                    visible={ this.state.infoVisible }
+                    onOk={ this._infoCancel }
+                    onCancel={ this._infoCancel }
+                    footer={[
+                        <Button onClick={this._infoCancel}>{ formatMessage({id: "LANG726"}) }</Button>
+                    ]}
                 >
-                </Table>
+                    <Table
+                        rowKey="send_time"
+                        columns={ columns_info }
+                        pagination={ false }
+                        dataSource={ sub_send_mail_log }
+                        showHeader={ !!sub_send_mail_log.length }
+                        scroll={{ y: 240 }}
+                    >
+                    </Table>
+                </Modal>
             </div>
         )
     }
-}
-
-EmailSendLog.propTypes = {
 }
 
 export default Form.create()(injectIntl(EmailSendLog))

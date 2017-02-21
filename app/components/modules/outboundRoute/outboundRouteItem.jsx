@@ -13,7 +13,9 @@ import { Button, Checkbox, Col, Form, Input, InputNumber, message, Row, Select, 
 
 const FormItem = Form.Item
 const Option = Select.Option
+const AddZero = UCMGUI.addZero
 const SHOW_PARENT = TreeSelect.SHOW_PARENT
+const officeTimeType = ["LANG133", "LANG3271", "LANG3275", "LANG3266", "LANG3286", "LANG3287", "LANG3288"]
 
 class OutBoundRouteItem extends Component {
     constructor(props) {
@@ -24,15 +26,20 @@ class OutBoundRouteItem extends Component {
         this.state = {
             members: [],
             treeData: [],
+            trunkList: [],
             pinSetList: [],
             accountList: [],
             pin_sets_id: '',
-            failoverTrunk: [],
+            holidayList: [],
             timeCondition: [],
+            failoverTrunk: [],
+            officeTimeList: [],
+            slaTrunkNameList: [],
             enable_wlist: false,
             outBoundRouteItem: {},
             failoverTrunkMode: '',
             timeConditionMode: '',
+            extensionPrefSettings: [],
             enable_out_limitime: false,
             permissionTooltipTitle: '',
             permissionTooltipVisible: false
@@ -108,13 +115,23 @@ class OutBoundRouteItem extends Component {
 
         let pinSetList = []
         let accountList = []
+        let extgroupList = []
+        let timeCondition = []
         let outBoundRouteItem = {}
+        let permissionTooltipTitle = ''
+        let permissionTooltipVisible = false
         let treeData = [{
             key: 'all',
             value: 'all',
             children: [],
             label: formatMessage({id: "LANG104"})
         }]
+
+        let trunkList = UCMGUI.isExist.getList('getTrunkList', formatMessage)
+        let extensionPrefSettings = UCMGUI.isExist.getRange('', formatMessage)
+        let slaTrunkNameList = UCMGUI.isExist.getList('getSLATrunkNameList', formatMessage)
+        let holidayList = UCMGUI.isExist.getList('listTimeConditionHoliday', formatMessage)
+        let officeTimeList = UCMGUI.isExist.getList('listTimeConditionOfficeTime', formatMessage)
 
         $.ajax({
             url: api.apiHost,
@@ -185,8 +202,9 @@ class OutBoundRouteItem extends Component {
 
                 if (bool) {
                     const response = res.response || {}
-                    const extgroupList = response.extension_groups || []
                     const extgroupLabel = formatMessage({id: "LANG2714"})
+
+                    extgroupList = response.extension_groups || []
 
                     extgroupList.map(function(item) {
                         accountList.push({
@@ -228,9 +246,80 @@ class OutBoundRouteItem extends Component {
                     const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                     if (bool) {
+                        let matchs = []
+                        let outLimitimeArr = []
                         const response = res.response || {}
+                        const pattern = res.response.pattern || []
 
                         outBoundRouteItem = response.outbound_route || {}
+
+                        outBoundRouteItem.members = outBoundRouteItem.members.split(',') || []
+                        outBoundRouteItem.default_trunk_index = outBoundRouteItem.default_trunk_index + ''
+
+                        outLimitimeArr = outBoundRouteItem.limitime ? outBoundRouteItem.limitime.match(/\d+/g) : []
+
+                        if (outLimitimeArr.length) {
+                            outBoundRouteItem.enable_out_limitime = true
+                            outBoundRouteItem.maximumTime = (outLimitimeArr[0] ? (parseInt(outLimitimeArr[0] / 1000)) : "")
+                            outBoundRouteItem.warningTime = (outLimitimeArr[1] ? (parseInt(outLimitimeArr[1] / 1000)) : "")
+                            outBoundRouteItem.repeatTime = (outLimitimeArr[2] ? (parseInt(outLimitimeArr[2] / 1000)) : "")
+                        }
+
+                        _.map(pattern, (obj) => {
+                            matchs.push(obj.match)
+                        })
+
+                        outBoundRouteItem.match = matchs.join()
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+
+            $.ajax({
+                type: 'json',
+                async: false,
+                method: 'post',
+                url: api.apiHost,
+                data: {
+                    'page': 1,
+                    'sidx': 'sequence',
+                    'item_num': 1000000,
+                    'outbound_route': outboundRouteId,
+                    'action': 'listOutboundTimeCondition',
+                    'options': 'condition_index,timetype,sequence,start_hour,start_min,end_hour,end_min,mode,week_day,month,day'
+                },
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        const response = res.response || {}
+                        const tc = _.sortBy((response.time_condition || []), function(data) {
+                                return data.sequence
+                            })
+
+                        for (let i = 0; i < tc.length; i++) {
+                            if (tc[i].timetype) {
+                                let obj = tc[i]
+
+                                obj.index = i
+                                obj.end_min = AddZero(obj.end_min)
+                                obj.end_hour = AddZero(obj.end_hour)
+                                obj.start_min = AddZero(obj.start_min)
+                                obj.start_hour = AddZero(obj.start_hour)
+
+                                if (obj.start_hour === "" && obj.start_min === "" &&
+                                    obj.end_hour === "" && obj.end_min === "") {
+                                    obj.time = "00:00-23:59"
+                                } else {
+                                    obj.time = obj.start_hour + ':' + obj.start_min + '-' +
+                                        obj.end_hour + ':' + obj.end_min
+                                }
+
+                                timeCondition.push(obj)
+                            }
+                        }
                     }
                 }.bind(this),
                 error: function(e) {
@@ -239,11 +328,37 @@ class OutBoundRouteItem extends Component {
             })
         }
 
+        if (outBoundRouteItem.permission === 'none') {
+            permissionTooltipVisible = true
+            permissionTooltipTitle = formatMessage({id: "LANG3700"})
+        } else if (outBoundRouteItem.permission === 'internal') {
+            permissionTooltipVisible = true
+            permissionTooltipTitle = formatMessage({id: "LANG2535"}, {
+                    0: formatMessage({id: "LANG1071"})
+                })
+        } else {
+            permissionTooltipTitle = ''
+            permissionTooltipVisible = false
+        }
+
         this.setState({
             treeData: treeData,
+            trunkList: trunkList,
             pinSetList: pinSetList,
+            holidayList: holidayList,
             accountList: accountList,
-            outBoundRouteItem: outBoundRouteItem
+            extgroupList: extgroupList,
+            timeCondition: timeCondition,
+            officeTimeList: officeTimeList,
+            slaTrunkNameList: slaTrunkNameList,
+            members: outBoundRouteItem.members,
+            outBoundRouteItem: outBoundRouteItem,
+            pin_sets_id: outBoundRouteItem.pin_sets_id,
+            extensionPrefSettings: extensionPrefSettings,
+            permissionTooltipTitle: permissionTooltipTitle,
+            permissionTooltipVisible: permissionTooltipVisible,
+            enable_wlist: outBoundRouteItem.enable_wlist === 'yes',
+            enable_out_limitime: outBoundRouteItem.enable_out_limitime
         })
     }
     _handleCancel = () => {
@@ -352,6 +467,67 @@ class OutBoundRouteItem extends Component {
             enable_wlist: e.target.checked
         })
     }
+    _renderTrunkOptions = (isFailoverTrunk) => {
+        let trunkList = this.state.trunkList
+        const { formatMessage } = this.props.intl
+        let slaTrunkNameList = this.state.slaTrunkNameList
+
+        if (isFailoverTrunk) {
+            trunkList = _.filter(trunkList, (data, index) => {
+                return slaTrunkNameList.indexOf(data.trunk_name) === -1
+            })
+        }
+
+        return <Select>
+                {
+                    // Pengcheng Zou Moved. Set Trunk Options First.
+                    _.map(trunkList, (data, index) => {
+                        let text
+                        let option
+                        let hasClass
+                        let name = data.trunk_name
+                        let technology = data.technology
+                        let value = data.trunk_index + ''
+                        let isSLA = slaTrunkNameList.indexOf(name) > -1
+                        let disabled = (data.out_of_service && data.out_of_service === 'yes')
+
+                        // Pengcheng Zou Added. locale="{0}{1}{2}{3}" or locale="{0}{1}{2}{3}{4}{5}"
+                        // locale = (disabled || isSLA) ? 'LANG564' : 'LANG2696';
+
+                        if (technology === 'Analog') {
+                            text = formatMessage({id: "LANG105"})
+                        } else if (technology === 'SIP') {
+                            text = formatMessage({id: "LANG108"})
+                        } else if (technology === 'IAX') {
+                            text = formatMessage({id: "LANG107"})
+                        } else if (technology === 'BRI') {
+                            text = formatMessage({id: "LANG2835"})
+                        } else if (technology === 'PRI' || technology === 'SS7' || technology === 'MFC/R2' || technology === 'EM' || technology === 'EM_W') {
+                            text = technology
+                        }
+
+                        text += formatMessage({id: "LANG83"}) + ' -- ' + name
+
+                        if (disabled) {
+                            text += ' -- ' + formatMessage({id: "LANG273"})
+                        } else if (isSLA) {
+                            text += ' -- ' + formatMessage({id: "LANG3218"})
+                        }
+
+                        hasClass = (disabled || isSLA) ? 'out-of-service' : ''
+
+                        return <Option
+                                    key={ value }
+                                    value={ value }
+                                    className={ hasClass }
+                                    technology={ technology }
+                                >
+                                    { text }
+                                </Option>
+                    })
+                }
+            </Select>
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -408,11 +584,17 @@ class OutBoundRouteItem extends Component {
         const timeConditionColumns = [{
                 key: 'timetype',
                 dataIndex: 'timetype',
-                title: formatMessage({id: "LANG1557"})
+                title: formatMessage({id: "LANG1557"}),
+                render: (text, record, index) => {
+                    return formatMessage({id: (record.timetype >= 6 ? officeTimeType[6] : officeTimeType[record.timetype])})
+                }
             }, {
                 key: 'time',
                 dataIndex: 'time',
-                title: formatMessage({id: "LANG247"})
+                title: formatMessage({id: "LANG247"}),
+                render: (text, record, index) => {
+                    return ((record.timetype >= 6) ? (record.time || '--') : '--')
+                }
             }, {
                 key: 'options',
                 dataIndex: 'options',
@@ -466,12 +648,10 @@ class OutBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('outbound_rt_name', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
                                         initialValue: settings.outbound_rt_name
                                     })(
                                         <Input />
@@ -490,12 +670,10 @@ class OutBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('match', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
                                         initialValue: settings.match
                                     })(
                                         <Input placeholder={ formatMessage({id: "LANG5448"}) } />
@@ -786,16 +964,13 @@ class OutBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('default_trunk_index', {
-                                        rules: [],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
                                         initialValue: settings.default_trunk_index
                                     })(
-                                        <Select>
-                                            <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
-                                            <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
-                                            <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
-                                            <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
-                                            <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
-                                        </Select>
+                                        this._renderTrunkOptions()
                                     ) }
                                 </FormItem>
                             </Col>
@@ -862,13 +1037,7 @@ class OutBoundRouteItem extends Component {
                                             rules: [],
                                             initialValue: settings.failover_trunk
                                         })(
-                                            <Select>
-                                                <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
-                                                <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
-                                                <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
-                                                <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
-                                                <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
-                                            </Select>
+                                            this._renderTrunkOptions(true)
                                         ) }
                                     </FormItem>
                                 </Col>

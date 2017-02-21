@@ -86,6 +86,9 @@ class CreateVoipTrunk extends Component {
             })
         })
     }
+    _handleCancel = (e) => {
+        browserHistory.push('/extension-trunk/voipTrunk')
+    }
     _onChangeTrunkType = (val) => {
         this.setState({
             trunkType: val

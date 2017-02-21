@@ -19,12 +19,24 @@ class AdvanceSettings extends Component {
         super(props)
 
         this.state = {
+            firstLoad: true,
+            enableCc: false
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
         this.props.getRefs(this.refs)
+    }
+    componentDidUpdate() {
+        const trunk = this.props.trunk || {}
+
+        if (this.state.firstLoad && trunk.cc_agent_policy === "native") {
+            this.setState({
+                enableCc: true,
+                firstLoad: false
+            })
+        }
     }
     _onChangeFaxmode = (val) => {
         this.setState({
@@ -580,14 +592,14 @@ class AdvanceSettings extends Component {
                         { getFieldDecorator('enable_cc', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: trunk.enable_cc === "yes" ? true : false
+                            initialValue: trunk.cc_agent_policy === 'native' ? true : false
                         })(
-                            <Checkbox onChange={this._onChangeEnableCc} />
-                        ) }
+                            <Checkbox onChange={ this._onChangeEnableCc } />
+                        ) }       
                     </FormItem>
                     <FormItem
                         ref="div_cc_max_agents"
-                        className={this.state.enableCc ? "display-block" : "hidden"}
+                        className={ this.state.enableCc ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG3734" /> }>
@@ -609,7 +621,6 @@ class AdvanceSettings extends Component {
                         ref="div_cc_max_monitors"
                         className={this.state.enableCc ? "display-block" : "hidden"}
                         { ...formItemLayout }
-                        className={ this.state.enableCc === true ? "display-block" : "hidden" }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG3740" /> }>
                                 <span>{ formatMessage({id: "LANG3739"}) }</span>

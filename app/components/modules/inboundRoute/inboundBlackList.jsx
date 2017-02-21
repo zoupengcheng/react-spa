@@ -6,6 +6,10 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import Validator from "../../api/validator"
+
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
@@ -19,7 +23,19 @@ class InboundBlackList extends Component {
 
         this.state = {
             settings: {},
-            blacklist: []
+            blacklist: [],
+            uploadErrObj: {
+                "1": "LANG890",
+                "2": "LANG891",
+                "3": "LANG892",
+                "4": "LANG893",
+                "5": "LANG894",
+                "6": "LANG895",
+                "7": "LANG896",
+                "8": "LANG897",
+                "9": "LANG898",
+                "10": "LANG899"
+            }
         }
     }
     componentDidMount() {
@@ -244,6 +260,13 @@ class InboundBlackList extends Component {
             }
         })
     }
+    _normFile(e) {
+        if (Array.isArray(e)) {
+            return e
+        }
+
+        return e && e.fileList
+    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
@@ -299,54 +322,56 @@ class InboundBlackList extends Component {
 
         const uploadProps = {
             name: 'file',
+            showUploadList: false,
             headers: { authorization: 'authorization-text' },
-            action: api.apiHost + 'action=uploadfile&type=firmware',
+            action: api.apiHost + 'action=uploadfile&type=importInboundBlacklist',
             onChange: (info) => {
-                // message.loading(formatMessage({ id: "LANG979" }), 0)
                 console.log(info.file.status)
+
+                this.props.setSpinLoading({ loading: true, tip: formatMessage({id: "LANG905"}) })
 
                 if (info.file.status !== 'uploading') {
                     console.log(info.file, info.fileList)
                 }
 
-                if (this.state.upgradeLoading) {
-                    this.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
-                    this.setState({upgradeLoading: false})
-                }
-
-                if (info.file.status === 'removed') {
-                    return
-                }
-
                 if (info.file.status === 'done') {
                     // message.success(`${info.file.name} file uploaded successfully`)
                     let data = info.file.response
+                    let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                    if (data) {
-                        let status = data.status,
-                            response = data.response
+                    if (bool) {
+                        if (data.response && data.response.result) {
+                            this.props.setSpinLoading({ loading: false })
 
-                        this.props.setSpinLoading({loading: false})
+                            if (data.response.result === 0) {
+                                message.success(formatMessage({id: "LANG815"}))
+                            } else if (data.response.result === -1) {
+                                message.error(formatMessage({id: "LANG3204"}))
+                            } else {
+                                let messageText = formatMessage({id: "LANG3165"})
 
-                        if (data.status === 0 && response && response.result === 0) {
-                            message.success(formatMessage({id: "LANG915"}))
-                        } else if (data.status === 4) {
-                            message.error(formatMessage({id: "LANG915"}))
-                        } else if (!_.isEmpty(response)) {
-                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
+                                if (parseInt(data.response.result) < 0) {
+                                    messageText = formatMessage({id: this.state.uploadErrObj[Math.abs(parseInt(data.response.result)).toString()]})
+                                } else if (parseInt(data.response.result) === 4) {
+                                    messageText = formatMessage({id: "LANG915"})
+                                } else if (data.response.body) {
+                                    messageText = data.response.body
+                                }
+
+                                message.error(messageText)
+                            }
                         } else {
                             message.error(formatMessage({id: "LANG916"}))
                         }
                     } else {
                         message.error(formatMessage({id: "LANG916"}))
                     }
-                } else if (info.file.status === 'error') {
-                    message.error(`${info.file.name} file upload failed.`)
                 }
-            },
-            onRemove: () => {
-                this.props.setSpinLoading({loading: false})
-                message.destroy()
+
+                if (info.file.status === 'error') {
+                    // message.error(`${info.file.name} file upload failed.`)
+                    message.error(formatMessage({id: "LANG916"}))
+                }
             }
         }
 
@@ -403,7 +428,7 @@ class InboundBlackList extends Component {
                                 valuePropName: 'fileList',
                                 normalize: this._normFile
                             })(
-                                <Upload { ...uploadProps }>
+                                <Upload {...uploadProps}>
                                     <Button type="ghost">
                                         <Icon type="upload" />{ formatMessage({id: "LANG1607"}) }
                                     </Button>
@@ -475,4 +500,12 @@ class InboundBlackList extends Component {
     }
 }
 
-export default Form.create()(injectIntl(InboundBlackList))
+const mapStateToProps = (state) => ({
+    spinLoading: state.spinLoading
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Form.create()(injectIntl(InboundBlackList)))

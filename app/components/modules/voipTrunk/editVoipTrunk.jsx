@@ -1,5 +1,6 @@
 'use strict'
 
+import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Transfer, Tabs } from 'antd'
@@ -48,12 +49,12 @@ class EditVoipTrunk extends Component {
     componentWillUnmount() {
     }
     // _tectFax = () => {
-    //     var accountList = UCMGUI.isExist.getList("listAccount").account,
+    //     let accountList = UCMGUI.isExist.getList("listAccount").account,
     //         faxList = UCMGUI.isExist.getList("listFax").fax,
     //         str = '',
     //         ele;
 
-    //     for (var i = 0; i < accountList.length; i++) {
+    //     for (let i = 0; i < accountList.length; i++) {
     //         ele = accountList[i];
 
     //         if (ele.account_type.match(/FXS/i)) {
@@ -61,7 +62,7 @@ class EditVoipTrunk extends Component {
     //         }
     //     }
 
-    //     for (var i = 0; i < faxList.length; i++) {
+    //     for (let i = 0; i < faxList.length; i++) {
     //         ele = faxList[i];
 
     //         str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
@@ -223,28 +224,164 @@ class EditVoipTrunk extends Component {
                     }
                 }
             }
-
-            console.log('Received values of form: ', values)
-            message.loading(formatMessage({ id: "LANG826" }), 0)
-
-            $.ajax({
-                url: api.apiHost,
-                method: "post",
-                data: action,
-                type: 'json',
-                error: function(e) {
-                    message.error(e.statusText)
-                },
-                success: function(data) {
-                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                    if (bool) {
-                        message.destroy()
-                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
-                    }
-                }.bind(this)
-            })
+            action = me._transAction(action)
+            // if ((action["action"].toLowerCase().indexOf('sip') > -1) && /[a-zA-Z]/g.test(action['host']) && !UCMGUI.isIPv6(action['host'])) {
+            //     confirmStr = $P.lang("LANG4163")
+            // } else if ((action["action"].toLowerCase().indexOf('iax') > -1) &&
+            //     (/[a-zA-Z]/g.test(action['host']) || /:\d*$/.test(action['host'])) && !UCMGUI.isIPv6(action['host'])) {
+            //     confirmStr = $P.lang("LANG4469")
+            // }
+            // if (confirmStr) {
+            //     top.dialog.dialogConfirm({
+            //         confirmStr: confirmStr,
+            //         buttons: {
+            //             ok: function() {
+            //                 this._doUpdateTrunksInfo(action)
+            //             },
+            //             cancel: function() {
+            //                 top.dialog.container.show();
+            //                 top.dialog.shadeDiv.show();
+            //             }
+            //         }
+            //     })
+            // } else {
+            //     this._doUpdateTrunksInfo(action)
+            // }
+            this._doUpdateTrunksInfo(action)
         })
+    }
+    _doUpdateTrunksInfo = (action) => {
+        const { formatMessage } = this.props.intl
+        message.loading(formatMessage({ id: "LANG826" }), 0)
+
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: action,
+            type: 'json',
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                    browserHistory.push('/extension-trunk/voipTrunk')
+                }
+            }.bind(this)
+        })
+    }
+    _transAction = (action) => {
+        const form = this.props.form
+
+        let trunkId = this.props.params.trunkId,
+            technology = this.props.params.technology,
+            trunkType = this.props.params.trunkType
+
+        let fax = form.getFieldValue("faxmode")
+
+        if (fax === "no") {
+            action['faxdetect'] = "no"
+            action['fax_gateway'] = "no"
+        } else if (fax === "detect") {
+            action['faxdetect'] = "yes"
+            action['fax_gateway'] = "no"
+        }
+        delete action['faxmode']
+
+        if (technology.toLowerCase() === "sip") {
+            if (form.getFieldValue('enable_cc')) {
+                action['cc_agent_policy'] = "native"
+                action['cc_monitor_policy'] = "native"
+                action['cc_max_agents'] = form.getFieldValue('cc_max_agents')
+                action['cc_max_monitors'] = form.getFieldValue('cc_max_monitors')
+                action['cc_offer_timer'] = "120"
+                action['ccnr_available_timer'] = "3600"
+                action['ccbs_available_timer'] = "3600"
+            } else {
+                action['cc_agent_policy'] = "never"
+                action['cc_monitor_policy'] = "never"
+            }
+
+            if (form.getFieldValue("send_ppi")) {
+                action['send_ppi'] = "yes"
+                action['pai_number'] = ""
+            } else if (form.getFieldValue("send_pai")) {
+                action['send_ppi'] = "pai"
+                action['use_dod_in_ppi'] = "no"
+            } else {
+                action['send_ppi'] = "no"
+                action['pai_number'] = ""
+                action['use_dod_in_ppi'] = "no"
+            }
+        }
+        delete action['enable_cc']
+        delete action['send_pai']
+        delete action['send_ppi']
+
+        if (technology.toLowerCase() === "sip") {
+            if (fax === "detect") {
+                let bEnableRoute = form.getFieldValue('fax_intelligent_route')
+                action['fax_intelligent_route'] = bEnableRoute ? 'yes' : 'no'
+
+                if (bEnableRoute) {
+                    action['fax_intelligent_route_destination'] = form.getFieldValue('fax_intelligent_route_destination')
+                }
+            } else {
+                delete action['fax_intelligent_route']
+                delete action['fax_intelligent_route_destination']
+            }
+            if (trunkType.toLowerCase() === "peer" && form.getFieldValue("ldap_sync_enable")) {
+                let outrtVal = form.getFieldValue("ldap_default_outrt"),
+                    prefixVal = form.getFieldValue("ldap_outrt_prefix")
+
+                if (outrtVal !== "custom") {
+                    action["ldap_default_outrt"] = outrtVal
+                    action["ldap_default_outrt_prefix"] = prefixVal
+                    action["ldap_custom_prefix"] = ""
+                } else {
+                    action["ldap_default_outrt"] = ""
+                    action["ldap_default_outrt_prefix"] = ""
+                    action["ldap_custom_prefix"] = prefixVal
+                }
+            } else if (trunkType.toLowerCase() === "register") {
+                if (!form.getFieldValue("chkOutboundproxy")) {
+                    action["outboundproxy"] = ""
+                    action["rmv_obp_from_route"] = "no"
+                }
+                if (form.getFieldValue("tel_uri") !== "disabled") {
+                    action["rmv_obp_from_route"] = "no"
+                }
+            }
+        }
+        delete action['ldap_default_outrt']
+        delete action['ldap_outrt_prefix']
+        delete action['chkOutboundproxy']
+        // let rightArr = []
+
+        // $.each($("#rightSelect").children(), function(index, item) {
+        //     rightArr.push($(item).val())
+        // })
+
+        // action["allow"] = rightArr.toString()
+        action["trunk"] = trunkId
+        delete action["trunk_index"]
+
+        if (action["user_name"]) {
+            action["username"] = action["user_name"]
+            delete action["user_name"]
+        }
+
+        if (action["password"]) {
+            action["secret"] = action["password"]
+            delete action["password"]
+        }
+        return action
+    }
+    _handleCancel = (e) => {
+        browserHistory.push('/extension-trunk/voipTrunk')
     }
     _getRefs = (refs) => {
         this.setState({
