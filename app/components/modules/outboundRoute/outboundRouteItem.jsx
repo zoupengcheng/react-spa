@@ -65,7 +65,7 @@ class OutBoundRouteItem extends Component {
         let str
         let length
         let results = []
-        let customMember = value
+        let customMember = value ? value : ''
         let customMemberList = customMember.split(',')
 
         for (i = 0, length = customMemberList.length; i < length; i++) {

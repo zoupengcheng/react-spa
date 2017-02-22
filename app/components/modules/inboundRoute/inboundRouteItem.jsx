@@ -96,13 +96,12 @@ class InBoundRouteItem extends Component {
         return (option.title.indexOf(inputValue) > -1)
     }
     _getInitData = () => {
+        const trunkIndex = this.props.params.id
         const { formatMessage } = this.props.intl
-        const outboundRouteId = this.props.params.id
-        const outboundRouteName = this.props.params.name
+        const currentAddMode = this.props.route.path.indexOf('add') === 0
 
-        let pinSetList = []
         let accountList = []
-        let outBoundRouteItem = {}
+        let inBoundRouteItem = {}
         let treeData = [{
             key: 'all',
             value: 'all',
@@ -110,27 +109,11 @@ class InBoundRouteItem extends Component {
             label: formatMessage({id: "LANG104"})
         }]
 
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'listPinSets'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-
-                    pinSetList = response.pin_sets_id || []
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
+        let trunkList = UCMGUI.isExist.getList('getTrunkList', formatMessage)
+        let extensionPrefSettings = UCMGUI.isExist.getRange('', formatMessage)
+        let slaTrunkNameList = UCMGUI.isExist.getList('getSLATrunkNameList', formatMessage)
+        let holidayList = UCMGUI.isExist.getList('listTimeConditionHoliday', formatMessage)
+        let officeTimeList = UCMGUI.isExist.getList('listTimeConditionOfficeTime', formatMessage)
 
         $.ajax({
             url: api.apiHost,
@@ -198,7 +181,7 @@ class InBoundRouteItem extends Component {
 
         treeData[0].children = accountList
 
-        if (outboundRouteId) {
+        if (currentAddMode) {
             let action = {}
             let params = ['outbound_rt_name', 'outbound_rt_index', 'default_trunk_index', 'pin_sets_id', 'permission',
                     'password', 'strip', 'prepend', 'pattern', 'members', 'enable_wlist', 'custom_member', 'limitime',
@@ -246,60 +229,130 @@ class InBoundRouteItem extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
-        let loadingMessage = ''
-        let successMessage = ''
+        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
+        const getFieldInstance = form.getFieldInstance
+        const outboundRouteIndex = this.props.params.id
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
-                })}}></span>
+        let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        let successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        form.validateFields({ force: true }, (err, values) => {
             if (!err) {
-                console.log('Received values of form: ', values)
+                let permissionDisabled = !!this.state.pin_sets_id || this.state.enable_wlist
 
-                if (!this.state.targetKeys.length) {
-                    message.error(errorMessage)
+                const doSubmit = () => {
+                    let action = {}
+                    let pattern = '['
+                    let match = values.match.split(',') || []
 
-                    return
-                }
+                    match = _.filter(match, function(value) {
+                        return value
+                    })
 
-                message.loading(loadingMessage)
+                    if (outboundRouteIndex) {
+                        action.action = 'updateOutboundRoute'
+                        action.outbound_route = outboundRouteIndex
+                    } else {
+                        action.action = 'addOutboundRoute'
+                    }
 
-                let action = values
+                    _.map(values, function(value, key) {
+                        let fieldInstance = getFieldInstance(key)
 
-                action.members = this.state.targetKeys.join()
-
-                if (extensionGroupId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = extensionGroupId
-                } else {
-                    action.action = 'addExtensiongroup'
-                }
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(successMessage)
+                        if (key === 'enable_out_limitime' || key === 'office' || key === 'match' ||
+                            key === 'maximumTime' || key === 'repeatTime' || key === 'warningTime' ||
+                            key === 'failover_prepend' || key === 'failover_strip' || key === 'failover_trunk') {
+                            return false
                         }
 
-                        this._handleCancel()
-                    }.bind(this)
-                })
+                        action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
+                    })
+
+                    _.map(match, function(value, index) {
+                        if (!value) {
+                            return
+                        }
+
+                        value = (value[0] !== '_') ? '_' + value : value
+
+                        if (index < match.length - 1) {
+                            pattern += '{"match": "' + value + '"}, '
+                        } else {
+                            pattern += '{"match": "' + value + '"}]'
+                        }
+                    })
+
+                    if (values.enable_out_limitime) {
+                        let maximumTime = values.maximumTime
+                        let warningTime = values.warningTime
+                        let repeatTime = values.repeatTime
+
+                        maximumTime = maximumTime ? (parseInt(maximumTime) * 1000) : ''
+                        warningTime = warningTime ? (parseInt(warningTime) * 1000) : ''
+                        repeatTime = repeatTime ? (parseInt(repeatTime) * 1000) : ''
+
+                        action.limitime = 'L(' + maximumTime + ':' + warningTime + ':' + repeatTime + ')'
+                    } else {
+                        action.limitime = ''
+                    }
+
+                    action.pattern = pattern
+                    action.members = this.state.members.join()
+                    action.time_condition = JSON.stringify([])
+                    action.failover_outbound_data = JSON.stringify([])
+                    action.custom_member = this._customDynamicMember(action.custom_member)
+                    action.pin_sets_id = action.pin_sets_id === 'none' ? '' : action.pin_sets_id
+
+                    // console.log('Received values of form: ', action)
+                    // console.log('Received values of form: ', values)
+
+                    message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                    $.ajax({
+                        data: action,
+                        type: 'json',
+                        method: "post",
+                        url: api.apiHost,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(successMessage, 2)
+
+                                this._handleCancel()
+                            }
+                        }.bind(this)
+                    })
+                }
+
+                if (values.permission === 'internal' && !permissionDisabled) {
+                    confirm({
+                        title: '',
+                        onCancel() {},
+                        onOk() { doSubmit() },
+                        content: <span dangerouslySetInnerHTML=
+                                        {{ __html: formatMessage({ id: "LANG2534" }, {
+                                                0: formatMessage({ id: "LANG1071" }),
+                                                1: formatMessage({ id: "LANG1071" })
+                                            })
+                                        }}
+                                    ></span>
+                    })
+                } else if (values.permission === 'none' && !permissionDisabled) {
+                    confirm({
+                        title: '',
+                        onCancel() {},
+                        onOk() { doSubmit() },
+                        content: <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG3701" }) }}></span>
+                    })
+                } else {
+                    doSubmit()
+                }
             }
         })
     }
@@ -458,11 +511,11 @@ class InBoundRouteItem extends Component {
                 }
             }]
 
-        const title = (this.props.params.id
-                ? formatMessage({id: "LANG659"})
-                : formatMessage({id: "LANG771"}))
+        const title = (this.props.route.path.indexOf('add') === 0
+                ? formatMessage({id: 'LANG771'})
+                : formatMessage({id: 'LANG659'}))
 
-        document.title = formatMessage({id: "LANG584"}, {
+        document.title = formatMessage({id: 'LANG584'}, {
                     0: model_info.model_name,
                     1: title
                 })
@@ -490,12 +543,10 @@ class InBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('trunk_index', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
                                         initialValue: settings.trunk_index
                                     })(
                                         <Select>
@@ -520,12 +571,10 @@ class InBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('did_pattern_match', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
                                         initialValue: settings.did_pattern_match
                                     })(
                                         <Input placeholder={ formatMessage({id: "LANG5448"}) } />
@@ -544,12 +593,7 @@ class InBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('did_pattern_allow', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
+                                        rules: [],
                                         initialValue: settings.did_pattern_allow
                                     })(
                                         <Input placeholder={ formatMessage({id: "LANG5448"}) } />
@@ -570,7 +614,7 @@ class InBoundRouteItem extends Component {
                                     { getFieldDecorator('out_of_service', {
                                         rules: [],
                                         valuePropName: 'checked',
-                                        initialValue: settings.out_of_service ? (settings.out_of_service === 'yes') : false
+                                        initialValue: settings.out_of_service === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -590,7 +634,7 @@ class InBoundRouteItem extends Component {
                                     { getFieldDecorator('prepend_trunk_name', {
                                         rules: [],
                                         valuePropName: 'checked',
-                                        initialValue: settings.prepend_trunk_name ? (settings.prepend_trunk_name === 'yes') : false
+                                        initialValue: settings.prepend_trunk_name === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -611,19 +655,17 @@ class InBoundRouteItem extends Component {
                                         { getFieldDecorator('prepend_inbound_name_enable', {
                                             rules: [],
                                             valuePropName: 'checked',
-                                            initialValue: settings.prepend_inbound_name_enable ? (settings.prepend_inbound_name_enable === 'yes') : false
+                                            initialValue: settings.prepend_inbound_name_enable === 'yes'
                                         })(
                                             <Checkbox />
                                         ) }
                                     </Col>
                                     <Col span={ 21 } offset={ 1 }>
                                         { getFieldDecorator('prepend_inbound_name', {
-                                            rules: [
-                                                {
-                                                    required: true,
-                                                    message: formatMessage({id: "LANG2150"})
-                                                }
-                                            ],
+                                            rules: [{
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }],
                                             initialValue: settings.prepend_inbound_name
                                         })(
                                             <Input />
@@ -645,7 +687,7 @@ class InBoundRouteItem extends Component {
                                     { getFieldDecorator('en_multi_mode', {
                                         rules: [],
                                         valuePropName: 'checked',
-                                        initialValue: settings.en_multi_mode ? (settings.en_multi_mode === 'yes') : false
+                                        initialValue: settings.en_multi_mode === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }

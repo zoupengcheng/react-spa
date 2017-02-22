@@ -42,22 +42,24 @@ class InboundRoute extends Component {
     }
     _add = () => {
         let confirmContent = ''
+        const form = this.props.form
         const { formatMessage } = this.props.intl
 
-        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
+        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2698" })}}></span>
 
-        // if (!this.state.accountList.length) {
-        //     confirm({
-        //         title: '',
-        //         content: confirmContent,
-        //         onOk() {
-        //             browserHistory.push('/extension-trunk/extension')
-        //         },
-        //         onCancel() {}
-        //     })
-        // } else {
-            browserHistory.push('/extension-trunk/inboundRoute/add')
-        // }
+        if (!this.state.trunkList.length) {
+            confirm({
+                title: '',
+                content: confirmContent,
+                onOk() {
+                    browserHistory.push('/extension-trunk/voipTrunk')
+                },
+                onCancel() {}
+            })
+        } else {
+            let trunkIndex = form.getFieldValue('trunk_select')
+            browserHistory.push('/extension-trunk/inboundRoute/add/' + trunkIndex)
+        }
     }
     _blacklist = (record) => {
         browserHistory.push('/extension-trunk/inboundRoute/blacklist')
@@ -207,24 +209,24 @@ class InboundRoute extends Component {
                 </span>
     }
     _delete = (record) => {
-        let loadingMessage = ''
-        let successMessage = ''
+        const form = this.props.form
         const { formatMessage } = this.props.intl
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+        let trunkIndex = form.getFieldValue('trunk_select')
+        let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        let successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
         message.loading(loadingMessage)
 
         $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
-            },
-            type: 'json',
             async: true,
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                'action': 'deleteInboundRoute',
+                'inbound_route': record.inbound_rt_index
+            },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -232,7 +234,7 @@ class InboundRoute extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getInboundRoutes()
+                    this._getInboundRoutes(trunkIndex)
                 }
             }.bind(this),
             error: function(e) {
@@ -241,7 +243,7 @@ class InboundRoute extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/extension-trunk/inboundRoute/edit/' + record.inbound_rt_index)
     }
     _getDisplayName = (type, id_key, id_value, display_key) => {
         let display_name = ''
@@ -502,6 +504,7 @@ class InboundRoute extends Component {
     }
     render() {
         const { formatMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
         const slaTrunkNameList = this.state.slaTrunkNameList
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
@@ -655,50 +658,53 @@ class InboundRoute extends Component {
                                     </span>
                                 )}
                             >
-                                <Select
-                                    style={{ 'width': '100%' }}
-                                    onChange={ this._onChangeTrunk }
-                                    defaultValue= { this.state.trunkList.length
-                                                    ? (this.state.trunkList[0].trunk_index + '')
-                                                    : '0'
+                                { getFieldDecorator('trunk_select', {
+                                        rules: [],
+                                        initialValue: this.state.trunkList.length
+                                                        ? (this.state.trunkList[0].trunk_index + '')
+                                                        : '0'
+                                    })(
+                                        <Select
+                                            style={{ 'width': '100%' }}
+                                            onChange={ this._onChangeTrunk }
+                                        >
+                                            { this.state.trunkList.map(function(item, index) {
+                                                let title = '',
+                                                    name = item.trunk_name,
+                                                    value = item.trunk_index + '',
+                                                    technology = item.technology,
+                                                    isSLA = (slaTrunkNameList.indexOf(name) > -1),
+                                                    disabled = (item.out_of_service && item.out_of_service === 'yes')
+
+                                                if (technology === 'Analog') {
+                                                    title += formatMessage({id: "LANG105"})
+                                                } else if (technology === 'SIP') {
+                                                    title += formatMessage({id: "LANG108"})
+                                                } else if (technology === 'IAX') {
+                                                    title += formatMessage({id: "LANG107"})
+                                                } else if (technology === 'BRI') {
+                                                    title += formatMessage({id: "LANG2835"})
+                                                } else if (technology === 'PRI' || technology === 'SS7' || technology === 'MFC/R2' || technology === 'EM' || technology === 'EM_W') {
+                                                    title += technology
                                                 }
-                                >
-                                    { this.state.trunkList.map(function(item, index) {
-                                        let title = '',
-                                            name = item.trunk_name,
-                                            value = item.trunk_index + '',
-                                            technology = item.technology,
-                                            isSLA = (slaTrunkNameList.indexOf(name) > -1),
-                                            disabled = (item.out_of_service && item.out_of_service === 'yes')
 
-                                        if (technology === 'Analog') {
-                                            title += formatMessage({id: "LANG105"})
-                                        } else if (technology === 'SIP') {
-                                            title += formatMessage({id: "LANG108"})
-                                        } else if (technology === 'IAX') {
-                                            title += formatMessage({id: "LANG107"})
-                                        } else if (technology === 'BRI') {
-                                            title += formatMessage({id: "LANG2835"})
-                                        } else if (technology === 'PRI' || technology === 'SS7' || technology === 'MFC/R2' || technology === 'EM' || technology === 'EM_W') {
-                                            title += technology
-                                        }
+                                                title += ' ' + formatMessage({id: "LANG83"}) + ' -- ' + name
 
-                                        title += ' ' + formatMessage({id: "LANG83"}) + ' -- ' + name
+                                                if (disabled) {
+                                                    title += ' -- ' + formatMessage({id: "LANG273"})
+                                                } else if (isSLA) {
+                                                    title += ' -- ' + formatMessage({id: "LANG3218"})
+                                                }
 
-                                        if (disabled) {
-                                            title += ' -- ' + formatMessage({id: "LANG273"})
-                                        } else if (isSLA) {
-                                            title += ' -- ' + formatMessage({id: "LANG3218"})
-                                        }
-
-                                        return <Option
-                                                    key={ value }
-                                                    value={ value }
-                                                    technology={ technology }
-                                                    className={ (disabled || isSLA) ? 'out-of-service' : '' }
-                                                >{ title }</Option>
-                                    }) }
-                                </Select>
+                                                return <Option
+                                                            key={ value }
+                                                            value={ value }
+                                                            technology={ technology }
+                                                            className={ (disabled || isSLA) ? 'out-of-service' : '' }
+                                                        >{ title }</Option>
+                                            }) }
+                                        </Select>
+                                    ) }
                             </FormItem>
                         </Col>
                     </Row>
@@ -716,4 +722,4 @@ class InboundRoute extends Component {
     }
 }
 
-export default injectIntl(InboundRoute)
+export default Form.create()(injectIntl(InboundRoute))

@@ -273,10 +273,10 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="inboundRoute" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG15"] }>
                         <IndexRoute component={ InboundRoute } />
-                        <Route path="add" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="add/:id" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="settings" onEnter={ requireAuth } component={ InboundSettings } breadcrumbName={ currentLocaleData["LANG4543"] } />
                         <Route path="blacklist" onEnter={ requireAuth } component={ InboundBlackList } breadcrumbName={ currentLocaleData["LANG2278"] } />
-                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ InboundRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                 </Route>
 
