@@ -20,12 +20,22 @@ class WakeupService extends Component {
             selectedRowName: "",
             selectedRowKeys: [],
             wakeupService: [],
-            batchDeleteModalVisible: false
+            batchDeleteModalVisible: false,
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            }
         }
     }
     componentDidMount() {
         this._getAccountList()
         this._getWakeupService()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _add = () => {
         let confirmContent = ''
@@ -180,7 +190,14 @@ class WakeupService extends Component {
             }
         })
     }
-    _getWakeupService = () => {
+    _getWakeupService = (
+        params = {                
+                item_num: 10,
+                sidx: "wakeup_index",
+                sord: "asc",
+                page: 1 
+            }
+        ) => {
         const { formatMessage } = this.props.intl
 
         $.ajax({
@@ -188,8 +205,7 @@ class WakeupService extends Component {
             method: 'post',
             data: {
                 action: 'listWakeupSchedule',
-                sidx: 'wakeup_index',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -199,15 +215,34 @@ class WakeupService extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const wakeupService = response.ucm_wakeup || []
+                    const pagination = this.state.pagination
 
                     this.setState({
-                        wakeupService: wakeupService
+                        wakeupService: wakeupService,
+                        pagination
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+
+        this._getWakeupService({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'wakeup_index',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
         })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -395,10 +430,11 @@ class WakeupService extends Component {
                     <Table
                         rowKey="wakeup_index"
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ this.state.pagination }
                         rowSelection={ rowSelection }
                         dataSource={ this.state.wakeupService }
                         showHeader={ !!this.state.wakeupService.length }
+                        onChange={ this._handleTableChange }
                     />
                 </div>
             </div>

@@ -9,10 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Button, Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Table, Tooltip, TreeSelect } from 'antd'
+import { Button, Checkbox, Col, Form, Input, InputNumber, message, Modal, Row, Select, Table, Tooltip, TreeSelect } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
 const AddZero = UCMGUI.addZero
 const SHOW_PARENT = TreeSelect.SHOW_PARENT
 const officeTimeType = ["LANG133", "LANG3271", "LANG3275", "LANG3266", "LANG3286", "LANG3287", "LANG3288"]
@@ -58,6 +59,28 @@ class OutBoundRouteItem extends Component {
         } else {
             callback()
         }
+    }
+    _customDynamicMember = (value) => {
+        let i
+        let str
+        let length
+        let results = []
+        let customMember = value
+        let customMemberList = customMember.split(',')
+
+        for (i = 0, length = customMemberList.length; i < length; i++) {
+            str = $.trim(customMemberList[i])
+
+            if (str) {
+                if (str[0] !== '_') {
+                    str = '_' + str
+                }
+
+                results.push(str)
+            }
+        }
+
+        return results.toString()
     }
     _addFailoverTrunk = () => {
         this.setState({
@@ -116,6 +139,7 @@ class OutBoundRouteItem extends Component {
         let pinSetList = []
         let accountList = []
         let extgroupList = []
+        let failoverTrunk = []
         let timeCondition = []
         let outBoundRouteItem = {}
         let permissionTooltipTitle = ''
@@ -248,25 +272,41 @@ class OutBoundRouteItem extends Component {
                     if (bool) {
                         let matchs = []
                         let outLimitimeArr = []
-                        const response = res.response || {}
-                        const pattern = res.response.pattern || []
+                        let response = res.response || {}
+                        let pattern = res.response.pattern || []
+                        let failover = res.response.failover_outbound_data || []
 
                         outBoundRouteItem = response.outbound_route || {}
 
-                        outBoundRouteItem.members = outBoundRouteItem.members.split(',') || []
                         outBoundRouteItem.default_trunk_index = outBoundRouteItem.default_trunk_index + ''
+                        outBoundRouteItem.members = outBoundRouteItem.members ? outBoundRouteItem.members.split(',') : []
 
                         outLimitimeArr = outBoundRouteItem.limitime ? outBoundRouteItem.limitime.match(/\d+/g) : []
 
                         if (outLimitimeArr.length) {
                             outBoundRouteItem.enable_out_limitime = true
-                            outBoundRouteItem.maximumTime = (outLimitimeArr[0] ? (parseInt(outLimitimeArr[0] / 1000)) : "")
-                            outBoundRouteItem.warningTime = (outLimitimeArr[1] ? (parseInt(outLimitimeArr[1] / 1000)) : "")
-                            outBoundRouteItem.repeatTime = (outLimitimeArr[2] ? (parseInt(outLimitimeArr[2] / 1000)) : "")
+                            outBoundRouteItem.maximumTime = (outLimitimeArr[0] ? (parseInt(outLimitimeArr[0] / 1000) + '') : "")
+                            outBoundRouteItem.warningTime = (outLimitimeArr[1] ? (parseInt(outLimitimeArr[1] / 1000) + '') : "")
+                            outBoundRouteItem.repeatTime = (outLimitimeArr[2] ? (parseInt(outLimitimeArr[2] / 1000) + '') : "")
                         }
 
-                        _.map(pattern, (obj) => {
-                            matchs.push(obj.match)
+                        _.map(pattern, (data) => {
+                            matchs.push(data.match)
+                        })
+
+                        _.map(failover, (data, index) => {
+                            let strip = data.failover_strip
+                            let prepend = data.failover_prepend
+                            let trunk = data.failover_trunk_index
+                            let name = this._getTrunkName(trunkList, trunk)
+
+                            failoverTrunk.push({
+                                'key': index,
+                                'name': name,
+                                'strip': strip,
+                                'trunk': trunk,
+                                'prepend': prepend
+                            })
                         })
 
                         outBoundRouteItem.match = matchs.join()
@@ -348,18 +388,49 @@ class OutBoundRouteItem extends Component {
             holidayList: holidayList,
             accountList: accountList,
             extgroupList: extgroupList,
+            failoverTrunk: failoverTrunk,
             timeCondition: timeCondition,
             officeTimeList: officeTimeList,
             slaTrunkNameList: slaTrunkNameList,
-            members: outBoundRouteItem.members,
             outBoundRouteItem: outBoundRouteItem,
-            pin_sets_id: outBoundRouteItem.pin_sets_id,
             extensionPrefSettings: extensionPrefSettings,
             permissionTooltipTitle: permissionTooltipTitle,
             permissionTooltipVisible: permissionTooltipVisible,
             enable_wlist: outBoundRouteItem.enable_wlist === 'yes',
-            enable_out_limitime: outBoundRouteItem.enable_out_limitime
+            members: outBoundRouteItem.members ? outBoundRouteItem.members : [],
+            pin_sets_id: outBoundRouteItem.pin_sets_id ? outBoundRouteItem.pin_sets_id : '',
+            enable_out_limitime: outBoundRouteItem.enable_out_limitime ? outBoundRouteItem.enable_out_limitime : false
         })
+    }
+    _getTrunkName = (datasource, trunkIndex) => {
+        let trunkName
+        const { formatMessage } = this.props.intl
+
+        _.map(datasource, function(data, index) {
+            if (data.trunk_index === trunkIndex) {
+                if (data.technology === 'Analog') {
+                    trunkName = <span
+                                    className={ data.out_of_service === 'yes' ? 'out-of-service' : '' }
+                                >
+                                    {
+                                        formatMessage({id: 'LANG105'}) + ' ' + formatMessage({id: 'LANG83'}) + ' -- ' + data.trunk_name +
+                                        (data.out_of_service === 'yes' ? ' -- ' + formatMessage({id: 'LANG273'}) : '')
+                                    }
+                                </span>
+                } else {
+                    trunkName = <span
+                                    className={ data.out_of_service === 'yes' ? 'out-of-service' : '' }
+                                >
+                                    {
+                                        data.technology + ' ' + formatMessage({id: 'LANG83'}) + ' -- ' + data.trunk_name +
+                                        (data.out_of_service === 'yes' ? ' -- ' + formatMessage({id: 'LANG273'}) : '')
+                                    }
+                                </span>
+                }
+            }
+        })
+
+        return trunkName
     }
     _handleCancel = () => {
         browserHistory.push('/extension-trunk/outboundRoute')
@@ -367,60 +438,130 @@ class OutBoundRouteItem extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
-        let loadingMessage = ''
-        let successMessage = ''
+        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
+        const getFieldInstance = form.getFieldInstance
+        const outboundRouteIndex = this.props.params.id
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
-                })}}></span>
+        let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        let successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        form.validateFields({ force: true }, (err, values) => {
             if (!err) {
-                console.log('Received values of form: ', values)
+                let permissionDisabled = !!this.state.pin_sets_id || this.state.enable_wlist
 
-                if (!this.state.targetKeys.length) {
-                    message.error(errorMessage)
+                const doSubmit = () => {
+                    let action = {}
+                    let pattern = '['
+                    let match = values.match.split(',') || []
 
-                    return
-                }
+                    match = _.filter(match, function(value) {
+                        return value
+                    })
 
-                message.loading(loadingMessage)
+                    if (outboundRouteIndex) {
+                        action.action = 'updateOutboundRoute'
+                        action.outbound_route = outboundRouteIndex
+                    } else {
+                        action.action = 'addOutboundRoute'
+                    }
 
-                let action = values
+                    _.map(values, function(value, key) {
+                        let fieldInstance = getFieldInstance(key)
 
-                action.members = this.state.targetKeys.join()
-
-                if (extensionGroupId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = extensionGroupId
-                } else {
-                    action.action = 'addExtensiongroup'
-                }
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(successMessage)
+                        if (key === 'enable_out_limitime' || key === 'office' || key === 'match' ||
+                            key === 'maximumTime' || key === 'repeatTime' || key === 'warningTime' ||
+                            key === 'failover_prepend' || key === 'failover_strip' || key === 'failover_trunk') {
+                            return false
                         }
 
-                        this._handleCancel()
-                    }.bind(this)
-                })
+                        action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
+                    })
+
+                    _.map(match, function(value, index) {
+                        if (!value) {
+                            return
+                        }
+
+                        value = (value[0] !== '_') ? '_' + value : value
+
+                        if (index < match.length - 1) {
+                            pattern += '{"match": "' + value + '"}, '
+                        } else {
+                            pattern += '{"match": "' + value + '"}]'
+                        }
+                    })
+
+                    if (values.enable_out_limitime) {
+                        let maximumTime = values.maximumTime
+                        let warningTime = values.warningTime
+                        let repeatTime = values.repeatTime
+
+                        maximumTime = maximumTime ? (parseInt(maximumTime) * 1000) : ''
+                        warningTime = warningTime ? (parseInt(warningTime) * 1000) : ''
+                        repeatTime = repeatTime ? (parseInt(repeatTime) * 1000) : ''
+
+                        action.limitime = 'L(' + maximumTime + ':' + warningTime + ':' + repeatTime + ')'
+                    } else {
+                        action.limitime = ''
+                    }
+
+                    action.pattern = pattern
+                    action.members = this.state.members.join()
+                    action.time_condition = JSON.stringify([])
+                    action.failover_outbound_data = JSON.stringify([])
+                    action.custom_member = this._customDynamicMember(action.custom_member)
+                    action.pin_sets_id = action.pin_sets_id === 'none' ? '' : action.pin_sets_id
+
+                    // console.log('Received values of form: ', action)
+                    // console.log('Received values of form: ', values)
+
+                    message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                    $.ajax({
+                        data: action,
+                        type: 'json',
+                        method: "post",
+                        url: api.apiHost,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(successMessage, 2)
+
+                                this._handleCancel()
+                            }
+                        }.bind(this)
+                    })
+                }
+
+                if (values.permission === 'internal' && !permissionDisabled) {
+                    confirm({
+                        title: '',
+                        onCancel() {},
+                        onOk() { doSubmit() },
+                        content: <span dangerouslySetInnerHTML=
+                                        {{ __html: formatMessage({ id: "LANG2534" }, {
+                                                0: formatMessage({ id: "LANG1071" }),
+                                                1: formatMessage({ id: "LANG1071" })
+                                            })
+                                        }}
+                                    ></span>
+                    })
+                } else if (values.permission === 'none' && !permissionDisabled) {
+                    confirm({
+                        title: '',
+                        onCancel() {},
+                        onOk() { doSubmit() },
+                        content: <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG3701" }) }}></span>
+                    })
+                } else {
+                    doSubmit()
+                }
             }
         })
     }
@@ -551,17 +692,23 @@ class OutBoundRouteItem extends Component {
         }
 
         const failoverTrunkColumns = [{
-                key: 'failover_trunk_index',
-                dataIndex: 'failover_trunk_index',
-                title: formatMessage({id: "LANG83"})
+                key: 'name',
+                dataIndex: 'name',
+                title: formatMessage({id: "LANG83"}),
+                render: (text, record, index) => {
+                    return record.name || ''
+                }
             }, {
-                key: 'failover_strip',
-                dataIndex: 'failover_strip',
+                key: 'strip',
+                dataIndex: 'strip',
                 title: formatMessage({id: "LANG1547"})
             }, {
-                key: 'failover_prepend',
-                dataIndex: 'failover_prepend',
-                title: formatMessage({id: "LANG1541"})
+                key: 'prepend',
+                dataIndex: 'prepend',
+                title: formatMessage({id: "LANG1541"}),
+                render: (text, record, index) => {
+                    return record.prepend || ''
+                }
             }, {
                 key: 'options',
                 dataIndex: 'options',
@@ -575,7 +722,7 @@ class OutBoundRouteItem extends Component {
                             </span>
                             <span
                                 className="sprite sprite-del"
-                                onClick={ this._deleteFailoverTrunk.bind(this, record) }>
+                                onClick={ this._deleteFailoverTrunk.bind(this, record) }
                             ></span>
                         </div>
                 }
@@ -608,7 +755,7 @@ class OutBoundRouteItem extends Component {
                             </span>
                             <span
                                 className="sprite sprite-del"
-                                onClick={ this._deleteTimeCondition.bind(this, record) }>
+                                onClick={ this._deleteTimeCondition.bind(this, record) }
                             ></span>
                         </div>
                 }
@@ -829,7 +976,10 @@ class OutBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('custom_member', {
-                                        rules: [],
+                                        rules: [{
+                                            message: formatMessage({id: "LANG2150"}),
+                                            required: this.state.enable_wlist ? true : false
+                                        }],
                                         initialValue: settings.custom_member
                                     })(
                                         <Input disabled={ !!this.state.pin_sets_id } />
@@ -891,12 +1041,10 @@ class OutBoundRouteItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('maximumTime', {
-                                        rules: [
-                                            {
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }
-                                        ],
+                                        rules: [{
+                                            message: formatMessage({id: "LANG2150"}),
+                                            required: this.state.enable_out_limitime ? true : false
+                                        }],
                                         initialValue: settings.maximumTime
                                     })(
                                         <Input />
@@ -985,9 +1133,9 @@ class OutBoundRouteItem extends Component {
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('stripx', {
+                                    { getFieldDecorator('strip', {
                                         rules: [],
-                                        initialValue: settings.stripx
+                                        initialValue: settings.strip
                                     })(
                                         <Input />
                                     ) }
@@ -1052,9 +1200,9 @@ class OutBoundRouteItem extends Component {
                                             </span>
                                         )}
                                     >
-                                        { getFieldDecorator('failover_stripx', {
+                                        { getFieldDecorator('failover_strip', {
                                             rules: [],
-                                            initialValue: settings.failover_stripx
+                                            initialValue: settings.failover_strip
                                         })(
                                             <Input />
                                         ) }

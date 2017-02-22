@@ -24,7 +24,7 @@ class RingGroup extends Component {
         }
     }
     componentDidMount() {
-        // this._getAccountList()
+        this._getAccountList()
         this._getExtensionGroupList()
         this._getRinggroup()
     }
@@ -44,13 +44,14 @@ class RingGroup extends Component {
                 onCancel() {}
             })
         } else {
-            browserHistory.push('/extension-trunk/extensionGroup/add')
+            browserHistory.push('/call-features/ringGroup/add')
         }
     }
     _delete = (record) => {
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
+        const extension = record.extension
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
@@ -61,8 +62,8 @@ class RingGroup extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                "action": "deleteRinggroup",
+                "ringgroup": extension
             },
             type: 'json',
             async: true,
@@ -73,7 +74,7 @@ class RingGroup extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getRinggroup()
                 }
             }.bind(this),
             error: function(e) {
@@ -82,7 +83,7 @@ class RingGroup extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/extension-trunk/extensionGroup/edit/' + record.group_id + '/' + record.group_name)
+        browserHistory.push('/call-features/ringGroup/edit/' + record.extension + '/' + record.ringgroup_name)
     }
     _createMembers = (text, record, index) => {
         let members = text ? text.split(',') : []

@@ -308,103 +308,131 @@ class ExtensionItem extends Component {
                 // console.log('Received values of form: ', action)
                 // console.log('Received values of form: ', values)
 
-                message.loading(formatMessage({ id: "LANG826" }), 0)
+                // if (values.batch_number) {
+                //     let batchAddExtList = []
+                //     let newusersLists = []
+                //     let addNumber = values.batch_number
 
-                $.ajax({
-                    data: action,
-                    type: 'json',
-                    method: "post",
-                    url: api.apiHost,
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                //     batchAddExtList = this._getBatchUsers()
+                    
+                //     if (askExtensionRange($("#batch_extension").val(), extensionRange[0], extensionRange[1], extensionRange[2], batchAddExtList[batchAddExtList.length - 1])) {
+                //         newusersLists.push("<font>" + batchAddExtList[0] + "</font>");
 
-                        if (bool) {
-                            if (this.state.currentEditId) {
-                                let fieldsValue = this._getImportantValues()
+                //         for (var i = 1; i < addNumber; i++) {
+                //             var newusersItem = batchAddExtList[i],
+                //                 prevItem = batchAddExtList[i - 1],
+                //                 prev = bigNumDelete(newusersItem);
 
-                                let newImportantValues = fieldsValue.secret + fieldsValue.authid +
-                                        fieldsValue.email + fieldsValue.phone_number +
-                                        fieldsValue.first_name + fieldsValue.last_name + fieldsValue.user_password
+                //             if ((typeof prevItem == 'string' ? prevItem.replace(/0*(\d+)/, "$1") : prevItem) == prev) {
+                //                 newusersItem = "<font>" + newusersItem + "</font>";
+                //             } else {
+                //                 newusersItem = "<font color='green'>" + newusersItem + "</font>";
+                //             }
 
-                                let userAction = {
-                                        'action': 'updateUser',
-                                        'email': values.email ? values.email : '',
-                                        'user_id': this.state.userSettings.user_id,
-                                        'last_name': values.last_name ? values.last_name : '',
-                                        'first_name': values.first_name ? values.first_name : '',
-                                        'phone_number': values.phone_number ? values.phone_number : '',
-                                        'user_password': values.user_password ? values.user_password : '',
-                                        'language': (values.language && values.language !== 'default') ? values.language : ''
+                //             newusersLists.push(newusersItem);
+                //         }
+
+                //         action['extension'] = batchAddExtList.toString();
+                //     }
+                // } else {
+                    message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                    $.ajax({
+                        data: action,
+                        type: 'json',
+                        method: "post",
+                        url: api.apiHost,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                if (this.state.currentEditId) {
+                                    let fieldsValue = this._getImportantValues()
+
+                                    let newImportantValues = fieldsValue.secret + fieldsValue.authid +
+                                            fieldsValue.email + fieldsValue.phone_number +
+                                            fieldsValue.first_name + fieldsValue.last_name + fieldsValue.user_password
+
+                                    let userAction = {
+                                            'action': 'updateUser',
+                                            'email': values.email ? values.email : '',
+                                            'user_id': this.state.userSettings.user_id,
+                                            'last_name': values.last_name ? values.last_name : '',
+                                            'first_name': values.first_name ? values.first_name : '',
+                                            'phone_number': values.phone_number ? values.phone_number : '',
+                                            'user_password': values.user_password ? values.user_password : '',
+                                            'language': (values.language && values.language !== 'default') ? values.language : ''
+                                        }
+
+                                    if (userAction.user_password === '******') {
+                                        delete userAction.user_password
                                     }
 
-                                if (userAction.user_password === '******') {
-                                    delete userAction.user_password
-                                }
+                                    if (this.state.importantValues !== newImportantValues) {
+                                        userAction.email_to_user = 'no'
+                                    }
 
-                                if (this.state.importantValues !== newImportantValues) {
-                                    userAction.email_to_user = 'no'
-                                }
-
-                                $.ajax({
-                                    type: 'json',
-                                    method: "post",
-                                    url: api.apiHost,
-                                    data: userAction,
-                                    error: function(e) {
-                                        message.error(e.statusText)
-                                    },
-                                    success: function(data) {
-                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                                        if (bool) {
-                                            if ((this.state.importantValues !== newImportantValues) &&
-                                                (this.state.autoEmailToUser === 'yes') && userAction['email']) {
-                                                $.ajax({
-                                                    type: "post",
-                                                    async: false,
-                                                    url: api.apiHost,
-                                                    data: {
-                                                        'action': 'sendAccount2User',
-                                                        'extension': action['extension']
-                                                    },
-                                                    error: function(jqXHR, textStatus, errorThrown) {},
-                                                    success: function(data) {}
-                                                })
-                                            }
-
-                                            message.destroy()
-                                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
-
-                                            this._handleCancel()
-                                        }
-                                    }.bind(this)
-                                })
-                            } else {
-                                if ((this.state.autoEmailToUser === 'yes') && action['email']) {
                                     $.ajax({
-                                        type: "post",
-                                        async: false,
+                                        type: 'json',
+                                        method: "post",
                                         url: api.apiHost,
-                                        data: {
-                                            'action': 'sendAccount2User',
-                                            'extension': action['extension']
+                                        data: userAction,
+                                        error: function(e) {
+                                            message.error(e.statusText)
                                         },
-                                        error: function(jqXHR, textStatus, errorThrown) {},
-                                        success: function(data) {}
+                                        success: function(data) {
+                                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                            if (bool) {
+                                                if ((this.state.importantValues !== newImportantValues) &&
+                                                    (this.state.autoEmailToUser === 'yes') && userAction['email']) {
+                                                    $.ajax({
+                                                        type: "post",
+                                                        async: false,
+                                                        url: api.apiHost,
+                                                        data: {
+                                                            'action': 'sendAccount2User',
+                                                            'extension': action['extension']
+                                                        },
+                                                        error: function(jqXHR, textStatus, errorThrown) {},
+                                                        success: function(data) {}
+                                                    })
+                                                }
+
+                                                message.destroy()
+                                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
+
+                                                this._handleCancel()
+                                            }
+                                        }.bind(this)
                                     })
+                                } else {
+                                    if ((this.state.autoEmailToUser === 'yes') && action['email']) {
+                                        $.ajax({
+                                            type: "post",
+                                            async: false,
+                                            url: api.apiHost,
+                                            data: {
+                                                'action': 'sendAccount2User',
+                                                'extension': action['extension']
+                                            },
+                                            error: function(jqXHR, textStatus, errorThrown) {},
+                                            success: function(data) {}
+                                        })
+                                    }
+
+                                    message.destroy()
+                                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
+
+                                    this._handleCancel()
                                 }
-
-                                message.destroy()
-                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
-
-                                this._handleCancel()
                             }
-                        }
-                    }.bind(this)
-                })
+                        }.bind(this)
+                    })
+                // }
             }
         })
     }

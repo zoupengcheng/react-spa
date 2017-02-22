@@ -13,7 +13,7 @@ import _ from 'underscore'
 
 const host = api.apiHost
 
-class OperLogUsrList extends Component {
+class MusicOnHoldList extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -175,7 +175,20 @@ class OperLogUsrList extends Component {
     _createOption = (text, record, index) => {
         const { formatMessage } = this.props.intl
 
-        return <div>
+        let delBtn = <Popconfirm 
+                    title={ <span dangerouslySetInnerHTML=
+                                {{ __html: formatMessage({ id: "LANG818" }, { 0: record.n }) }}
+                            ></span> }
+                        okText={ formatMessage({id: "LANG727"}) }
+                        cancelText={ formatMessage({id: "LANG726"}) }
+                        onConfirm={ this._delete.bind(this, record) }>
+                    <span className="sprite sprite-del" title={ formatMessage({ id: "LANG739"})}></span>
+                </Popconfirm>
+        if (this.props.mohClass === "" && this.props.mohList.length === 1) {
+            delBtn = <span className="sprite sprite-del-disabled" title={ formatMessage({ id: "LANG739"})}></span>
+        }
+
+        return <span>
                 <Popconfirm 
                     title={ <span dangerouslySetInnerHTML=
                                 {{ __html: formatMessage({ id: "LANG876" }) }}
@@ -183,20 +196,12 @@ class OperLogUsrList extends Component {
                         okText={ formatMessage({id: "LANG727"}) }
                         cancelText={ formatMessage({id: "LANG726"}) }
                         onConfirm={ this._record.bind(this, record) }>
-                    <span className="sprite sprite-record"></span>
+                    <span className="sprite sprite-records" title={ formatMessage({ id: "LANG784"})}></span>
                 </Popconfirm>
-                <span className="sprite sprite-play" onClick={ this._play.bind(this, record) }></span>
-                <span className="sprite sprite-download" onClick={ this._download.bind(this, record) }></span>
-                <Popconfirm 
-                    title={ <span dangerouslySetInnerHTML=
-                                {{ __html: formatMessage({ id: "LANG818" }, { 0: record.n }) }}
-                            ></span> }
-                        okText={ formatMessage({id: "LANG727"}) }
-                        cancelText={ formatMessage({id: "LANG726"}) }
-                        onConfirm={ this._delete.bind(this, record) }>
-                    <span className="sprite sprite-del"></span>
-                </Popconfirm>
-            </div>
+                <span className="sprite sprite-play" title={ formatMessage({ id: "LANG777"})} onClick={ this._play.bind(this, record) }></span>
+                <span className="sprite sprite-download" title={ formatMessage({ id: "LANG759"})} onClick={ this._download.bind(this, record) }></span>
+                { delBtn }
+            </span>
     }
     _normFile(e) {
         if (Array.isArray(e)) {
@@ -652,4 +657,4 @@ class OperLogUsrList extends Component {
     }
 }
 
-export default Form.create()(injectIntl(OperLogUsrList))
+export default Form.create()(injectIntl(MusicOnHoldList))

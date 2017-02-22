@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
+import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 
@@ -21,13 +21,29 @@ class Announcement extends Component {
             extensionGroups: [],
             announcementCenter: [],
             announcementGroup: [],
-            buttonMinibar: true
+            buttonMinibar: true,
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            pagination_group: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
         this._getAnnouncementCenter()
         this._getAnnouncementGroup()
         this._getAccountList()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _add = () => {
         let confirmContent = ''
@@ -158,16 +174,23 @@ class Announcement extends Component {
             }
         })
     }
-    _getAnnouncementCenter = () => {
+    _getAnnouncementCenter = (
+        params = {
+            item_num: 10,
+            page: 1,
+            sord: 'asc',
+            sidx: 'extension'
+        }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listCodeblueCode',
-                sidx: 'extension',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -177,9 +200,14 @@ class Announcement extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const announcementCenter = response.codeblue_code || []
+                    const pagination = this.state.pagination
+                    pagination.total = response.total_item
+                    pagination.current = params.page
 
                     this.setState({
-                        announcementCenter: announcementCenter
+                        loading: false,
+                        announcementCenter: announcementCenter,
+                        pagination
                     })
                 }
             }.bind(this),
@@ -188,16 +216,23 @@ class Announcement extends Component {
             }
         })
     }
-    _getAnnouncementGroup = () => {
+    _getAnnouncementGroup = (
+        params = {
+            item_num: 10,
+            page: 1,
+            sord: 'asc',
+            sidx: 'extension'
+        }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listCodeblueGroup',
-                sidx: 'extension',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -207,15 +242,54 @@ class Announcement extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const announcementGroup = response.codeblue_group || []
+                    const pagination_group = this.state.pagination_group
+                    pagination_group.total = response.total_item
+                    pagination_group.current = params.page
 
                     this.setState({
-                        announcementGroup: announcementGroup
+                        loading: false,
+                        announcementGroup: announcementGroup,
+                        pagination_group
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+        
+        this._getAnnouncementCenter({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : "extension",
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
+        })
+    }
+    _handleTableChangeGroup = (pagination_group, filters, sorter) => {
+        const pager_group = this.state.pagination_group
+
+        pager_group.current = pagination_group.current
+
+        this.setState({
+            pagination_group: pager_group
+        })
+        
+        this._getAnnouncementGroup({
+            item_num: pagination_group.pageSize,
+            page: pagination_group.current,
+            sidx: sorter.field ? sorter.field : "extension",
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
         })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -349,10 +423,11 @@ class Announcement extends Component {
                     <Table
                         rowKey="extension"
                         columns={ columns }
-                        pagination={ pagination }
-                        rowSelection={ rowSelection }
+                        pagination={ this.state.pagination }
                         dataSource={ this.state.announcementCenter }
                         showHeader={ !!this.state.announcementCenter.length }
+                        onChange={ this._handleTableChange }
+                        loading={ this.state.loading }
                     />
                 </div>
                 <div className="content">
@@ -369,11 +444,15 @@ class Announcement extends Component {
                     <Table
                         rowKey="extension"
                         columns={ columns_group }
-                        pagination={ pagination_group }
-                        rowSelection={ rowSelection }
+                        pagination={ this.state.pagination_group }
                         dataSource={ this.state.announcementGroup }
                         showHeader={ !!this.state.announcementGroup.length }
+                        onChange={ this._handleTableChangeGroup }
+                        loading={ this.state.loading }
                     />
+                </div>
+                <div>
+                    <BackTop />
                 </div>
             </div>
         )

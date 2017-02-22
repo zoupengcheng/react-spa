@@ -191,8 +191,8 @@ class DodTrunksList extends Component {
         const { formatMessage } = this.props.intl
         let trunkId = this.props.params.trunkId,
             action = {},
-            members = "",
-            membersLdap = ""
+            members = [],
+            membersLdap = []
 
         if (this.state.type === "add") {
             action["action"] = "addDODVoIPTrunk"
@@ -206,17 +206,17 @@ class DodTrunksList extends Component {
             let index = this.state.curentMembersArr[i]
 
             if (this.state.memberLDAPList.indexOf(index) === -1) {
-                members += index
+                members.push(index)
             } else {
-                membersLdap += index
+                membersLdap.push(index)
             }
         }
 
         if (members) {
-            action["members"] = members
+            action["members"] = members.join(",")
         }
         if (membersLdap) {
-            action["members_ldap"] = membersLdap
+            action["members_ldap"] = membersLdap.join(",")
         }
 
         if (members === "" && membersLdap === "") {
@@ -279,16 +279,9 @@ class DodTrunksList extends Component {
         this.setState({ 
             curentMembersArr: nextTargetKeys 
         })
-
-        console.log('targetKeys: ', this.state.targetKeys)
-        console.log('direction: ', direction)
-        console.log('moveKeys: ', moveKeys)
     }
     _handleSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
         this.setState({ selectedKeys: [...sourceSelectedKeys, ...targetSelectedKeys] })
-
-        console.log('sourceSelectedKeys: ', sourceSelectedKeys)
-        console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
     _getList = () => {
         let dodExtList = this._transAccountVoicemailData(UCMGUI.isExist.getList("getAccountList"))
@@ -313,7 +306,8 @@ class DodTrunksList extends Component {
 
                     if (bool) {
                         let memberLDAP = data.response.extension,
-                            memberLDAPList = []
+                            memberLDAPList = [],
+                            obj = {}
 
                         for (let i = 0; i < memberLDAP.length; i++) {
                             let phonebook = memberLDAP[i]["phonebook_dn"]
@@ -338,13 +332,12 @@ class DodTrunksList extends Component {
                                         memberLDAPList.push(value)
                                     }
                                 }
-
-                                this.setState({
-                                    memberLDAPList: memberLDAPList,
-                                    dodExtList: dodExtList
-                                })
                             }
                         }
+                        this.setState({
+                            memberLDAPList: memberLDAPList,
+                            dodExtList: dodExtList
+                        })
                     }
                 }.bind(this)
             })
@@ -474,9 +467,9 @@ class DodTrunksList extends Component {
                                     label={formatMessage({id: "LANG2680"})} >
                                     { getFieldDecorator('number', {
                                         rules: [],
-                                        initialValue: this.state.record.number || ""
+                                        initialValue: this.state.type === "edit" ? this.state.record.number : ""
                                     })(
-                                        <Input maxLength="32" />
+                                        <Input maxLength="32" disabled={ this.state.type === "edit" ? true : false}/>
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -498,7 +491,6 @@ class DodTrunksList extends Component {
                                 <Transfer
                                     dataSource={this.state.dodTmpExtList}
                                     titles={[formatMessage({id: "LANG2484"}), formatMessage({id: "LANG2483"})]}
-                                    
                                     targetKeys={this.state.curentMembersArr}
                                     onChange={this._handleChange}
                                     onSelectChange={this._handleSelectChange}

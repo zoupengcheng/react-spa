@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import api from "../../api/api"
+import _ from 'underscore'
 import UCMGUI from "../../api/ucmgui"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
@@ -15,12 +16,12 @@ class Room extends Component {
         super(props)
         this.state = {
             confoList: [],
-            visible: false,
-            roomLock: true
+            visible: false
         }
     }
     componentDidMount() {
         this._getConfoList()
+        this._getMembers()
     }
     _add = () => {
         browserHistory.push('/call-features/conference/add')
@@ -81,6 +82,29 @@ class Room extends Component {
 
                 this.setState({
                     confoList: confoList
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        }) 
+    }
+    _getMembers = (extension) => {
+        let members
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'getConfMemberStatusListSortByExten'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                members = res.response || []
+
+                this.setState({
+                    members: members
                 })
             }.bind(this),
             error: function(e) {
@@ -160,14 +184,10 @@ class Room extends Component {
         })
     }
     _lockRoom = (record) => {
-        let roomLock = this.state.roomLock,
-            action = {}
+        let action = {},
+            roomLock = true
 
         if (roomLock) {
-            this.setState({
-                roomLock: false
-            })
-
             action = {
                 'action': 'lockroom',
                 'conf-room': record.extension
@@ -242,11 +262,78 @@ class Room extends Component {
             visible: false
         })
     }
-    _renderOptions = (record) => {
+    _mutedRequest = (record) => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'muteuser',
+                'conf-room': record.extension,
+                'conf-user': record.channel_name
+            },
+            type: 'json',
+            success: function(data) {
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _unMutedRequest = (record) => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'unmuteuser',
+                'conf-room': record.extension,
+                'conf-user': record.channel_name
+            },
+            type: 'json',
+            success: function(data) {
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _delUser = (record) => {
         const { formatMessage } = this.props.intl
 
-        return (
-            <div>
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'kickuser',
+                'conf-room': record.extension,
+                'conf-user': record.channel_name
+            },
+            type: 'json',
+            success: function(data) {
+                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG819" })}}></span>)
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _renderOptions = (record) => {
+        const { formatMessage } = this.props.intl
+        let addMcb, addUser, lock
+
+        if (record.attend_count === 0) {
+            lock = <span
+                        className= "sprite sprite-room-lock-disabled"
+                        title={ formatMessage({id: 'LANG787'}) }
+                    ></span>
+        } else {
+            lock = <span
+                        className="sprite sprite-room-lock"
+                        title={ formatMessage({id: 'LANG788'}) }
+                        onClick={ this._lockRoom.bind(this, record) }
+                    ></span>
+        }
+
+        return <div>
                 <span
                     className="sprite sprite-add-mcb"
                     title={ formatMessage({id: "LANG2695"}) }
@@ -259,12 +346,7 @@ class Room extends Component {
                     onClick={ this._addUser.bind(this, record) }
                 >
                 </span>
-                <span
-                    className= { "sprite " + (this.state.roomLock ? 'sprite-room-lock' : 'sprite-room-unlock') }
-                    title={ formatMessage({id: (this.state.roomLock ? 'LANG787' : 'LANG788')}) }
-                    onClick={ this._lockRoom.bind(this, record) }
-                >
-                </span>
+                { lock }
                 <span
                     className="sprite sprite-edit"
                     title={ formatMessage({id: "LANG738"}) }
@@ -279,6 +361,41 @@ class Room extends Component {
                 >
                     <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
                 </Popconfirm>
+            </div>
+    }
+    _renderExapndOptions = (record) => {
+        const { formatMessage } = this.props.intl
+
+        let mute
+
+        if (record.is_muted === 1) {
+            mute = <span
+                    className="sprite sprite-unmute"
+                    title={ formatMessage({id: "LANG790"}) }
+                    onClick = { this._unMutedRequest.bind(this, record) }
+                ></span>
+        } else {
+            mute = <span
+                    className="sprite sprite-mute"
+                    title={ formatMessage({id: "LANG791"}) }
+                    onClick = { this._mutedRequest.bind(this, record) }
+                ></span>
+        }
+
+        return (
+            <div>
+                <Popconfirm
+                    title={ formatMessage({id: "LANG921"}) + ' ' + record.caller_name + '( ' + record.caller_id + ' ) ?' }
+                    okText={ formatMessage({id: "LANG727"}) }
+                    cancelText={ formatMessage({id: "LANG726"}) }
+                    onConfirm={ this._delUser.bind(this, record) }
+                >
+                    <span
+                        className="sprite sprite-userkick"
+                        title={ formatMessage({id: "LANG791"}) }
+                    ></span>
+                </Popconfirm>
+                { mute }
             </div>
         )
     }
@@ -326,6 +443,49 @@ class Room extends Component {
                 }
             }
 
+        const expandedRowRender = (e) => {
+            const columns = [
+                { 
+                    title: formatMessage({id: "LANG82"}),
+                    dataIndex: 'user_no',
+                    key: 'user_no'
+                }, { 
+                    title: formatMessage({id: "LANG78"}),
+                    dataIndex: 'caller_id',
+                    key: 'caller_id'
+                }, {
+                    title: formatMessage({id: "LANG79"}),
+                    dataIndex: 'caller_name',
+                    key: 'caller_name'
+                }, {
+                    title: formatMessage({id: "LANG80"}),
+                    dataIndex: 'channel_name',
+                    key: 'channel_name'
+                }, {
+                    title: formatMessage({id: "LANG1050"}),
+                    dataIndex: 'join_time',
+                    key: 'join_time',
+                    render: (text, record, index) => {
+                        return this._getActivityTime(text)
+                    }
+                }, {
+                    key: 'options',
+                    dataIndex: 'options',
+                    title: formatMessage({id: "LANG74"}),
+                    render: (text, record, index) => {
+                        return this._renderExapndOptions(record)
+                    }
+                }
+            ] 
+
+            return (
+                <Table
+                    columns={ columns }
+                    dataSource={ this.state.members[e.extension] }
+                    pagination={ false } />
+            )
+        }
+
         const { getFieldDecorator } = this.props.form
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -358,6 +518,8 @@ class Room extends Component {
                         columns={ columns }
                         pagination={ pagination }
                         dataSource={ this.state.confoList }
+                        expandedRowRender = { expandedRowRender }
+                        defaultExpandAllRows = { true }
                         showHeader={ !!this.state.confoList.length }
                     >
                     </Table>

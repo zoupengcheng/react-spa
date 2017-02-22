@@ -5,9 +5,9 @@ module.exports = {
         "type": "request",
         "message": {
             "transactionid": "123456789zxa",
-            "action": "login",
+            "action": "challenge",
             "username": "username",
-            "cookie": "session-identify"
+            "version": "1"
         }
     },
     logout: {

@@ -24,8 +24,16 @@ class Extension extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            pagination: {
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: this._showTotal
+            },
+            loading: false,
             rebootList: [],
+            requestData: {},
             selectedRows: [],
+            autoRefresh: null,
             extensionList: [],
             selectedRowKeys: [],
             zeroConfigSettings: {},
@@ -37,10 +45,16 @@ class Extension extends Component {
         }
     }
     componentDidMount() {
+        this.setState({
+            autoRefresh: setInterval(this._autoRefresh, 3000)
+        })
+    }
+    componentWillMount() {
         this._getExtensionList()
         this._getZeroConfigSettings()
     }
     componentWillUnmount() {
+        clearInterval(this.state.autoRefresh)
     }
     _add = () => {
         const { formatMessage } = this.props.intl
@@ -59,6 +73,38 @@ class Extension extends Component {
         } else {
             browserHistory.push('/extension-trunk/extension/add')
         }
+    }
+    _autoRefresh = () => {
+        let data = _.clone(this.state.requestData)
+
+        data['auto-refresh'] = Math.random()
+
+        $.ajax({
+            data: data,
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let pager = this.state.pagination
+                    const response = res.response || {}
+
+                    // Read total count from server
+                    pager.current = data.page
+                    pager.total = res.response.total_item
+
+                    this.setState({
+                        pagination: pager,
+                        extensionList: response.account || []
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _batchEdit = () => {
         let typeList = []
@@ -277,7 +323,7 @@ class Extension extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionList()
+                    this._autoRefresh()
 
                     this.setState({
                         selectedRowKeys: _.without(this.state.selectedRowKeys, record.extension),
@@ -298,44 +344,57 @@ class Extension extends Component {
 
         window.open("/cgi?action=downloadFile&type=export_" + type + "_extensions&data=export_" + type + "_extensions.csv", '_self')
     }
-    _getExtensionList = (ext_num, callback) => {
-        const { formatMessage } = this.props.intl
+    _getExtensionList = (
+        params = {
+            page: 1,
+            sord: 'asc',
+            item_num: 10,
+            sidx: 'extension'
+        }, ext_num) => {
+            const { formatMessage } = this.props.intl
 
-        let data = {
-                sord: 'asc',
-                sidx: 'extension',
-                action: 'listAccount',
-                options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
-            }
-
-        if (ext_num) {
-            data.ext_num = ext_num
-        }
-
-        $.ajax({
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: data,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-
-                    this.setState({
-                        extensionList: response.account || []
-                    })
-
-                    if (callback) {
-                        callback()
-                    }
+            let data = {
+                    ...params,
+                    action: 'listAccount',
+                    options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
                 }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
+
+            if (ext_num) {
+                data.ext_num = ext_num
             }
-        })
+
+            this.setState({
+                loading: true,
+                requestData: data
+            })
+
+            $.ajax({
+                data: data,
+                type: 'json',
+                method: 'post',
+                url: api.apiHost,
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        const response = res.response || {}
+                        let pager = this.state.pagination
+
+                        // Read total count from server
+                        pager.current = data.page
+                        pager.total = res.response.total_item
+
+                        this.setState({
+                            loading: false,
+                            pagination: pager,
+                            extensionList: response.account || []
+                        })
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
     }
     _getZeroConfigSettings = () => {
         const { formatMessage } = this.props.intl
@@ -374,7 +433,7 @@ class Extension extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionList()
+                    this._autoRefresh()
 
                     this._clearSelectRows()
                 }
@@ -498,16 +557,32 @@ class Extension extends Component {
             if (!err) {
                 console.log('Received values of form: ', values)
 
-                message.loading(loadingMessage)
+                // message.loading(loadingMessage)
 
-                this._getExtensionList(values.ext_num, function() {
-                    message.destroy()
-                    // message.success(successMessage)
+                this._getExtensionList({
+                        page: 1,
+                        sord: 'asc',
+                        item_num: 10,
+                        sidx: 'extension'
+                    }, values.ext_num)
 
-                    this._clearSelectRows()
-                }.bind(this))
+                // message.destroy()
+                // message.success(successMessage)
+
+                this._clearSelectRows()
             }
         })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        this._getExtensionList({
+            sidx: sorter.field,
+            page: pagination.current,
+            item_num: pagination.pageSize,
+            sord: sorter.order === 'ascend' ? 'asc' : 'desc',
+            ...filters
+        })
+
+        this._clearSelectRows()
     }
     _import = () => {
         // browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
@@ -526,6 +601,11 @@ class Extension extends Component {
             selectedRebootRows: selectedRows,
             selectedRebootRowKeys: selectedRowKeys
         })
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _reboot = (record) => {
         const { formatMessage } = this.props.intl
@@ -838,13 +918,13 @@ class Extension extends Component {
                         </Modal>
                     </div>
                     <Table
-                        bordered
                         rowKey="extension"
                         columns={ columns }
-                        pagination={ pagination }
                         rowSelection={ rowSelection }
+                        loading={ this.state.loading}
+                        pagination={ this.state.pagination }
+                        onChange={ this._handleTableChange }
                         dataSource={ this.state.extensionList }
-                        showHeader={ !!this.state.extensionList.length }
                     />
                 </div>
             </div>

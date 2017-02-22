@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from 'antd'
+import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 
@@ -22,7 +22,18 @@ class ExtensionGroup extends Component {
             miniBar: [],
             miniBarWaiter: [],
             miniBarGoods: [],
-            buttonMinibar: true
+            buttonMinibar: true,
+            pagination_waiter: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            pagination_goods: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
@@ -30,6 +41,11 @@ class ExtensionGroup extends Component {
         this._getMiniBarWaiter()
         this._getMiniBarGoods()
         this._getAccountList()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _addbar = () => {
         let confirmContent = ''
@@ -261,16 +277,23 @@ class ExtensionGroup extends Component {
         })
     }
 
-    _getMiniBarWaiter = () => {
+    _getMiniBarWaiter = (
+        params = {                
+                item_num: 10,
+                sidx: "waiter_id",
+                sord: "asc",
+                page: 1 
+            }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listMiniBarWaiter',
-                sidx: 'waiter_id',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -280,9 +303,14 @@ class ExtensionGroup extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const miniBarWaiter = response.minibar_waiter || []
+                    const pagination_waiter = this.state.pagination_waiter
+                    // Read total count from server
+                    pagination_waiter.total = res.response.total_item
 
                     this.setState({
-                        miniBarWaiter: miniBarWaiter
+                        loading: false,
+                        miniBarWaiter: miniBarWaiter,
+                        pagination_waiter
                     })
                 }
             }.bind(this),
@@ -292,16 +320,23 @@ class ExtensionGroup extends Component {
         })
     }
 
-    _getMiniBarGoods = () => {
+    _getMiniBarGoods = (
+        params = {                
+                item_num: 10,
+                sidx: "goods_name",
+                sord: "asc",
+                page: 1 
+            }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listMiniBarGoods',
-                sidx: 'goods_name',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -311,15 +346,54 @@ class ExtensionGroup extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const miniBarGoods = response.minibar_goods || []
+                    const pagination_goods = this.state.pagination_goods
+                    // Read total count from server
+                    pagination_goods.total = res.response.total_item
 
                     this.setState({
-                        miniBarGoods: miniBarGoods
+                        loading: false,
+                        miniBarGoods: miniBarGoods,
+                        pagination_goods
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _handleTableChangeWaiter = (pagination_waiter, filters, sorter) => {
+        const pager_waiter = this.state.pagination_waiter
+
+        pager_waiter.current = pagination_waiter.current
+
+        this.setState({
+            pagination_waiter: pager_waiter
+        })
+
+        this._getMiniBarWaiter({
+            item_num: pagination_waiter.pageSize,
+            page: pagination_waiter.current,
+            sidx: sorter.field ? sorter.field : 'waiter_id',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
+        })
+    }
+    _handleTableChangeGoods = (pagination_goods, filters, sorter) => {
+        const pager_goods = this.state.pagination_goods
+
+        pager_goods.current = pagination_goods.current
+
+        this.setState({
+            pagination_goods: pager_goods
+        })
+
+        this._getMiniBarGoods({
+            item_num: pagination_goods.pageSize,
+            page: pagination_goods.current,
+            sidx: sorter.field ? sorter.field : 'goods_name',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
         })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -494,7 +568,6 @@ class ExtensionGroup extends Component {
                         rowKey="extension"
                         columns={ columns }
                         pagination={ pagination }
-                        rowSelection={ rowSelection }
                         dataSource={ this.state.miniBar }
                         showHeader={ !!this.state.miniBar.length }
                     />
@@ -513,10 +586,11 @@ class ExtensionGroup extends Component {
                     <Table
                         rowKey="waiter_id"
                         columns={ columns_waiter }
-                        pagination={ pagination_waiter }
-                        rowSelection={ rowSelection }
+                        pagination={ this.state.pagination_waiter }
                         dataSource={ this.state.miniBarWaiter }
                         showHeader={ !!this.state.miniBarWaiter.length }
+                        onChange={ this._handleTableChangeWaiter }
+                        loading={ this.state.loading}
                     />
                 </div>
                 <div className="content">
@@ -533,11 +607,15 @@ class ExtensionGroup extends Component {
                     <Table
                         rowKey="extension"
                         columns={ columns_goods }
-                        pagination={ pagination_goods }
-                        rowSelection={ rowSelection }
+                        pagination={ this.state.pagination_goods }
                         dataSource={ this.state.miniBarGoods }
                         showHeader={ !!this.state.miniBarGoods.length }
+                        onChange={ this._handleTableChangeGoods }
+                        loading={ this.state.loading}
                     />
+                </div>
+                <div>
+                    <BackTop />
                 </div>
             </div>
         )

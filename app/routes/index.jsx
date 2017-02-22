@@ -53,6 +53,7 @@ import IVRItem from '../components/modules/ivr/ivrItem'
 import Voicemail from '../components/modules/voicemail/index'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
 import RingGroup from '../components/modules/ringGroup/index'
+import RingGroupItem from '../components/modules/ringGroup/RingGroupItem'
 import PagingIntercom from '../components/modules/pagingIntercom/index'
 import PagingIntercomItem from '../components/modules/pagingIntercom/pagingIntercomItem'
 import PagingIntercomSetting from '../components/modules/pagingIntercom/pagingIntercomSetting'
@@ -192,7 +193,7 @@ const routes = (state, currentLocaleData) => {
                 let loginSubscribe = SubscribeEvent.login
 
                 loginSubscribe.message.username = cookie.load("username")
-                loginSubscribe.message.cookie = cookie.load("session-identify")
+                // loginSubscribe.message.cookie = cookie.load("session-identify")
                 window.ISREFRESHPAGE = true
                 window.socket.send(loginSubscribe)
 
@@ -302,7 +303,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="voicemail" onEnter={ requireAuth } component={ Voicemail } breadcrumbName={ currentLocaleData["LANG20"] } />
                         <Route path="voicemailEmailSettings" onEnter={ requireAuth } component={ VoicemailEmailSettings } breadcrumbName={ currentLocaleData["LANG767"] } />
                     </Route>
-                    <Route path="ringGroup" onEnter={ requireAuth } component={ RingGroup } breadcrumbName={ currentLocaleData["LANG22"] } />
+                    <Route path="ringGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG22"] } >
+                        <IndexRoute component={ RingGroup } />
+                        <Route path="add" onEnter={ requireAuth } component={ RingGroupItem } breadcrumbName={ currentLocaleData["LANG600"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ RingGroupItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="pagingIntercom" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG23"] } >
                         <IndexRoute component={ PagingIntercom } />
                         <Route path="add" onEnter={ requireAuth } component={ PagingIntercomItem } breadcrumbName={ currentLocaleData["LANG2884"] } />

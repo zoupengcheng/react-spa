@@ -20,12 +20,29 @@ class Fax extends Component {
             faxFileItem: [],
             selectedRowKeys: [],
             selectedRowKeysFile: [],
-            batchDeleteModalVisible: false
+            batchDeleteModalVisible: false,
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            pagination_file: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false,
+            file_keyword: ""
         }
     }
     componentDidMount() {
         this._getInitDate()
         this._getFaxFile()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _add = () => {
         browserHistory.push('/call-features/fax/add')
@@ -198,15 +215,24 @@ class Fax extends Component {
             })
     }
     _getInitDate = () => {
+        this._getFax()
+    }
+    _getFax = (
+        params = {                
+            item_num: 10,
+            sidx: "extension",
+            sord: "asc",
+            page: 1 
+        }) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listFax',
-                sidx: 'extension',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -216,9 +242,13 @@ class Fax extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const fax = response.fax || []
+                    const pagination = this.state.pagination
+                    pagination.total = response.total_item
 
                     this.setState({
-                        faxItem: fax
+                        loading: false,
+                        faxItem: fax,
+                        pagination
                     })
                 }
             }.bind(this),
@@ -227,8 +257,16 @@ class Fax extends Component {
             }
         })
     }
-    _getFaxFile = () => {
+    _getFaxFile = (
+        params = {
+            item_num: 10,
+            sidx: "d",
+            sord: "desc",
+            page: 1 
+        }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
@@ -237,8 +275,7 @@ class Fax extends Component {
                 action: 'listFile',
                 type: 'fax',
                 filter: '{"list_dir":0,"list_file":1,"file_keyword":""}',
-                sidx: 'd',
-                sord: 'desc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -248,9 +285,14 @@ class Fax extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const fax = response.fax || []
+                    const pagination_file = this.state.pagination_file
+                    pagination_file.total = response.total_item
 
                     this.setState({
-                        faxFileItem: fax
+                        file_keyword: "",
+                        loading: false,
+                        faxFileItem: fax,
+                        pagination_file
                     })
                 }
             }.bind(this),
@@ -259,14 +301,31 @@ class Fax extends Component {
             }
         })
     }
-    _searchFile = () => {
+    _onSearchFile = () => {
+        this._searchFile()
+    }
+    _searchFile = (
+        params = {
+            item_num: 10,
+            sidx: "d",
+            sord: "desc",
+            page: 1 
+        }, click = 1) => {
         const { formatMessage } = this.props.intl
         const { getFieldValue } = this.props.form
-        let keyword = getFieldValue('file_keyword')
+        let file_keyword = ""
+        let keyword = ""
+        if (click === 1) {
+            keyword = getFieldValue('file_keyword')
+        } else {
+            keyword = this.state.file_keyword
+        }
         let filter = '{"list_dir":0,"list_file":1,"file_keyword":""}'
         if (keyword && keyword !== "") {
             filter = '{"list_dir":0,"list_file":1,"file_keyword":"-' + keyword + '-"}'
+            file_keyword = keyword
         }
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
@@ -275,8 +334,7 @@ class Fax extends Component {
                 action: 'listFile',
                 type: 'fax',
                 filter: filter,
-                sidx: 'd',
-                sord: 'desc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -286,9 +344,14 @@ class Fax extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const fax = response.fax || []
+                    const pagination_file = this.state.pagination_file
+                    pagination_file.total = response.total_item
 
                     this.setState({
-                        faxFileItem: fax
+                        file_keyword: file_keyword,
+                        loading: false,
+                        faxFileItem: fax,
+                        pagination_file
                     })
                 }
             }.bind(this),
@@ -296,6 +359,50 @@ class Fax extends Component {
                 message.error(e.statusText)
             }
         })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+
+        this._getFax({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'extension',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
+        })
+    }
+    _handleTableChangeFile = (pagination_file, filters, sorter) => {
+        const pager = this.state.pagination_file
+
+        pager.current = pagination_file.current
+
+        this.setState({
+            pagination_file: pager
+        })
+
+        if (this.state.file_keyword === '') {
+            this._getFaxFile({
+                item_num: pagination_file.pageSize,
+                page: pagination_file.current,
+                sidx: sorter.field ? sorter.field : "d",
+                sord: sorter.order === "ascend" ? "asc" : "desc",
+                ...filters
+            })
+        } else {
+            this._searchFile({
+                item_num: pagination_file.pageSize,
+                page: pagination_file.current,
+                sidx: sorter.field ? sorter.field : "d",
+                sord: sorter.order === "ascend" ? "asc" : "desc",
+                ...filters
+            }, 0)
+        }
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
@@ -604,10 +711,12 @@ class Fax extends Component {
                     <Table
                         rowKey="extension"
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ this.state.pagination }
                         rowSelection={ rowSelection }
                         dataSource={ this.state.faxItem }
                         showHeader={ !!this.state.faxItem.length }
+                        loading={ this.state.loading}
+                        onChange={ this._handleTableChange }
                     />
                     <div className='section-title section-title-specail'>
                         <p>
@@ -640,7 +749,7 @@ class Fax extends Component {
                                 icon="search"
                                 type="primary"
                                 size='default'
-                                onClick={ this._searchFile }
+                                onClick={ this._onSearchFile }
                             >
                                 { formatMessage({id: "LANG803"}) }
                             </Button>
@@ -667,10 +776,12 @@ class Fax extends Component {
                     <Table
                         rowKey="n"
                         columns={ columns_file }
-                        pagination={ pagination_file }
+                        pagination={ this.state.pagination_file }
                         rowSelection={ rowSelection_file }
                         dataSource={ this.state.faxFileItem }
                         showHeader={ !!this.state.faxFileItem.length }
+                        loading={ this.state.loading}
+                        onChange={ this._handleTableChangeFile }
                     />
                 </div>
             </div>

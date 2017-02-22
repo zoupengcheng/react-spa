@@ -2,6 +2,7 @@
 
 import $ from 'jquery'
 import api from "../../api/api"
+import _ from 'underscore'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
@@ -19,11 +20,23 @@ class FaxSending extends Component {
         this.state = {
             faxItem: [],
             selectedRows: [],
-            selectedRowKeys: []
+            selectedRowKeys: [],
+            callee: '',
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
         this._getInitDate()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _clearSelectRows = () => {
         this.setState({
@@ -65,23 +78,53 @@ class FaxSending extends Component {
             }
         })
     }
-    _getSendFax = (isCallee) => {
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+        let isCallee = 0
+        if (this.state.callee === '') {
+            isCallee = 0
+        } else {
+            isCallee = 1
+        }
+
+        this._getSendFax({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'd',
+            sord: sorter.order === "ascend" ? "asc" : "desc",
+            ...filters
+        }, isCallee)
+    }
+    _getSendFax = (
+        params = {                
+                item_num: 10,
+                sidx: "d",
+                sord: "desc",
+                page: 1 
+            }, isCallee = 0) => {
         const { formatMessage } = this.props.intl
         const { getFieldValue } = this.props.form
-        let callee = ''
+        this.setState({loading: true})
+
+        let callee = this.state.callee
         let action = {}
         action.action = 'listSendFaxstatus'
-        action.sidx = 'd'
-        action.sord = 'desc'
         action.username = localStorage.username
         if (isCallee === 0) {
+            callee = ''
         } else if (isCallee === 1) {
-            let callee = getFieldValue('callee')
+            callee = getFieldValue('callee')
             if (callee && callee !== "") {
                 action.callee = callee
             }
         }
-
+        _.extend(action, params)
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -94,9 +137,16 @@ class FaxSending extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const fax = response.fax || []
+                    const pagination = this.state.pagination
+                    // Read total count from server
+                    pagination.total = res.response.total_item
+                    pagination.current = params.page
 
                     this.setState({
-                        faxItem: fax
+                        loading: false,
+                        faxItem: fax,
+                        callee: callee,
+                        pagination
                     })
                 }
             }.bind(this),
@@ -106,13 +156,18 @@ class FaxSending extends Component {
         })
     }
     _getInitDate = () => {
-        this._getSendFax(0)
+        this._getSendFax()
     }
     _searchFile = () => {
-        this._getSendFax(1)
+        this._getSendFax({                
+                item_num: 10,
+                sidx: "d",
+                sord: "desc",
+                page: 1 
+            }, 1)
     }
     _showAll = () => {
-        this._getSendFax(0)
+        this._getSendFax()
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
@@ -567,10 +622,12 @@ class FaxSending extends Component {
                     <Table
                         rowKey="key"
                         columns={ columns }
-                        pagination={ pagination }
                         rowSelection={ rowSelection }
                         dataSource={ this.state.faxItem }
                         showHeader={ !!this.state.faxItem.length }
+                        pagination={ this.state.pagination }
+                        onChange={ this._handleTableChange }
+                        loading={ this.state.loading}
                     />
                 </div>
             </div>

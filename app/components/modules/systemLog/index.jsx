@@ -816,14 +816,6 @@ class SystemLog extends Component {
                 )
             }]
         const columns = [{
-                key: 'id',
-                dataIndex: 'id',
-                title: formatMessage({id: "LANG4158"}),
-                width: 150,
-                render: (text, record, index) => (
-                    this._createID(text, record, index)
-                )
-            }, {
                 key: 'module_name',
                 dataIndex: 'module_name',
                 title: formatMessage({id: "LANG4159"}),
@@ -841,6 +833,14 @@ class SystemLog extends Component {
                 filterDropdownVisible: this.state.filterDropdownVisible,
                 onFilterDropdownVisibleChange: visible => this.setState({ filterDropdownVisible: visible }),
                 width: 150
+            }, {
+                key: 'id',
+                dataIndex: 'id',
+                title: formatMessage({id: "LANG4158"}),
+                width: 150,
+                render: (text, record, index) => (
+                    this._createID(text, record, index)
+                )
             }, {
                 key: 'ERROR',
                 dataIndex: 'ERROR',
@@ -886,12 +886,14 @@ class SystemLog extends Component {
         const pagination = {
                 total: this.state.staticSwitch.length,
                 showSizeChanger: true,
+                showQuickJumper: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
                 },
                 onChange: (current) => {
                     console.log('Current: ', current)
-                }
+                },
+                size: 'small'
             }
 
         const rowSelection = {
@@ -916,22 +918,7 @@ class SystemLog extends Component {
                     onCancel={ this._handleCancel } 
                     isDisplay= "display-block"
                 />
-                <div className="content">
-                    <div className="section-title">
-                        <p><span>
-                                { formatMessage({id: "LANG67" })}
-                            </span>
-                        </p>
-                    </div>
-                    <div className="top-button">
-                        <Button type="primary" icon="download" size='default' onClick={ this._download }>
-                            { formatMessage({id: "LANG759" }, { 0: formatMessage({id: "LANG4146"})}) }
-                        </Button>
-                        <Button type="primary" icon="clear" size='default' onClick={ this._clean }>
-                            { formatMessage({id: "LANG743"}) }
-                        </Button>
-                    </div>
-                </div>
+                
                 <Form id="systemLog-form">
                     <FormItem
                         { ...formItemLayout }
@@ -983,6 +970,22 @@ class SystemLog extends Component {
                         )}
                     </FormItem>
                 </Form>
+                <div className="content">
+                    <div className="section-title">
+                        <p><span>
+                                { formatMessage({id: "LANG67" })}
+                            </span>
+                        </p>
+                    </div>
+                    <div className="top-button">
+                        <Button type="primary" icon="download" size='default' onClick={ this._download }>
+                            { formatMessage({id: "LANG759" }, { 0: formatMessage({id: "LANG4146"})}) }
+                        </Button>
+                        <Button type="primary" icon="clear" size='default' onClick={ this._clean }>
+                            { formatMessage({id: "LANG743"}) }
+                        </Button>
+                    </div>
+                </div>
                 <div className="content">
                     <div className="top-button">
                         <Card title={ formatMessage({id: "LANG5141" })} >

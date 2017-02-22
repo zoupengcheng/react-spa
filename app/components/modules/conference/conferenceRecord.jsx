@@ -63,7 +63,7 @@ class ConferenceRecord extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -120,7 +120,7 @@ class ConferenceRecord extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG905" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG961" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -181,7 +181,7 @@ class ConferenceRecord extends Component {
                 loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
                 successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
-                message.loading(loadingMessage)
+                message.loading(loadingMessage, 0)
                 $.ajax({
                     url: api.apiHost,
                     method: 'post',
@@ -238,7 +238,7 @@ class ConferenceRecord extends Component {
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,
@@ -290,7 +290,7 @@ class ConferenceRecord extends Component {
                 loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
                 successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG871" })}}></span>
 
-                message.loading(loadingMessage)
+                message.loading(loadingMessage, 0)
                 $.ajax({
                     url: api.apiHost,
                     method: 'post',
@@ -336,7 +336,7 @@ class ConferenceRecord extends Component {
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
 
-        message.loading(loadingMessage)
+        message.loading(loadingMessage, 0)
 
         $.ajax({
             url: api.apiHost,

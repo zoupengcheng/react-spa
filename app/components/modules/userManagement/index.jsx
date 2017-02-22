@@ -16,11 +16,22 @@ class UserList extends Component {
         super(props)
         this.state = {
             userList: [],
-            selectedRowKeys: []
+            selectedRowKeys: [],
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
         this._getUserList()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _add = () => {
         let confirmContent = ''
@@ -67,16 +78,23 @@ class UserList extends Component {
     _edit = (record) => {
         browserHistory.push('/maintenance/userManagement/edit/' + record.user_id + "/" + record.user_name)
     }
-    _getUserList = () => {
+    _getUserList = (
+            params = {                
+                item_num: 10,
+                sidx: "privilege",
+                sord: "asc",
+                page: 1 
+            }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listUser',
-                sidx: 'privilege',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -86,15 +104,37 @@ class UserList extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const userList = response.user_id || []
+                    const pagination = this.state.pagination
+                    // Read total count from server
+                    pagination.total = res.response.total_item
 
                     this.setState({
-                        userList: userList
+                        loading: false,
+                        userList: userList,
+                        pagination
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+
+        this._getUserList({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'privilege',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
         })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -196,10 +236,11 @@ class UserList extends Component {
                     <Table
                         rowKey="user_id"
                         columns={ columns }
-                        pagination={ pagination }
-                        rowSelection={ rowSelection }
                         dataSource={ this.state.userList }
                         showHeader={ !!this.state.userList.length }
+                        pagination={ this.state.pagination }
+                        onChange={ this._handleTableChange }
+                        loading={ this.state.loading}
                     />
                 </div>
             </div>

@@ -2,6 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
+import ZEROCONFIG from './parser/ZCDataSource'
 import Devices from './devices'
 import Globalpolicy from './globalpolicy'
 import Globaltemplates from './globaltemplates'
@@ -23,8 +24,8 @@ class ZeroConfig extends Component {
 
         }
     }
-    componentDidMount() {
-
+    componentDidMount() {        
+        ZEROCONFIG.init()
     }
     componentWillUnmount() {
 

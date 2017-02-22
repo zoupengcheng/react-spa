@@ -217,6 +217,7 @@ class VoipTrunksList extends Component {
 
     _check_ldap_sync_progress = (trunkName, count, tryTimes) => {
         const { formatMessage } = this.props.intl
+
         let errArray = ['', 'LANG2664', 'LANG2665', 'LANG2666']
 
         if (count <= 0) {
@@ -237,6 +238,7 @@ class VoipTrunksList extends Component {
             success: function(result) {
                 let bool = UCMGUI.errorHandler(result, null, this.props.intl.formatMessage)
                 let msgArray = ['LANG2656', 'LANG2657', 'LANG2658', 'LANG2659', 'LANG2660', 'LANG2661', 'LANG2662', 'LANG2663']
+                let me = this
 
                 if (bool) {
                     /* The progress */
@@ -244,7 +246,7 @@ class VoipTrunksList extends Component {
 
                     if (isNaN(index)) {
                         setTimeout(() => {
-                            this._check_ldap_sync_progress(trunkName, count, tryTimes)
+                            me._check_ldap_sync_progress(trunkName, count, tryTimes)
                         }, 1000)
                         return
                     }
@@ -272,7 +274,7 @@ class VoipTrunksList extends Component {
                                 message.loading(formatMessage({ id: msgArray[index] }), 0)
 
                                 setTimeout(() => {
-                                    this._check_ldap_sync_progress(trunkName, count, tryTimes)
+                                    me._check_ldap_sync_progress(trunkName, count, tryTimes)
                                 }, 1000)
                             }
                         }
@@ -283,7 +285,7 @@ class VoipTrunksList extends Component {
                         message.warn(formatMessage({ id: errArray[number] }))
                     }
                 }
-            }
+            }.bind(this)
 
         })
     }
@@ -325,11 +327,17 @@ class VoipTrunksList extends Component {
                 title: formatMessage({id: "LANG74"}), 
                 dataIndex: '', 
                 key: 'x', 
-                render: (text, record, index) => (
-                    <span>
-                        <span className="sprite sprite-edit" onClick={this._editVoipTrunk.bind(this, record)}></span>
-                        <span className="" onClick={this._dodTrunksList.bind(this, record)}>DOD</span>
-                        <span className="" onClick={this._manual_ldap_sync.bind(this, record)}>LDAP</span>
+                render: (text, record, index) => {
+                    let ldapCls = "sprite sprite-ldap"
+
+                    if (record.ldap_sync_enable !== "yes") {
+                        ldapCls = "sprite sprite-ldap-disabled"
+                    }
+
+                    return <span>
+                        <span className="sprite sprite-edit" title={ formatMessage({ id: "LANG738"})} onClick={this._editVoipTrunk.bind(this, record)}></span>
+                        <span className="sprite sprite-dod" title={ formatMessage({ id: "LANG2677"})} onClick={this._dodTrunksList.bind(this, record)}></span>
+                        <span className={ ldapCls } title={ formatMessage({ id: "LANG2654"})} onClick={this._manual_ldap_sync.bind(this, record)}></span>
                         <Popconfirm title={
                             <FormattedHTMLMessage
                                 id='LANG4471'
@@ -338,10 +346,10 @@ class VoipTrunksList extends Component {
                                 }}
                             />} 
                             onConfirm={() => this._deleteTrunk(record)}>
-                            <span className="sprite sprite-del" ></span>
+                            <span className="sprite sprite-del" title={ formatMessage({ id: "LANG739"})} ></span>
                         </Popconfirm>
                     </span>
-                ) 
+                } 
             }
         ]
         // rowSelection object indicates the need for row selection

@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Transfer, Tabs } from 'antd'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Transfer, Tabs, Modal } from 'antd'
 const FormItem = Form.Item
 const Option = Select.Option
 import $ from 'jquery'
@@ -16,17 +16,75 @@ import Title from '../../../views/title'
 const TabPane = Tabs.TabPane
 import Validator from "../../api/validator"
 
+const baseServerURl = api.apiHost
+
+let extensionPrefSettings = UCMGUI.isExist.getRange() // [disable_extension_ranges, rand_password, weak_password]
+
 class EditVoipTrunk extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            codecsArr: ["ilbc", "g722", "g726aal2", "adpcm", "g723", "h263", "h263p", "h264", "vp8", "ulaw", "alaw", "gsm", "g726", "g729", "opus"],
+            codecsObj: {
+                ilbc: "iLBC",
+                g722: "G.722",
+                g726aal2: "AAL2-G.726-32",
+                adpcm: "ADPCM",
+                g723: "G.723",
+                h263: "H.263",
+                h263p: "H.263p",
+                h264: "H.264",
+                vp8: "VP8",
+                ulaw: "PCMU",
+                alaw: "PCMA",
+                gsm: "GSM",
+                g726: "G.726",
+                g729: "G.729",
+                opus: "OPUS"
+            },
             openPort: [],
             telUri: "disabled",
             enableCc: false,
-            refs: {}
+            refs: {},
+            faxIntelligentRouteDestinationOpts: []
         }
     }
     componentDidMount() {
+        this._initForm()
+        this._prepareEditItemForm()
+        // this._isEnableWeakPw()
+    }
+    componentWillUnmount() {
+    }
+    _getRefs = (refs) => {
+        this.setState({
+            refs: _.extend(this.state.refs, refs)
+        })
+    }
+    _getSonState = (state) => {
+        this.setState(state)
+    }
+    _initForm() {
+        const form = this.props.form
+
+        let chkOutboundproxy = form.getFieldValue("chkOutboundproxy"),
+            hideEles = ["div_need_register", "div_allow_outgoing_calls_if_reg_failed", "div_fromdomain", "div_fromuser", 
+                        "div_send_ppi", "div_send_pai", "div_ldap", "div_codecs", "div_transport", 
+                        "div_cidnumber", "div_enable_qualify", "div_faxmode", "div_qualifyfreq", "div_out_maxchans"],
+            hideElesObj = {}
+
+        // if (!chkOutboundproxy) {
+        //     hideEles.concat(["div_outboundproxy", "div_rmv_obp_from_route"])
+        // }
+        hideEles.map(function(it) {
+            hideElesObj[it + "_style"] = false
+        })
+
+        this.setState(hideElesObj)
+    }
+    _prepareEditItemForm() {
+        const form = this.props.form
+
         let trunkId = this.props.params.trunkId,
             technology = this.props.params.technology,
             trunkType = this.props.params.trunkType,
@@ -34,63 +92,153 @@ class EditVoipTrunk extends Component {
                 trunk: trunkId
             }
 
+        let hideEles = ["div_trunktype", "more_details"],
+            showEles = ["div_enable_qualify", "div_faxmode", "div_out_maxchans", "div_codecs"],
+            hideElesObj = {},
+            showElesObj = {}
+
         if (technology.toLowerCase() === "sip") {
+            showEles = showEles.concat(["div_transport", "div_did_mode"])
+
+            if (trunkType.toLowerCase() === "peer") {
+                let ldapSyncEnable = form.getFieldValue("ldap_sync_enable")
+                    // els = ["div_ldap_sync_passwd", "div_ldap_sync_port", "div_ldap_default_outrt", "div_ldap_default_outrt_prefix", 
+                    //         "div_ldap_last_sync_date"]
+
+                showEles = showEles.concat(["div_cidnumber", "div_ldap"])
+                hideEles = hideEles.concat(["div_username", "div_secret", "div_authid", "div_auth_trunk", "div_chkOutboundproxy"])
+
+                // if (!ldapSyncEnable) {
+                //     hideEles = hideEles.concat(els)
+                // }
+            } else {
+                showEles = showEles.concat(["div_need_register", "div_allow_outgoing_calls_if_reg_failed", "div_fromuser"])
+            }
+            showEles = showEles.concat(["div_fromdomain", "div_send_ppi", "div_send_pai"])
+
             action["action"] = "getSIPTrunk"
+            this._getSIPTrunk(action)
 
-            this._getTrunk(action)
-            // this._tectFax()
+            this._tectFax()
+
+            this._getOpenPort()
         } else {
+            hideEles = hideEles.concat(["div_transport", "div_authid", "div_chkOutboundproxy", "div_rmv_obp_from_route", 
+                "div_auto_recording", "div_auth_trunk", "div_encryption", "div_tel_uri", "div_dtmfmode", "div_ccss", "div_keeporgcid", "div_nat"])
+            showEles.push("div_cidnumber")
+
+            if (trunkType.toLowerCase() === "peer") {
+                hideEles = hideEles.concat(["div_username", "div_secret"])
+            } else {
+                showEles = showEles.concat(["div_username", "div_secret"])
+            }
+
             action["action"] = "getIAXTrunk"
-            this._getTrunk(action)
+            this._getIAXTrunk(action)
         }
-        // this._getNameList()
-        this._getOpenPort()
+        showEles.map(function(it) {
+            showElesObj[it + "_style"] = true
+        })
+        hideEles.map(function(it) {
+            hideElesObj[it + "_style"] = false
+        })
+
+        showElesObj = _.extend(showElesObj, hideElesObj)
+        this.setState(showElesObj)
     }
-    componentWillUnmount() {
+    _isEnableWeakPw = () => {
+        // if (extensionPrefSettings[2] == 'yes') { // weak_password
+        //     var obj = {
+        //         pwsId: "#ldap_sync_passwd",
+        //         doc: document
+        //     }
+
+        //     $P("#ldap_sync_passwd", document).rules("add", {
+        //         checkAlphanumericPw: [UCMGUI.enableWeakPw.showCheckPassword, obj]
+        //     })
+        // }
     }
-    // _tectFax = () => {
-    //     let accountList = UCMGUI.isExist.getList("listAccount").account,
-    //         faxList = UCMGUI.isExist.getList("listFax").fax,
-    //         str = '',
-    //         ele;
+    _tectFax = () => {
+        let accountList = UCMGUI.isExist.getList("listAccount").account,
+            faxList = UCMGUI.isExist.getList("listFax").fax,
+            arr = [],
+            ele = ''
 
-    //     for (let i = 0; i < accountList.length; i++) {
-    //         ele = accountList[i];
+        for (let i = 0; i < accountList.length; i++) {
+            ele = accountList[i]
 
-    //         if (ele.account_type.match(/FXS/i)) {
-    //             str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
-    //         }
-    //     }
+            if (ele.account_type.match(/FXS/i)) {
+                arr.push({
+                    val: ele.extension 
+                })
+            }
+        }
 
-    //     for (let i = 0; i < faxList.length; i++) {
-    //         ele = faxList[i];
+        for (let i = 0; i < faxList.length; i++) {
+            ele = faxList[i]
+            arr.push({
+                val: ele.extension 
+            })
+        }
 
-    //         str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
+        this.setState({
+            faxIntelligentRouteDestinationOpts: arr
+        })
+        // enableCheckBox({
+        //     enableCheckBox: 'fax_intelligent_route',
+        //     enableList: ['fax_intelligent_route_destination']
+        // }, doc)
 
-    //     }
+        // enableCheckBox({
+        //     enableCheckBox: 'need_register',
+        //     enableList: ['allow_outgoing_calls_if_reg_failed']
+        // }, doc)
+    }
+    _getSIPTrunk = (action) => {
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: action,
+            error: function(jqXHR, textStatus, errorThrown) {
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-    //     $('#fax_intelligent_route_destination').append(str);
-    //     $('#faxmode').on('change', function() {
-    //         if ($(this).val() === 'detect') {
-    //             $('#detect_div').show();
-    //         } else {
-    //             $('#detect_div').hide();
-    //         }
-    //     });
-    //     enableCheckBox({
-    //         enableCheckBox: 'fax_intelligent_route',
-    //         enableList: ['fax_intelligent_route_destination']
-    //     }, doc);
-    //     enableCheckBox({
-    //         enableCheckBox: 'need_register',
-    //         enableList: ['allow_outgoing_calls_if_reg_failed']
-    //     }, doc);
-    // }
+                if (bool) {
+                    let res = data.response,
+                        trunk = res.trunk
+                    this.setState({
+                        trunk: trunk
+                    })
+                }
+            }.bind(this)
+        })
+    }
+    _getIAXTrunk = (action) => {
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: action,
+            error: function(jqXHR, textStatus, errorThrown) {
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let res = data.response,
+                        trunk = res.trunk
+                    this.setState({
+                        trunk: trunk
+                    })
+                }
+            }.bind(this)
+        })
+    }
     _getOpenPort = () => {
         let openPort = []
 
         $.ajax({
-            url: api.apiHost,
+            url: baseServerURl,
             method: "post",
             data: {
                 action: "getNetstatInfo"
@@ -125,7 +273,7 @@ class EditVoipTrunk extends Component {
         })
 
         $.ajax({
-            url: api.apiHost,
+            url: baseServerURl,
             method: "post",
             data: {
                 action: "getSIPTCPSettings"
@@ -171,26 +319,6 @@ class EditVoipTrunk extends Component {
             }.bind(this)
         })
     }
-    _getTrunk = (action) => {
-        $.ajax({
-            type: "post",
-            url: api.apiHost,
-            data: action,
-            error: function(jqXHR, textStatus, errorThrown) {
-            },
-            success: function(data) {
-                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    let res = data.response,
-                        trunk = res.trunk
-                    this.setState({
-                        trunk: trunk
-                    })
-                }
-            }.bind(this)
-        })
-    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         let trunkId = this.props.params.trunkId,
@@ -221,32 +349,31 @@ class EditVoipTrunk extends Component {
                         } else {
                             return
                         }
+                    } else if (typeof divKey === "undefined") {
+                        action[key] = UCMGUI.transCheckboxVal(values[key])
                     }
                 }
             }
             action = me._transAction(action)
-            // if ((action["action"].toLowerCase().indexOf('sip') > -1) && /[a-zA-Z]/g.test(action['host']) && !UCMGUI.isIPv6(action['host'])) {
-            //     confirmStr = $P.lang("LANG4163")
-            // } else if ((action["action"].toLowerCase().indexOf('iax') > -1) &&
-            //     (/[a-zA-Z]/g.test(action['host']) || /:\d*$/.test(action['host'])) && !UCMGUI.isIPv6(action['host'])) {
-            //     confirmStr = $P.lang("LANG4469")
-            // }
-            // if (confirmStr) {
-            //     top.dialog.dialogConfirm({
-            //         confirmStr: confirmStr,
-            //         buttons: {
-            //             ok: function() {
-            //                 this._doUpdateTrunksInfo(action)
-            //             },
-            //             cancel: function() {
-            //                 top.dialog.container.show();
-            //                 top.dialog.shadeDiv.show();
-            //             }
-            //         }
-            //     })
-            // } else {
-            //     this._doUpdateTrunksInfo(action)
-            // }
+            let confirmStr = ""
+
+            if ((action["action"].toLowerCase().indexOf('sip') > -1) && /[a-zA-Z]/g.test(action['host']) && !UCMGUI.isIPv6(action['host'])) {
+                confirmStr = formatMessage({ id: "LANG4163" })
+            } else if ((action["action"].toLowerCase().indexOf('iax') > -1) &&
+                (/[a-zA-Z]/g.test(action['host']) || /:\d*$/.test(action['host'])) && !UCMGUI.isIPv6(action['host'])) {
+                confirmStr = formatMessage({ id: "LANG4469" })
+            }
+            if (confirmStr) {
+                Modal.confirm({
+                    title: 'Confirm',
+                    content: confirmStr,
+                    okText: formatMessage({id: "LANG727"}),
+                    cancelText: formatMessage({id: "LANG726"}),
+                    onOk: this._doUpdateTrunksInfo.bind(this, action)
+                })
+            } else {
+                this._doUpdateTrunksInfo(action)
+            }
             this._doUpdateTrunksInfo(action)
         })
     }
@@ -255,7 +382,7 @@ class EditVoipTrunk extends Component {
         message.loading(formatMessage({ id: "LANG826" }), 0)
 
         $.ajax({
-            url: api.apiHost,
+            url: baseServerURl,
             method: "post",
             data: action,
             type: 'json',
@@ -319,7 +446,7 @@ class EditVoipTrunk extends Component {
         }
         delete action['enable_cc']
         delete action['send_pai']
-        delete action['send_ppi']
+        // delete action['send_ppi']
 
         if (technology.toLowerCase() === "sip") {
             if (fax === "detect") {
@@ -369,24 +496,19 @@ class EditVoipTrunk extends Component {
         action["trunk"] = trunkId
         delete action["trunk_index"]
 
-        if (action["user_name"]) {
-            action["username"] = action["user_name"]
-            delete action["user_name"]
-        }
+        // if (action["user_name"]) {
+        //     action["username"] = action["user_name"]
+        //     delete action["user_name"]
+        // }
 
-        if (action["password"]) {
-            action["secret"] = action["password"]
-            delete action["password"]
-        }
+        // if (action["password"]) {
+        //     action["secret"] = action["password"]
+        //     delete action["password"]
+        // }
         return action
     }
     _handleCancel = (e) => {
         browserHistory.push('/extension-trunk/voipTrunk')
-    }
-    _getRefs = (refs) => {
-        this.setState({
-            refs: _.extend(this.state.refs, refs)
-        })
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -421,19 +543,21 @@ class EditVoipTrunk extends Component {
                             <BasicSettings form={ this.props.form }
                                 getRefs={ this._getRefs.bind(this) }
                                 trunk={ this.state.trunk }
-                                trunkType = {trunkType}
-                                technology = {technology}
-                                telUri={ this.state.telUri }
+                                trunkType = { trunkType }
+                                technology = { technology }
+                                getSonState = { this._getSonState }
+                                parentState= { this.state }
                             />
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG542"})} key="2">
                             <AdvanceSettings form={ this.props.form }
                                 getRefs={ this._getRefs.bind(this) }
                                 trunk={ this.state.trunk }
-                                trunkType = {trunkType}
-                                technology = {technology}
+                                trunkType = { trunkType }
+                                technology = { technology }
                                 openPort = { this.state.openPort }
-                                telUri={ this.state.telUri }
+                                getSonState = { this._getSonState }
+                                parentState= { this.state }
                             />
                         </TabPane>
                     </Tabs>

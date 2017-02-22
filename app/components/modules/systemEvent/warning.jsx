@@ -23,11 +23,26 @@ class WarningLog extends Component {
             recordFiles: [],
             isDisplay: "display-block-filter",
             isDisplaySearch: 'hidden',
-            selectedRowKeys: []
+            selectedRowKeys: [],
+            d_logid: '',
+            d_logaction: '',
+            d_logstartto: '',
+            d_logstartfrom: '',
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
         this._getWarningLog()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _createID = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -94,9 +109,9 @@ class WarningLog extends Component {
             }
         } else if (id === 3) {
             if (content.length === 5) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()})}) }</span>
+                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: content[2].trim(), 2: formatMessage({id: content[3].trim()}), 3: content[4].trim()}) }</span>
             } else {
-                response = <span>{ text.trim() }</span>
+                response = <span>{ formatMessage({id: text.trim()}) }</span>
             }
         } else if (id === 1 || id === 18) {
             if (content.length === 6) {
@@ -154,8 +169,20 @@ class WarningLog extends Component {
                 }
             })
     }
-    _getWarningLog = () => {
+    _getWarningLog = (params = {                
+            item_num: 10,
+            page: 1,
+            sord: 'desc',
+            sidx: 'time'
+        }, first = 1) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
+
+        let warning_log = []
+        let pagination = this.state.pagination
+        if (first === 1) {
+            pagination.current = 1
+        }
 
         $.ajax({
             url: api.apiHost,
@@ -164,7 +191,8 @@ class WarningLog extends Component {
                 action: 'listWarningLog',
                 sidx: 'time',
                 options: 'id,time,action,content,row_num',
-                sord: 'desc'
+                sord: 'desc',
+                ...params
             },
             type: 'json',
             async: false,
@@ -173,16 +201,25 @@ class WarningLog extends Component {
 
                 if (bool) {
                     const response = res.response || {}
-                    const warning_log = response.warning_log || []
+                    warning_log = response.warning_log || []
 
-                    this.setState({
-                        warning_log: warning_log
-                    })
+                    // Read total count from server
+                    pagination.total = res.response.total_item
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+        
+        this.setState({
+            loading: false,
+            warning_log: warning_log,
+            d_logid: '',
+            d_logaction: '',
+            d_logstartto: '',
+            d_logstartfrom: '',
+            pagination: pagination
         })
     }
     _clearSelectRows = () => {
@@ -211,31 +248,14 @@ class WarningLog extends Component {
 
         let warningData = [],
             dataPost = {
-                logid: '',
-                logaction: '',
-                logstartfrom: '',
-                logstartto: ''
+                logid: this.state.d_logid,
+                logaction: this.state.d_logaction,
+                logstartfrom: this.state.d_logstartfrom,
+                logstartto: this.state.d_logstartto
             },
             warningDeleteData = {
                 action: 'warningDeleteLog'
-            },
-            flag = false
-        let t_logid = form.getFieldValue('logid')
-        let t_type = form.getFieldValue('type')
-        let t_logstartfrom = form.getFieldValue('logstartfrom')
-        let t_logstartto = form.getFieldValue('logstartto')
-        if (t_logid && t_logid !== "") {
-            dataPost['logid'] = t_logid
-        }
-        if (t_type && t_type !== "") {
-            dataPost['logaction'] = t_type
-        }
-        if (t_logstartfrom && _.isObject(t_logstartfrom)) {
-            dataPost['logstartfrom'] = t_logstartfrom.format('YYYY-MM-DD HH:mm')
-        }
-        if (t_logstartto && _.isObject(t_logstartto)) {
-            dataPost['logstartto'] = t_logstartto.format('YYYY-MM-DD HH:mm')
-        }
+            }
 
         _.extend(warningDeleteData, dataPost)
 
@@ -343,10 +363,17 @@ class WarningLog extends Component {
     }
     _handleCancel = () => {
         browserHistory.push('/maintenance/systemEvent/1')
+        this._getWarningLog()
     }
-    _handleSubmit = () => {
+    _handleSubmit = (params = {                
+            item_num: 10,
+            page: 1,
+            sord: 'desc',
+            sidx: 'time'
+        }, search = 1) => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
+        let pagination = this.state.pagination
 
         message.loading(formatMessage({ id: "LANG3773" }), 0)
 
@@ -357,7 +384,8 @@ class WarningLog extends Component {
                 action: 'listWarningLog',
                 sidx: 'time',
                 options: 'id,time,action,content,row_num',
-                sord: 'desc'
+                sord: 'desc',
+                ...params
             },
             flag = false
         let t_logid = form.getFieldValue('logid')
@@ -376,7 +404,22 @@ class WarningLog extends Component {
         if (t_logstartto && _.isObject(t_logstartto)) {
             dataPost['logstartto'] = t_logstartto.format('YYYY-MM-DD HH:mm')
         }
-
+        if (search === 0) {
+            if (this.state.d_logid !== '') {
+                dataPost['logid'] = this.state.d_logid
+            }
+            if (this.state.d_logaction !== '') {
+                dataPost['logaction'] = this.state.d_logaction
+            }
+            if (this.state.d_logstartfrom !== '') {
+                dataPost['logstartfrom'] = this.state.d_logstartfrom
+            }
+            if (this.state.d_logstartto !== '') {
+                dataPost['logstartto'] = this.state.d_logstartto
+            }
+        } else if (search === 1) {
+            pagination.current = 1
+        }
         _.extend(warningSearchData, dataPost)
 
         $.ajax({
@@ -395,13 +438,50 @@ class WarningLog extends Component {
 
                     const response = data.response || {}
                     const warning_log = response.warning_log || []
+                    
+                    pagination.total = response.total_item
 
                     this.setState({
-                        warning_log: warning_log
+                        warning_log: warning_log,
+                        d_logid: dataPost['logid'],
+                        d_logaction: dataPost['logaction'],
+                        d_logstartto: dataPost['logstartto'],
+                        d_logstartfrom: dataPost['logstartfrom'],
+                        pagination: pagination
                     })
                 }
             }.bind(this)
         })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+
+        if (this.state.d_logid === '' &&
+            this.state.d_logaction === '' &&
+            this.state.d_logstartfrom === '' &&
+            this.state.d_logstartto === '') {
+            this._getWarningLog({
+                item_num: pagination.pageSize,
+                page: pagination.current,
+                sidx: sorter.field ? sorter.field : "time",
+                sord: sorter.order === "ascend" ? "asc" : "desc",
+                ...filters
+            }, 0)
+        } else {
+            this._handleSubmit({
+                item_num: pagination.pageSize,
+                page: pagination.current,
+                sidx: sorter.field ? sorter.field : "time",
+                sord: sorter.order === "ascend" ? "asc" : "desc",
+                ...filters
+            }, 0)
+        }
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -417,12 +497,12 @@ class WarningLog extends Component {
                 key: 'time',
                 dataIndex: 'time',
                 title: formatMessage({id: "LANG2548"}),
-                sorter: (a, b) => a.time - b.time
+                sorter: true
             }, {
                 key: 'id',
                 dataIndex: 'id',
                 title: formatMessage({id: "LANG2549"}),
-                sorter: (a, b) => a.id.length - b.id.length,
+                sorter: true,
                 render: (text, record, index) => (
                     this._createID(text, record, index)
                 )
@@ -430,7 +510,7 @@ class WarningLog extends Component {
                 key: 'action',
                 dataIndex: 'action',
                 title: formatMessage({id: "LANG2550"}),
-                sorter: (a, b) => a.action.length - b.action.length,
+                sorter: true,
                 render: (text, record, index) => (
                     this._createAction(text, record, index)
                 )
@@ -574,9 +654,11 @@ class WarningLog extends Component {
                     <Table
                         rowKey="row_num"
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ this.state.pagination }
                         dataSource={ this.state.warning_log }
                         showHeader={ !!this.state.warning_log.length }
+                        onChange={ this._handleTableChange }
+                        loading={ this.state.loading }
                     />
                 </div>
             </div>

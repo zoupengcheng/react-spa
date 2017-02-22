@@ -19,12 +19,23 @@ class pmsRooms extends Component {
             accountList: [],
             accountAryObj: {},
             selectedRowKeys: [],
-            pmsWakeup: []
+            pmsWakeup: [],
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
         this._getAccountList()
         this._getPmsWakeup()
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _add = () => {
         let confirmContent = ''
@@ -112,16 +123,23 @@ class pmsRooms extends Component {
             }
         })
     }
-    _getPmsWakeup = () => {
+    _getPmsWakeup = (
+        params = {                
+                item_num: 10,
+                sidx: "room",
+                sord: "asc",
+                page: 1 
+            }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listWakeUp',
-                sidx: 'room',
-                sord: 'asc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -131,15 +149,37 @@ class pmsRooms extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const pmsWakeup = response.pms_wakeup || []
+                    const pagination = this.state.pagination
+                    // Read total count from server
+                    pagination.total = res.response.total_item
 
                     this.setState({
-                        pmsWakeup: pmsWakeup
+                        loading: false,
+                        pmsWakeup: pmsWakeup,
+                        pagination
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+
+        this._getPmsWakeup({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'room',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
         })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -305,10 +345,11 @@ class pmsRooms extends Component {
                     <Table
                         rowKey="room"
                         columns={ columns }
-                        pagination={ pagination }
-                        rowSelection={ rowSelection }
                         dataSource={ this.state.pmsWakeup }
                         showHeader={ !!this.state.pmsWakeup.length }
+                        pagination={ this.state.pagination }
+                        onChange={ this._handleTableChange }
+                        loading={ this.state.loading}
                     />
                 </div>
             </div>

@@ -30,6 +30,7 @@ class CreateVoipTrunk extends Component {
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
+        
         let mode = this.props.params.mode,
             action = {}
 
@@ -161,7 +162,7 @@ class CreateVoipTrunk extends Component {
         return (
             <div className="app-content-main" id="app-content-main">
                 <Title headerTitle={ formatMessage({id: "LANG2908"}) } onSubmit={ this._handleSubmit.bind(this) } onCancel={ this._handleCancel } isDisplay='display-block' />
-                <Form tab={formatMessage({id: "LANG2217"})} key="1">
+                <Form>
                     <FormItem
                         ref="div_trunk_type"
                         { ...formItemLayout }

@@ -13,6 +13,7 @@ import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer
 
 const FormItem = Form.Item
 const Option = Select.Option
+const baseServerURl = api.apiHost
 
 class AdvanceSettings extends Component {
     constructor(props) {
@@ -20,28 +21,100 @@ class AdvanceSettings extends Component {
 
         this.state = {
             firstLoad: true,
-            enableCc: false
+            enableCc: false,
+            faxIntelligentRoute: false,
+            ldapDefaultOutrtOpts: [],
+            codecsList: [],
+            curentMembersArr: []
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
         this.props.getRefs(this.refs)
+        this._transCodecsArr()
     }
     componentDidUpdate() {
+        const form = this.props.form
         const trunk = this.props.trunk || {}
 
-        if (this.state.firstLoad && trunk.cc_agent_policy === "native") {
+        let trunkId = trunk.trunk_index,
+            technology = this.props.technology,
+            trunkType = this.props.trunkType
+
+        if (this.state.firstLoad) {
+            if (technology.toLowerCase() === "sip") {
+                if (trunk.fax_intelligent_route_destination === "") {
+                    form.setFieldsValue({
+                        fax_intelligent_route_destination: "no"
+                    })
+                }
+
+                if (trunk['cc_agent_policy'] && trunk['cc_agent_policy'] === 'native') {
+                    form.setFieldsValue({
+                        enable_cc: true,
+                        cc_max_agents: trunk['cc_max_agents'] === 0 ? "" : trunk['cc_max_agents'],
+                        cc_max_monitors: trunk['cc_max_monitors'] === 0 ? "" : trunk['cc_max_monitors']
+                    })
+                    this.setState({
+                        enableCc: true
+                    })
+                }
+
+                if ((trunk['faxdetect'] === 'no') && (trunk['fax_gateway'] === 'no')) {
+                    form.setFieldsValue({
+                        faxmode: 'no'
+                    })
+                    this._onChangeFaxmode('no')
+                } else if (trunk['faxdetect'] === 'yes') {
+                    form.setFieldsValue({
+                        faxmode: 'detect'
+                    })
+                    this._onChangeFaxmode('detect')
+                }
+
+                if (form.getFieldValue("enable_qualify")) {
+                    this.props.getSonState({
+                        div_qualifyfreq_style: true
+                    })
+                } else {
+                    this.props.getSonState({
+                        div_qualifyfreq_style: false
+                    })
+                }
+                if (trunkType.toLowerCase() === "peer") {
+                    this._getOutbandRoutesList(trunk)
+                    this._getldapdate(trunk.trunk_name)
+                }
+                this.setState({
+                    faxIntelligentRoute: !form.getFieldValue("fax_intelligent_route")
+                })
+            }             
+            if (trunk.cc_agent_policy === "native") {                
+                this.setState({
+                    enableCc: true
+                })
+            }
+            if (trunk.chkOutboundproxy) {
+                this._onChangeChkOutboundproxy(trunk.chkOutboundproxy)
+            }
+            if (trunk.send_ppi) {
+                this._onChangeSendPpi(trunk.send_ppi)
+                this._onChangeSendPai(trunk.send_ppi)
+            }
+            if (trunk.ldap_sync_enable) {
+                this._onChangeLdapSyncEnable(trunk.ldap_sync_enable)
+            }            
             this.setState({
-                enableCc: true,
-                firstLoad: false
+                firstLoad: false,
+                curentMembersArr: trunk.allow ? trunk.allow.split(",") : []
             })
         }
     }
     _onChangeFaxmode = (val) => {
         this.setState({
             faxmode: val
-        })  
+        }) 
     }
     _onChangeEnableCc = (e) => {
         this.setState({
@@ -54,24 +127,273 @@ class AdvanceSettings extends Component {
         })  
     }
     _onChangeLdapSyncEnable = (e) => {
-        this.setState({
-            ldapSyncEnable: e.target.checked
-        })  
+        const form = this.props.form
+
+        if (_.isString(e)) {
+            if (e === "no") {
+                form.setFieldsValue({
+                    ldap_sync_passwd: ""// ,
+                    // ldap_outrt_prefix: ""
+                })
+            }
+            this.setState({
+                ldapSyncEnable: e === "yes" ? true : false
+            })            
+        } else {
+            if (!e.target.checked) {
+                form.setFieldsValue({
+                    ldap_sync_passwd: ""// ,
+                    // ldap_outrt_prefix: ""
+                })
+            }
+            this.setState({
+                ldapSyncEnable: e.target.checked
+            })
+        }  
     }
     _onChangeChkOutboundproxy = (e) => {
-        this.setState({
-            chkOutboundproxy: e.target.checked
-        })      
+        if (_.isString(e)) {
+            this.setState({
+                chkOutboundproxy: e === "yes" ? true : false
+            })            
+        } else { 
+            this.setState({
+                chkOutboundproxy: e.target.checked
+            }) 
+        }     
     }
     _onChangeSendPai = (e) => {
-        this.setState({
-            sendPai: e.target.checked
-        })      
+        const form = this.props.form
+
+        if (_.isString(e)) {
+            switch (e) {
+                case "yes":
+                    form.setFieldsValue({
+                        send_ppi: true,
+                        send_pai: false
+                    })
+                    this.setState({
+                        sendPpi: true
+                    })
+
+                    this.props.getSonState({
+                        div_send_ppi_style: true
+                    })
+                    break
+                case "no":
+                    form.setFieldsValue({
+                        send_ppi: false,
+                        send_pai: false
+                    })
+                    break
+                case "pai":
+                    form.setFieldsValue({
+                        send_ppi: false,
+                        send_pai: true
+                    })
+                    this.setState({
+                        sendPai: true
+                    })
+                    this.props.getSonState({
+                        div_send_pai_style: true
+                    })
+                    break
+                default:
+                    form.setFieldsValue({
+                        send_ppi: false,
+                        send_pai: false
+                    })
+                    break
+            }
+        } else {
+            this.setState({
+                sendPai: e.target.checked
+            })  
+        }   
     }
     _onChangeSendPpi = (e) => {
+        if (_.isString(e)) {
+            this.setState({
+                sendPpi: e === "yes" ? true : false
+            })            
+        } else {
+            this.setState({
+                sendPpi: e.target.checked
+            }) 
+        }   
+    }
+    _onChangeFaxIntelligentRoute = (e) => {
         this.setState({
-            sendPpi: e.target.checked
-        })      
+            faxIntelligentRoute: !e.target.checked
+        })     
+    }
+    _onChangeLdapDefaultOutrt = (val) => {
+        this.setState({
+            ldapDefaultOutrt: val
+        })
+    }
+    _handleChange = (nextTargetKeys, direction, moveKeys) => {
+        this.setState({ 
+            curentMembersArr: nextTargetKeys 
+        })
+    }
+    _handleSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
+        this.setState({ selectedKeys: [...sourceSelectedKeys, ...targetSelectedKeys] })
+    }
+    _getOutbandRoutesList(trunk) {
+        const { formatMessage } = this.props.intl
+        const form = this.props.form 
+
+        let trunkName = trunk.trunk_name,
+            ldapDefaultOutrt = (trunk.ldap_default_outrt ? trunk.ldap_default_outrt : ""),
+            ldapCustomPrefix = (trunk.ldap_custom_prefix ? trunk.ldap_custom_prefix : ""),
+            outboundRtNameObj = {},
+            outboundRtNameArr = []
+
+        // $("#ldap_default_outrt").bind('change', outboundRtNameObj, function(ev) {
+        //     var val = $(this).val(),
+        //         ele = $("#ldap_outrt_prefix")
+
+        //     if (val != "custom") {
+        //         ele.attr("disabled", true)
+        //     } else {
+        //         ele.attr("disabled", false)
+        //     }
+
+        //     ele.val(outboundRtNameObj[val])
+
+        //     ev.stopPropagation()
+        // })
+
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: {
+                action: "getOutbandRoutesList",
+                trunk_name: trunkName
+            },
+            error: function() {
+                outboundRtNameArr.push({
+                    text: formatMessage({ id: "LANG133" }),
+                    val: ""
+                })
+
+                outboundRtNameArr.push({
+                    text: formatMessage({ id: "LANG2526" }),
+                    val: "custom"
+                })
+
+                this.setState({
+                    ldapDefaultOutrtOpts: outboundRtNameArr
+                })
+                form.setFieldsValue({
+                    ldap_default_outrt: ldapDefaultOutrt
+                })
+                this._onChangeLdapDefaultOutrt(ldapDefaultOutrt)
+            }.bind(this),
+            success: function(data) {
+                let response = data.response,
+                    status = data.status,
+                    outboundList = response.outbound_list
+
+                if (status === 0) {
+                    outboundRtNameArr.push({
+                        text: formatMessage({ id: "LANG133" }),
+                        val: ""
+                    })
+
+                    $.each(outboundList, function(index, val) {
+                        var outboundRtIndex = val.outbound_rt_index,
+                            outboundRtName = val.outbound_rt_name,
+                            perfix = val.perfix,
+                            obj = {}
+
+                        obj["text"] = outboundRtName
+                        obj["val"] = outboundRtIndex
+
+                        outboundRtNameObj[outboundRtIndex] = perfix
+
+                        outboundRtNameArr.push(obj)
+                    })
+
+                    outboundRtNameObj["custom"] = ldapCustomPrefix
+
+                    outboundRtNameArr.push({
+                        text: formatMessage({ id: "LANG2526" }),
+                        val: "custom"
+                    })
+
+                    // selectbox.appendOpts({
+                    //     el: "ldap_default_outrt",
+                    //     opts: outboundRtNameArr,
+                    //     selectedIndex: 3
+                    // }, doc)
+                    this.setState({
+                        ldapDefaultOutrtOpts: outboundRtNameArr
+                    })
+                } else {
+                    outboundRtNameArr.push({
+                        text: formatMessage({ id: "LANG133" }),
+                        val: ""
+                    })
+
+                    outboundRtNameArr.push({
+                        text: formatMessage({ id: "LANG2526" }),
+                        val: "custom"
+                    })
+                    this.setState({
+                        ldapDefaultOutrtOpts: outboundRtNameArr
+                    })
+                }
+
+                if (ldapCustomPrefix) {
+                    form.setFieldsValue({
+                        ldap_default_outrt: "custom"
+                    })
+                    this._onChangeLdapDefaultOutrt("custom")
+                } else {
+                    form.setFieldsValue({
+                        ldap_default_outrt: ldapDefaultOutrt
+                    })
+                    this._onChangeLdapDefaultOutrt(ldapDefaultOutrt)
+
+                    var arr = []
+
+                    // $.each($("#ldap_default_outrt").children(), function(index, val) {
+                    //     arr.push($(val).val());
+                    // });
+
+                    // if ($.inArray(ldapDefaultOutrt.toString(), arr) == -1) {
+                    //     $("#ldap_default_outrt")[0].selectedIndex = 0;
+                    // }
+                }
+            }.bind(this)
+        })
+    }
+    _getldapdate = (trunkName) => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: {
+                action: "getldapdate",
+                ldap_last_sync_date: trunkName
+            },
+            success: function(data) {
+                let response = data.response,
+                    status = data.status,
+                    date = response.ldap_last_sync_date,
+                    labelLdapLastSyncDate = formatMessage({ id: "LANG2403" })
+
+                if (status === 0) {
+                    labelLdapLastSyncDate = date
+                } 
+                this.setState({
+                    labelLdapLastSyncDate: labelLdapLastSyncDate
+                })
+            }.bind(this)
+        })
     }
     _checkLdapPrefix = (rule, value, callback) => {
         if (value && value === 'custom' && value === "") {
@@ -132,11 +454,28 @@ class AdvanceSettings extends Component {
             callback()
         }
     }
+    _transCodecsArr = () => {
+        let arr = [],
+            parentState = this.props.parentState,
+            codecsArr = parentState.codecsArr,
+            codecsObj = parentState.codecsObj
+
+        codecsArr.map(function(it) {
+            arr.push({
+                key: it,
+                title: codecsObj[it]
+            })
+        })
+        this.setState({
+            codecsList: arr
+        })
+    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
         const trunk = this.props.trunk || {}
+        let parentState = this.props.parentState
 
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -149,19 +488,39 @@ class AdvanceSettings extends Component {
 
         return (
             <div className="content">
-                {/* <Transfer
+                <FormItem
                     ref="div_codecs"
-                    dataSource={mockData}
-                    titles={['Source', 'Target']}
-                    targetKeys={state.targetKeys}
-                    selectedKeys={state.selectedKeys}
-                    onChange={this.handleChange}
-                    onSelectChange={this.handleSelectChange}
-                    render={item => item.title}
-                  /> */}
+                    className={ parentState.div_codecs_style === false ? "hidden" : "display-block" }
+                    labelCol= {{ span: 6 }}
+                    wrapperCol= {{ span: 7 }}
+                    label={                            
+                        <Tooltip title={<FormattedHTMLMessage id="LANG1363" />}>
+                            <span>{formatMessage({id: "LANG230"})}</span>
+                        </Tooltip>
+                    }>
+                        <Transfer
+                            dataSource={ this.state.codecsList }
+                            titles={[formatMessage({id: "LANG631"}), formatMessage({id: "LANG630"})]}
+                            targetKeys={this.state.curentMembersArr}
+                            onChange={this._handleChange}
+                            onSelectChange={this._handleSelectChange}
+                            render={item => item.title}
+                        />
+                </FormItem>
+                <FormItem
+                    className="hidden"
+                    { ...formItemLayout }
+                    label="">
+                        { getFieldDecorator('allow', {
+                            rules: [],
+                            initialValue: this.state.curentMembersArr.join(",")
+                        })(
+                            <Input />
+                        ) }
+                </FormItem>
                 <FormItem
                     id="div_send_ppi"
-                    className={(technology && technology.toLowerCase() === "sip") ? "display-block" : "hidden"}
+                    className={ parentState.div_send_ppi_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3901" />}>
@@ -178,7 +537,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_use_dod_in_ppi"
-                    className={ (technology && technology.toLowerCase() === "sip" && this.state.sendPpi) ? "display-block" : "hidden" }
+                    className={ this.state.sendPpi ? "display-block" : "hidden"}
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5322" />}>
@@ -195,7 +554,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_send_pai"
-                    className={(technology && technology.toLowerCase() === "sip") ? "display-block" : "hidden"}
+                    className={ parentState.div_send_pai_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3989" />}>
@@ -212,7 +571,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_pai_number"
-                    className={ (technology && technology.toLowerCase() === "sip" && this.state.sendPai) ? "display-block" : "hidden" }
+                    className={ this.state.sendPai ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5320" />}>
@@ -227,12 +586,12 @@ class AdvanceSettings extends Component {
                         }],
                         initialValue: trunk.pai_number
                     })(
-                        <InputNumber />
+                        <Input />
                     ) }
                 </FormItem>
                 <FormItem
                     ref="div_chkOutboundproxy"
-                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
+                    className={ parentState.div_chkOutboundproxy_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1381" />}>
@@ -244,12 +603,12 @@ class AdvanceSettings extends Component {
                         valuePropName: "checked",
                         initialValue: trunk.chkOutboundproxy === "yes" ? true : false
                     })(
-                        <Checkbox onChange={this._onChangeChkOutboundproxy} />
+                        <Checkbox onChange={ this._onChangeChkOutboundproxy } />
                     ) }
                 </FormItem>
                 <FormItem
                     ref="div_outboundproxy"
-                    className={(technology && technology.toLowerCase() === "sip" && this.state.chkOutboundproxy) ? "display-block" : "hidden" }
+                    className={ this.state.chkOutboundproxy ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1379" />}>
@@ -274,7 +633,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_rmv_obp_from_route"
-                    className={(technology && technology.toLowerCase() === "sip" && this.state.chkOutboundproxy) ? "display-block" : "hidden" }
+                    className={ this.state.chkOutboundproxy ? "display-block" : "hidden" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG5030" />}>
@@ -283,14 +642,14 @@ class AdvanceSettings extends Component {
                     }>
                     { getFieldDecorator('rmv_obp_from_route', {
                         rules: [],
-                        initialValue: trunk.keepcid
+                        initialValue: trunk.rmv_obp_from_route
                     })(
-                        <Input disabled={ this.props.telUri !== "disabled" ? true : false } />
+                        <Input disabled={ parentState.telUri !== "disabled" ? true : false } />
                     ) }
                 </FormItem>
                 <FormItem
                     ref="div_did_mode"
-                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
+                    className={ parentState.div_did_mode_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={ <FormattedHTMLMessage id="LANG2649" /> }>
@@ -309,7 +668,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_dtmfmode"
-                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
+                    className={ parentState.div_dtmfmode_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1786" />}>
@@ -318,7 +677,7 @@ class AdvanceSettings extends Component {
                     }>
                     { getFieldDecorator('dtmfmode', {
                         rules: [],
-                        initialValue: trunk.dtmfmode
+                        initialValue: !trunk.dtmfmode ? "" : trunk.dtmfmode
                     })(
                         <Select>
                             <Option value=''>{formatMessage({id: "LANG257"})}</Option>
@@ -331,6 +690,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_enable_qualify"
+                    className={ parentState.div_enable_qualify_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1367" />}>
@@ -347,7 +707,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_qualifyfreq"
-                    className={this.state.enableQualify ? "display-block" : "hidden"}
+                    className={ parentState.div_qualifyfreq_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1385" />}>
@@ -367,6 +727,7 @@ class AdvanceSettings extends Component {
                 </FormItem>
                 <FormItem
                     ref="div_out_maxchans"
+                    className={ parentState.div_out_maxchans_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG3024" />}>
@@ -403,7 +764,7 @@ class AdvanceSettings extends Component {
                         </Select>
                     ) }
                 </FormItem>
-                <div ref="detect_div" className={this.state.faxmode === "detect" ? "display-block" : "hidden"} >
+                <div ref="div_detect" className={ this.state.faxmode === "detect" ? "display-block" : "hidden" } >
                     <FormItem
                         ref = "div_fax_intelligent_route"
                         { ...formItemLayout }
@@ -417,7 +778,7 @@ class AdvanceSettings extends Component {
                             valuePropName: "checked",
                             initialValue: trunk.fax_intelligent_route === "yes" ? true : false
                         })(
-                            <Checkbox />
+                            <Checkbox onChange={this._onChangeFaxIntelligentRoute } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -432,15 +793,23 @@ class AdvanceSettings extends Component {
                             rules: [],
                             initialValue: trunk.fax_intelligent_route_destination
                         })(
-                            <Select>
-                                <Option value=''>{formatMessage({id: "LANG133"})}</Option>
+                            <Select disabled={ this.state.faxIntelligentRoute } >
+                            {
+                                parentState.faxIntelligentRouteDestinationOpts.map(function(it) {
+                                    const val = it.val
+
+                                    return <Option key={ val } value={ val }>
+                                           { val }
+                                        </Option>
+                                })    
+                            }
                             </Select>
                         ) }
                     </FormItem>
                 </div>
                 <FormItem
                     ref="div_encryption"
-                    className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" }
+                    className={ parentState.div_encryption_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
                         <Tooltip title={<FormattedHTMLMessage id="LANG1390" />}>
@@ -459,7 +828,7 @@ class AdvanceSettings extends Component {
                     ) }
                 </FormItem>
                 {/* ldap for trunk */}
-                <div ref="ldapDiv">
+                <div ref="div_ldap" className={ parentState.div_ldap_style === false ? "hidden" : "display-block" }>
                     <FormItem
                         ref="div_ldap_sync_enable"
                         { ...formItemLayout }
@@ -478,7 +847,7 @@ class AdvanceSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_ldap_sync_passwd"
-                        className={ (trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
+                        className={ this.state.ldapSyncEnable ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2498" />}>
@@ -505,7 +874,7 @@ class AdvanceSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_ldap_sync_port"
-                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
+                        className={ this.state.ldapSyncEnable ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2499" />}>
@@ -529,7 +898,7 @@ class AdvanceSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_ldap_default_outrt"
-                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
+                        className={ this.state.ldapSyncEnable ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2500" />}>
@@ -540,12 +909,23 @@ class AdvanceSettings extends Component {
                             rules: [],
                             initialValue: trunk.ldap_default_outrt
                         })(
-                            <Select></Select>
+                            <Select onChange={ this._onChangeLdapDefaultOutrt }>
+                            {
+                                this.state.ldapDefaultOutrtOpts.map(function(it) {
+                                    const text = it.text
+                                    const val = it.val
+
+                                    return <Option key={ val } value={ val }>
+                                           { text ? text : val }
+                                        </Option>
+                                }) 
+                            }
+                            </Select>
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_ldap_default_outrt_prefix"
-                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
+                        className={ this.state.ldapSyncEnable ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2499" />}>
@@ -560,29 +940,28 @@ class AdvanceSettings extends Component {
                             }, { 
                                 validator: this._checkLdapPrefix
                             }],
-                            initialValue: trunk.ldap_outrt_prefix
+                            initialValue: Number(trunk.ldap_default_outrt_prefix)
                         })(
-                            <InputNumber maxLength="14" />
+                            <InputNumber maxLength="14" disabled={ this.state.ldapDefaultOutrt !== "custom" ? true : false }/>
                         ) }
                     </FormItem>
                     <FormItem
                         ref="div_ldap_last_sync_date"
-                        className={(trunkType && trunkType.toLowerCase() === "peer" && this.state.ldapSyncEnable) ? "display-block" : "hidden" }
+                        className={ this.state.ldapSyncEnable ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG2653" /> }>
                                 <span>{ formatMessage({id: "LANG2652"}) }</span>
                             </Tooltip>
                         }>
-                        { <div id="label_ldap_last_sync_date"></div> }
+                        <div id="label_ldap_last_sync_date">{ this.state.labelLdapLastSyncDate }</div>
                     </FormItem>
                 </div>
                 {/*  ended of  ldap for trunk  */}
                 {/*  ccss for trunk  */}
-                <div ref="ccss" className={ (technology && technology.toLowerCase()) === "sip" ? "display-block" : "hidden" } >
+                <div ref="div_ccss" className={ parentState.div_ccss_style === false ? "hidden" : "display-block" } >
                     <div className='section-title'>{ formatMessage({id: "LANG3725"}) }</div>
                     <FormItem
-                        ref="div_enable_cc"
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG3727" /> }>
@@ -592,7 +971,7 @@ class AdvanceSettings extends Component {
                         { getFieldDecorator('enable_cc', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: trunk.cc_agent_policy === 'native' ? true : false
+                            initialValue: trunk.enable_cc
                         })(
                             <Checkbox onChange={ this._onChangeEnableCc } />
                         ) }       
@@ -619,7 +998,7 @@ class AdvanceSettings extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_cc_max_monitors"
-                        className={this.state.enableCc ? "display-block" : "hidden"}
+                        className={ this.state.enableCc ? "display-block" : "hidden" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={ <FormattedHTMLMessage id="LANG3740" /> }>

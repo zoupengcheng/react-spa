@@ -46,6 +46,14 @@ class DigitalHardwareItem extends Component {
     }
     componentWillUnmount() {
     }
+    _getRefs = (refs) => {
+        this.setState({
+            refs: _.extend(this.state.refs, refs)
+        })
+    }
+    _getSonState = (state) => {
+        this.setState(state)
+    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         const form = this.props.form
@@ -819,14 +827,6 @@ class DigitalHardwareItem extends Component {
         } else {
             return 0
         }
-    }
-    _getRefs = (refs) => {
-        this.setState({
-            refs: _.extend(this.state.refs, refs)
-        })
-    }
-    _getSonState = (state) => {
-        this.setState(state)
     }
     render() {
         const { getFieldDecorator } = this.props.form

@@ -79,10 +79,19 @@ class MusicOnHold extends Component {
     }
     _getMohInfo() {
         const { formatMessage } = this.props.intl
+        const form = this.props.form 
+
+        let mohVal = form.getFieldValue("moh_classes")
+
+        if (mohVal !== "default") {
+            mohVal = mohVal.split("guimohdir_")[1]
+        } else {
+            mohVal = "default"
+        }
 
         let action = {
             "action": "getMoh",
-            "moh": this.state.mohClass ? this.state.mohClass.split("guimohdir_")[1] : "default"
+            "moh": mohVal
         }
 
         $.ajax({
@@ -123,6 +132,9 @@ class MusicOnHold extends Component {
 
             // bindListEvent()
         }
+        form.setFieldsValue({
+            moh_classes: opts[0].val
+        })
         this._getMohList() 
         // else if (flag == "del") {
         //     createTable()
@@ -218,12 +230,13 @@ class MusicOnHold extends Component {
                     this.setState({
                         mohList: moh,
                         mohClass: mohClass,
-                        delStyle: "sprite sprite-del sprite-del-disabled"
+                        delStyle: "sprite sprite-del-disabled"
                     })
                 } else {
                     this.setState({
                         mohList: moh,
-                        mohClass: mohClass
+                        mohClass: mohClass,
+                        delStyle: "sprite sprite-del"
                     })
                 }
             }.bind(this)
@@ -250,6 +263,8 @@ class MusicOnHold extends Component {
         return "moh_" + year + month + day + "_" + hour + minute + seconds
     }
     _showModal = (type) => {
+        const form = this.props.form 
+
         if (type !== "downloadAllMOH") {
             this.setState({
                 visible: true,
@@ -260,6 +275,12 @@ class MusicOnHold extends Component {
                 visible: true,
                 type: type,
                 downloadAllName: this._generateDownloadAllName()
+            })
+        }
+
+        if (type === "add") {
+            form.setFieldsValue({
+                moh_name: ""
             })
         }
     }
@@ -532,8 +553,8 @@ class MusicOnHold extends Component {
                                            }
                                         </Select>
                                     )}
-                                    <span className="sprite sprite-edit" style={{position: "relative", top: "5px"}} onClick={this._edit}></span>
-                                    <span className={ this.state.delStyle } style={{position: "relative", top: "5px"}} onClick={this._delete}></span>
+                                    <span className="sprite sprite-edit" title={ formatMessage({ id: "LANG738"})} style={{position: "relative", top: "5px"}} onClick={this._edit}></span>
+                                    <span className={ this.state.delStyle } title={ formatMessage({ id: "LANG739"})} style={{position: "relative", top: "5px"}} onClick={this._delete}></span>
                                 </FormItem>
                             </Col>
                             <Col span={8}> 

@@ -58,32 +58,8 @@ class ConferenceItem extends Component {
             }.bind(this)
         })
 
-        $.ajax({
-            url: api.apiHost,
-            type: "post",
-            data: {
-                'action': 'conference'
-            },
-            async: false,
-            error: function(e) {
-                message.error(e.statusText)
-            },
-            success: function(data) {
-                var list = data.response.moh_name
-
-                if (list && list.length > 0) {
-                    this.setState({
-                        mohNameList: list
-                    })
-                }
-            }.bind(this)
-        })
-
         this.setState({
-            conferenceRange: UCMGUI.isExist.getRange('conference')
-        })
-
-        this.setState({
+            conferenceRange: UCMGUI.isExist.getRange('conference'),
             existNumberList: UCMGUI.isExist.getList("getNumberList")
         })
     }
@@ -234,7 +210,7 @@ class ConferenceItem extends Component {
             if (!err) {
                 console.log('Received values of form: ', values)
 
-                message.loading(loadingMessage)
+                message.loading(loadingMessage, 0)
 
                 let action = values
 

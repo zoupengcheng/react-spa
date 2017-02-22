@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Table, Popconfirm, Modal, DatePicker } from 'antd'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Table, Popconfirm, Modal, DatePicker, BackTop } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
@@ -22,7 +22,21 @@ class EmailSendLog extends Component {
             infoVisible: false,
             isDisplay: "display-block-filter",
             isDisplaySearch: 'hidden',
-            sub_send_mail_log: []
+            sub_send_mail_log: [],
+            search_values: {
+                start_date: '',
+                end_date: '',
+                recipient: '',
+                send_result: '',
+                return_code: '',
+                module: ''
+            },
+            pagination: {
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false
         }
     }
     componentDidMount() {
@@ -30,6 +44,11 @@ class EmailSendLog extends Component {
     }
     componentWillUnmount() {
 
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     _hideSearch = () => {
         this.setState({
@@ -82,35 +101,58 @@ class EmailSendLog extends Component {
             sub_send_mail_log: sub_send_mail_log
         })
     }
-    _searchMailLog = () => {
+    _searchMailLog = (
+        params = {                
+            item_num: 10,
+            page: 1,
+            sord: 'desc',
+            sidx: 'date'
+        }, click = 1
+        ) => {
         const { getFieldValues } = this.props.form
         const { formatMessage } = this.props.intl
         const { form } = this.props
-        const values = this.props.form.getFieldsValue() 
+        const values = this.props.form.getFieldsValue()
+        this.setState({loading: true})
+        let search_values = {}
 
         let action = {}
         action.action = 'listMailSendLog'
         action.options = 'id,date,module,recipient,send_time,send_to,send_result,return_code'
-        action.sidx = 'date'
-        action.sord = 'desc'
-        if (values.start_date !== undefined && values.statr_date !== null && values.start_date !== '') {
-            action.start_date = values.start_date.format('YYYY-MM-DD HH:mm')
+        if (click === 1) {
+            if (values.start_date !== undefined && values.statr_date !== null && values.start_date !== '') {
+                action.start_date = values.start_date.format('YYYY-MM-DD HH:mm')
+                search_values.start_date = action.start_date
+            }
+            if (values.end_date !== undefined && values.end_date !== null && values.end_date !== '') {
+                action.end_date = values.end_date.format('YYYY-MM-DD HH:mm')
+                search_values.end_date = action.end_date
+            }
+            if (values.recipient !== undefined && values.recipient !== null && values.recipient !== '') {
+                action.recipient = values.recipient
+                search_values.recipient = action.recipient
+            }
+            if (values.send_result !== undefined && values.send_result !== null && values.send_result !== '') {
+                action.send_result = values.send_result
+                search_values.send_result = action.send_result
+            }
+            if (values.return_code !== undefined && values.return_code !== null && values.return_code !== '') {
+                action.return_code = values.return_code
+                search_values.return_code = action.return_code
+            }
+            if (values.module !== undefined && values.module !== null && values.module !== '') {
+                action.module = values.module
+                search_values.module = action.module
+            }
+        } else if (click === 0) {
+            search_values = this.state.search_values
+            for (let item in search_values) {
+                if (search_values[item] !== '') {
+                    action[item] = search_values[item]
+                }
+            }
         }
-        if (values.end_date !== undefined && values.end_date !== null && values.end_date !== '') {
-            action.end_date = values.end_date.format('YYYY-MM-DD HH:mm')
-        }
-        if (values.recipient !== undefined && values.recipient !== null && values.recipient !== '') {
-            action.recipient = values.recipient
-        }
-        if (values.send_result !== undefined && values.send_result !== null && values.send_result !== '') {
-            action.send_result = values.send_result
-        }
-        if (values.return_code !== undefined && values.return_code !== null && values.return_code !== '') {
-            action.return_code = values.return_code
-        }
-        if (values.module !== undefined && values.module !== null && values.module !== '') {
-            action.module = values.module
-        }
+        _.extend(action, params)
 
         $.ajax({
             url: api.apiHost,
@@ -124,9 +166,15 @@ class EmailSendLog extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const mailSendLog = response.mail_send_log || []
+                    const pagination = this.state.pagination
+                    pagination.total = response.total_item
+                    pagination.current = params.page
 
                     this.setState({
-                        mailSendLog: mailSendLog
+                        loading: false,
+                        mailSendLog: mailSendLog,
+                        search_values: search_values,
+                        pagination
                     })
                 }
             }.bind(this),
@@ -164,16 +212,23 @@ class EmailSendLog extends Component {
     _showAll = () => {
         this._getMailSendLog()
     }
-    _getMailSendLog = () => {
+    _getMailSendLog = (
+        params = {                
+            item_num: 10,
+            page: 1,
+            sord: 'desc',
+            sidx: 'date'
+        }
+        ) => {
         const { formatMessage } = this.props.intl
+        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: 'listMailSendLog',
-                sidx: 'date',
-                sord: 'desc'
+                ...params
             },
             type: 'json',
             async: false,
@@ -183,9 +238,15 @@ class EmailSendLog extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const mailSendLog = response.mail_send_log || []
+                    const pagination = this.state.pagination
+                    pagination.total = response.total_item
+                    pagination.current = params.page
 
                     this.setState({
-                        mailSendLog: mailSendLog
+                        loading: false,
+                        mailSendLog: mailSendLog,
+                        search_values: {},
+                        pagination
                     })
                 }
             }.bind(this),
@@ -194,7 +255,39 @@ class EmailSendLog extends Component {
             }
         })
     }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
 
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager
+        })
+        const search_values = this.state.search_values
+        let isSearch = false
+        for (let item in search_values) {
+            if (search_values[item] !== '') {
+                isSearch = true
+            }
+        }
+        if (isSearch === false) {
+            this._getMailSendLog({
+                item_num: pagination.pageSize,
+                page: pagination.current,
+                sidx: sorter.field ? sorter.field : "date",
+                sord: sorter.order === "ascend" ? "asc" : "desc",
+                ...filters
+            })
+        } else {
+            this._searchMailLog({
+                item_num: pagination.pageSize,
+                page: pagination.current,
+                sidx: sorter.field ? sorter.field : "date",
+                sord: sorter.order === "ascend" ? "asc" : "desc",
+                ...filters
+            }, 0)
+        }
+    }
     _handleFormChange = (changedFields) => {
         _.extend(this.props.dataSource, changedFields)
     }
@@ -520,10 +613,11 @@ class EmailSendLog extends Component {
                     <Table
                         rowKey="id"
                         columns={ columns }
-                        pagination={ pagination }
-                        rowSelection={ rowSelection }
+                        pagination={ this.state.pagination }
                         dataSource={ this.state.mailSendLog }
                         showHeader={ !!this.state.mailSendLog.length }
+                        onChange={ this._handleTableChange }
+                        loading={ this.state.loading }
                     >
                     </Table>
                 </div>
@@ -545,6 +639,9 @@ class EmailSendLog extends Component {
                     >
                     </Table>
                 </Modal>
+                <div>
+                    <BackTop />
+                </div>
             </div>
         )
     }

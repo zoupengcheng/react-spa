@@ -108,15 +108,19 @@ class OutboundRoute extends Component {
         const pattern = text.split(',')
         const { formatMessage } = this.props.intl
 
-        if (pattern.length <= 1) {
+        if (pattern.length <= 5) {
             return <div>
-                    <Tag key={ pattern[0] }>{ pattern[0] }</Tag>
+                    {
+                        pattern.map(function(value, index) {
+                            return <Tag key={ value }>{ value }</Tag>
+                        }.bind(this))
+                    }
                 </div>
         } else {
             const content = <div>
                         {
                             pattern.map(function(value, index) {
-                                if (index >= 1) {
+                                if (index >= 4) {
                                     return <Tag key={ value }>{ value }</Tag>
                                 }
                             }.bind(this))
@@ -124,7 +128,11 @@ class OutboundRoute extends Component {
                     </div>
 
             return <div>
-                    <Tag key={ pattern[0] }>{ pattern[0] }</Tag>
+                    {
+                        [0, 1, 2, 3].map(function(value, index) {
+                            return <Tag key={ pattern[value] }>{ pattern[value] }</Tag>
+                        }.bind(this))
+                    }
                     <Popover
                         title=""
                         content={ content }
