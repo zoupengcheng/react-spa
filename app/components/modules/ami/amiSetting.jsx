@@ -93,6 +93,8 @@ class RoomAdd extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
+                action.tlsenable = values.tlsenable ? 'yes' : 'no'
+                action.timestampevents = values.timestampevents ? 'yes' : 'no'
                 action.action = "updateAmiSettings"
 
                 $.ajax({

@@ -9,42 +9,66 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Icon } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Icon, Modal } from 'antd'
 
 const FormItem = Form.Item
+const CheckboxGroup = Checkbox.Group
+
 let uuid = 1
 
-class RoomAdd extends Component {
+class AMIItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
             ipList: [],
             netmaskList: [],
             userItem: {},
-            priBox: {
-                "originate": false,
-                "call": false,
-                "cdr": false,
-                "agent": false,
-                "cc": false,
-                "dtmf": false,
-                "dialplan": false,
-                "reporting": false,
-                "user": false,
-                "security": false,
-                "all": false
-            }
+            priAll: false,
+            priList: [],
+            amiUserList: [],
+            plainOptions: [{
+                label: 'originate',
+                value: 'originate'
+            }, {
+                label: 'call',
+                value: 'call'
+            }, {
+                label: 'cdr',
+                value: 'cdr'
+            }, {
+                label: 'agent',
+                value: 'agent'
+            }, {
+                label: 'cc',
+                value: 'cc'
+            }, {
+                label: 'dtmf',
+                value: 'dtmf'
+            }, {
+                label: 'dialplan',
+                value: 'dialplan'
+            }, {
+                label: 'reporting',
+                value: 'reporting'
+            }, {
+                label: 'user',
+                value: 'user'
+            }, {
+                label: 'security',
+                value: 'security'
+            }]
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
+        this._getAmiList()
         this._getInitData()
     }
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
 
-        if (value && _.indexOf(this.state.groupNameList, value) > -1) {
+        if (value && _.indexOf(this.state.amiUserList, value) > -1) {
             callback(formatMessage({id: "LANG2137"}))
         } else {
             callback()
@@ -53,12 +77,47 @@ class RoomAdd extends Component {
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
     }
+    _getAmiList = () => {
+        let amiUserList = this.state.amiUserList
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listAmiUser',
+                options: 'user'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    let tmpuserList = res.response.user || {}
+
+                    tmpuserList.map(function(item) {
+                        amiUserList.push(item.user)
+                    })
+                    this.setState({
+                        amiUserList: amiUserList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
     _getInitData = () => {
         const userId = this.props.params.id
         const userName = this.props.params.name
         let userItem = {}
         let ipList = this.ipList || []
         let netmaskList = this.netmaskList || []
+        let priList = this.state.priList || []
+        let priAll = this.state.priAll
+        let amiUserList = this.state.amiUserList || []
 
         if (userId) {
             $.ajax({
@@ -85,18 +144,26 @@ class RoomAdd extends Component {
                             ipList.push(tmpList[0])
                             netmaskList.push(tmpList[1])
                         }
+                        priList = userItem.pri.split(',')
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
+            amiUserList = _.without(amiUserList, userId)
+        }
+        if (priList.length === this.state.plainOptions.length) {
+            priAll = true
         }
 
         this.setState({
             userItem: userItem,
             ipList: ipList,
-            netmaskList: netmaskList
+            netmaskList: netmaskList,
+            priList: priList,
+            priAll: priAll,
+            amiUserList: amiUserList
         })
     }
     _removeIP = (k) => {
@@ -108,7 +175,6 @@ class RoomAdd extends Component {
             keys: keys.filter(key => key !== k)
         })
     }
-
     _addIP = () => {
         uuid++
         const { form } = this.props
@@ -121,35 +187,22 @@ class RoomAdd extends Component {
             keys: nextKeys
         })
     }
-    _priallChecked = (e) => {
-        let priBox = this.state.priBox
-        if (e.target.checked) {
-            priBox.originate = true
-            priBox.call = true
-            priBox.cdr = true
-            priBox.agent = true
-            priBox.cc = true
-            priBox.dtmf = true
-            priBox.dialplan = true
-            priBox.reporting = true
-            priBox.user = true
-            priBox.security = true
-            priBox.all = true
-        } else {
-            priBox.originate = false
-            priBox.call = false
-            priBox.cdr = false
-            priBox.agent = false
-            priBox.cc = false
-            priBox.dtmf = false
-            priBox.dialplan = false
-            priBox.reporting = false
-            priBox.user = false
-            priBox.security = false
-            priBox.all = false
-        }
+    _onChangePri = (checkedList) => {
+        const plainOptions = this.state.plainOptions
         this.setState({
-            priBox: priBox
+            priList: checkedList,
+            priAll: checkedList.length === plainOptions.length
+        })
+    }
+    _onChangePriAll = (e) => {
+        const plainOptions = this.state.plainOptions
+        let checkedList = []
+        plainOptions.map(function(item) {
+            checkedList.push(item.value)
+        })
+        this.setState({
+            priList: e.target.checked ? checkedList : [],
+            priAll: e.target.checked
         })
     }
     _handleCancel = () => {
@@ -177,40 +230,10 @@ class RoomAdd extends Component {
 
                 message.loading(loadingMessage)
 
-                let action = values
-                let priList = []
+                let action = {}
+                let priList = this.state.priList
                 let ipList = []
 
-                if (values.originate) {
-                    priList.push('originate')
-                }
-                if (values.originate) {
-                    priList.push('call')
-                }
-                if (values.originate) {
-                    priList.push('cdr')
-                }
-                if (values.originate) {
-                    priList.push('agent')
-                }
-                if (values.originate) {
-                    priList.push('cc')
-                }
-                if (values.originate) {
-                    priList.push('dtmf')
-                }
-                if (values.originate) {
-                    priList.push('dialplan')
-                }
-                if (values.originate) {
-                    priList.push('reporting')
-                }
-                if (values.originate) {
-                    priList.push('user')
-                }
-                if (values.originate) {
-                    priList.push('security')
-                }
                 action.pri = priList.join(',')
 
                 ipList.push(values.permitIP_0 + '/' + values.permitNetmask_0)
@@ -221,14 +244,14 @@ class RoomAdd extends Component {
                     ipList.push(values[ip] + '/' + values[netmask])
                 })
                 action.permit = ipList.join(';')
-                let i = 1
+                /* let i = 1
                 if (i === 1) {
                     return false
-                }
+                } */
                 action["user"] = values.username
                 action["secret"] = values.secret
-                action["pri"] = ""
-                action["permit"] = ""
+                // action["pri"] = ""
+                // action["permit"] = ""
 
                 if (userId) {
                     action.action = 'updateAmiUser'
@@ -237,25 +260,33 @@ class RoomAdd extends Component {
                     action.action = 'addAmiUser'
                 }
 
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                if (priList.length === 0) {
+                    message.destroy()
+                    Modal.warning({
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG1069"})})}} ></span>,
+                        okText: (formatMessage({id: "LANG727"}))
+                    })
+                } else {
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action,
+                        type: 'json',
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                        if (bool) {
-                            message.destroy()
-                            message.success(successMessage)
-                        }
+                            if (bool) {
+                                message.destroy()
+                                message.success(successMessage)
+                            }
 
-                        this._handleCancel()
-                    }.bind(this)
-                })
+                            this._handleCancel()
+                        }.bind(this)
+                    })
+                }
             }
         })
     }
@@ -374,6 +405,12 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 8)
+                                    }
+                                }, {
+                                    validator: this._checkName
                                 }],
                                 width: 100,
                                 initialValue: this.props.params.name ? this.props.params.name : ""
@@ -456,137 +493,10 @@ class RoomAdd extends Component {
                                 </Tooltip>
                             )}>
                             <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('chk_pri_all', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.all
-                                })(
-                                        <Checkbox onChange={ this._priallChecked } />
-                                ) }
-                                </FormItem>
+                                <Checkbox checked={ this.state.priAll } onChange={ this._onChangePriAll } />
                             </Col>
                             <Col span={ 6 }>{formatMessage({id: "LANG104"})}</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('originate', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.originate
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>originate</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('call', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.call
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>call</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('cdr', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.cdr
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>cdr</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('agent', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.agent
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>agent</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('cc', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.cc
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>CC</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('dtmf', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.dtmf
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>DTMF</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('dialplan', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.dialplan
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>dialplan</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('reporting', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.reporting
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>reporting</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('user', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.user
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>user</Col>
-                            <Col span={ 2 }>
-                                <FormItem>
-                                { getFieldDecorator('security', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: priBox.security
-                                })(
-                                        <Checkbox />
-                                ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 6 }>security</Col>
+                            <CheckboxGroup options={ this.state.plainOptions } value={ this.state.priList } onChange={ this._onChangePri } />
                         </FormItem>
                     </Form>
                 </div>
@@ -595,4 +505,4 @@ class RoomAdd extends Component {
     }
 }
 
-export default Form.create()(injectIntl(RoomAdd))
+export default Form.create()(injectIntl(AMIItem))

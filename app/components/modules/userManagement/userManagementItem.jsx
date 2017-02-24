@@ -61,7 +61,7 @@ class BarItem extends Component {
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/maintenance/userManagement')
+        browserHistory.push('/maintenance/userManagement/1')
     }
     _handleSubmit = () => {
         // e.preventDefault()

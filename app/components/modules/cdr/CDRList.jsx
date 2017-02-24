@@ -122,7 +122,7 @@ class CDRList extends Component {
             let list = record_list.split('@')
             list.pop()
             options = <div>
-                        <span className="sprite sprite-record-icon" onClick={ this._showRecordFile.bind(this, list) }></span>
+                        <span className="sprite sprite-cdr-record" onClick={ this._showRecordFile.bind(this, list) }></span>
                         <span className="record-num">{ list.length }</span>
                       </div>
         } else {

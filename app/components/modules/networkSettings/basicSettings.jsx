@@ -76,35 +76,8 @@ class BasicSettings extends Component {
             myclass.num_eth = 'hidden'
         }
 
-        let network_settings = {}
-        let dhcp_settings = {}
-        $.ajax({
-            url: baseServerURl,
-            type: "POST",
-            dataType: "json",
-            async: false,
-            data: {
-                action: "getNetworkSettings"
-            },
-            success: function(data) {
-                const bool = UCMGUI.errorHandler(data, null, formatMessage)
-
-                if (bool) {
-                    const response = data.response || {}
-                    _.each(response.network_settings, function(num, key) {
-                        if (key === 'dhcp_enable' || key === 'dhcp6_enable') {
-                            network_settings[key] = num === "1" ? true : false
-                        } else {
-                            network_settings[key] = num
-                        }
-                    })
-                    dhcp_settings = data.response.dhcp_settings
-               }
-           }
-        })
-
-        this.props.getOldMethod(network_settings.method)
-        this.props.getOldGateWay(dhcp_settings.dhcp_gateway)
+        let network_settings = this.props.dataSource
+        let dhcp_settings = this.props.dataDHCPSettings
         let value = network_settings.method
         let method = {}
 
@@ -202,9 +175,7 @@ class BasicSettings extends Component {
             lan1_ip_class: ipmethod,
             lan2_ip_class: ipmethod2,
             default_interface_calss: default_interface,
-            method_key: method_key,
-            network_settings: network_settings,
-            dhcp_settings: dhcp_settings
+            method_key: method_key
         })
     }
     _getInitData = () => {
@@ -241,6 +212,8 @@ class BasicSettings extends Component {
                 wantitle: 'hidden'
             }
         }
+
+        this.props.change8021x(value)
 
         this.setState({
             method_change_calss: method
@@ -310,8 +283,8 @@ class BasicSettings extends Component {
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
-        const network_settings = this.state.network_settings
-        const dhcp_settings = this.state.dhcp_settings
+        const network_settings = this.props.dataSource
+        const dhcp_settings = this.props.dataDHCPSettings
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
@@ -394,7 +367,7 @@ class BasicSettings extends Component {
                         }>
                         { getFieldDecorator('altdns', {
                             rules: [],
-                            initialValue: network_settings.altdns
+                            initialValue: network_settings.altdns === "0.0.0.0" ? "" : network_settings.altdns
                         })(
                             <Input/>
                         ) }
@@ -682,7 +655,7 @@ class BasicSettings extends Component {
                                 }>
                                 { getFieldDecorator('lan1_dns1', {
                                     rules: [],
-                                    initialValue: network_settings.lan1_dns1
+                                    initialValue: network_settings.lan1_dns1 === "0.0.0.0" ? "" : network_settings.lan1_dns1
                                 })(
                                     <Input/>
                                 ) }
@@ -696,7 +669,7 @@ class BasicSettings extends Component {
                                 }>
                                 { getFieldDecorator('lan1_dns2', {
                                     rules: [],
-                                    initialValue: network_settings.lan1_dns2
+                                    initialValue: network_settings.lan1_dns2 === "0.0.0.0" ? "" : network_settings.lan1_dns2
                                 })(
                                     <Input/>
                                 ) }

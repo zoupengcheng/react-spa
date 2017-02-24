@@ -8,10 +8,11 @@ import Title from '../../../views/title'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Input, message, Transfer } from 'antd'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Form, Input, message, Tooltip, Radio, Transfer } from 'antd'
 
 const FormItem = Form.Item
+const RadioGroup = Radio.Group
 
 class DialByNameItem extends Component {
     constructor(props) {
@@ -233,7 +234,7 @@ class DialByNameItem extends Component {
         console.log('targetKeys: ', targetKeys)
         console.log('direction: ', direction)
         console.log('moveKeys: ', moveKeys)
-    }  
+    }
     _handleTransferSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
         // this.setState({ targetContactKeys: nextTargetKeys })
         console.log('sourceSelectedKeys: ', sourceSelectedKeys)
@@ -320,6 +321,7 @@ class DialByNameItem extends Component {
         const dialByNameItem = this.state.dialByNameItem || {}
         const name = dialByNameItem.name
         const account = dialByNameItem.id
+        const exten = this.props.params.id
 
         const formItemLayout = {
             labelCol: { span: 3 },
@@ -333,10 +335,10 @@ class DialByNameItem extends Component {
 
         const title = (this.props.params.id
                 ? formatMessage({id: "LANG222"}, {
-                    0: formatMessage({id: "LANG2714"}),
-                    1: this.props.params.name
+                    0: formatMessage({id: "LANG2884"}),
+                    1: this.props.params.id
                 })
-                : formatMessage({id: "LANG2706"}))
+                : formatMessage({id: "LANG2885"}))
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -400,7 +402,7 @@ class DialByNameItem extends Component {
                                 }, {
                                     validator: this._checkNumber
                                 }],
-                                initialValue: account
+                                initialValue: exten ? exten : ''
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG85"}) } maxLength="25" />
                             ) }
@@ -433,7 +435,7 @@ class DialByNameItem extends Component {
                             <Transfer
                                 showSearch
                                 render={ this._renderItem }
-                                targetKeysLDAP={ this.state.targetKeysLDAP }
+                                targetKeys={ this.state.targetKeysLDAP }
                                 dataSource={ this.state.ldapList }
                                 onChange={ this._handleTransferChangeLDAP }
                                 filterOption={ this._filterTransferOption }
@@ -442,6 +444,64 @@ class DialByNameItem extends Component {
                                 searchPlaceholder={ formatMessage({id: "LANG803"}) }
                                 titles={[formatMessage({id: "LANG3214"}), formatMessage({id: "LANG3215"})]}
                             />
+                        </FormItem>
+                        <div className="function-description">
+                            <span>{ formatMessage({id: "LANG74"}) }</span>
+                        </div>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <Tooltip title={<FormattedHTMLMessage id="LANG5347" />}>
+                                <span>{ formatMessage({id: "LANG5346"}) }</span>
+                                </Tooltip>
+                            )}
+                        >
+                            { getFieldDecorator('wait_time', {
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
+                                initialValue: dialByNameItem.wait_time ? dialByNameItem.wait_time : '5'
+                            })(
+                                <Input placeholder={ formatMessage({id: "LANG5346"}) } maxLength="25" />
+                            ) }
+                        </FormItem>
+
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <Tooltip title={<FormattedHTMLMessage id="LANG2764" />}>
+                                <span>{ formatMessage({id: "LANG2890"}) }</span>
+                                </Tooltip>
+                            )}
+                        >
+                            { getFieldDecorator('query_type', {
+                                rules: [],
+                                initialValue: dialByNameItem.query_type ? dialByNameItem.query_type : 'LASTNAME'
+                            })(
+                                <RadioGroup>
+                                    <Radio value='LASTNAME'>{ formatMessage({id: "LANG2892"}) }</Radio>
+                                    <Radio value='FIRSTNAME'>{ formatMessage({id: "LANG2893"}) }</Radio>
+                                </RadioGroup>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <Tooltip title={<FormattedHTMLMessage id="LANG2765" />}>
+                                <span>{ formatMessage({id: "LANG2891"}) }</span>
+                                </Tooltip>
+                            )}
+                        >
+                            { getFieldDecorator('select_type', {
+                                rules: [],
+                                initialValue: dialByNameItem.select_type ? dialByNameItem.select_type : 'SEQ'
+                            })(
+                                <RadioGroup>
+                                    <Radio value='SEQ'>{ formatMessage({id: "LANG2895"}) }</Radio>
+                                    <Radio value='MENU'>{ formatMessage({id: "LANG2896"}) }</Radio>
+                                </RadioGroup>
+                            ) }
                         </FormItem>
                     </Form>
                 </div>

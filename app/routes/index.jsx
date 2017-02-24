@@ -5,137 +5,141 @@ import { Route, IndexRoute, browserHistory } from 'react-router'
 import App from '../views/Main'
 
 // Login
-import Login from '../components/modules/login/index'
+import Login from '../components/modules/login'
 
 // System Status
-import Dashboard from '../components/modules/dashboard/index'
-import SystemInformation from '../components/modules/systemInfo/index'
-import ActivityCall from '../components/modules/activityCall/index'
-import NetworkStatus from '../components/modules/networkStatus/index'
+import Dashboard from '../components/modules/dashboard'
+import SystemInformation from '../components/modules/systemInfo'
+import ActivityCall from '../components/modules/activityCall'
+import NetworkStatus from '../components/modules/networkStatus'
 
 // Extension / Trunk
-import Extension from '../components/modules/extension/index'
+import Extension from '../components/modules/extension'
 import ExtensionItem from '../components/modules/extension/extensionItem'
 import BatchExtensionItem from '../components/modules/extension/batchExtensionItem'
 import ImportExtension from '../components/modules/extension/importExtension'
-import ExtensionGroup from '../components/modules/extensionGroup/index'
+import ExtensionGroup from '../components/modules/extensionGroup'
 import ExtensionGroupItem from '../components/modules/extensionGroup/extensionGroupItem'
-import AnalogTrunk from '../components/modules/analogTrunk/'
-import CreateAnalogTrunk from '../components/modules/analogTrunk/createAnalogTrunk'
-import EditAnalogTrunk from '../components/modules/analogTrunk/editAnalogTrunk'
-import DigitalTrunk from '../components/modules/digitalTrunk/index'
-import DataTrunk from '../components/modules/dataTrunk/'
+import AnalogTrunk from '../components/modules/analogTrunk'
+import AnalogTrunkItem from '../components/modules/analogTrunk/analogTrunkItem'
+import DigitalTrunk from '../components/modules/digitalTrunk'
+import DataTrunk from '../components/modules/dataTrunk'
 import EditDataTrunk from '../components/modules/dataTrunk/editDataTrunk'
-import VoIPTrunk from '../components/modules/voipTrunk/'
+import VoIPTrunk from '../components/modules/voipTrunk'
 import CreateVoipTrunk from '../components/modules/voipTrunk/createVoipTrunk'
 import EditVoipTrunk from '../components/modules/voipTrunk/editVoipTrunk'
 import DodTrunksList from '../components/modules/voipTrunk/dodTrunksList'
 import CreateEditDodTrunk from '../components/modules/voipTrunk/createEditDodTrunk'
-import SLAStation from '../components/modules/slaStation/index'
+import SLAStation from '../components/modules/slaStation'
 import SLAStationItem from '../components/modules/slaStation/slaStationItem'
-import OutboundRoute from '../components/modules/outboundRoute/index'
+import OutboundRoute from '../components/modules/outboundRoute'
 import OutboundRouteItem from '../components/modules/outboundRoute/outboundRouteItem'
 import OutboundBlackList from '../components/modules/outboundRoute/outboundBlackList'
-import InboundRoute from '../components/modules/inboundRoute/index'
+import InboundRoute from '../components/modules/inboundRoute'
 import InboundRouteItem from '../components/modules/inboundRoute/inboundRouteItem'
 import InboundBlackList from '../components/modules/inboundRoute/inboundBlackList'
 import InboundSettings from '../components/modules/inboundRoute/inboundSettings'
 
 // Call Features
-import Conference from '../components/modules/conference/index'
+import Conference from '../components/modules/conference'
 import ConferenceItem from '../components/modules/conference/conferenceItem'
 import ConferenceSettings from '../components/modules/conference/conferenceSettings'
 import ScheduleSettings from '../components/modules/conference/scheduleSettings'
 import CleanSettings from '../components/modules/conference/cleanSettings'
 import CalendarSettings from '../components/modules/conference/calendarSettings'
-import IVR from '../components/modules/ivr/index'
+import IVR from '../components/modules/ivr'
 import IVRItem from '../components/modules/ivr/ivrItem'
-import Voicemail from '../components/modules/voicemail/index'
+import Voicemail from '../components/modules/voicemail'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
-import RingGroup from '../components/modules/ringGroup/index'
+import RingGroup from '../components/modules/ringGroup'
 import RingGroupItem from '../components/modules/ringGroup/RingGroupItem'
-import PagingIntercom from '../components/modules/pagingIntercom/index'
+import PagingIntercom from '../components/modules/pagingIntercom'
 import PagingIntercomItem from '../components/modules/pagingIntercom/pagingIntercomItem'
 import PagingIntercomSetting from '../components/modules/pagingIntercom/pagingIntercomSetting'
-import CallQueue from '../components/modules/callQueue/index'
+import CallQueue from '../components/modules/callQueue'
 import CallQueueItem from '../components/modules/callQueue/queueItem'
 import CallQueueStatistics from '../components/modules/callQueue/statistics'
 import CallQueueSwitchboard from '../components/modules/callQueue/switchboard'
 import AgentLoginSettings from '../components/modules/callQueue/settings'
-import PickupGroup from '../components/modules/pickupGroup/index'
+import PickupGroup from '../components/modules/pickupGroup'
 import PickupGroupItem from '../components/modules/pickupGroup/pickupGroupItem'
-import DialByName from '../components/modules/dialByName/index'
+import DialByName from '../components/modules/dialByName'
 import DialByNameItem from '../components/modules/dialByName/dialByNameItem'
-import SpeedDial from '../components/modules/speedDial/index'
+import SpeedDial from '../components/modules/speedDial'
 import SpeedDialItem from '../components/modules/speedDial/speedDialItem'
-import DISA from '../components/modules/disa/index'
+import DISA from '../components/modules/disa'
 import DISAItem from '../components/modules/disa/disaItem'
-import Callback from '../components/modules/callback/index'
-import EventList from '../components/modules/eventList/index'
-import FeatureCode from '../components/modules/featureCode/index'
-import Fax from '../components/modules/fax/index'
+import CallBack from '../components/modules/callback'
+import CallBackItem from '../components/modules/callback/callBackItem'
+import EventList from '../components/modules/eventList'
+import FeatureCode from '../components/modules/featureCode'
+import Fax from '../components/modules/fax'
 import FaxItem from '../components/modules/fax/faxItem'
 import FaxSetting from '../components/modules/fax/faxSetting'
 
 // PBX Settings
-import PBXGeneralSettings from '../components/modules/pbxGeneralSettings/index'
-import SIPSettings from '../components/modules/sipSettings/index'
-import IAXSettings from '../components/modules/iaxSettings/index'
-import RTPSettings from '../components/modules/rtpSettings/index'
-import MusicOnHold from '../components/modules/musicOnHold/index'
-import VoicePrompt from '../components/modules/voicePrompt/index'
-import JitterBuffer from '../components/modules/jitterBuffer/index'
+import PBXGeneralSettings from '../components/modules/pbxGeneralSettings'
+import SIPSettings from '../components/modules/sipSettings'
+import IAXSettings from '../components/modules/iaxSettings'
+import RTPSettings from '../components/modules/rtpSettings'
+import MusicOnHold from '../components/modules/musicOnHold'
+import VoicePrompt from '../components/modules/voicePrompt'
+import JitterBuffer from '../components/modules/jitterBuffer'
 import InterfaceSettings from '../components/modules/interfaceSettings/'
 import DigitalHardwareItem from '../components/modules/interfaceSettings/digitalHardwareItem'
-import RecordingStorageSettings from '../components/modules/recordingStorageSettings/index'
+import RecordingStorageSettings from '../components/modules/recordingStorageSettings'
 
 // System Settings
 import HTTPServer from '../components/modules/httpServer/index'
-import NetworkSettings from '../components/modules/networkSettings/index'
-import OpenVPN from '../components/modules/openVPN/index'
-import DDNSSettings from '../components/modules/ddnsSettings/index'
-import SecuritySettings from '../components/modules/securitySettings/index'
+import NetworkSettings from '../components/modules/networkSettings'
+import OpenVPN from '../components/modules/openVPN'
+import DDNSSettings from '../components/modules/ddnsSettings'
+import SecuritySettings from '../components/modules/securitySettings'
 import Security from '../components/modules/securitySettings/security'
 import SecurityItem from '../components/modules/securitySettings/rules'
-import LDAPServer from '../components/modules/ldapServer/index'
-import TimeSettings from '../components/modules/timeSettings/index'
+import LDAPServer from '../components/modules/ldapServer'
+import TimeSettings from '../components/modules/timeSettings'
 import OfficeTime from '../components/modules/timeSettings/officetime'
 import OfficeTimeItem from '../components/modules/timeSettings/officetimeItem'
 import HolidayTime from '../components/modules/timeSettings/holidaytime'
 import HolidayTimeItem from '../components/modules/timeSettings/holidaytimeItem'
-import EmailSettings from '../components/modules/emailSettings/index'
+import EmailSettings from '../components/modules/emailSettings'
 
 // Maintenance
-import UserManagement from '../components/modules/userManagement/index'
+import UserManagement from '../components/modules/userManagement'
+import UserManage from '../components/modules/userManagement/userManagement'
 import UserManagementItem from '../components/modules/userManagement/userManagementItem'
-import ChangePassword from '../components/modules/changePassword/index'
-import OperationLog from '../components/modules/operationLog/index'
-import SystemLog from '../components/modules/systemLog/index'
-import SystemEvent from '../components/modules/systemEvent/index'
+import CustomPrivilege from '../components/modules/userManagement/customPrivilege'
+import CustomPrivilegeItem from '../components/modules/userManagement/customPrivilegeItem'
+import ChangePassword from '../components/modules/changePassword'
+import OperationLog from '../components/modules/operationLog'
+import SystemLog from '../components/modules/systemLog'
+import SystemEvent from '../components/modules/systemEvent'
 import Warning from '../components/modules/systemEvent/warning'
 import WarningEventsList from '../components/modules/systemEvent/warningEventsList'
 import WarningEventsListItem from '../components/modules/systemEvent/warningEventsListItem'
 import WarningContact from '../components/modules/systemEvent/warningContact'
-import Upgrade from '../components/modules/upgrade/index'
-import Backup from '../components/modules/backup/index'
-import CleanReset from '../components/modules/cleanReset/index'
-import ServiceCheck from '../components/modules/serviceCheck/index'
+import Upgrade from '../components/modules/upgrade'
+import Backup from '../components/modules/backup'
+import CleanReset from '../components/modules/cleanReset'
+import Troubleshooting from '../components/modules/troubleshooting'
+import ServiceCheck from '../components/modules/serviceCheck'
 
 // CDR
-import CDR from '../components/modules/cdr/index'
+import CDR from '../components/modules/cdr'
 import AutoDownload from '../components/modules/cdr/autoDownload'
-import Statistics from '../components/modules/statistics/index'
-import RecordingFile from '../components/modules/recordingFile/index'
-import CdrApi from '../components/modules/cdrApi/index'
+import Statistics from '../components/modules/statistics'
+import RecordingFile from '../components/modules/recordingFile'
+import CdrApi from '../components/modules/cdrApi'
 
 // Value-added Features
-import ZeroConfig from '../components/modules/zeroConfig/index'
-import AMI from '../components/modules/ami/index'
+import ZeroConfig from '../components/modules/zeroConfig'
+import AMI from '../components/modules/ami'
 import AMIItem from '../components/modules/ami/amiItem'
 import AMISetting from '../components/modules/ami/amiSetting'
-import CTIServer from '../components/modules/ctiServer/index'
-import CRM from '../components/modules/crm/index'
-import PMS from '../components/modules/pms/index'
+import CTIServer from '../components/modules/ctiServer'
+import CRM from '../components/modules/crm'
+import PMS from '../components/modules/pms'
 import PMSWakeup from '../components/modules/pms/pmsWakeup'
 import PMSRooms from '../components/modules/pms/pmsRooms'
 import PMSMinibar from '../components/modules/pms/pmsMinibar'
@@ -145,13 +149,13 @@ import PMSRoomsItemBatchAdd from '../components/modules/pms/pmsRoomsItemBatchAdd
 import PMSMinibarItemBar from '../components/modules/pms/pmsMinibarItemBar'
 import PMSMinibarItemWaiter from '../components/modules/pms/pmsMinibarItemWaiter'
 import PMSMinibarItemGoods from '../components/modules/pms/pmsMinibarItemGoods'
-import WakeupService from '../components/modules/wakeupService/index'
+import WakeupService from '../components/modules/wakeupService'
 import WakeupServiceItem from '../components/modules/wakeupService/wakeupServiceItem'
-import FAXSending from '../components/modules/faxSending/index'
-import AnnouncementCenter from '../components/modules/announcementCenter/index'
+import FAXSending from '../components/modules/faxSending'
+import AnnouncementCenter from '../components/modules/announcementCenter'
 import AnnouncementCenterItem from '../components/modules/announcementCenter/announcementCenterItem'
 import AnnouncementGroupItem from '../components/modules/announcementCenter/announcementGroupItem'
-import WebRTC from '../components/modules/webrtc/index'
+import WebRTC from '../components/modules/webrtc'
 import cookie from 'react-cookie'
 import SubscribeEvent from '../components/api/subscribeEvent'
 
@@ -243,8 +247,8 @@ const routes = (state, currentLocaleData) => {
                     <Route path="analogTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG639"] } >
                         <IndexRoute component={ AnalogTrunk } />
                         <Route path="analogTrunk" onEnter={ requireAuth } component={ AnalogTrunk } breadcrumbName={ currentLocaleData["LANG639"] } />
-                        <Route path="createAnalogTrunk" onEnter={ requireAuth } component={ CreateAnalogTrunk } breadcrumbName={ currentLocaleData["LANG762"] } />
-                        <Route path="editAnalogTrunk" onEnter={ requireAuth } component={ EditAnalogTrunk } breadcrumbName={ currentLocaleData["LANG640"] } />
+                        <Route path="add" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
+                        <Route path="edit/:trunkId" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
                     </Route>
                     <Route path="digitalTrunk" onEnter={ requireAuth } component={ DigitalTrunk } breadcrumbName={ currentLocaleData["LANG3141"] } />
                     <Route path="dataTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3573"] } >
@@ -342,7 +346,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ DISAItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ DISAItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
-                    <Route path="callback" onEnter={ requireAuth } component={ Callback } breadcrumbName={ currentLocaleData["LANG3741"] } />
+                    <Route path="callback" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3741"] } >
+                        <IndexRoute component={ CallBack } />
+                        <Route path="add" onEnter={ requireAuth } component={ CallBackItem } breadcrumbName={ currentLocaleData["LANG3741"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ CallBackItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="eventList" onEnter={ requireAuth } component={ EventList } breadcrumbName={ currentLocaleData["LANG2474"] } />
                     <Route path="featureCode" onEnter={ requireAuth } component={ FeatureCode } breadcrumbName={ currentLocaleData["LANG26"] } />
                     <Route path="fax" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG29"] } >
@@ -410,8 +418,17 @@ const routes = (state, currentLocaleData) => {
                     <IndexRoute component={ UserManagement } />
                     <Route path="userManagement" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3859"] } >
                         <IndexRoute component={ UserManagement } />
+                        <Route path=":id" onEnter={ requireAuth } component={ UserManagement } breadcrumbName={ currentLocaleData["LANG3859"] } />
+                    </Route>
+                    <Route path="userManage" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3859"] } >
+                        <IndexRoute component={ UserManage } />
                         <Route path="add" onEnter={ requireAuth } component={ UserManagementItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ UserManagementItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="customPrivilege" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG5167"] } >
+                        <IndexRoute component={ CustomPrivilege } />
+                        <Route path="add" onEnter={ requireAuth } component={ CustomPrivilegeItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ CustomPrivilegeItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="changePassword" onEnter={ requireAuth } component={ ChangePassword } breadcrumbName={ currentLocaleData["LANG55"] } />
                     <Route path="operationLog" onEnter={ requireAuth } component={ OperationLog } breadcrumbName={ currentLocaleData["LANG3908"] } />
@@ -429,6 +446,7 @@ const routes = (state, currentLocaleData) => {
                     <Route path="upgrade" onEnter={ requireAuth } component={ Upgrade } breadcrumbName={ currentLocaleData["LANG61"] } />
                     <Route path="backup" onEnter={ requireAuth } component={ Backup } breadcrumbName={ currentLocaleData["LANG62"] } />
                     <Route path="cleanReset" onEnter={ requireAuth } component={ CleanReset } breadcrumbName={ currentLocaleData["LANG5302"] } />
+                     <Route path="troubleshooting" onEnter={ requireAuth } component={ Troubleshooting } breadcrumbName={ currentLocaleData["LANG5302"] } />
                     <Route path="serviceCheck" onEnter={ requireAuth } component={ ServiceCheck } breadcrumbName={ currentLocaleData["LANG3437"] } />
                 </Route>
 

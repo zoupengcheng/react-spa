@@ -17,10 +17,12 @@ class QueueItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            queueItem: {},
             targetKeys: [],
+            queueRange: [],
+            numberList: [],
             accountList: [],
-            groupNameList: [],
-            queueItem: {}
+            groupNameList: []
         }
     }
     componentWillMount() {
@@ -40,23 +42,39 @@ class QueueItem extends Component {
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
     }
+    _generateNewExt = () => {
+        let queueRange = this.state.queueRange
+        let numberList = this.state.numberList
+
+        let i = queueRange[0]
+        let endExt = queueRange[1]
+
+        for (i; i <= endExt; i++) {
+            if (numberList.indexOf(i.toString()) === -1) {
+                return i
+            }
+        }
+    }
     _getInitData = () => {
+        let queueItem = {}
         let targetKeys = []
         let accountList = []
         let groupNameList = []
-        let extensionGroup = {}
+
+        const queueId = this.props.params.id
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
-        const extensionGroupName = this.props.params.name
+
+        let queueRange = UCMGUI.isExist.getRange('queue', formatMessage)
+        let numberList = UCMGUI.isExist.getList('getNumberList', formatMessage)
 
         $.ajax({
-            url: api.apiHost,
+            type: 'json',
+            async: false,
             method: 'post',
+            url: api.apiHost,
             data: {
                 action: 'getExtensionGroupNameList'
             },
-            type: 'json',
-            async: false,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -72,13 +90,13 @@ class QueueItem extends Component {
         })
 
         $.ajax({
-            url: api.apiHost,
+            async: false,
+            type: 'json',
             method: 'post',
+            url: api.apiHost,
             data: {
                 action: 'getAccountList'
             },
-            type: 'json',
-            async: false,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -103,24 +121,25 @@ class QueueItem extends Component {
             }
         })
 
-        if (extensionGroupId) {
+        if (queueId) {
             $.ajax({
-                url: api.apiHost,
-                method: 'post',
-                data: {
-                    action: 'getExtensionGroup',
-                    extension_group: extensionGroupId
-                },
-                type: 'json',
                 async: false,
+                type: 'json',
+                method: 'post',
+                url: api.apiHost,
+                data: {
+                    action: 'getQueue',
+                    queue: queueId
+                },
                 success: function(res) {
                     const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                     if (bool) {
                         const response = res.response || {}
 
-                        extensionGroup = res.response.extension_group || {}
-                        targetKeys = extensionGroup.members.split(',') || []
+                        queueItem = res.response.queue || {}
+
+                        targetKeys = queueItem.members ? queueItem.members.split(',') : []
                     }
                 }.bind(this),
                 error: function(e) {
@@ -129,15 +148,13 @@ class QueueItem extends Component {
             })
         }
 
-        if (extensionGroupName) {
-            groupNameList = _.without(groupNameList, extensionGroupName)
-        }
-
         this.setState({
+            queueItem: queueItem,
+            queueRange: queueRange,
+            numberList: numberList,
             targetKeys: targetKeys,
             accountList: accountList,
-            groupNameList: groupNameList,
-            queueItem: extensionGroup
+            groupNameList: groupNameList
         })
     }
     _handleCancel = () => {
@@ -160,58 +177,63 @@ class QueueItem extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
-        let loadingMessage = ''
-        let successMessage = ''
+        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
+        const getFieldInstance = form.getFieldInstance
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
-                })}}></span>
+        let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        let successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        form.validateFields({ force: true }, (err, values) => {
             if (!err) {
-                console.log('Received values of form: ', values)
+                let action = {}
 
-                if (!this.state.targetKeys.length) {
-                    message.error(errorMessage)
-
-                    return
+                if (this.props.params.id) {
+                    action.action = 'updateQueue'
+                } else {
+                    action.action = 'addQueue'
                 }
 
-                message.loading(loadingMessage)
+                _.map(values, function(value, key) {
+                    let fieldInstance = getFieldInstance(key)
 
-                let action = values
+                    if (key === 'chk_pin' || key === 'chk_waittime' ||
+                        key === 'queue_chairman' || key === 'enable_agent_login' || key === 'destination_value' ||
+                        key === 'announce_frequency' || key === 'announce_position' || key === 'custom_alert_info' ||
+                        key === 'vq_mode' || key === 'vq_switch' || key === 'vq_periodic' || key === 'vq_outprefix') {
+                        return false
+                    }
 
+                    action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
+                })
+
+                action.musicclass = 'default'
+                action.enable_destination = 'T'
+                action.destination_type = 'account'
                 action.members = this.state.targetKeys.join()
 
-                if (extensionGroupId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = extensionGroupId
-                } else {
-                    action.action = 'addExtensiongroup'
-                }
+                // console.log('Received values of form: ', action)
+                // console.log('Received values of form: ', values)
+
+                message.loading(formatMessage({ id: "LANG826" }), 0)
 
                 $.ajax({
-                    url: api.apiHost,
-                    method: "post",
                     data: action,
                     type: 'json',
+                    method: "post",
+                    url: api.apiHost,
                     error: function(e) {
                         message.error(e.statusText)
                     },
                     success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()
-                            message.success(successMessage)
-                        }
+                            message.success(successMessage, 2)
 
-                        this._handleCancel()
+                            this._handleCancel()
+                        }
                     }.bind(this)
                 })
             }
@@ -230,6 +252,7 @@ class QueueItem extends Component {
             }
     }
     render() {
+        const settings = this.state.queueItem
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -283,7 +306,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('extension', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.extension
+                                        initialValue: this.props.params.id ? this.props.params.id : this._generateNewExt()
                                     })(
                                         <InputNumber />
                                     ) }
@@ -301,8 +324,11 @@ class QueueItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('queue_name', {
-                                        rules: [],
-                                        initialValue: this.state.queueItem.queue_name
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
+                                        initialValue: settings.queue_name
                                     })(
                                         <Input />
                                     ) }
@@ -321,7 +347,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('strategy', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.strategy
+                                        initialValue: settings.strategy ? settings.strategy : 'ringall'
                                     })(
                                         <Select>
                                             <Option value='ringall'>{ formatMessage({id: "LANG1197"}) }</Option>
@@ -347,7 +373,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('musicclass', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.musicclass
+                                        initialValue: settings.musicclass
                                     })(
                                         <Select></Select>
                                     ) }
@@ -366,7 +392,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('leavewhenempty', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.leavewhenempty
+                                        initialValue: settings.leavewhenempty ? settings.leavewhenempty : 'strict'
                                     })(
                                         <Select>
                                             <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
@@ -389,7 +415,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('joinempty', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.joinempty
+                                        initialValue: settings.joinempty ? settings.joinempty : 'no'
                                     })(
                                         <Select>
                                             <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
@@ -410,10 +436,16 @@ class QueueItem extends Component {
                                         </span>
                                     )}
                                 >
-                                    <Checkbox />
+                                    { getFieldDecorator('chk_pin', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.chk_pin === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
                                     { getFieldDecorator('pin', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.pin
+                                        initialValue: settings.pin
                                     })(
                                         <InputNumber
                                             style={{ 'margin-left': '10px' }}
@@ -434,21 +466,18 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('replace_caller_id', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.replace_caller_id
+                                        valuePropName: 'checked',
+                                        initialValue: settings.replace_caller_id === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 24 }>
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG609"}) }</span>
                                 </div>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 12 }>
                                 <FormItem
                                     { ...formItemLayout }
@@ -462,7 +491,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('ringtime', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.ringtime
+                                        initialValue: settings.ringtime ? settings.ringtime : 15
                                     })(
                                         <InputNumber />
                                     ) }
@@ -481,7 +510,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('wrapuptime', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.wrapuptime
+                                        initialValue: settings.wrapuptime ? settings.wrapuptime : 15
                                     })(
                                         <InputNumber />
                                     ) }
@@ -500,7 +529,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('retry', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.retry
+                                        initialValue: settings.retry ? settings.retry : 5
                                     })(
                                         <InputNumber />
                                     ) }
@@ -519,7 +548,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('maxlen', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.maxlen
+                                        initialValue: settings.maxlen ? settings.maxlen : 0
                                     })(
                                         <InputNumber />
                                     ) }
@@ -538,7 +567,8 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('reportholdtime', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.reportholdtime
+                                        valuePropName: 'checked',
+                                        initialValue: settings.reportholdtime === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -557,7 +587,8 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('auto_record', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.auto_record
+                                        valuePropName: 'checked',
+                                        initialValue: settings.auto_record === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -574,10 +605,16 @@ class QueueItem extends Component {
                                         </span>
                                     )}
                                 >
-                                    <Checkbox />
+                                    { getFieldDecorator('chk_waittime', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.chk_waittime === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
                                     { getFieldDecorator('waittime', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.waittime
+                                        initialValue: settings.waittime
                                     })(
                                         <InputNumber
                                             style={{ 'margin-left': '10px' }}
@@ -598,7 +635,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('enable_destination', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.enable_destination
+                                        initialValue: settings.enable_destination
                                     })(
                                         <Select>
                                             <Option value='D'>{ formatMessage({id: "LANG273"}) }</Option>
@@ -621,7 +658,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('destination_type', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.destination_type
+                                        initialValue: settings.destination_type
                                     })(
                                         <Select
                                             style={{ 'width': '45%' }}
@@ -629,7 +666,7 @@ class QueueItem extends Component {
                                     ) }
                                     { getFieldDecorator('destination_value', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.destination_value
+                                        initialValue: settings.destination_value
                                     })(
                                         <Select
                                             style={{ 'width': '45%', 'margin-left': '10px' }}
@@ -637,7 +674,7 @@ class QueueItem extends Component {
                                     ) }
                                     { getFieldDecorator('external_number', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.external_number
+                                        initialValue: settings.external_number
                                     })(
                                         <Input
                                             className={ 'hidden' }
@@ -659,7 +696,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('queue_timeout', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.queue_timeout
+                                        initialValue: settings.queue_timeout ? settings.queue_timeout : 60
                                     })(
                                         <InputNumber />
                                     ) }
@@ -678,7 +715,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('voice_prompt_time', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.voice_prompt_time
+                                        initialValue: settings.voice_prompt_time ? settings.voice_prompt_time : 60
                                     })(
                                         <InputNumber />
                                     ) }
@@ -697,7 +734,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('custom_prompt', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.custom_prompt
+                                        initialValue: settings.custom_prompt
                                     })(
                                         <Select></Select>
                                     ) }
@@ -716,7 +753,8 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('enable_feature', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.enable_feature
+                                        valuePropName: 'checked',
+                                        initialValue: settings.enable_feature === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -735,10 +773,10 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('alertinfo', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.alertinfo
+                                        initialValue: settings.alertinfo ? settings.alertinfo : 'none'
                                     })(
                                         <Select>
-                                            <Option value="">{ formatMessage({id: "LANG133"}) }</Option>
+                                            <Option value="none">{ formatMessage({id: "LANG133"}) }</Option>
                                             <Option value="ring1">Ring 1</Option>
                                             <Option value="ring2">Ring 2</Option>
                                             <Option value="ring3">Ring 3</Option>
@@ -772,14 +810,135 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('custom_alert_info', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.custom_alert_info
+                                        initialValue: settings.custom_alert_info
                                     })(
                                         <Input />
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5446" /> }>
+                                                <span>{ formatMessage({id: "LANG5446"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('announce_position', {
+                                        rules: [],
+                                        initialValue: settings.announce_position
+                                    })(
+                                        <InputNumber />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5447" /> }>
+                                                <span>{ formatMessage({id: "LANG5447"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('announce_frequency', {
+                                        rules: [],
+                                        initialValue: settings.announce_frequency ? settings.announce_frequency : 20
+                                    })(
+                                        <InputNumber />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 24 }>
+                                <div className="section-title">
+                                    <span>{ formatMessage({id: "LANG5449"}) }</span>
+                                </div>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5309" /> }>
+                                                <span>{ formatMessage({id: "LANG5308"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('vq_switch', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.vq_switch === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5311" /> }>
+                                                <span>{ formatMessage({id: "LANG5310"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('vq_mode', {
+                                        rules: [],
+                                        initialValue: settings.vq_mode ? settings.vq_mode : 'periodic'
+                                    })(
+                                        <Select>
+                                            <Option value="periodic">{ formatMessage({id: "LANG5317"}) }</Option>
+                                            <Option value="digit">{ formatMessage({id: "LANG5316"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5313" /> }>
+                                                <span>{ formatMessage({id: "LANG5312"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('vq_periodic', {
+                                        rules: [],
+                                        initialValue: settings.vq_periodic ? settings.vq_periodic : 20
+                                    })(
+                                        <InputNumber />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5315" /> }>
+                                                <span>{ formatMessage({id: "LANG5314"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('vq_outprefix', {
+                                        rules: [],
+                                        initialValue: settings.vq_outprefix
+                                    })(
+                                        <InputNumber />
+                                    ) }
+                                </FormItem>
+                            </Col>
                             <Col span={ 24 }>
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG5408"}) }</span>
@@ -798,7 +957,7 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('queue_chairman', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.queue_chairman
+                                        initialValue: settings.queue_chairman
                                     })(
                                         <Select></Select>
                                     ) }
@@ -817,14 +976,13 @@ class QueueItem extends Component {
                                 >
                                     { getFieldDecorator('enable_agent_login', {
                                         rules: [],
-                                        initialValue: this.state.queueItem.enable_agent_login
+                                        valuePropName: 'checked',
+                                        initialValue: settings.enable_agent_login === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
                                 </FormItem>
                             </Col>
-                        </Row>
-                        <Row>
                             <Col span={ 24 }>
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG143"}) }</span>

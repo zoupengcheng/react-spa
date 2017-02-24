@@ -185,6 +185,9 @@
             "name": "LANG5302",
             "path": "cleanReset"
         }, {
+            "name": "LANG68",
+            "path": "troubleshooting"
+        }, {
             "name": "LANG3437",
             "path": "serviceCheck"
         }]

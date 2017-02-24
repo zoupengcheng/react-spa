@@ -17,8 +17,6 @@ import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popco
 
 const FormItem = Form.Item
 const confirm = Modal.confirm
-const Privilege = localStorage.getItem('role')
-const FeatureLimits = JSON.parse(localStorage.getItem('featureLimits'))
 
 class Extension extends Component {
     constructor(props) {
@@ -58,7 +56,8 @@ class Extension extends Component {
     }
     _add = () => {
         const { formatMessage } = this.props.intl
-        const maxExtension = FeatureLimits.extension ? parseInt(FeatureLimits.extension) : 500
+        const featureLimits = JSON.parse(localStorage.getItem('featureLimits'))
+        const maxExtension = (featureLimits && featureLimits.extension ? parseInt(featureLimits.extension) : 500)
 
         if (this.state.extensionList.length >= maxExtension) {
             const warningMessage = <span dangerouslySetInnerHTML=
@@ -203,8 +202,9 @@ class Extension extends Component {
     _createOption = (text, record, index) => {
         let reboot
         const { formatMessage } = this.props.intl
+        const privilege = localStorage.getItem('role')
 
-        if (Privilege === 'privilege_0' || Privilege === 'privilege_1') {
+        if (privilege === 'privilege_0' || privilege === 'privilege_1') {
             if (!record.addr ||
                 record.addr === '-' ||
                 record.addr === '1' ||
@@ -917,15 +917,17 @@ class Extension extends Component {
                             />
                         </Modal>
                     </div>
-                    <Table
-                        rowKey="extension"
-                        columns={ columns }
-                        rowSelection={ rowSelection }
-                        loading={ this.state.loading}
-                        pagination={ this.state.pagination }
-                        onChange={ this._handleTableChange }
-                        dataSource={ this.state.extensionList }
-                    />
+                    <div className="clearfix">
+                        <Table
+                            rowKey="extension"
+                            columns={ columns }
+                            rowSelection={ rowSelection }
+                            loading={ this.state.loading}
+                            pagination={ this.state.pagination }
+                            onChange={ this._handleTableChange }
+                            dataSource={ this.state.extensionList }
+                        />
+                    </div>
                 </div>
             </div>
         )

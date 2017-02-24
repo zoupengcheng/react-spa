@@ -25,8 +25,10 @@ class ExtensionItem extends Component {
 
         this.state = {
             settings: {},
+            accountList: [],
             userSettings: {},
             currentEditId: this.props.params.id,
+            mohNameList: ['default', 'ringbacktone_default'],
             extension_type: this.props.params.type ? this.props.params.type : 'sip'
         }
     }
@@ -41,6 +43,7 @@ class ExtensionItem extends Component {
         const { formatMessage } = this.props.intl
         const extensionId = this.props.params.id
         const extensionType = this.props.params.type
+        const disabled = formatMessage({id: "LANG273"})
         const extensionRange = UCMGUI.isExist.getRange('extension', formatMessage)
         const existNumberList = UCMGUI.isExist.getList('getNumberList', formatMessage)
         const extensionTypeUpperCase = extensionType ? extensionType.toUpperCase() : ''
@@ -48,6 +51,66 @@ class ExtensionItem extends Component {
         this.setState({
             extensionRange: extensionRange,
             existNumberList: existNumberList
+        })
+
+        $.ajax({
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getAccountList'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    let extension = response.extension || []
+
+                    extension = extension.map(function(item) {
+                        return {
+                                key: item.extension,
+                                value: item.extension,
+                                out_of_service: item.out_of_service,
+                                // disabled: (item.out_of_service === 'yes'),
+                                label: (item.extension +
+                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                            }
+                    })
+
+                    this.setState({
+                        accountList: extension
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getMohNameList'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    let mohNameList = response.moh_name || []
+
+                    this.setState({
+                        mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
         })
 
         if (extensionId) {
@@ -500,12 +563,14 @@ class ExtensionItem extends Component {
                             <Feature
                                 form={ form }
                                 settings={ this.state.settings }
+                                accountList={ this.state.accountList }
+                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
-                        <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
+                        {/* <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
                             <SpecificTime
                                 form={ form }
                                 settings={ this.state.settings }
@@ -522,7 +587,7 @@ class ExtensionItem extends Component {
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
-                        </TabPane>
+                        </TabPane> */}
                     </Tabs>
                 </Form>
             </div>

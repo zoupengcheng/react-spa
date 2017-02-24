@@ -3,12 +3,12 @@
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
 import Title from '../../../views/title'
-import AnalogTrunk from './analogTrunk'
+import AnalogTrunksList from './analogTrunksList'
 import CallProgressToneFileList from './callProgressToneFileList'
 import { Tabs } from 'antd'
 const TabPane = Tabs.TabPane
 
-class TrunksAnalog extends Component {
+class AnalogTrunk extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -17,13 +17,10 @@ class TrunksAnalog extends Component {
     componentDidMount() {
     }
     componentWillUnmount() {
-
     }
     onChange(activeKey) {
         if (activeKey === "1") {
-
         } else {            
-            
         }
     }
     render() {
@@ -45,7 +42,7 @@ class TrunksAnalog extends Component {
                 />
                 <Tabs defaultActiveKey="1" onChange={this.onChange}>
                     <TabPane tab={formatMessage({id: "LANG639"})} key="1">
-                        <AnalogTrunk />
+                        <AnalogTrunksList />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG5149"})} key="2">
                         <CallProgressToneFileList />
@@ -56,7 +53,7 @@ class TrunksAnalog extends Component {
     }
 }
 
-TrunksAnalog.propTypes = {
+AnalogTrunk.propTypes = {
 }
 
-export default injectIntl(TrunksAnalog)
+export default injectIntl(AnalogTrunk)

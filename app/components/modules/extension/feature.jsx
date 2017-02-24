@@ -43,7 +43,6 @@ class Feature extends Component {
         }
     }
     componentWillMount() {
-        this._getInitData()
     }
     componentDidMount() {
     }
@@ -75,11 +74,11 @@ class Feature extends Component {
         const currentEditId = this.props.currentEditId
 
         if (currentEditId) {
-            return _.filter(this.state.accountList, function(item) {
+            return _.filter(this.props.accountList, function(item) {
                     return item.key !== currentEditId
                 })
         } else {
-            return this.state.accountList
+            return this.props.accountList
         }
     }
     _filterTransferOption = (inputValue, option) => {
@@ -99,29 +98,6 @@ class Feature extends Component {
                 new: true,
                 key: newID
             }
-    }
-    _getInitData = () => {
-        const { formatMessage } = this.props.intl
-        const disabled = formatMessage({id: "LANG273"})
-
-        let accountList = UCMGUI.isExist.getList("getAccountList", formatMessage)
-        let mohNameList = UCMGUI.isExist.getList('getMohNameList', formatMessage)
-
-        accountList = accountList.map(function(item) {
-            return {
-                    key: item.extension,
-                    out_of_service: item.out_of_service,
-                    // disabled: (item.out_of_service === 'yes'),
-                    title: (item.extension +
-                            (item.fullname ? ' "' + item.fullname + '"' : '') +
-                            (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                }
-        })
-
-        this.setState({
-            accountList: accountList,
-            mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
-        })
     }
     _handleCallbargingChange = (targetKeys, direction, moveKeys) => {
         const { form } = this.props
@@ -1214,7 +1190,7 @@ class Feature extends Component {
                                 })(
                                     <Select>
                                         {
-                                            this.state.mohNameList.map(function(value) {
+                                            this.props.mohNameList.map(function(value) {
                                                 return <Option
                                                             key={ value }
                                                             value={ value }

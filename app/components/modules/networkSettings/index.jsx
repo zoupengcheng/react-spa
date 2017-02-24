@@ -3,6 +3,7 @@
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
 import BasicSettings from './basicSettings'
+import Network8021x from './8021x'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -27,9 +28,20 @@ class NetWorkSettings extends Component {
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
             isDisplay: "display-block",
-            aOldGateway: "",
-            aOldMethod: ""
+            network_settings: {},
+            dhcp_settings: {},
+            method_8021_calss: {
+                lan1: 'hidden',
+                lan2: 'display-block',
+                lantitle: 'display-block',
+                lan1title: 'hidden',
+                lan2title: 'hidden',
+                wantitle: 'hidden'
+            }
         }
+    }
+    componentWillMount() {
+        this._getInitNetwork()
     }
     componentDidMount() {
     }
@@ -37,17 +49,48 @@ class NetWorkSettings extends Component {
 
     }
     _onChange = (e) => {
-        if (e === "1") {
-            this.setState({
-                activeKey: e,
-                isDisplay: "display-block"
-            })
-        } else {
+        if (e === "3") {
             this.setState({
                 activeKey: e,
                 isDisplay: "hidden"
             })
+        } else {
+            this.setState({
+                activeKey: e,
+                isDisplay: "display-block"
+            })
         }
+    }
+    _save8021x = (e) => {
+         const { formatMessage } = this.props.intl
+        const { form } = this.props
+        const __this = this
+
+        // if (checkIfRejectRules(method)) {
+            let buf = {}
+            buf["action"] = "updateNetworkproSettings"
+            buf["mode"] = form.getFieldValue('mode')
+            buf["identity"] = form.getFieldValue('identity')
+            buf["md5_secret"] = form.getFieldValue('md5_secret')
+            buf["lan2.802.1x.mode"] = form.getFieldValue('lan2.802.1x.mode')
+            buf["lan2.802.1x.identity"] = form.getFieldValue('lan2.802.1x.identity')
+            buf["lan2.802.1x.username"] = form.getFieldValue('lan2.802.1x.username')
+            buf["lan2.802.1x.password"] = form.getFieldValue('lan2.802.1x.password')
+
+            $.ajax({
+                type: "post",
+                url: baseServerURl,
+                data: buf,
+                success: function(data) {
+                    const bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                    if (bool) {
+                        /* -------- End -------- */
+                        __this._saveRes()
+                    }
+                }
+            })
+        // }
     }
     _saveChangeCallback = (e) => {
         const { formatMessage } = this.props.intl
@@ -55,9 +98,12 @@ class NetWorkSettings extends Component {
         const __this = this
 
         // if (checkIfRejectRules(method)) {
-            let all = form.getFieldsValue() 
+            let all = form.getFieldsValue(['method', 'mtu', 'default_interface', 'altdns', 
+                'lan2_ip_method', 'lan2_ip', 'lan2_mask', 'lan2_gateway', 'lan2_dns1', 'lan2_dns2', 'lan2_username', 'lan2_password', 'lan2_vid', 'lan2_priority',
+                'lan1_ip_method', 'lan1_ipaddr', 'lan1_submask', 'lan1_gateway', 'lan1_dns1', 'lan1_dns2', 'lan1_username', 'lan1_password', 'lan1_vid', 'lan1_priority',
+                'dhcp_ipaddr', 'dhcp_submask', 'dhcp_enable', 'dhcp_dns1', 'dhcp_dns2', 'ipfrom', 'ipto', 'dhcp_gateway', 'ipleasetime']) 
             let buf = {}
-            let methodVal = this.state.aOldMethod
+            let methodVal = this.state.network_settings.method
             let lasInterface = ''
             if (methodVal === '2') {
                 lasInterface = interfaceObj[methodVal][defaultInterface]
@@ -119,7 +165,7 @@ class NetWorkSettings extends Component {
                             })
                         }
                         /* -------- End -------- */
-                        __this._saveRes()
+                        __this._save8021x()
                     }
                 }
             })
@@ -160,14 +206,117 @@ class NetWorkSettings extends Component {
             }.bind(this)
         })
     }
+    _change8021xMethod = (value) => {
+         let method = {}
 
+        if (value === "0") {
+            method = {
+                lan1: 'display-block',
+                lan2: 'hidden',
+                lantitle: 'hidden',
+                lan1title: 'hidden',
+                lan2title: 'hidden',
+                wantitle: 'display-block'
+            }
+        } else if (value === "2") {
+            method = {
+                lan1: 'display-block',
+                lan2: 'display-block',
+                lantitle: 'hidden',
+                lan1title: 'display-block',
+                lan2title: 'display-block',
+                wantitle: 'hidden'
+            }
+        } else {
+            method = {
+                lan1: 'hidden',
+                lan2: 'display-block',
+                lantitle: 'hidden',
+                lan1title: 'hidden',
+                lan2title: 'hidden',
+                wantitle: 'hidden'
+            }
+        }
+
+        this.setState({
+            method_8021_calss: method
+        })       
+    }
+    _getInitNetwork = () => {
+        const { formatMessage } = this.props.intl
+
+        let network_settings = {}
+        let dhcp_settings = {}
+
+        $.ajax({
+            url: baseServerURl,
+            type: "POST",
+            dataType: "json",
+            async: false,
+            data: {
+                action: "getNetworkSettings"
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                if (bool) {
+                    const response = data.response || {}
+                    _.each(response.network_settings, function(num, key) {
+                        if (key === 'dhcp_enable' || key === 'dhcp6_enable') {
+                            network_settings[key] = num === "1" ? true : false
+                        } else {
+                            network_settings[key] = num
+                        }
+                    })
+                    dhcp_settings = data.response.dhcp_settings
+               }
+           }
+        })
+
+        let method = network_settings.method
+        let method_calss = {}
+        if (method === "0") {
+            method_calss = {
+                lan1: 'display-block',
+                lan2: 'hidden',
+                lantitle: 'hidden',
+                lan1title: 'hidden',
+                lan2title: 'hidden',
+                wantitle: 'display-block'
+            }
+        } else if (method === "2") {
+            method_calss = {
+                lan1: 'display-block',
+                lan2: 'display-block',
+                lantitle: 'hidden',
+                lan1title: 'display-block',
+                lan2title: 'display-block',
+                wantitle: 'hidden'
+            }
+        } else {
+            method_calss = {
+                lan1: 'hidden',
+                lan2: 'display-block',
+                lantitle: 'hidden',
+                lan1title: 'hidden',
+                lan2title: 'hidden',
+                wantitle: 'hidden'
+            }
+        }
+
+        this.setState({
+            network_settings: network_settings,
+            dhcp_settings: dhcp_settings,
+            method_8021_calss: method_calss
+        })
+    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
         var method = form.getFieldValue("method") 
 
         if (method === '0') {
-            let aOldGateway = this.state.aOldGateway.split('\.')
+            let aOldGateway = this.state.dhcp_settings.dhcp_gateway.split('\.')
             let aNewGateWay = form.getFieldValue("dhcp_gateway").split('\.')
 
             if (aOldGateway[0] !== aNewGateWay[0] || aOldGateway[1] !== aNewGateWay[1] || aOldGateway[2] !== aNewGateWay[2]) {
@@ -204,17 +353,6 @@ class NetWorkSettings extends Component {
             this._saveChangeCallback()
         }
     }
-    _getOldGateWay = (aOldGateway) => {
-        this.setState({
-            aOldGateway: aOldGateway
-        })
-    }
-    _getOldMethod = (aOldMethod) => {
-        this.setState({
-            aOldMethod: aOldMethod
-        })
-    }
-
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
@@ -239,8 +377,15 @@ class NetWorkSettings extends Component {
                     <TabPane tab={formatMessage({id: "LANG2217"})} key="1">
                         <BasicSettings
                             form={ this.props.form }
-                            getOldMethod={ this._getOldMethod.bind(this) }
-                            getOldGateWay={ this._getOldGateWay.bind(this) }
+                            dataSource={ this.state.network_settings }
+                            dataDHCPSettings={ this.state.dhcp_settings }
+                            change8021x={ this._change8021xMethod.bind(this) }
+                        />
+                    </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG708"})} key="2">
+                        <Network8021x
+                            form={ this.props.form }
+                            class8021x={ this.state.method_8021_calss }
                         />
                     </TabPane>
                 </Tabs>

@@ -1,12 +1,14 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
 import { browserHistory } from 'react-router'
-import { Table, message, Popconfirm } from 'antd'
+import React, { Component, PropTypes } from 'react'
+import { Table, Form, Modal, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs, Popconfirm } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
+
+const baseServerURl = api.apiHost
 
 class extensionList extends Component {
     constructor(props) {
@@ -20,7 +22,7 @@ class extensionList extends Component {
     }
     _listAnalogTrunk = () => {
         $.ajax({
-            url: api.apiHost,
+            url: baseServerURl,
             method: 'post',
             data: { 
                 action: 'listAnalogTrunk',
@@ -43,7 +45,7 @@ class extensionList extends Component {
         const { formatMessage } = this.props.intl
 
         let trunkIndex = data.trunk_index
-        message.loading(formatMessage({ id: "LANG825" }, {0: "LANG11"}), 0)
+        message.loading(formatMessage({id: "LANG825"}, {0: "LANG11"}), 0)
 
         $.ajax({
             url: api.apiHost,
@@ -59,7 +61,7 @@ class extensionList extends Component {
 
                 if (bool) {
                     message.destroy()
-                    // message.success(formatMessage({ id: "LANG816" }))
+                    // message.success(formatMessage({id: "LANG816"}))
                     this._listAnalogTrunk()
                 }
             }.bind(this),
@@ -68,8 +70,11 @@ class extensionList extends Component {
             }
         })
     }
+    _createAnalogTrunk = () => {
+        browserHistory.push('/extension-trunk/analogTrunk/add')
+    }
     _editTrunk = (e) => {
-        browserHistory.push('/extension-trunk/analogTrunk/editAnalogTrunk')
+        browserHistory.push('/extension-trunk/analogTrunk/edit')
     }
     render() {
         const {formatMessage} = this.props.intl
@@ -115,13 +120,26 @@ class extensionList extends Component {
         }
 
         return (
-            <Table rowSelection={false} columns={columns} dataSource={this.state.analogTrunk} pagination={pagination} />
+            <div className="app-content-main" id="app-content-main">
+                <div className="content">
+                    <div className="top-button">
+                        <Button icon="plus" type="primary" size="default" onClick={this._createAnalogTrunk} >
+                            {formatMessage({id: "LANG762"})}
+                        </Button>
+                    </div>
+                    <Table 
+                        rowSelection={false} 
+                        columns={columns} 
+                        dataSource={this.state.analogTrunk} 
+                        pagination={pagination} 
+                    />
+                </div>
+            </div>
         )
     }
 }
 
 extensionList.defaultProps = {
-    
 }
 
 export default injectIntl(extensionList)

@@ -907,18 +907,25 @@ class SystemLog extends Component {
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
-                    1: formatMessage({id: "LANG661"})
+                    1: formatMessage({id: "LANG67"})
                 })
 
         return (
             <div className="app-content-main">
                 <Title
-                    headerTitle={ formatMessage({id: "LANG661"}) }
+                    headerTitle={ formatMessage({id: "LANG67"}) }
                     onSubmit={ this._handleSubmit }
                     onCancel={ this._handleCancel } 
                     isDisplay= "display-block"
                 />
-                
+                <div className="content">
+                    <div className="section-title">
+                        <p><span>
+                                { formatMessage({id: "LANG661" })}
+                            </span>
+                        </p>
+                    </div>
+                </div>
                 <Form id="systemLog-form">
                     <FormItem
                         { ...formItemLayout }
@@ -1010,9 +1017,10 @@ class SystemLog extends Component {
                             <Table
                                 rowKey="id"
                                 columns={ columns }
-                                pagination={ pagination }
+                                pagination={ false }
                                 dataSource={ this.state.staticSwitch }
                                 showHeader={ !!this.state.staticSwitch.length }
+                                scroll={{y: 240}}
                             />
                             <div className="section-title">
                                 <span>{ formatMessage({id: "LANG4161"}) }</span>

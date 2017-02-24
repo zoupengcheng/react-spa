@@ -22,14 +22,29 @@ class InBoundRouteItem extends Component {
         const { formatMessage } = this.props.intl
 
         this.state = {
-            members: [],
             otherTC: [],
-            treeData: [],
             defaultTC: [],
             otherTCMode: '',
             accountList: [],
             defaultTCMode: '',
-            outBoundRouteItem: {}
+            DIDDesTreeData: [],
+            diddes_members: [],
+            seamlessTreeData: [],
+            seamless_members: [],
+            outBoundRouteItem: {},
+            destinationType: 'byDID',
+            currentInAddMode: this.props.route.path.indexOf('add') === 0,
+            DIDParams: [
+                    'ext_fax',
+                    'ext_local',
+                    'ext_group',
+                    'ext_queues',
+                    'ext_paging',
+                    'voicemenus',
+                    'ext_conference',
+                    'voicemailgroups',
+                    'ext_directory'
+                ]
         }
     }
     componentWillMount() {
@@ -98,11 +113,20 @@ class InBoundRouteItem extends Component {
     _getInitData = () => {
         const trunkIndex = this.props.params.id
         const { formatMessage } = this.props.intl
-        const currentAddMode = this.props.route.path.indexOf('add') === 0
 
         let accountList = []
+        let diddes_members = []
+        let seamless_members = []
         let inBoundRouteItem = {}
-        let treeData = [{
+
+        let DIDDesTreeData = [{
+            key: 'all',
+            value: 'all',
+            children: [],
+            label: formatMessage({id: "LANG104"})
+        }]
+
+        let seamlessTreeData = [{
             key: 'all',
             value: 'all',
             children: [],
@@ -149,47 +173,58 @@ class InBoundRouteItem extends Component {
             }
         })
 
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'getExtensionGroupList'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+        seamlessTreeData[0].children = accountList
+        DIDDesTreeData[0].children = [{
+            key: 'ext_local',
+            value: 'ext_local',
+            label: formatMessage({id: "LANG85"})
+        }, {
+            key: 'ext_conference',
+            value: 'ext_conference',
+            label: formatMessage({id: "LANG85"})
+        }, {
+            key: 'ext_queues',
+            value: 'ext_queues',
+            label: formatMessage({id: "LANG607"})
+        }, {
+            key: 'ext_group',
+            value: 'ext_group',
+            label: formatMessage({id: "LANG600"})
+        }, {
+            key: 'ext_paging',
+            value: 'ext_paging',
+            label: formatMessage({id: "LANG604"})
+        }, {
+            key: 'voicemenus',
+            value: 'voicemenus',
+            label: formatMessage({id: "LANG19"})
+        }, {
+            key: 'voicemailgroups',
+            value: 'voicemailgroups',
+            label: formatMessage({id: "LANG21"})
+        }, {
+            key: 'ext_fax',
+            value: 'ext_fax',
+            label: formatMessage({id: "LANG1268"})
+        }, {
+            key: 'ext_directory',
+            value: 'ext_directory',
+            label: formatMessage({id: "LANG2884"})
+        }]
 
-                if (bool) {
-                    const response = res.response || {}
-                    const extgroupList = response.extension_groups || []
-                    const extgroupLabel = formatMessage({id: "LANG2714"})
-
-                    extgroupList.map(function(item) {
-                        accountList.push({
-                            key: item.group_id,
-                            value: item.group_id,
-                            label: (extgroupLabel + item.group_name)
-                        })
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-
-        treeData[0].children = accountList
-
-        if (currentAddMode) {
+        if (!this.state.currentInAddMode) {
             let action = {}
-            let params = ['outbound_rt_name', 'outbound_rt_index', 'default_trunk_index', 'pin_sets_id', 'permission',
-                    'password', 'strip', 'prepend', 'pattern', 'members', 'enable_wlist', 'custom_member', 'limitime',
-                    'out_of_service', 'failover_outbound_data'
-                ]
+            let params = ["trunk_index", "did_pattern_match", "did_pattern_allow", "en_multi_mode",
+                        "destination_type", "prepend_trunk_name", "prepend_inbound_name_enable",
+                        "prepend_inbound_name", "account", "voicemail", "conference",
+                        "vmgroup", "ivr", "ringgroup", "queue", "paginggroup", "fax", "disa", "directory",
+                        "external_number", "callback", "did_strip", "permission", "dial_trunk", "ext_local",
+                        "ext_fax", "voicemailgroups", "voicemenus", "ext_conference", "ext_queues", "ext_group",
+                        "ext_paging", "ext_directory", "alertinfo", "incoming_prepend", "out_of_service", 'seamless_transfer_did_whitelist'
+                    ]
 
-            action.action = 'getOutboundRoute'
-            action.outbound_route = outboundRouteId
+            action.action = 'getInboundRoute'
+            action.inbound_route = this.props.params.id
 
             params.map(function(value) {
                 action[value] = ''
@@ -206,8 +241,22 @@ class InBoundRouteItem extends Component {
 
                     if (bool) {
                         const response = res.response || {}
+                        let inboundDIDDestination = response.inbound_did_destination || {}
 
-                        outBoundRouteItem = response.outbound_route || {}
+                        inBoundRouteItem = response.inbound_routes || {}
+
+                        _.map(inboundDIDDestination, function(value, key) {
+                            inBoundRouteItem[key] = value
+                        })
+
+                        seamless_members = inBoundRouteItem.seamless_transfer_did_whitelist
+                        seamless_members = seamless_members ? seamless_members.split(',') : []
+
+                        _.map(this.state.DIDParams, (value) => {
+                            if (inBoundRouteItem[value] === 'yes') {
+                                diddes_members.push(value)
+                            }
+                        })
                     }
                 }.bind(this),
                 error: function(e) {
@@ -217,10 +266,18 @@ class InBoundRouteItem extends Component {
         }
 
         this.setState({
-            treeData: treeData,
-            pinSetList: pinSetList,
+            trunkList: trunkList,
             accountList: accountList,
-            outBoundRouteItem: outBoundRouteItem
+            holidayList: holidayList,
+            diddes_members: diddes_members,
+            officeTimeList: officeTimeList,
+            DIDDesTreeData: DIDDesTreeData,
+            seamlessTreeData: seamlessTreeData,
+            seamless_members: seamless_members,
+            slaTrunkNameList: slaTrunkNameList,
+            inBoundRouteItem: inBoundRouteItem,
+            extensionPrefSettings: extensionPrefSettings,
+            destinationType: inBoundRouteItem.destination_type ? inBoundRouteItem.destination_type : 'byDID'
         })
     }
     _handleCancel = () => {
@@ -243,66 +300,72 @@ class InBoundRouteItem extends Component {
 
                 const doSubmit = () => {
                     let action = {}
-                    let pattern = '['
-                    let match = values.match.split(',') || []
 
-                    match = _.filter(match, function(value) {
-                        return value
-                    })
-
-                    if (outboundRouteIndex) {
-                        action.action = 'updateOutboundRoute'
-                        action.outbound_route = outboundRouteIndex
+                    if (!this.state.currentInAddMode) {
+                        action.action = 'updateInboundRoute'
+                        action.inbound_route = this.props.params.id
                     } else {
-                        action.action = 'addOutboundRoute'
+                        action.action = 'addInboundRoute'
+                        action.trunk_index = values.trunk_index
                     }
 
                     _.map(values, function(value, key) {
                         let fieldInstance = getFieldInstance(key)
 
-                        if (key === 'enable_out_limitime' || key === 'office' || key === 'match' ||
-                            key === 'maximumTime' || key === 'repeatTime' || key === 'warningTime' ||
-                            key === 'failover_prepend' || key === 'failover_strip' || key === 'failover_trunk') {
+                        if (key === 'trunk_index' || key === 'custom_alert_info' ||
+                            key === 'did_pattern_match' || key === 'did_pattern_allow' ||
+                            key === 'destination_value' || key === 'tc_destination_type' || key === 'tc_timetype' ||
+                            key === 'tc_mode1_destination_type' || key === 'tc_mode1_timetype' || key === 'mode1_destination_type') {
                             return false
                         }
 
                         action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
                     })
 
-                    _.map(match, function(value, index) {
-                        if (!value) {
-                            return
-                        }
+                    let trueMatch = []
+                    let trueAllow = []
+                    let matchAry = values.did_pattern_match ? values.did_pattern_match.split(',') : []
+                    let allowAry = values.did_pattern_allow ? values.did_pattern_allow.split(',') : []
 
-                        value = (value[0] !== '_') ? '_' + value : value
+                    _.map(matchAry, (value) => {
+                        let match = $.trim(value)
 
-                        if (index < match.length - 1) {
-                            pattern += '{"match": "' + value + '"}, '
+                        if (!match) {
+                            return false
                         } else {
-                            pattern += '{"match": "' + value + '"}]'
+                            trueMatch.push((match !== '_') ? '_' + match : match)
                         }
                     })
 
-                    if (values.enable_out_limitime) {
-                        let maximumTime = values.maximumTime
-                        let warningTime = values.warningTime
-                        let repeatTime = values.repeatTime
+                    _.map(allowAry, (value) => {
+                        let allow = $.trim(value)
 
-                        maximumTime = maximumTime ? (parseInt(maximumTime) * 1000) : ''
-                        warningTime = warningTime ? (parseInt(warningTime) * 1000) : ''
-                        repeatTime = repeatTime ? (parseInt(repeatTime) * 1000) : ''
+                        if (!allow) {
+                            return false
+                        } else {
+                            trueAllow.push((allow !== '_') ? '_' + allow : allow)
+                        }
+                    })
 
-                        action.limitime = 'L(' + maximumTime + ':' + warningTime + ':' + repeatTime + ')'
-                    } else {
-                        action.limitime = ''
-                    }
+                    _.map(this.state.DIDParams, (value) => {
+                        if (this.state.diddes_members.indexOf(value) > -1) {
+                            action[value] = 'yes'
+                        } else {
+                            action[value] = 'no'
+                        }
+                    })
 
-                    action.pattern = pattern
-                    action.members = this.state.members.join()
+                    action.multi_mode = JSON.stringify([])
+                    action.account = values.destination_value
                     action.time_condition = JSON.stringify([])
-                    action.failover_outbound_data = JSON.stringify([])
-                    action.custom_member = this._customDynamicMember(action.custom_member)
-                    action.pin_sets_id = action.pin_sets_id === 'none' ? '' : action.pin_sets_id
+                    action.did_pattern_allow = trueAllow.toString()
+                    action.did_pattern_match = trueMatch.toString()
+                    action.seamless_transfer_did_whitelist = this.state.seamless_members.join()
+                    action.alertinfo = values.alertinfo === 'none'
+                                            ? values.alertinfo === 'custom'
+                                                ? ('custom_' + values.custom_alert_info)
+                                                : values.alertinfo
+                                            : ''
 
                     // console.log('Received values of form: ', action)
                     // console.log('Received values of form: ', values)
@@ -330,30 +393,35 @@ class InBoundRouteItem extends Component {
                     })
                 }
 
-                if (values.permission === 'internal' && !permissionDisabled) {
-                    confirm({
-                        title: '',
-                        onCancel() {},
-                        onOk() { doSubmit() },
-                        content: <span dangerouslySetInnerHTML=
-                                        {{ __html: formatMessage({ id: "LANG2534" }, {
-                                                0: formatMessage({ id: "LANG1071" }),
-                                                1: formatMessage({ id: "LANG1071" })
-                                            })
-                                        }}
-                                    ></span>
-                    })
-                } else if (values.permission === 'none' && !permissionDisabled) {
-                    confirm({
-                        title: '',
-                        onCancel() {},
-                        onOk() { doSubmit() },
-                        content: <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG3701" }) }}></span>
-                    })
-                } else {
+                // if (values.permission === 'internal' && !permissionDisabled) {
+                //     confirm({
+                //         title: '',
+                //         onCancel() {},
+                //         onOk() { doSubmit() },
+                //         content: <span dangerouslySetInnerHTML=
+                //                         {{ __html: formatMessage({ id: "LANG2534" }, {
+                //                                 0: formatMessage({ id: "LANG1071" }),
+                //                                 1: formatMessage({ id: "LANG1071" })
+                //                             })
+                //                         }}
+                //                     ></span>
+                //     })
+                // } else if (values.permission === 'none' && !permissionDisabled) {
+                //     confirm({
+                //         title: '',
+                //         onCancel() {},
+                //         onOk() { doSubmit() },
+                //         content: <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG3701" }) }}></span>
+                //     })
+                // } else {
                     doSubmit()
-                }
+                // }
             }
+        })
+    }
+    _onChangeDestinationType = (value) => {
+        this.setState({
+            destinationType: value
         })
     }
     _onChangeLimitime = (e) => {
@@ -389,9 +457,14 @@ class InBoundRouteItem extends Component {
             pin_sets_id: value === 'none' ? '' : value
         })
     }
-    _onChangeTreeSelect = (value) => {
+    _onChangeSeamlessSelect = (value) => {
         this.setState({
-            members: value
+            seamless_members: value
+        })
+    }
+    _onChangeDIDDesSelect = (value) => {
+        this.setState({
+            diddes_members: value
         })
     }
     _onChangeWlist = (e) => {
@@ -399,10 +472,65 @@ class InBoundRouteItem extends Component {
             enable_wlist: e.target.checked
         })
     }
+    _renderTrunkOptions = () => {
+        let trunkList = this.state.trunkList
+        const { formatMessage } = this.props.intl
+        let slaTrunkNameList = this.state.slaTrunkNameList
+
+        return <Select>
+                {
+                    // Pengcheng Zou Moved. Set Trunk Options First.
+                    _.map(trunkList, (data, index) => {
+                        let text
+                        let option
+                        let hasClass
+                        let name = data.trunk_name
+                        let technology = data.technology
+                        let value = data.trunk_index + ''
+                        let isSLA = slaTrunkNameList.indexOf(name) > -1
+                        let disabled = (data.out_of_service && data.out_of_service === 'yes')
+
+                        // Pengcheng Zou Added. locale="{0}{1}{2}{3}" or locale="{0}{1}{2}{3}{4}{5}"
+                        // locale = (disabled || isSLA) ? 'LANG564' : 'LANG2696';
+
+                        if (technology === 'Analog') {
+                            text = formatMessage({id: "LANG105"})
+                        } else if (technology === 'SIP') {
+                            text = formatMessage({id: "LANG108"})
+                        } else if (technology === 'IAX') {
+                            text = formatMessage({id: "LANG107"})
+                        } else if (technology === 'BRI') {
+                            text = formatMessage({id: "LANG2835"})
+                        } else if (technology === 'PRI' || technology === 'SS7' || technology === 'MFC/R2' || technology === 'EM' || technology === 'EM_W') {
+                            text = technology
+                        }
+
+                        text += formatMessage({id: "LANG83"}) + ' -- ' + name
+
+                        if (disabled) {
+                            text += ' -- ' + formatMessage({id: "LANG273"})
+                        } else if (isSLA) {
+                            text += ' -- ' + formatMessage({id: "LANG3218"})
+                        }
+
+                        hasClass = (disabled || isSLA) ? 'out-of-service' : ''
+
+                        return <Option
+                                    key={ value }
+                                    value={ value }
+                                    className={ hasClass }
+                                    technology={ technology }
+                                >
+                                    { text }
+                                </Option>
+                    })
+                }
+            </Select>
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
-        const settings = this.state.outBoundRouteItem || {}
+        const settings = this.state.inBoundRouteItem || {}
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const formItemLayout = {
@@ -415,15 +543,24 @@ class InBoundRouteItem extends Component {
             wrapperCol: { span: 6 }
         }
 
-        const treeSelectProps = {
+        const diddesProps = {
             multiple: true,
             treeCheckable: true,
-            value: this.state.members,
             treeDefaultExpandAll: true,
-            treeData: this.state.treeData,
             showCheckedStrategy: SHOW_PARENT,
-            onChange: this._onChangeTreeSelect,
-            disabled: !!this.state.pin_sets_id
+            value: this.state.diddes_members,
+            treeData: this.state.DIDDesTreeData,
+            onChange: this._onChangeDIDDesSelect
+        }
+
+        const seamlessProps = {
+            multiple: true,
+            treeCheckable: true,
+            treeDefaultExpandAll: true,
+            showCheckedStrategy: SHOW_PARENT,
+            value: this.state.seamless_members,
+            treeData: this.state.seamlessTreeData,
+            onChange: this._onChangeSeamlessSelect
         }
 
         const failoverTrunkColumns = [{
@@ -511,7 +648,7 @@ class InBoundRouteItem extends Component {
                 }
             }]
 
-        const title = (this.props.route.path.indexOf('add') === 0
+        const title = (this.state.currentInAddMode
                 ? formatMessage({id: 'LANG771'})
                 : formatMessage({id: 'LANG659'}))
 
@@ -531,7 +668,10 @@ class InBoundRouteItem extends Component {
                 <div className="content">
                     <Form>
                         <Row>
-                            <Col span={ 12 }>
+                            <Col
+                                span={ 12 }
+                                className={ this.state.currentInAddMode ? 'display-block' : 'hidden' }
+                            >
                                 <FormItem
                                     { ...formItemLayout }
                                     label={(
@@ -547,15 +687,11 @@ class InBoundRouteItem extends Component {
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }],
-                                        initialValue: settings.trunk_index
+                                        initialValue: !this.state.currentInAddMode
+                                                ? settings.trunk_index + ''
+                                                : this.props.params.id
                                     })(
-                                        <Select>
-                                            <Option value='none'>{ formatMessage({id: "LANG273"}) }</Option>
-                                            <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
-                                            <Option value='local'>{ formatMessage({id: "LANG1072"}) }</Option>
-                                            <Option value='national'>{ formatMessage({id: "LANG1073"}) }</Option>
-                                            <Option value='international'>{ formatMessage({id: "LANG1074"}) }</Option>
-                                        </Select>
+                                        this._renderTrunkOptions()
                                     ) }
                                 </FormItem>
                             </Col>
@@ -662,10 +798,7 @@ class InBoundRouteItem extends Component {
                                     </Col>
                                     <Col span={ 21 } offset={ 1 }>
                                         { getFieldDecorator('prepend_inbound_name', {
-                                            rules: [{
-                                                required: true,
-                                                message: formatMessage({id: "LANG2150"})
-                                            }],
+                                            rules: [],
                                             initialValue: settings.prepend_inbound_name
                                         })(
                                             <Input />
@@ -706,7 +839,7 @@ class InBoundRouteItem extends Component {
                                 >
                                     { getFieldDecorator('alertinfo', {
                                         rules: [],
-                                        initialValue: settings.alertinfo
+                                        initialValue: settings.alertinfo ? settings.alertinfo : 'none'
                                     })(
                                         <Select>
                                             <Option value='none'>{ formatMessage({id: "LANG133"}) }</Option>
@@ -754,13 +887,71 @@ class InBoundRouteItem extends Component {
                                     { ...formItemLayout }
                                     label={(
                                         <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1566" /> }>
+                                                <span>{ formatMessage({id: "LANG1447"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('dial_trunk', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.dial_trunk === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1544" /> }>
+                                                <span>{ formatMessage({id: "LANG1543"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('permission', {
+                                        rules: [],
+                                        initialValue: settings.permission ? settings.permission : 'internal'
+                                    })(
+                                        <Select>
+                                            <Option value='internal'>{ formatMessage({id: "LANG1071"}) }</Option>
+                                            <Option value='internal-local'>{ formatMessage({id: "LANG1072"}) }</Option>
+                                            <Option value='internal-local-national'>{ formatMessage({id: "LANG1073"}) }</Option>
+                                            <Option value='internal-local-national-international'>{ formatMessage({id: "LANG1074"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
                                             <Tooltip title={ <FormattedHTMLMessage id="LANG5305" /> }>
+                                                <span>{ formatMessage({id: "LANG1564"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    <TreeSelect { ...diddesProps } />
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1565" /> }>
                                                 <span>{ formatMessage({id: "LANG5295"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
                                 >
-                                    <TreeSelect { ...treeSelectProps } />
+                                    <TreeSelect { ...seamlessProps } />
                                 </FormItem>
                             </Col>
                             <Col span={ 24 }>
@@ -769,30 +960,67 @@ class InBoundRouteItem extends Component {
                                 </div>
                             </Col>
                             <Col span={ 24 }>
-                                <FormItem
-                                    { ...formItemRowLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2389" /> }>
-                                                <span>{ formatMessage({id: "LANG1558"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('office', {
-                                        rules: [],
-                                        initialValue: settings.office ? settings.office : '1'
-                                    })(
-                                        <Select>
-                                            <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
-                                            <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
-                                            <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
-                                            <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
-                                            <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
-                                            <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
+                                <Col span={ 12 }>
+                                    <FormItem
+                                        { ...formItemLayout }
+                                        label={(
+                                            <span>
+                                                <Tooltip title={ <FormattedHTMLMessage id="LANG2389" /> }>
+                                                    <span>{ formatMessage({id: "LANG1558"}) }</span>
+                                                </Tooltip>
+                                            </span>
+                                        )}
+                                    >
+                                        { getFieldDecorator('destination_type', {
+                                            rules: [],
+                                            initialValue: this.state.destinationType
+                                        })(
+                                            <Select onChange={ this._onChangeDestinationType }>
+                                                <Option value="byDID">{ formatMessage({id: "LANG1563"}) }</Option>
+                                                <Option value="account">{ formatMessage({id: "LANG85"}) }</Option>
+                                                <Option value="voicemail">{ formatMessage({id: "LANG90"}) }</Option>
+                                                <Option value="conference">{ formatMessage({id: "LANG98"}) }</Option>
+                                                <Option value="vmgroup">{ formatMessage({id: "LANG89"}) }</Option>
+                                                <Option value="ivr">IVR</Option>
+                                                <Option value="ringgroup">{ formatMessage({id: "LANG600"}) }</Option>
+                                                <Option value="queue">{ formatMessage({id: "LANG91"}) }</Option>
+                                                <Option value="paginggroup">{ formatMessage({id: "LANG94"}) }</Option>
+                                                <Option value="fax">{ formatMessage({id: "LANG95"}) }</Option>
+                                                <Option value="disa">{ formatMessage({id: "LANG2353"}) }</Option>
+                                                <Option value="directory">{ formatMessage({id: "LANG2884"}) }</Option>
+                                                <Option value="external_number">{ formatMessage({id: "LANG3458"}) }</Option>
+                                                <Option value="callback">{ formatMessage({id: "LANG3741"}) }</Option>
+                                            </Select>
+                                        ) }
+                                    </FormItem>
+                                </Col>
+                                <Col span={ 4 }>
+                                    <FormItem
+                                        className={ this.state.destinationType === 'byDID' ? 'hidden' : 'display-block' }
+                                    >
+                                        { getFieldDecorator('destination_value', {
+                                            rules: [{
+                                                message: formatMessage({id: "LANG2150"}),
+                                                required: this.state.destinationType !== 'byDID'
+                                            }],
+                                            initialValue: settings.account
+                                        })(
+                                            <Select>
+                                                { 
+                                                    this.state.accountList.map((item) => {
+                                                        return <Option
+                                                                    key={ item.key }
+                                                                    value={ item.value }
+                                                                    className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }
+                                                                >
+                                                                    { item.label }
+                                                                </Option>
+                                                    })
+                                                }
+                                            </Select>
+                                        ) }
+                                    </FormItem>
+                                </Col>
                             </Col>
                             <div
                                 className={ this.state.defaultTCMode ? 'display-block' : 'hidden' }
@@ -802,9 +1030,9 @@ class InBoundRouteItem extends Component {
                                         <span>{ formatMessage({id: "LANG1532"}) }</span>
                                     </div>
                                 </Col>
-                                <Col span={ 12 }>
+                                <Col span={ 24 }>
                                     <FormItem
-                                        { ...formItemLayout }
+                                        { ...formItemRowLayout }
                                         label={(
                                             <span>
                                                 <Tooltip title={ <FormattedHTMLMessage id="LANG1557" /> }>
@@ -813,9 +1041,9 @@ class InBoundRouteItem extends Component {
                                             </span>
                                         )}
                                     >
-                                        { getFieldDecorator('office', {
+                                        { getFieldDecorator('tc_timetype', {
                                             rules: [],
-                                            initialValue: settings.office ? settings.office : '1'
+                                            initialValue: settings.tc_timetype ? settings.tc_timetype : '1'
                                         })(
                                             <Select>
                                                 <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
@@ -824,6 +1052,40 @@ class InBoundRouteItem extends Component {
                                                 <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
                                                 <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
                                                 <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                            </Select>
+                                        ) }
+                                    </FormItem>
+                                </Col>
+                                <Col span={ 24 }>
+                                    <FormItem
+                                        { ...formItemRowLayout }
+                                        label={(
+                                            <span>
+                                                <Tooltip title={ <FormattedHTMLMessage id="LANG168" /> }>
+                                                    <span>{ formatMessage({id: "LANG168"}) }</span>
+                                                </Tooltip>
+                                            </span>
+                                        )}
+                                    >
+                                        { getFieldDecorator('tc_destination_type', {
+                                            rules: [],
+                                            initialValue: settings.tc_destination_type ? settings.tc_destination_type : 'account'
+                                        })(
+                                            <Select>
+                                                <Option value="byDID">{ formatMessage({id: "LANG1563"}) }</Option>
+                                                <Option value="account">{ formatMessage({id: "LANG85"}) }</Option>
+                                                <Option value="voicemail">{ formatMessage({id: "LANG90"}) }</Option>
+                                                <Option value="conference">{ formatMessage({id: "LANG98"}) }</Option>
+                                                <Option value="vmgroup">{ formatMessage({id: "LANG89"}) }</Option>
+                                                <Option value="ivr">IVR</Option>
+                                                <Option value="ringgroup">{ formatMessage({id: "LANG600"}) }</Option>
+                                                <Option value="queue">{ formatMessage({id: "LANG91"}) }</Option>
+                                                <Option value="paginggroup">{ formatMessage({id: "LANG94"}) }</Option>
+                                                <Option value="fax">{ formatMessage({id: "LANG95"}) }</Option>
+                                                <Option value="disa">{ formatMessage({id: "LANG2353"}) }</Option>
+                                                <Option value="directory">{ formatMessage({id: "LANG2884"}) }</Option>
+                                                <Option value="external_number">{ formatMessage({id: "LANG3458"}) }</Option>
+                                                <Option value="callback">{ formatMessage({id: "LANG3741"}) }</Option>
                                             </Select>
                                         ) }
                                     </FormItem>
@@ -863,7 +1125,7 @@ class InBoundRouteItem extends Component {
                                     dataSource={ this.state.defaultTC }
                                 />
                             </Col>
-                            <Col span={ 24 }>
+                            {/* <Col span={ 24 }>
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG4289"}, {0: '1'}) }</span>
                                 </div>
@@ -879,17 +1141,25 @@ class InBoundRouteItem extends Component {
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('office', {
+                                    { getFieldDecorator('mode1_destination_type', {
                                         rules: [],
-                                        initialValue: settings.office ? settings.office : '1'
+                                        initialValue: settings.mode1_destination_type ? settings.mode1_destination_type : 'account'
                                     })(
                                         <Select>
-                                            <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
-                                            <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
-                                            <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
-                                            <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
-                                            <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
-                                            <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                            <Option value="byDID">{ formatMessage({id: "LANG1563"}) }</Option>
+                                            <Option value="account">{ formatMessage({id: "LANG85"}) }</Option>
+                                            <Option value="voicemail">{ formatMessage({id: "LANG90"}) }</Option>
+                                            <Option value="conference">{ formatMessage({id: "LANG98"}) }</Option>
+                                            <Option value="vmgroup">{ formatMessage({id: "LANG89"}) }</Option>
+                                            <Option value="ivr">IVR</Option>
+                                            <Option value="ringgroup">{ formatMessage({id: "LANG600"}) }</Option>
+                                            <Option value="queue">{ formatMessage({id: "LANG91"}) }</Option>
+                                            <Option value="paginggroup">{ formatMessage({id: "LANG94"}) }</Option>
+                                            <Option value="fax">{ formatMessage({id: "LANG95"}) }</Option>
+                                            <Option value="disa">{ formatMessage({id: "LANG2353"}) }</Option>
+                                            <Option value="directory">{ formatMessage({id: "LANG2884"}) }</Option>
+                                            <Option value="external_number">{ formatMessage({id: "LANG3458"}) }</Option>
+                                            <Option value="callback">{ formatMessage({id: "LANG3741"}) }</Option>
                                         </Select>
                                     ) }
                                 </FormItem>
@@ -902,9 +1172,9 @@ class InBoundRouteItem extends Component {
                                         <span>{ formatMessage({id: "LANG1532"}) }</span>
                                     </div>
                                 </Col>
-                                <Col span={ 12 }>
+                                <Col span={ 24 }>
                                     <FormItem
-                                        { ...formItemLayout }
+                                        { ...formItemRowLayout }
                                         label={(
                                             <span>
                                                 <Tooltip title={ <FormattedHTMLMessage id="LANG1557" /> }>
@@ -913,9 +1183,9 @@ class InBoundRouteItem extends Component {
                                             </span>
                                         )}
                                     >
-                                        { getFieldDecorator('office', {
+                                        { getFieldDecorator('tc_mode1_timetype', {
                                             rules: [],
-                                            initialValue: settings.office ? settings.office : '1'
+                                            initialValue: settings.tc_mode1_timetype ? settings.tc_mode1_timetype : '1'
                                         })(
                                             <Select>
                                                 <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
@@ -924,6 +1194,40 @@ class InBoundRouteItem extends Component {
                                                 <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
                                                 <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
                                                 <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                            </Select>
+                                        ) }
+                                    </FormItem>
+                                </Col>
+                                <Col span={ 24 }>
+                                    <FormItem
+                                        { ...formItemRowLayout }
+                                        label={(
+                                            <span>
+                                                <Tooltip title={ <FormattedHTMLMessage id="LANG168" /> }>
+                                                    <span>{ formatMessage({id: "LANG168"}) }</span>
+                                                </Tooltip>
+                                            </span>
+                                        )}
+                                    >
+                                        { getFieldDecorator('tc_mode1_destination_type', {
+                                            rules: [],
+                                            initialValue: settings.tc_mode1_destination_type ? settings.tc_mode1_destination_type : 'account'
+                                        })(
+                                            <Select>
+                                                <Option value="byDID">{ formatMessage({id: "LANG1563"}) }</Option>
+                                                <Option value="account">{ formatMessage({id: "LANG85"}) }</Option>
+                                                <Option value="voicemail">{ formatMessage({id: "LANG90"}) }</Option>
+                                                <Option value="conference">{ formatMessage({id: "LANG98"}) }</Option>
+                                                <Option value="vmgroup">{ formatMessage({id: "LANG89"}) }</Option>
+                                                <Option value="ivr">IVR</Option>
+                                                <Option value="ringgroup">{ formatMessage({id: "LANG600"}) }</Option>
+                                                <Option value="queue">{ formatMessage({id: "LANG91"}) }</Option>
+                                                <Option value="paginggroup">{ formatMessage({id: "LANG94"}) }</Option>
+                                                <Option value="fax">{ formatMessage({id: "LANG95"}) }</Option>
+                                                <Option value="disa">{ formatMessage({id: "LANG2353"}) }</Option>
+                                                <Option value="directory">{ formatMessage({id: "LANG2884"}) }</Option>
+                                                <Option value="external_number">{ formatMessage({id: "LANG3458"}) }</Option>
+                                                <Option value="callback">{ formatMessage({id: "LANG3741"}) }</Option>
                                             </Select>
                                         ) }
                                     </FormItem>
@@ -962,7 +1266,7 @@ class InBoundRouteItem extends Component {
                                     columns={ otherTCColumns }
                                     dataSource={ this.state.otherTC }
                                 />
-                            </Col>
+                            </Col> */}
                         </Row>
                     </Form>
                 </div>

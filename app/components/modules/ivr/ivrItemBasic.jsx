@@ -140,6 +140,7 @@ class BasicSettings extends Component {
             select_alertinfo = "custom"
             custom_alertinfo = ivrItem.alertinfo.slice(7)
         }
+        this.props.getSpecialState(checkedList)
         this.setState({
             accountList: accountList,
             fileList: fileList,
