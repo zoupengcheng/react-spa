@@ -4,40 +4,46 @@ import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Form, Modal, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs } from 'antd'
-const FormItem = Form.Item
-const Option = Select.Option
+import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
 import Validator from "../../api/validator"
 import Title from '../../../views/title'
+import UCMGUI from "../../api/ucmgui"
 
+const FormItem = Form.Item
+const Option = Select.Option
 const CheckboxGroup = Checkbox.Group
 const baseServerURl = api.apiHost
 
-let oldTrunkName = "",
-    oldSLAMode = '',
-    trunkId = "",
-    countryObj = {},
-    ch_chkbxClass = "FXO_ChkBoxes",
-    trunkgroup = "",
-    trunk_index = ""
+    global.oldTrunkName = ""
+    global.oldSLAMode = ''
+    global.trunkgroup = ""
+    global.countryObj = {}
     global.type = ""
 
 class AnalogTrunkItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            visible: false
+            visible: false,
+            firstLoad: true,
+            checkedChansList: [],
+            trunkNameList: [],
+            indeterminate: true,
+            countrytoneOpts: [],
+            faxIntelligentRouteDestinationOpts: [],
+            analogtrunk: {}
         }
     }
     componentDidMount() {
         const form = this.props.form 
+        let mode = this.props.route.path
 
         this._initForm()
-        let mode = this.props.route.path
         
         if (mode.indexOf('edit') === 0) {
-            let showEles = ["div_out_maxchans", "div_faxmode", "div_detect"],
+            let showEles = ["div_out_maxchans", "div_faxmode", "div_fax"],
                 showElesObj = {}
 
             showEles.map(function(it) {
@@ -48,7 +54,7 @@ class AnalogTrunkItem extends Component {
                 ...showElesObj
             })
 
-            trunkId = this.props.params.trunkId
+            let trunkId = this.props.params.trunkId
 
             this._getAnalogTrunk(trunkId)
         } else {
@@ -65,321 +71,335 @@ class AnalogTrunkItem extends Component {
     }
     componentWillUnmount() {
     }
+    componentDidUpdate() {
+        if (this.state.firstLoad) {
+            this._onChangePolarityswitch()
+            this._onChangeEnablecurrentdisconnectthreshold()
+
+            this.setState({
+                firstLoad: false
+            })
+        }
+    }
     _initForm = () => {
-        const form = this.props.form 
+        const form = this.props.form
 
-        this._loadChans()
-        this._loadToneZone()
+        let hideEles = ["div_out_maxchans", "div_fax", "div_slaOptions", "div_faxmode", "div_fax"],
+            hideElesObj = {}
 
-        this.setState({
-            div_out_maxchans_style: "hidden",
-            div_detect_style: "hidden"
+        hideEles.map(function(it) {
+            hideElesObj[it + "_style"] = false
         })
+        this.setState(hideElesObj)
 
-        form.setFieldsValue({
-            usecallerid: true,
-            busydetect: true,
-            congestiondetect: true,
-            enablecurrentdisconnectthreshold: true,
-            faxmode: "no",
-            polarityonanswerdelay: 600,
-            currentdisconnectthreshold: 200,
-            fxooutbandcalldialdelay: 0,
-            ringtimeout: 8000,
-            rxgain: 0,
-            txgain: 0,
-            busycount: 2,
-            congestioncount: 2
-        })
+        this._getNameList()
+        this._getChanList()
+        this._getToneZoneSettings()
         this._tectFax()
     }
-    _loadChans = () => {
-        // var chans = Number(UCMGUI.config.model_info.num_fxo),
-        //     chanList = mWindow.chanList;
+    _getNameList = () => {
+        const { formatMessage } = this.props.intl
 
-        // for (var i = 1; i <= chans; i++) {
-        //     var lbl = document.createElement('div'),
-        //         label = document.createElement('label'),
-        //         lbltext = document.createTextNode(i),
-        //         ncbx = document.createElement('input');
-
-        //     lbl.className = 'special';
-        //     ncbx.type = 'checkbox';
-        //     ncbx.setAttribute("noSerialize", true);
-        //     ncbx.value = i;
-
-        //     if (UCMGUI.inArray(i, chanList)) {
-        //         ncbx.disabled = true;
-        //     }
-
-        //     ncbx.className = ch_chkbxClass;
-
-        //     label.appendChild(lbltext);
-        //     lbl.appendChild(ncbx);
-        //     lbl.appendChild(label);
-
-        //     document.getElementById("new_ATRNK_cls_container").appendChild(lbl);
-        // };
-
-        // $('.' + ch_chkbxClass).bind("click", function() {
-        //     $P('#trunk_name', document).valid();
-
-        //     btnDisable();
-        // });
+        let allTrunkList = UCMGUI.isExist.getList("getTrunkList", formatMessage),
+            failoverTrunkList = UCMGUI.isExist.getList("getOutrtFailoverTrunkIdList", formatMessage)
+        this.setState({
+            trunkNameList: this._transData(allTrunkList),
+            failoverTrunkList: failoverTrunkList
+        })
     }
-    _loadToneZone = () => {
-        // var toneZoneSettings = mWindow.toneZoneSettings,
-        //     arr = [],
-        //     regexBusy = /^([\d+*]+)\/(\d+),[\d+]+\/(\d+)(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?$/,
-        //     regexCongestion = /^([\d+*]+)\/(\d+),[\d+]+\/(\d+)(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?$/;
+    _getChanList = () => {
+        const { formatMessage } = this.props.intl
 
-        // $.each(toneZoneSettings, function(index, item) {
-        //     var countryItem = {},
-        //         obj = {},
-        //         country = item["country"];
+        let chanList = UCMGUI.isExist.getList("getAnalogTrunkChanList", formatMessage)
+        let arr = []
 
-        //     obj["text"] = item["description"];
-        //     obj["val"] = country;
-        //     obj["locale"] = nation2langObj[country.toLowerCase()];
+        for (let i = 0; i < chanList.length; i++) {
+            arr.push(chanList[i]["chan"])
+        }
 
-        //     arr.push(obj);
+        this._loadChans(arr)
+    }
+    _transData(res, cb) {
+        let arr = []
 
-        //     var match = item.busy.match(regexBusy);
+        for (let i = 0; i < res.length; i++) {
+            arr.push(res[i]["trunk_name"])
+        }
+        if (cb && typeof cb === "function") {
+            cb(arr)
+        }
 
-        //     if (match) {
-        //         countryItem.busyfreq = match[1];
-        //         countryItem.busypattern = match[2] + ',' + match[3] + ((match[5]) ? ('-' + match[5] + ',' + match[6]) : '') + ((match[8]) ? ('-' + match[8] + ',' + match[9]) : '');
-        //     }
+        return arr
+    }
+    _loadChans = (chanList) => {
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
 
-        //     match = item.congestion.match(regexCongestion);
+        let chans = Number(model_info.num_fxo),
+            chansArr = []
 
-        //     if (match) {
-        //         countryItem.congestionfreq = match[1];
-        //         countryItem.congestionpattern = match[2] + ',' + match[3] + ((match[5]) ? ('-' + match[5] + ',' + match[6]) : '') + ((match[8]) ? ('-' + match[8] + ',' + match[9]) : '');
-        //     }
+        for (let i = 1; i <= chans; i++) {
+            let obj = {}
+            obj["value"] = i
 
-        //     countryItem.desc = item.description;
+            let isFind = _.find(chanList, function(num) { 
+                return i === num 
+            })
+            if (typeof isFind !== "undefined") {
+                obj["disabled"] = true
+            } else {
+                obj["disabled"] = false
+            }
+            chansArr.push(obj)
+        }
 
-        //     countryObj[item.country] = countryItem;
-        // });
+        this.setState({
+            totalChans: chansArr
+        })
+    }
+    _getToneZoneSettings = () => {
+        let action = {
+            action: "listAllToneZoneSettings",
+            options: "description,country,busy,congestion",
+            sidx: "description"
+        }
 
-        // arr.push({
-        //     val: "custom",
-        //     text: "Custom",
-        //     locale: "LANG231"
-        // });
+        $.ajax({
+            url: baseServerURl,
+            type: 'POST',
+            dataType: 'json',
+            data: action,
+            async: false,
+            success: function(data) {
+                if (data && data.status === 0) {
+                    let toneZoneSettings = data.response.CountryTone
+                    this._loadToneZone(toneZoneSettings)
+                }
+            }.bind(this)
+        })
+    }
+    _loadToneZone = (toneZoneSettings) => {
+        const { formatMessage } = this.props.intl
 
-        // selectbox.appendOpts({
-        //     el: "countrytone",
-        //     opts: arr
-        // }, doc);
+        let me = this, 
+            arr = [],
+            regexBusy = /^([\d+*]+)\/(\d+),[\d+]+\/(\d+)(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?$/,
+            regexCongestion = /^([\d+*]+)\/(\d+),[\d+]+\/(\d+)(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?(,[\d+*]+\/(\d+),[\d+]+\/(\d+))?$/
 
-        // $("#countrytone").change(function(ev) {
-        //     var countrytone = $(this),
-        //         val = countrytone.val(),
-        //         busytone = '',
-        //         congestiontone = '',
-        //         freq_tmp;
+        toneZoneSettings.map(function(item) {
+            let countryItem = {},
+                obj = {},
+                country = item["country"]
 
-        //     if (val === 'custom') {
-        //         $('.tone-setting').removeAttr('disabled');
-        //     } else {
-        //         var countryTone = countryObj[val];
+            // obj["text"] = item["description"]
+            obj["text"] = formatMessage({id: me.props.nation2langObj[country.toLowerCase()]})
+            obj["val"] = country
 
-        //         if (countryTone) {
-        //             // f1=500[@-11][,f2=440[@-11]],c=500/500[-600/600[-700/700]]; 
-        //             freq_tmp = countryTone.busyfreq.split('+');
+            arr.push(obj)
 
-        //             for (var i = 0, len = freq_tmp.length; i < len; i++) {
-        //                 busytone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ',';
-        //             }
+            let match = item.busy.match(regexBusy)
 
-        //             busytone += 'c=' + countryTone.busypattern.replace(/,/g, '/');
+            if (match) {
+                countryItem.busyfreq = match[1]
+                countryItem.busypattern = match[2] + ',' + match[3] + ((match[5]) ? ('-' + match[5] + ',' + match[6]) : '') + ((match[8]) ? ('-' + match[8] + ',' + match[9]) : '')
+            }
 
-        //             $('#busy').val(busytone);
+            match = item.congestion.match(regexCongestion)
 
-        //             freq_tmp = countryTone.congestionfreq.split('+');
+            if (match) {
+                countryItem.congestionfreq = match[1]
+                countryItem.congestionpattern = match[2] + ',' + match[3] + ((match[5]) ? ('-' + match[5] + ',' + match[6]) : '') + ((match[8]) ? ('-' + match[8] + ',' + match[9]) : '')
+            }
 
-        //             for (var i = 0, len = freq_tmp.length; i < len; i++) {
-        //                 congestiontone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ',';
-        //             }
+            countryItem.desc = item.description
 
-        //             congestiontone += 'c=' + countryTone.congestionpattern.replace(/,/g, '/');
+            global.countryObj[item.country] = countryItem
+        })
 
-        //             $('#congestion').val(congestiontone);
-        //         }
+        arr.push({
+            val: "custom",
+            text: formatMessage({id: "LANG231"})
+        })
 
-        //         $('.tone-setting').attr('disabled', true).removeClass('ui-state-highlight');
-        //     }
-        // });
+        this.setState({
+            countrytoneOpts: arr
+        })
     }
     _tectFax() {
-        // var accountList = UCMGUI.isExist.getList("listAccount").account,
-        //     faxList = UCMGUI.isExist.getList("listFax").fax,
-        //     str = '',
-        //     ele;
+        const { formatMessage } = this.props.intl
 
-        // for (var i = 0; i < accountList.length; i++) {
-        //     ele = accountList[i];
+        let accountList = UCMGUI.isExist.getList("listAccount").account,
+            faxList = UCMGUI.isExist.getList("listFax").fax,
+            arr = [{
+                text: formatMessage({id: "LANG133"}),
+                val: "no"
+            }],
+            ele
 
-        //     if (ele.account_type.match(/FXS/i)) {
-        //         str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
-        //     }
-        // }
+        for (let i = 0; i < accountList.length; i++) {
+            ele = accountList[i]
 
-        // for (var i = 0; i < faxList.length; i++) {
-        //     ele = faxList[i];
+            if (ele.account_type.match(/FXS/i)) {
+                arr.push({
+                    text: ele.extension,
+                    val: ele.extension
+                })
+            }
+        }
 
-        //     str += '<option value="' + ele.extension + '">' + ele.extension + '</option>';
+        for (let i = 0; i < faxList.length; i++) {
+            ele = faxList[i]
 
-        // }
+            arr.push({
+                text: ele.extension,
+                val: ele.extension
+            })
+        }
 
-        // $('#fax_intelligent_route_destination').append(str);
-        // $('#faxmode').on('change', function() {
-        //     if ($(this).val() === 'detect') {
-        //         $('#div_detect').show();
-        //     } else {
-        //         $('#div_detect').hide();
-        //     }
-        // });
-        // enableCheckBox({
-        //     enableCheckBox: 'fax_intelligent_route',
-        //     enableList: ['fax_intelligent_route_destination']
-        // }, doc);
-        // disableCheckBox({
-        //     enableCheckBox: 'trunkmode',
-        //     enableList: ['polarityswitch', 'dahdilineselectmode', 'out_maxchans']
-        // }, doc);
+        this.setState({
+            faxIntelligentRouteDestinationOpts: arr
+        })
     }
     _getAnalogTrunk = (trunkId) => {
-        // var action = {
-        //     "action": "getAnalogTrunk",
-        //     "analogtrunk": trunkId
-        // };
+        const { formatMessage } = this.props.intl
+        const form = this.props.form 
 
-        // $.ajax({
-        //     type: "post",
-        //     url: "../cgi",
-        //     data: action,
-        //     error: function(jqXHR, textStatus, errorThrown) {
-        //         top.dialog.clearDialog();
+        let action = {
+            "action": "getAnalogTrunk",
+            "analogtrunk": trunkId
+        }
 
-        //         top.dialog.dialogMessage({
-        //             type: 'error',
-        //             content: errorThrown
-        //         });
-        //     },
-        //     success: function(data) {
-        //         var bool = UCMGUI.errorHandler(data);
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: action,
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.destroy()
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, formatMessage)
 
-        //         if (bool) {
-        //             var analogtrunk = data.response.analogtrunk,
-        //                 busy = analogtrunk.busy,
-        //                 congestion = analogtrunk.congestion,
-        //                 chans = analogtrunk.chans ? analogtrunk.chans.split(",") : [];
+                if (bool) {
+                    let analogtrunk = data.response.analogtrunk,
+                        chans = analogtrunk.chans ? analogtrunk.chans.split(",") : []
 
-        //             oldTrunkName = analogtrunk.trunk_name;
-        //             trunkgroup = analogtrunk.trunkgroup;
-        //             trunk_index = analogtrunk.trunk_index;
-        //             oldSLAMode = analogtrunk.trunkmode;
+                    global.oldTrunkName = analogtrunk.trunk_name
+                    global.trunkgroup = analogtrunk.trunkgroup
+                    global.oldSLAMode = analogtrunk.trunkmode
 
-        //             UCMGUI.domFunction.updateDocument(analogtrunk, document);
+                    if (form.getFieldValue('fax_intelligent_route_destination') === "") {
+                        form.setFieldsValue({
+                            fax_intelligent_route_destination: "no"
+                        })
+                    }
 
-        //             if ($('#fax_intelligent_route_destination').val() === null) {
-        //                 $('#fax_intelligent_route_destination').val('no');
-        //             }
+                    // if (Number($("#busycount").val()) == 0) {
+                    //     $("#busycount").val(2);
+                    // }
 
-        //             $("#busy").val(busy);
+                    // if (Number($("#congestioncount").val()) == 0) {
+                    //     $("#congestioncount").val(2);
+                    // }
 
-        //             $("#congestion").val(congestion);
+                    // $('#countrytone').trigger('change');
 
-        //             if (Number($("#busycount").val()) == 0) {
-        //                 $("#busycount").val(2);
-        //             }
+                    // $.each($('.' + ch_chkbxClass + ':disabled'), function(index, item) {
+                    //     if (UCMGUI.inArray($(item).val(), chans)) {
+                    //         $(item).attr({
+                    //             disabled: false,
+                    //             checked: true
+                    //         })
+                    //     }
+                    // })
+                    let chansArr = [],
+                        totalChans = []
+                    chans.map(function (it) {
+                        chansArr.push(Number(it))
+                    })
 
-        //             if (Number($("#congestioncount").val()) == 0) {
-        //                 $("#congestioncount").val(2);
-        //             }
+                    this.state.totalChans.map(function (it) {
+                        let value = it.value,
+                            disabled = it.disabled,
+                            obj = {},
+                            isFind = _.find(chans, function(num) { 
+                                return value === Number(num) 
+                            })
+                        obj["value"] = value
+                        if (typeof isFind !== "undefined") {
+                            obj["disabled"] = false
+                        } else {
+                            obj["disabled"] = disabled
+                        }
+                        totalChans.push(obj)
+                    })
 
-        //             $('#countrytone').trigger('change');
+                    this.setState({
+                        analogtrunk: analogtrunk,
+                        totalChans: totalChans,
+                        checkedChansList: chansArr
+                    })
 
-        //             $.each($('.' + ch_chkbxClass + ':disabled'), function(index, item) {
-        //                 if (UCMGUI.inArray($(item).val(), chans)) {
-        //                     $(item).attr({
-        //                         disabled: false,
-        //                         checked: true
-        //                     });
-        //                 }
-        //             });
+                    // if ((analogtrunk['faxdetect'] === 'no') && (analogtrunk['fax_gateway'] === 'no')) {
+                    //     $('#faxmode').val('no');
+                    // } else if (analogtrunk['faxdetect'] === 'incoming') {
+                    //     $('#faxmode').val('detect');
+                    // } else if (analogtrunk['fax_gateway'] === 'yes') {
+                    //     $('#faxmode').val('gateway');
+                    // }
 
-        //             if ((analogtrunk['faxdetect'] === 'no') && (analogtrunk['fax_gateway'] === 'no')) {
-        //                 $('#faxmode').val('no');
-        //             } else if (analogtrunk['faxdetect'] === 'incoming') {
-        //                 $('#faxmode').val('detect');
-        //             } else if (analogtrunk['fax_gateway'] === 'yes') {
-        //                 $('#faxmode').val('gateway');
-        //             }
+                    // let div_currentdisconnectthreshold = $("#div_currentdisconnectthreshold"),
+                    //     div_polarityonanswerdelay = $("#div_polarityonanswerdelay");
 
-        //             var div_currentdisconnectthreshold = $("#div_currentdisconnectthreshold"),
-        //                 div_polarityonanswerdelay = $("#div_polarityonanswerdelay");
+                    // if (analogtrunk.busydetect == "yes") {
+                    //     $("#div_busycount").show();
+                    // } else {
+                    //     $("#div_busycount").hide();
+                    // }
 
-        //             if (analogtrunk.busydetect == "yes") {
-        //                 $("#div_busycount").show();
-        //             } else {
-        //                 $("#div_busycount").hide();
-        //             }
+                    // if (analogtrunk.congestiondetect == "yes") {
+                    //     this.setState({
+                    //         div_congestioncount_style: true
+                    //     })
+                    // } else {
+                    //     this.setState({
+                    //         div_congestioncount_style: false
+                    //     })
+                    // }
 
-        //             if (analogtrunk.congestiondetect == "yes") {
-        //  this.setState({
-        //        div_congestioncount_style: true
-        //    })
-        //             } else {
-        //  this.setState({
-        //        div_congestioncount_style: false
-        //    })
-        //             }
+                    // if (analogtrunk.enablecurrentdisconnectthreshold === "yes") {
+                    //     div_currentdisconnectthreshold.show()
+                    // } else {
+                    //     div_currentdisconnectthreshold.hide()
+                    //     $("#div_currentdisconnectthreshold").val("200");
+                    // }
 
-        //             if (analogtrunk.enablecurrentdisconnectthreshold == "yes") {
-        //                 div_currentdisconnectthreshold.show();
-        //             } else {
-        //                 div_currentdisconnectthreshold.hide();
-        //                 $("#div_currentdisconnectthreshold").val("200");
-        //             }
+                    // if (analogtrunk.polarityswitch == "yes") {
+                    //     this.setState({
+                    //         polarityswitchVal: true,
+                    //         div_polarityonanswerdelay_style: true
+                    //     })
+                    // } else {
+                    //     this.setState({
+                    //         div_polarityonanswerdelay_style: false
+                    //     })
+                    // }
+                    // // $("#polarityswitch").trigger("change")
 
-        //             // if (analogtrunk.polarityswitch == "yes") {
-            // this.setState({
-            //     polarityswitchVal: true,
-            // div_polarityonanswerdelay_style: true
-            // })
-        //             // } else {
-        //             //     div_polarityonanswerdelay.hide();
-        //             // }
-        //             $("#polarityswitch").trigger("change");
+                    // if (analogtrunk.trunkmode == 'sla') {
+                    //     let trunkmode = $('#trunkmode');
+                    //     trunkmode.attr('checked', true);
 
-        //             if (analogtrunk.trunkmode == 'sla') {
-        //                 var trunkmode = $('#trunkmode');
-        //                 trunkmode.attr('checked', true);
+                    //     this.setState({
+                    //         div_slaOptions_style: true
+                    //     })
 
-        //                             this.setState({
-        //        div_slaOptions_style: true
-        //    })
-        //                 trunkmode.get(0).updateStatus();
-        //                 // $('#polarityswitch').attr('disabled', true);
-
-        //                 getSLAData(trunkId);
-        //             }
-        //             $('#faxmode').trigger('change');
-        //             $('#fax_intelligent_route_destination')[0].disabled = !$('#fax_intelligent_route')[0].checked;
-
-        //             btnDisable();
-
-        //             top.Custom.init(doc);
-        //         }
-        //     }
-        // });
-    }
-    _onChangeCountrytone = (val) => {
-
+                    //     getSLAData(trunkId);
+                    // }
+                    // $('#faxmode').trigger('change');
+                    // $('#fax_intelligent_route_destination')[0].disabled = !$('#fax_intelligent_route')[0].checked
+                }
+            }.bind(this)
+        })
     }
     _onChangeBusydetect = (e) => {
         let isChecked = e.target.checked
@@ -412,16 +432,20 @@ class AnalogTrunkItem extends Component {
 
         if (isChecked) {
             this.setState({
+                trunkmodeVal: isChecked,
                 div_slaOptions_style: true
             })
         } else {
             this.setState({
+                trunkmodeVal: isChecked,
                 div_slaOptions_style: false
             })
         }
     }
     _onChangePolarityswitch = (e) => {
-        let isChecked = e.target.checked
+        const form = this.props.form 
+
+        let isChecked = form.getFieldValue("polarityswitch")
 
         if (isChecked) {
             this.setState({
@@ -436,7 +460,9 @@ class AnalogTrunkItem extends Component {
         }
     }
     _onChangeEnablecurrentdisconnectthreshold = (e) => {
-        let isChecked = e.target.checked
+        const form = this.props.form 
+
+        let isChecked = form.getFieldValue("polarityswitch")
 
         if (isChecked) {
             this.setState({
@@ -447,6 +473,72 @@ class AnalogTrunkItem extends Component {
                 div_currentdisconnectthreshold: false
             })
         }
+    }
+    _onChangeCountrytone = (val) => {
+        const form = this.props.form 
+
+        let busytone = '',
+            congestiontone = '',
+            freq_tmp = ''
+
+        if (val === 'custom') {
+            this.setState({
+                busyDisabled: false
+            })
+        } else {
+            let countryTone = global.countryObj[val]
+
+            if (countryTone) {
+                // f1=500[@-11][,f2=440[@-11]],c=500/500[-600/600[-700/700]]
+                freq_tmp = countryTone.busyfreq.split('+')
+
+                for (let i = 0, len = freq_tmp.length; i < len; i++) {
+                    busytone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ','
+                }
+
+                busytone += 'c=' + countryTone.busypattern.replace(/,/g, '/')
+
+                freq_tmp = countryTone.congestionfreq.split('+')
+
+                for (let i = 0, len = freq_tmp.length; i < len; i++) {
+                    congestiontone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ','
+                }
+
+                congestiontone += 'c=' + countryTone.congestionpattern.replace(/,/g, '/')
+
+                form.setFieldsValue({
+                    busy: busytone,
+                    congestion: congestiontone
+                })
+            }
+            this.setState({
+                busyDisabled: true
+            })
+        }
+    }
+    _onClickFaxmode = (val) => {
+        if (val === 'detect') {
+            this.setState({
+                div_fax_style: true
+            })
+        } else {
+            this.setState({
+                div_fax_style: false
+            })
+        }
+    }
+    _onChangefaxIntelligentRoute = (e) => {
+        let isChecked = e.target.checked
+
+        if (isChecked) {
+            this.setState({
+                faxIntelligentRouteVal: true
+            })
+        } else {
+            this.setState({
+                faxIntelligentRouteVal: false
+            })
+        }        
     }
     _onClickDetect = () => {
         // if ($("#detect").attr("disabled") == "disabled") {
@@ -482,7 +574,7 @@ class AnalogTrunkItem extends Component {
 
         // selectChannel = getSelectedChannels();
 
-        // var srcArr = [],
+        // let srcArr = [],
         //     desArr = [];
 
         // $.each(selectChannel, function(index, item) {
@@ -513,64 +605,574 @@ class AnalogTrunkItem extends Component {
         // top.dialog.dialogCommands.show();
         // type = "edit";
     }
+    _onChangeChans = (checkedChansList) => {
+        let state = this.state,
+            checkedChansListLen = state.checkedChansList.length,
+            totalChansLen = state.totalChans.length
+
+        this.setState({
+            checkedChansList,
+            indeterminate: !!checkedChansListLen && (checkedChansListLen < totalChansLen),
+            checkAll: checkedChansListLen === totalChansLen
+        })
+    }
+    // _pstnDetection = () => {
+    //     if ($("#detect").attr("disabled") == "disabled") {
+    //         return;
+    //     }
+
+    //     top.dialog.dialogCommands.hide();
+
+    //     $("#editForm").hide();
+
+    //     $("#pstn_div").show();
+
+    //     $("#detect_model").change(function(ev) {
+    //         if ($(this).val() == 1) {
+    //             $("#dev_deschannel").hide();
+    //         } else {
+    //             $("#dev_deschannel").show();
+    //         }
+    //     });
+
+    //     if (window.frameElement) {
+    //         $(window.frameElement).css("height", "0px");
+    //         $(window.frameElement).css("width", "0px");
+    //     }
+
+    //     top.dialog.repositionDialog();
+
+    //     $("#src_number").val("6000");
+    //     $("#des_number").val("");
+
+    //     $('#is_save_record')[0].checked = false;
+
+    //     $('#src_channels').empty();
+    //     $('#des_channels').empty();
+
+    //     selectChannel = getSelectedChannels();
+
+    //     let srcArr = [],
+    //         desArr = [];
+
+    //     $.each(selectChannel, function(index, item) {
+    //         srcArr.push($(item).val());
+    //     });
+
+    //     selectbox.appendOpts({
+    //         el: "src_channels",
+    //         opts: transSelectData(srcArr)
+    //     }, doc);
+
+    //     $.each($("." + ch_chkbxClass), function(index, item) {
+    //         desArr.push($(item).val());
+    //     });
+
+    //     selectbox.appendOpts({
+    //         el: "des_channels",
+    //         opts: transSelectData(desArr)
+    //     }, doc);
+
+    //     top.Custom.init(document, $("#pstn_div")[0]);
+
+    //     type = "pstn";
+    // }
+
+    // _pstnCancel = () => {
+    //     $("#pstn_div").hide();
+
+    //     $("#editForm").show();
+
+    //     top.dialog.dialogCommands.show();
+
+    //     type = "edit";
+
+    //     if (window.frameElement) {
+    //         $(window.frameElement).css("height", "0px");
+    //         $(window.frameElement).css("width", "0px");
+    //     }
+
+    //     top.dialog.currentDialogType = "iframe";
+
+    //     top.dialog.repositionDialog();
+    // }
+
+    // function pstnAfter() {
+    //     top.dialog.container.show();
+
+    //     top.dialog.shadeDiv.show();
+
+    //     pstnCancel();
+    // }
+
+    // _pstnStop = () => {
+    //     let des_channel = "";
+
+    //     if ($("#detect_model").val() == "1") {
+    //         des_channel = "-1";
+    //     } else {
+    //         des_channel = $("#des_channels").val();
+    //     }
+
+    //     let buf = {
+    //         "action": "stopPSTNDetecting",
+    //         "pstn_type": "pstn_cpt",
+    //         "src_channel": $("#src_channels").val(),
+    //         "dest_channel": des_channel,
+    //         "src_extension": $("#src_number").val(),
+    //         "dest_extension": $("#des_number").val(),
+    //         'is_save_record': $('#is_save_record')[0].checked ? 'yes' : 'no'
+    //     };
+
+    //     $.ajax({
+    //         type: "post",
+    //         url: baseServerURl,
+    //         data: buf,
+    //         success: pstnAfter
+    //     });
+    // }
+    // _pstnOver = () => {
+    //     let i = 120,
+    //         status_type = 1,
+    //     getResponce(1);
+    // }
+    // _getResponce = (flag) => {
+    //     setTimeout(function() {
+    //         let buf = {
+    //             action: "getPSTNDetecting",
+    //             pstn_type: "pstn_cpt"
+    //         };
+
+    //         $.ajax({
+    //             type: "post",
+    //             url: baseServerURl,
+    //             data: buf,
+    //             success: function(res) {
+    //                 if (res.status == -5) {
+    //                     UCMGUI.loginFunction.switchToLoginPanel();
+    //                     return;
+    //                 }
+    //                 let bool = UCMGUI.errorHandler(res, function(argument) {
+    //                     top.dialog.container.show();
+    //                     top.dialog.shadeDiv.show();
+    //                 });
+
+    //                 if (bool) {
+    //                     let result = res.response.result,
+    //                         state = result.state,
+    //                         errCode = Number(result.errCode),
+    //                         currentDisconnect = result.current_disconnect,
+    //                         currentDisconnectTime = Number(result.current_disconnect_time),
+    //                         polarity = result.polarity,
+    //                         busytone = result.busytone,
+    //                         frequencies = result.frequencies,
+    //                         cadence = result.cadence;
+
+    //                     if (state == "done") {
+    //                         flag = 0;
+
+    //                         if (!errCode) {
+    //                             // currentDisconnectTime = Math.round(currentDisconnectTime * 0.085) * 10;
+    //                             let buf = "",
+    //                                 sCon = 'LANG2338';
+
+    //                             if (currentDisconnect == "yes") {
+    //                                 buf += $P.lang("LANG1694") + ": " + currentDisconnectTime + "<br/>";
+    //                             } else {
+    //                                 buf += $P.lang("LANG1694") + ": " + currentDisconnect + "<br/>";
+    //                             }
+
+    //                             if (polarity) {
+    //                                 buf += $P.lang("LANG1340") + ": " + polarity + "<br/>";
+    //                             }
+
+    //                             if (busytone == "yes") {
+    //                                 buf += $P.lang("LANG1325") + ": frequencies=" + frequencies + " cadence=" + cadence + "<br/>";
+    //                             }
+
+    //                             if ($('#is_save_record')[0].checked && currentDisconnect === 'yes' && busytone === 'no') {
+    //                                 sCon = 'LANG5151';
+    //                             }
+
+    //                             top.dialog.dialogConfirm({
+    //                                 confirmStr: $P.lang(sCon).format(buf),
+    //                                 buttons: {
+    //                                     ok: function() {
+    //                                         if (currentDisconnect == "yes") {
+    //                                             $("#enablecurrentdisconnectthreshold")[0].checked = true;
+    //                                             $("#currentdisconnectthreshold").val(currentDisconnectTime);
+    //                                             // $("#currentdisconnectthreshold").removeAttr('disabled');
+    //                                             $("#currentdisconnectthreshold").show();
+    //                                         } else {
+    //                                             $("#enablecurrentdisconnectthreshold")[0].checked = false;
+    //                                             // $("#currentdisconnectthreshold").attr('disabled', true);
+    //                                             $("#currentdisconnectthreshold").hide();
+    //                                         }
+
+    //                                         if (polarity) {
+    //                                             $("#polarityswitch")[0].checked = (polarity.toLowerCase() == "yes" ? true : false);
+    //                                             $("#polarityswitch").trigger("change");
+    //                                         }
+
+    //                                         if (busytone == "yes") {
+    //                                             $("#countrytone").val("custom");
+    //                                             $("#busydetect")[0].checked = true;
+    //                                             $("#busycountfield").show();
+    //                                             $('.tone-setting').removeAttr('disabled');
+    //                                         }
+
+    //                                         if (frequencies && cadence) {
+    //                                             let frequenciesCadence = "f1=" + frequencies.split("+")[0] + "@-50," + "f2=" + frequencies.split("+")[1] + "@-50," + cadence;
+    //                                             $("#busy").val(frequenciesCadence);
+    //                                         }
+
+    //                                         top.Custom.init(document);
+
+    //                                         pstnAfter();
+    //                                     },
+    //                                     cancel: function() {
+    //                                         pstnAfter();
+    //                                     }
+    //                                 }
+    //                             });
+    //                         } else {
+    //                             top.dialog.clearDialog();
+
+    //                             top.dialog.dialogMessage({
+    //                                 type: 'error',
+    //                                 content: $P.lang(mappingErrCode[errCode]),
+    //                                 callback: pstnAfter
+    //                             });
+    //                         }
+    //                     } else if ($("#detect_model").val() == "1") {
+    //                         if (state == "ring back tone") {
+    //                             flag = 0;
+
+    //                             top.dialog.dialogConfirm({
+    //                                 confirmStr: $P.lang("LANG2412"),
+    //                                 buttons: {
+    //                                     ok: function() {
+    //                                         $.ajax({
+    //                                             type: "post",
+    //                                             url: baseServerURl,
+    //                                             data: "action=PSTNDetectingPickup",
+    //                                             success: function() {
+    //                                                 top.dialog.dialogMessage({
+    //                                                     type: 'loading',
+    //                                                     content: $P.lang("LANG2337")
+    //                                                 });
+
+    //                                                 status_type = 2;
+
+    //                                                 getResponce(1);
+    //                                             }
+    //                                         });
+    //                                     },
+    //                                     cancel: function() {
+    //                                         pstnStop();
+    //                                     }
+    //                                 }
+    //                             });
+    //                         } else if (state == "waiting for hangup" && status_type == 2) {
+    //                             flag = 0;
+
+    //                             top.dialog.dialogConfirm({
+    //                                 confirmStr: $P.lang("LANG2413"),
+    //                                 buttons: {
+    //                                     ok: function() {
+    //                                         $.ajax({
+    //                                             type: "post",
+    //                                             url: "../cgi",
+    //                                             data: "action=PSTNDetectingHangup",
+    //                                             success: function() {
+    //                                                 top.dialog.dialogMessage({
+    //                                                     type: 'loading',
+    //                                                     content: $P.lang("LANG2337")
+    //                                                 });
+
+    //                                                 status_type = 3;
+
+    //                                                 getResponce(1);
+    //                                             }
+    //                                         });
+    //                                     },
+    //                                     cancel: function() {
+    //                                         pstnStop();
+    //                                     }
+    //                                 }
+    //                             });
+    //                         }
+    //                     }
+    //                 }
+
+    //                 i--;
+
+    //                 if (flag && i > 0) {
+    //                     getResponce(1);
+    //                 } else if (i <= 0) {
+    //                     /* time out */
+    //                     top.dialog.clearDialog();
+
+    //                     top.dialog.dialogMessage({
+    //                         type: 'warning',
+    //                         content: $P.lang("LANG2339"),
+    //                         callback: pstnAfter
+    //                     });
+    //                 }
+    //             }
+    //         });
+    //     }, 1000);
+    // }
+    // _pstnSave = () => {
+    //     let des_channel = "";
+
+    //     if ($("#detect_model").val() == "1") {
+    //         des_channel = "-1";
+    //     } else {
+    //         des_channel = $("#des_channels").val();
+    //     }
+
+    //     let buf = {
+    //         "action": "startPSTNDetecting",
+    //         "pstn_type": "pstn_cpt",
+    //         "src_channel": $("#src_channels").val(),
+    //         "dest_channel": des_channel,
+    //         "src_extension": $("#src_number").val(),
+    //         "dest_extension": $("#des_number").val(),
+    //         'is_save_record': $('#is_save_record')[0].checked ? 'yes' : 'no'
+    //     };
+
+    //     $.ajax({
+    //         type: "post",
+    //         url: baseServerURl,
+    //         data: buf,
+    //         success: function(data) {
+    //             let bool = UCMGUI.errorHandler(data, function() {
+    //                 top.dialog.container.show();
+    //                 top.dialog.shadeDiv.show();
+    //             });
+
+    //             if (bool) {
+    //                 pstnOver();
+    //             }
+    //         }
+    //     });
+    //     top.dialog.dialogMessage({
+    //         type: 'loading',
+    //         content: $P.lang("LANG2337")
+    //     });
+    // }
     _handleSubmit = (e) => {
-        // const { formatMessage } = this.props.intl
+        const { formatMessage } = this.props.intl
+        const form = this.props.form 
 
-        // let trunkId = this.props.params.trunkId,
-        //     technology = this.props.params.technology,
-        //     trunkType = this.props.params.trunkType,
-        //     action = {}
+        let trunkId = this.props.params.trunkId,
+            action = {},
+            mode = this.props.route.path,
+            isEdit = (mode.indexOf('edit') === 0),
+            isAdd = (mode.indexOf('add') === 0),
+            cidmodeObj = this.props.cidmodeObj,
+            oldSLAMode = global.oldSLAMode,
+            detectParams = this.props.detectParams
 
-        // if (technology.toLowerCase() === "sip") {
-        //     action["action"] = "updateSIPTrunk"
-        // } else {
-        //     action["action"] = "updateIAXTrunk"
-        // }
+        this.props.form.validateFieldsAndScroll((err, values) => {
+            let me = this
+            let refs = this.refs
 
-        // this.props.form.validateFieldsAndScroll((err, values) => {
-        //     let me = this
-        //     let refs = me.state.refs
+            detectParams.map(function (it) {
+                delete values[it]
+            })
+            delete values.bargeallowed
+            delete values.holdaccess
 
-        //     for (let key in values) {
-        //         if (values.hasOwnProperty(key)) {
-        //             let divKey = refs["div_" + key]
-        //             if (divKey && 
-        //                divKey.props &&
-        //                 ((divKey.props.className &&
-        //                 divKey.props.className.indexOf("hidden") === -1) ||
-        //                 typeof divKey.props.className === "undefined")) {
-        //                 if (!err || (err && typeof err[key] === "undefined")) {
-        //                     action[key] = UCMGUI.transCheckboxVal(values[key])   
-        //                 } else {
-        //                     return
-        //                 }
-        //             } else if (typeof divKey === "undefined") {
-        //                 action[key] = UCMGUI.transCheckboxVal(values[key])
-        //             }
-        //         }
-        //     }
-        //     action = me._transAction(action)
-        //     let confirmStr = ""
+            for (let key in values) {
+                if (values.hasOwnProperty(key)) {
+                    let divKey = refs["div_" + key]
+                    if (divKey && 
+                       divKey.props &&
+                        ((divKey.props.className &&
+                        divKey.props.className.indexOf("hidden") === -1) ||
+                        typeof divKey.props.className === "undefined")) {
+                        if (!err || (err && typeof err[key] === "undefined")) {
+                            action[key] = UCMGUI.transCheckboxVal(values[key])   
+                        } else {
+                            return
+                        }
+                    } else if (typeof divKey === "undefined") {
+                        if (!err || (err && typeof err[key] === "undefined")) {
+                            action[key] = UCMGUI.transCheckboxVal(values[key])   
+                        } else {
+                            return
+                        }
+                    }
+                }
+            }
+            message.loading(formatMessage({id: "LANG904"}), 0)
 
-        //     if ((action["action"].toLowerCase().indexOf('sip') > -1) && /[a-zA-Z]/g.test(action['host']) && !UCMGUI.isIPv6(action['host'])) {
-        //         confirmStr = formatMessage({ id: "LANG4163" })
-        //     } else if ((action["action"].toLowerCase().indexOf('iax') > -1) &&
-        //         (/[a-zA-Z]/g.test(action['host']) || /:\d*$/.test(action['host'])) && !UCMGUI.isIPv6(action['host'])) {
-        //         confirmStr = formatMessage({ id: "LANG4469" })
-        //     }
-        //     if (confirmStr) {
-        //         Modal.confirm({
-        //             title: 'Confirm',
-        //             content: confirmStr,
-        //             okText: formatMessage({id: "LANG727"}),
-        //             cancelText: formatMessage({id: "LANG726"}),
-        //             onOk: this._doUpdateTrunksInfo.bind(this, action)
-        //         })
-        //     } else {
-        //         this._doUpdateTrunksInfo(action)
-        //     }
-        //     this._doUpdateTrunksInfo(action)
-        // })
+            // action = me._transAction(action)
+            delete action.fax_intelligent_route_destination
+
+            let cidmodeVal = action["cidmode"]
+
+            action["cidstart"] = cidmodeObj[cidmodeVal]["cidstart"]
+            action["cidsignalling"] = cidmodeObj[cidmodeVal]["cidsignalling"]
+            action["trunkmode"] = form.getFieldValue("trunkmode") ? 'sla' : 'normal'
+
+            if (!form.getFieldValue("busydetect")) {
+                action["busycount"] = ""
+            }
+
+            if (!form.getFieldValue("congestiondetect")) {
+                action["congestioncount"] = ""
+            }
+
+            if (!form.getFieldValue("enablecurrentdisconnectthreshold")) {
+                action["currentdisconnectthreshold"] = 3000
+            }
+
+            let fax = form.getFieldValue('faxmode')
+            let bEnableRoute = form.getFieldValue('fax_intelligent_route')
+
+            if (fax === "no") {
+                action['faxdetect'] = "no"
+                action['fax_gateway'] = "no"
+            } else if (fax === "detect") {
+                action['faxdetect'] = "incoming"
+                action['fax_gateway'] = "no"
+            } else if (fax === "gateway") {
+                action['faxdetect'] = "no"
+                action['fax_gateway'] = "yes"
+            }
+            delete action.faxmode
+            delete action.fax_intelligent_route
+
+            if (isEdit) {
+                action["trunkgroup"] = global.trunkgroup
+                action["analogtrunk"] = trunkId
+            }
+
+            action["chans"] = this.state.checkedChansList.toString()
+
+            if (isAdd) {
+                action["trunkgroup"] = ''
+            }
+
+            action["action"] = (mode.indexOf('edit') === 0 ? "updateAnalogTrunk" : "addAnalogTrunk")
+
+            if (isAdd) {
+                if (form.getFieldValue("trunkmode")) {
+                    let slaAction = {
+                        'action': 'addSLATrunk',
+                        'trunk_name': action['trunk_name'],
+                        'device': ('DAHDI/' + action["chans"]),
+                        'bargeallowed': (form.getFieldValue('bargeallowed') ? 'yes' : 'no'),
+                        'holdaccess': form.getFieldValue('holdaccess')
+                    }
+
+                    action["polarityswitch"] = 'no'
+
+                    this._updateOrAddTrunkInfo(action, 'add', slaAction)
+                } else {
+                    this._updateOrAddTrunkInfo(action)
+                }
+            } else if (isEdit) {
+                if (fax === "detect") {
+                    action['fax_intelligent_route'] = bEnableRoute ? 'yes' : 'no'
+                    if (bEnableRoute && form.getFieldValue('fax_intelligent_route_destination') !== 'no') {
+                        action['fax_intelligent_route_destination'] = form.getFieldValue('fax_intelligent_route_destination')
+                    }
+                }
+
+                if (form.getFieldValue("trunkmode")) {
+                    action["polarityswitch"] = 'no'
+
+                    if (oldSLAMode === 'sla') {
+                        let slaAction = {
+                            'action': 'updateSLATrunk',
+                            'trunk_index': trunkId,
+                            'trunk_name': action['trunk_name'],
+                            'device': ('DAHDI/' + action["chans"]),
+                            'bargeallowed': (form.getFieldValue('bargeallowed') ? 'yes' : 'no'),
+                            'holdaccess': form.getFieldValue('holdaccess')
+                        }
+
+                        this._updateOrAddTrunkInfo(action, 'update', slaAction)
+                    } else {
+                        let slaAction = {
+                            'action': 'addSLATrunk',
+                            'trunk_index': trunkId,
+                            'trunk_name': action['trunk_name'],
+                            'device': ('DAHDI/' + action["chans"]),
+                            'bargeallowed': form.getFieldValue('bargeallowed') ? 'yes' : 'no',
+                            'holdaccess': form.getFieldValue('holdaccess')
+                        }
+
+                        this._updateOrAddTrunkInfo(action, 'add', slaAction)
+                    }
+                } else if (oldSLAMode === 'sla') {
+                    let slaAction = {
+                        'action': 'deleteSLATrunk',
+                        'trunk_index': trunkId
+                    }
+
+                    this._updateOrAddTrunkInfo(action, 'delete', slaAction)
+                } else {
+                    this._updateOrAddTrunkInfo(action)
+                }
+            }
+        })
+    }
+    _updateOrAddTrunkInfo = (action, slaActionMode, slaAction) => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: action,
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.destroy()
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                if (bool) {
+                    let callback = function() {
+                        message.destroy()
+                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                        browserHistory.push('/extension-trunk/analogTrunk')
+                    }
+
+                    if (slaActionMode) {
+                        this._updateOrAddSLATrunkInfo(slaActionMode, slaAction, callback)
+                    } else {
+                        callback()
+                    }
+                }
+            }.bind(this)
+        })
+    }
+    _updateOrAddSLATrunkInfo = (actionMode, action, callback) => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            data: action,
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.destroy()
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                if (bool) {
+                    if (callback && typeof callback === "function") {
+                        callback()
+                    }
+                }
+            }.bind(this)
+        })
     }
     _handleCancel = (e) => {
         browserHistory.push('/extension-trunk/analogTrunk')
@@ -590,8 +1192,33 @@ class AnalogTrunkItem extends Component {
     //         visible: false
     //     })
     // }
+    _trunkNameIsExist = (rule, value, callback, errMsg) => {
+        let _this = this,
+            mode = this.props.route.path,
+            params = this.props.params,
+            isEdit = (mode.indexOf('edit') === 0),
+            isAdd = (mode.indexOf('add') === 0)
+
+        if (value && value.length >= 2) {
+            if (this.state.checkedChansList.length !== 0) {
+                if (_.find(this.state.trunkNameList, function (num) { 
+                    if (isEdit) {
+                        return (num === value && params && params.trunkName !== value)
+                    } else if (isAdd) {
+                        return num === value
+                    }
+                })) {
+                    callback(errMsg)
+                }
+                callback()
+            } else {
+                callback(errMsg)
+            }
+        }
+        callback()
+    }
     render() {
-        const { getFieldDecorator } = this.props.form
+        const { getFieldDecorator, getFieldValue } = this.props.form
         const { formatMessage } = this.props.intl
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -599,11 +1226,20 @@ class AnalogTrunkItem extends Component {
         }
 
         let state = this.state,
+            analogtrunk = state.analogtrunk,
+            params = this.props.params,
             mode = this.props.route.path,
+            isEdit = (mode.indexOf('edit') === 0),
+            isAdd = (mode.indexOf('add') === 0),
             headerTitle = formatMessage({id: "LANG762"})
         
-        if (mode.indexOf('edit') === 0) {
-            headerTitle = formatMessage({id: "LANG642"}, {0: formatMessage({id: "LANG105"}), 1: "trunkName"})
+        if (isEdit) {
+            headerTitle = formatMessage({
+                id: "LANG642"
+            }, {
+                0: formatMessage({id: "LANG105"}), 
+                1: params.trunkName
+            })
         }
         return (
             <div className="app-content-main" id="app-content-main">
@@ -619,19 +1255,14 @@ class AnalogTrunkItem extends Component {
                             <FormItem
                                 { ...formItemLayout }
                                 label={formatMessage({id: "LANG1329"})}>
-                                { getFieldDecorator('new_ATRNK_cls_container', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: ""
-                                })(
-                                    <Checkbox />
-                                )}
+                                <CheckboxGroup options={ state.totalChans } value={ state.checkedChansList } onChange={ this._onChangeChans } />
                             </FormItem>
                         </Col>
                         <Col span={12}>
                             <FormItem
-                                { ...formItemLayout }
+                                ref="div_trunkgroup"
                                 className="hidden"
+                                { ...formItemLayout }
                                 label={(
                                     <Tooltip title={<FormattedHTMLMessage id="LANG1343" />}>
                                         <span>{formatMessage({id: "LANG1342"})}</span>
@@ -639,7 +1270,7 @@ class AnalogTrunkItem extends Component {
                                 )}>
                                 { getFieldDecorator('trunkgroup', {
                                     rules: [],
-                                    initialValue: ""
+                                    initialValue: analogtrunk.trunkgroup || ""
                                 })(
                                     <Select></Select>
                                 )}
@@ -656,8 +1287,34 @@ class AnalogTrunkItem extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('trunk_name', {
-                                    rules: [],
-                                    initialValue: ""
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.minlength(data, value, callback, formatMessage, 2)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            let errMsg = formatMessage({id: "LANG2135"}, {0: 1, 1: formatMessage({id: "LANG1329"})})
+                                            this._trunkNameIsExist(data, value, callback, errMsg)
+                                        }
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            let errMsg = formatMessage({id: "LANG3224"})
+
+                                            if (state.checkedChansList.length > 1 && getFieldValue('trunkmode')) {
+                                                callback(errMsg)
+                                            }
+
+                                            callback()
+                                        }
+                                    }],
+                                    initialValue: analogtrunk.trunk_name || ""
                                 })(
                                     <Input />
                                 )}
@@ -672,55 +1329,70 @@ class AnalogTrunkItem extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('trunkmode', {
-                                    rules: [],
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            let errMsg = formatMessage({id: "LANG3284"}),
+                                                isFind = _.find(this.state.failoverTrunkList, function (num) { 
+                                                            return num === value
+                                                        })
+
+                                            if (isEdit && value && typeof isFind !== "undefined") {
+                                                callback(errMsg)
+                                            }
+
+                                            callback()
+                                        }
+                                    }],
                                     valuePropName: 'checked',
-                                    initialValue: ""
+                                    initialValue: analogtrunk.trunkmode === "yes" ? true : false
                                 })(
                                     <Checkbox onChange={ this._onChangeTrunkmode } disabled={ state.polarityswitchVal ? true : false }/>
                                 )}
                             </FormItem>                        
                         </Col>
                     </Row>
-                    <div ref="div_slaOptions" className={ state.div_slaOptions_style === false ? "hidden" : "display-block" }>
-                        <Row>
-                            <Col span={12}>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3221" />}>
-                                            {formatMessage({id: "LANG3220"})}
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('bargeallowed', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: ""
-                                    })(
-                                        <Checkbox />
-                                    )}
-                                </FormItem>
-                            </Col>
-                            <Col span={12}>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3223" />}>
-                                            {formatMessage({id: "LANG3222"})}
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('holdaccess', {
-                                        rules: [],
-                                        initialValue: "open"
-                                    })(
-                                        <Select style={{ width: 200 }}>
-                                            <Option value="open">Open</Option>
-                                            <Option value="private">Private</Option>
-                                        </Select>
-                                    )}
-                                </FormItem>                        
-                            </Col>
-                        </Row>  
-                    </div>
+                    <Row ref="div_slaOptions" className={ state.div_slaOptions_style === false ? "hidden" : "display-block" }>
+                        <Col span={12}>
+                            <FormItem
+                                ref="div_bargeallowed"
+                                className={ state.div_slaOptions_style === false ? "hidden" : "display-block" }
+                                { ...formItemLayout }
+                                label={
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG3221" />}>
+                                        {formatMessage({id: "LANG3220"})}
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('bargeallowed', {
+                                    rules: [],
+                                    valuePropName: 'checked',
+                                    initialValue: analogtrunk.bargeallowed === "yes" ? true : false
+                                })(
+                                    <Checkbox />
+                                )}
+                            </FormItem>
+                        </Col>
+                        <Col span={12}>
+                            <FormItem
+                                ref="div_holdaccess"
+                                className={ state.div_slaOptions_style === false ? "hidden" : "display-block" }
+                                { ...formItemLayout }
+                                label={
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG3223" />}>
+                                        {formatMessage({id: "LANG3222"})}
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('holdaccess', {
+                                    rules: [],
+                                    initialValue: analogtrunk.holdaccess || "open"
+                                })(
+                                    <Select style={{ width: 200 }}>
+                                        <Option value="open">Open</Option>
+                                        <Option value="private">Private</Option>
+                                    </Select>
+                                )}
+                            </FormItem>                        
+                        </Col>
+                    </Row>  
                     <div className="section-title">
                         <span>{ formatMessage({id: "LANG229"}) }</span>
                     </div>
@@ -737,9 +1409,9 @@ class AnalogTrunkItem extends Component {
                                     { getFieldDecorator('polarityswitch', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: analogtrunk.polarityswitch === "yes" ? true : false
                                     })(
-                                        <Checkbox onChange={ this._onChangePolarityswitch } />
+                                        <Checkbox onChange={ this._onChangePolarityswitch } disabled={ state.trunkmodeVal ? true : false } />
                                     )}
                                 </FormItem>
                             </Col>
@@ -754,10 +1426,14 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('polarityonanswerdelay', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }],
+                                        initialValue: analogtrunk.polarityonanswerdelay || 600
                                     })(
-                                        <Input maxLength="4" />
+                                        <InputNumber maxLength="4" min={ 100 } max={ 2000 }/>
                                     )}
                                 </FormItem>
                             </Col>
@@ -765,6 +1441,8 @@ class AnalogTrunkItem extends Component {
                         <Row>
                             <Col span={12}>
                                 <FormItem
+                                    ref="div_currentdisconnectthreshold" 
+                                    className={ state.div_currentdisconnectthreshold_style === false ? "hidden" : "display-block" }
                                     { ...formItemLayout }
                                     label={(
                                         <Tooltip title={<FormattedHTMLMessage id="LANG1695" />}>
@@ -774,11 +1452,23 @@ class AnalogTrunkItem extends Component {
                                     { getFieldDecorator('enablecurrentdisconnectthreshold', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: analogtrunk.enablecurrentdisconnectthreshold === "no" ? false : true
                                     })(
                                         <Checkbox onChange={ this._onChangeEnablecurrentdisconnectthreshold }/>
                                     )}
-                                    <Input ref="div_currentdisconnectthreshold" className={ state.div_currentdisconnectthreshold_style === false ? "hidden" : "display-block" }/>
+                                    <span className={ state.div_currentdisconnectthreshold === false ? "hidden" : "display-inline" }>
+                                        { getFieldDecorator('currentdisconnectthreshold', {
+                                            rules: [{ 
+                                                type: "integer", 
+                                                required: true, 
+                                                message: formatMessage({id: "LANG2150"}) 
+                                            }],
+                                            initialValue: analogtrunk.currentdisconnectthreshold || 200
+                                        })(
+                                            <InputNumber min={50} max={3000} />
+                                        )}
+
+                                    </span>
                                 </FormItem>
                             </Col>
                             <Col span={12}>
@@ -790,10 +1480,14 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('ringtimeout', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }],
+                                        initialValue: analogtrunk.ringtimeout || 8000
                                     })(
-                                        <Input />
+                                        <InputNumber min={ 4000 } max={ 20000 } />
                                     )}
                                 </FormItem>
                             </Col>
@@ -808,8 +1502,15 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('rxgain', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                Validator.gain(data, value, callback, formatMessage, [-13.5, 12])
+                                            }
+                                        }],
+                                        initialValue: analogtrunk.rxgain || 0
                                     })(
                                         <Input />
                                     )}
@@ -824,8 +1525,15 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('txgain', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                Validator.gain(data, value, callback, formatMessage, [-13.5, 12])
+                                            }
+                                        }],
+                                        initialValue: analogtrunk.txgain || 0
                                     })(
                                         <Input />
                                     )}
@@ -844,14 +1552,16 @@ class AnalogTrunkItem extends Component {
                                     { getFieldDecorator('usecallerid', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: analogtrunk.usecallerid === "no" ? false : true
                                     })(
                                         <Checkbox />
                                     )}
                                 </FormItem>
                             </Col>
-                            <Col span={12} ref="div_faxmode" className={ state.div_detect_style === false ? "hidden" : "display-block" }>
+                            <Col span={12}>
                                 <FormItem
+                                    ref="div_faxmode" 
+                                    className={ state.div_fax_style === false ? "hidden" : "display-block" }
                                     { ...formItemLayout }
                                     label={(
                                         <Tooltip title={ formatMessage({id: "LANG3555"}) }>
@@ -860,9 +1570,9 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('faxmode', {
                                         rules: [],
-                                        initialValue: ""
+                                        initialValue: analogtrunk.faxmode || "no"
                                     })(
-                                        <Select>
+                                        <Select onChange={ this._onClickFaxmode }>
                                             <Option value='no'>{formatMessage({id: "LANG133"})}</Option>
                                             <Option value='detect'>{formatMessage({id: "LANG1135"})}</Option>
                                             <Option value='gateway'>{formatMessage({id: "LANG3554"})}</Option>
@@ -871,26 +1581,30 @@ class AnalogTrunkItem extends Component {
                                 </FormItem>
                             </Col>
                         </Row>
-                        <Row id="div_detect" className={ state.div_detect_style === false ? "hidden" : "display-block" }>
+                        <Row ref="div_fax" className={ state.div_fax_style === false ? "hidden" : "display-block" }>
                             <Col span={12}>
                                 <FormItem
+                                    ref="div_fax_intelligent_route"
+                                    className={ state.div_fax_style === false ? "hidden" : "display-block" }
                                     { ...formItemLayout }
                                     label={(
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG1352" />}>
-                                            {formatMessage({id: "LANG1353"})}
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG4380" />}>
+                                            {formatMessage({id: "LANG4379"})}
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('fax_intelligent_route', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: analogtrunk.fax_intelligent_route === "yes" ? true : false
                                     })(
-                                        <Checkbox />
+                                        <Checkbox onChange={ this._onChangefaxIntelligentRoute }/>
                                     )}
                                 </FormItem>
                             </Col>
                             <Col span={12}>
                                 <FormItem
+                                    ref="div_fax_intelligent_route_destination"
+                                    className={ state.div_fax_style === false ? "hidden" : "display-block" }
                                     { ...formItemLayout }
                                     label={(
                                         <Tooltip title={ formatMessage({id: "LANG4380"}) }>
@@ -899,10 +1613,18 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('fax_intelligent_route_destination', {
                                         rules: [],
-                                        initialValue: "no"
+                                        initialValue: analogtrunk.fax_intelligent_route_destination || "no"
                                     })(
-                                        <Select>
-                                            <Option value='no'>{formatMessage({id: "LANG133"})}</Option>
+                                        <Select disabled={ state.faxIntelligentRouteVal ? false : true }>
+                                        {
+                                            state.faxIntelligentRouteDestinationOpts.map(function(it) {
+                                                let val = it.val,
+                                                    text = it.text
+                                                return <Option key={ val } value={ val }>
+                                                       { text ? text : val }
+                                                    </Option>
+                                            }) 
+                                        }
                                         </Select>
                                     )}
                                 </FormItem>
@@ -919,7 +1641,7 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('cidmode', {
                                         rules: [],
-                                        initialValue: "0"
+                                        initialValue: analogtrunk.cidmode || "0"
                                     })(
                                     <Select>
                                         <Option value='0'>{formatMessage({id: "LANG2268"})}</Option>
@@ -947,10 +1669,14 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('fxooutbandcalldialdelay', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }],
+                                        initialValue: analogtrunk.fxooutbandcalldialdelay || 0
                                     })(
-                                        <Input />
+                                        <InputNumber min={0} max={3000} />
                                     )}
                                 </FormItem>
                             </Col>
@@ -966,7 +1692,7 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('auto_record', {
                                         rules: [],
-                                        initialValue: false
+                                        initialValue: analogtrunk.auto_record === "yes" ? true : false
                                     })(
                                         <Checkbox />
                                     )}
@@ -983,7 +1709,7 @@ class AnalogTrunkItem extends Component {
                                     { getFieldDecorator('out_of_service', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: false
+                                        initialValue: analogtrunk.out_of_service === "yes" ? true : false
                                     })(
                                         <Checkbox />
                                     )}
@@ -1001,9 +1727,9 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('dahdilineselectmode', {
                                         rules: [],
-                                        initialValue: "ascend"
+                                        initialValue: analogtrunk.dahdilineselectmode || "ascend"
                                     })(
-                                        <Select>
+                                        <Select disabled={ state.trunkmodeVal ? true : false }>
                                             <Option value='ascend'>{formatMessage({id: "LANG3534"})}</Option>
                                             <Option value='poll'>{formatMessage({id: "LANG3535"})}</Option>
                                             <Option value='desend'>{formatMessage({id: "LANG3536"})}</Option>
@@ -1022,10 +1748,24 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('out_maxchans', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = formatMessage({id: "LANG3972"})
+
+                                                if (parseInt(value) > state.checkedChansList.length) {
+                                                    callback(errMsg)
+                                                }
+
+                                                callback()
+                                            }
+                                        }],
+                                        initialValue: analogtrunk.out_maxchans || ""
                                     })(
-                                        <Input />
+                                        <InputNumber disabled={ state.trunkmodeVal ? true : false } />
                                     )}
                                 </FormItem>
                             </Col>
@@ -1047,7 +1787,7 @@ class AnalogTrunkItem extends Component {
                                     { getFieldDecorator('busydetect', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: analogtrunk.busydetect === "no" ? false : true
                                     })(
                                         <Checkbox onChange={ this._onChangeBusydetect } />
                                     )}
@@ -1064,10 +1804,23 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('busycount', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = formatMessage({id: "LANG3840"})
+
+                                                if (value < 1 || value > 2 || value !== parseInt(value)) {
+                                                    callback(errMsg)
+                                                }
+                                                callback()
+                                            }
+                                        }],
+                                        initialValue: Number(analogtrunk.busycount) || 2
                                     })(
-                                        <Input />
+                                        <InputNumber />
                                     )}
                                 </FormItem>
                             </Col>
@@ -1084,7 +1837,7 @@ class AnalogTrunkItem extends Component {
                                     { getFieldDecorator('congestiondetect', {
                                         rules: [],
                                         valuePropName: "checked",
-                                        initialValue: ""
+                                        initialValue: analogtrunk.congestiondetect === "no" ? false : true
                                     })(
                                         <Checkbox onChange={ this._onChangeCongestiondetect }/>
                                     )}
@@ -1101,8 +1854,21 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('congestioncount', {
-                                        rules: [],
-                                        initialValue: ""
+                                        rules: [{ 
+                                            type: "integer", 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = formatMessage({id: "LANG3840"})
+
+                                                if (value < 1 || value > 2 || value !== parseInt(value)) {
+                                                    callback(errMsg)
+                                                }
+                                                callback()
+                                            }
+                                        }],
+                                        initialValue: analogtrunk.congestioncount || "2"
                                     })(
                                         <Input />
                                     )}
@@ -1120,10 +1886,23 @@ class AnalogTrunkItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('countrytone', {
-                                        rules: [],
-                                        initialValue: "us"
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"}) 
+                                        }],
+                                        initialValue: analogtrunk.countrytone || "us"
                                     })(
-                                        <Select></Select>
+                                        <Select onChange={ this._onChangeCountrytone }>
+                                        {
+                                            state.countrytoneOpts.map(function(it) {
+                                                let val = it.val,
+                                                    text = it.text
+                                                return <Option key={ val } value={ val }>
+                                                       { text ? text : val }
+                                                    </Option>
+                                            }) 
+                                        }
+                                        </Select>
                                     )}
                                 </FormItem>
                             </Col>
@@ -1137,9 +1916,234 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('busy', {
                                         rules: [],
+                                        initialValue: analogtrunk.busy || ""
+                                    })(
+                                        <Input disabled={ state.busyDisabled ? true : false }/>
+                                    )}
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_busypattern"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('busypattern', {
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = 'Invalid Format ( format example: 500,500 )'
+
+                                                if (!value) {
+                                                    callback()
+                                                }
+
+                                                if (/^[0-9]+,[0-9]+$/.test(value)) {
+                                                    callback()
+                                                } else {
+                                                    callback(errMsg)
+                                                }
+                                            }
+                                        }],
+                                        initialValue: "500,500"
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_congestionpattern"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('congestionpattern', {
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = "Invalid Format ( format example: X,X ), the range of 'X' is [100,2000]"
+
+                                                if (!value) {
+                                                    callback()
+                                                }
+
+                                                if (/^[0-9]+,[0-9]+$/.test(value)) {
+                                                    let a = Number(value.split(',')[0]),
+                                                        b = Number(value.split(',')[1])
+
+                                                    if (a >= 100 && a <= 2000 && b >= 100 && b <= 2000) {
+                                                        callback()
+                                                    } else {
+                                                        callback(errMsg)
+                                                    }
+                                                } else {
+                                                    callback(errMsg)
+                                                }
+                                            }
+                                        }],
+                                        initialValue: "250,250"
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_busyfrequencies"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('busyfrequencies', {
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = "Invalid format (format example: 450 or 480+620)."
+
+                                                if (!value) {
+                                                    callback()
+                                                }
+
+                                                if (/^[0-9]+\+?[0-9]+$/.test(value)) {
+                                                    callback()
+                                                }
+
+                                                callback(errMsg)
+                                            }
+                                        }],
+                                        initialValue: "480+620"
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_congestionfrequencies"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('congestionfrequencies', {
+                                        rules: [{ 
+                                            required: true, 
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, { 
+                                            validator: (data, value, callback) => {
+                                                let errMsg = "Invalid format (format example: 450 or 480+620)."
+
+                                                if (!value) {
+                                                    callback()
+                                                }
+
+                                                if (/^[0-9]+\+?[0-9]+$/.test(value)) {
+                                                    callback()
+                                                }
+
+                                                callback(errMsg)
+                                            }
+                                        }],
+                                        initialValue: "450+450"
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_busylevels"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('busylevels', {
+                                        rules: [],
                                         initialValue: ""
                                     })(
-                                        <Input className="tone-setting"/>
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_congestionlevels"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('congestionlevels', {
+                                        rules: [],
+                                        initialValue: ""
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_congestioncount"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('congestioncount', {
+                                        rules: [],
+                                        initialValue: ""
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_cidstart"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('cidstart', {
+                                        rules: [],
+                                        initialValue: ""
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_cidsignalling"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('cidsignalling', {
+                                        rules: [],
+                                        initialValue: ""
+                                    })(
+                                        <Input />
+                                    )}
+                                </FormItem>
+                            </Col>
+                            <Col span={12}>
+                                <FormItem
+                                    ref="div_echocancel"
+                                    className="hidden"
+                                    { ...formItemLayout }
+                                    label="">
+                                    { getFieldDecorator('echocancel', {
+                                        rules: [],
+                                        initialValue: "128"
+                                    })(
+                                        <Input />
                                     )}
                                 </FormItem>
                             </Col>
@@ -1156,23 +2160,13 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('congestion', {
                                         rules: [],
-                                        initialValue: ""
+                                        initialValue: analogtrunk.congestion || ""
                                     })(
                                         <Input />
                                     )}
                                 </FormItem>
                             </Col>
                             <Col span={12}>
-                                {/* <input type="hidden" id="busypattern" name="busypattern" dfalt='500,500' />
-                                <input type="hidden" id="congestionpattern" name="congestionpattern" dfalt='250,250' />
-                                <input type="hidden" id="busyfrequencies" name="busyfrequencies" dfalt='480+620' />
-                                <input type="hidden" id="congestionfrequencies" name="congestionfrequencies" dfalt='450+450' />
-                                <input type="hidden" id="busylevels" name="busylevels" />
-                                <input type="hidden" id="congestionlevels" name="congestionlevels" />
-                                <input type="hidden" id="congestioncount" name="congestioncount" />
-                                <input type="hidden" id="cidstart" name="cidstart" />
-                                <input type="hidden" id="cidsignalling" name="cidsignalling" />
-                                <input type="hidden" id="echocancel" name="echocancel" dfalt='128' value="128" /> */}
                                 <FormItem
                                     { ...formItemLayout }
                                     label={(
@@ -1180,14 +2174,14 @@ class AnalogTrunkItem extends Component {
                                             {formatMessage({id: "LANG2347"})}
                                         </Tooltip>
                                     )}>
-                                    <Button type="primary" ref="detect" size="default" onClick={ this._onClickDetect }>{formatMessage({id: "LANG2325"})}</Button>
+                                    <Button type="primary" ref="detect" size="default" onClick={ this._onClickDetect } disabled={ state.checkedChansList.length !== 0 ? false : true}>{formatMessage({id: "LANG2325"})}</Button>
                                 </FormItem>
                             </Col>
                         </Row>
                     </div>
                     <Modal 
                         title={formatMessage({id: "LANG2347"})}
-                        visible={this.state.visible}
+                        visible={ state.visible }
                         onOk={this._handleOk} 
                         onCancel={this._handleCancel}
                         okText={formatMessage({id: "LANG2325"})}
@@ -1201,7 +2195,7 @@ class AnalogTrunkItem extends Component {
                                 )}>
                                 { getFieldDecorator('detect_model', {
                                     rules: [],
-                                    initialValue: ""
+                                    initialValue: analogtrunk.detect_model || "0"
                                 })(
                                     <Select>
                                         <Option value='0'>{formatMessage({id: "LANG2410"})}</Option>
@@ -1218,14 +2212,14 @@ class AnalogTrunkItem extends Component {
                                 )}>
                                 { getFieldDecorator('src_channels', {
                                     rules: [],
-                                    initialValue: ""
+                                    initialValue: analogtrunk.src_channels || ""
                                 })(
                                     <Select></Select>
                                 )}
                             </FormItem>
                             <FormItem
-                                { ...formItemLayout }
                                 className="hidden"
+                                { ...formItemLayout }
                                 label={(
                                     <Tooltip title={ formatMessage({id: "LANG2331"}) }>
                                         {formatMessage({id: "LANG2330"})}
@@ -1233,7 +2227,7 @@ class AnalogTrunkItem extends Component {
                                 )}>
                                 { getFieldDecorator('src_number', {
                                     rules: [],
-                                    initialValue: ""
+                                    initialValue: analogtrunk.src_number || ""
                                 })(
                                     <Input maxLength="32" />
                                 )}
@@ -1246,8 +2240,17 @@ class AnalogTrunkItem extends Component {
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('des_channels', {
-                                    rules: [],
-                                    initialValue: ""
+                                    rules: [{ 
+                                        validator: (data, value, callback) => {
+                                            let errMsg = formatMessage({id: "LANG2334"})
+
+                                            if (!(getFieldValue("src_channels") === getFieldValue("des_channels"))) {
+                                                callback(errMsg)
+                                            }
+                                            callback(errMsg)
+                                        }
+                                    }],
+                                    initialValue: analogtrunk.des_channels || ""
                                 })(
                                     <Select></Select>
                                 )}
@@ -1260,10 +2263,18 @@ class AnalogTrunkItem extends Component {
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('des_number', {
-                                    rules: [],
-                                    initialValue: ""
+                                    rules: [{ 
+                                        type: "integer", 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }, { 
+                                        validator: (data, value, callback) => {
+                                            Validator.minlength(data, value, callback, formatMessage, 2)
+                                        }
+                                    }],
+                                    initialValue: analogtrunk.des_number || ""
                                 })(
-                                    <Input maxLength="32" />
+                                    <InputNumber maxLength="32" />
                                 )}
                             </FormItem>
                             <FormItem
@@ -1275,7 +2286,7 @@ class AnalogTrunkItem extends Component {
                                 )}>
                                 { getFieldDecorator('is_save_record', {
                                     rules: [],
-                                    initialValue: ""
+                                    initialValue: analogtrunk.is_save_record === "yes" ? true : false
                                 })(
                                     <Checkbox />
                                 )}
@@ -1289,6 +2300,7 @@ class AnalogTrunkItem extends Component {
 }
 
 AnalogTrunkItem.defaultProps = {
+    detectParams: ["detect_model", "src_channels", "src_number", "des_channels", "des_number", "is_save_record"],
     cidmodeObj: {
         0: {
             cidstart: "ring",

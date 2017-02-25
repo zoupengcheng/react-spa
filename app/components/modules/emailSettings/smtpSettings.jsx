@@ -133,7 +133,7 @@ class smtpSettings extends Component {
                         }>
                         { getFieldDecorator('smtp_domain', {
                             rules: [{
-                                required: true,
+                                required: email_settings.smtp_type === 'client' ? false : true,
                                 message: formatMessage({id: "LANG2050"})
                             }],
                             initialValue: email_settings.smtp_domain
@@ -152,7 +152,7 @@ class smtpSettings extends Component {
                         }>
                         { getFieldDecorator('smtp_server', {
                             rules: [{
-                                required: true,
+                                required: email_settings.smtp_type === 'mta' ? false : true,
                                 message: formatMessage({id: "LANG2052"})
                             }],
                             initialValue: email_settings.smtp_server
@@ -171,7 +171,7 @@ class smtpSettings extends Component {
                         }>
                         { getFieldDecorator('smtp_username', {
                             rules: [{
-                                required: true,
+                                required: email_settings.smtp_type === 'mta' ? false : true,
                                 message: formatMessage({id: "LANG2150"})
                             }],
                             initialValue: email_settings.smtp_username
@@ -190,12 +190,12 @@ class smtpSettings extends Component {
                         }>
                         { getFieldDecorator('smtp_password', {
                             rules: [{
-                                required: true,
+                                required: email_settings.smtp_type === 'mta' ? false : true,
                                 message: formatMessage({id: "LANG2150"})
                             }],
                             initialValue: email_settings.smtp_password
                         })(
-                            <Input maxLength="60" />
+                            <Input type="password" maxLength="60" />
                         ) }
                     </FormItem>
                     <FormItem

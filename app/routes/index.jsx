@@ -197,14 +197,14 @@ const routes = (state, currentLocaleData) => {
                 let loginSubscribe = SubscribeEvent.login
 
                 loginSubscribe.message.username = cookie.load("username")
-                // loginSubscribe.message.cookie = cookie.load("session-identify")
+                loginSubscribe.message.cookie = cookie.load("session-identify")
                 window.ISREFRESHPAGE = true
                 window.socket.send(loginSubscribe)
 
                 setTimeout(() => {
                     unSubscribeEvent(data, window.LEAVEPAGE)
                 }, 500)
-            } else {                
+            } else {
                 unSubscribeEvent(data, window.LEAVEPAGE)
             }
         }
@@ -248,7 +248,7 @@ const routes = (state, currentLocaleData) => {
                         <IndexRoute component={ AnalogTrunk } />
                         <Route path="analogTrunk" onEnter={ requireAuth } component={ AnalogTrunk } breadcrumbName={ currentLocaleData["LANG639"] } />
                         <Route path="add" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
-                        <Route path="edit/:trunkId" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
+                        <Route path="edit/:trunkId/:trunkName" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
                     </Route>
                     <Route path="digitalTrunk" onEnter={ requireAuth } component={ DigitalTrunk } breadcrumbName={ currentLocaleData["LANG3141"] } />
                     <Route path="dataTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3573"] } >

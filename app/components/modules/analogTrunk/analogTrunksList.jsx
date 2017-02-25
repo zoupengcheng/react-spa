@@ -73,8 +73,8 @@ class extensionList extends Component {
     _createAnalogTrunk = () => {
         browserHistory.push('/extension-trunk/analogTrunk/add')
     }
-    _editTrunk = (e) => {
-        browserHistory.push('/extension-trunk/analogTrunk/edit')
+    _editTrunk = (record) => {
+        browserHistory.push('/extension-trunk/analogTrunk/edit/' + record.trunk_index + "/" + record.trunk_name)
     }
     render() {
         const {formatMessage} = this.props.intl

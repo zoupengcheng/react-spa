@@ -4,6 +4,9 @@ import $ from 'jquery'
 import api from "../../api/api"
 import _ from 'underscore'
 import UCMGUI from "../../api/ucmgui"
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
@@ -392,7 +395,7 @@ class Room extends Component {
                 >
                     <span
                         className="sprite sprite-userkick"
-                        title={ formatMessage({id: "LANG791"}) }
+                        title={ formatMessage({id: "LANG792"}) }
                     ></span>
                 </Popconfirm>
                 { mute }
@@ -432,16 +435,6 @@ class Room extends Component {
                     return this._renderOptions(record)
                 }
             }]
-        const pagination = {
-                total: this.state.confoList.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
-                }
-            }
 
         const expandedRowRender = (e) => {
             const columns = [
@@ -482,6 +475,7 @@ class Room extends Component {
                 <Table
                     columns={ columns }
                     dataSource={ this.state.members[e.extension] }
+                    defaultExpandAllRows = { true }
                     pagination={ false } />
             )
         }
@@ -516,7 +510,7 @@ class Room extends Component {
                     <Table
                         rowKey="extension"
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ false }
                         dataSource={ this.state.confoList }
                         expandedRowRender = { expandedRowRender }
                         defaultExpandAllRows = { true }
@@ -587,4 +581,12 @@ class Room extends Component {
     }
 }
 
-export default Form.create()(injectIntl(Room))
+const mapStateToProps = (state) => ({
+    conferenceStatus: state.conferenceStatus
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default Form.create()(connect(mapStateToProps, mapDispatchToProps)(injectIntl(Room)))

@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Button, message, Modal, Table, Card, Select, Form, Tooltip, Input, InputNumber, Checkbox } from 'antd'
+import { Button, message, Modal, Table, Card, Select, Form, Tooltip, Input, InputNumber, Checkbox, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 const Option = Select.Option
@@ -211,6 +211,9 @@ class NetworkState extends Component {
                         dataSource={ this.state.dataUnix }
                         showHeader={ !!this.state.dataUnix.length }
                     />
+                </div>
+                <div>
+                    <BackTop />
                 </div>
             </div>
         )

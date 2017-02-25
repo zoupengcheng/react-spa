@@ -134,6 +134,7 @@ class VoicePrompt extends Component {
     }
     _checkFilename = (rule, value, callback, errMsg) => {
         const { form } = this.props
+        const me = this
 
         let newvmenuName = form.getFieldValue("newvmenu_name"),
             arr = []
@@ -142,8 +143,8 @@ class VoicePrompt extends Component {
             arr.push(item.n)
         })
 
-        if (_.find(arr, function (num) { 
-            return num === newvmenuName + ".wav"
+        if (_.find(arr, function (num) {
+            return me._removeSuffix(num) === newvmenuName
         })) {
             callback(errMsg)
         }
@@ -622,12 +623,24 @@ class VoicePrompt extends Component {
         })
     }
     _handleOk = () => {
-        this.setState({
-            visible: false
-        })
         if (this.state.type === "recordNew") {
-            this._recordFile()
+            this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+                if (!err) {
+                    console.log('Received values of form: ', values)
+                }
+                if (err.hasOwnProperty('newvmenu_name')) {
+
+                } else {
+                    this.setState({
+                        visible: false
+                    })
+                    this._recordFile()
+                }
+            })
         } else {
+            this.setState({
+                visible: false
+            })
             this._playRecordFile()
         }
     }

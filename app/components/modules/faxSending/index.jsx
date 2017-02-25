@@ -366,8 +366,8 @@ class FaxSending extends Component {
             }
         })
         if (file.type === 'application/pdf' ||
-            file.type === 'application/tif' ||
-            file.type === 'application/tiff') {
+            file.type === 'image/tif' ||
+            file.type === 'image/tiff') {
             isType = true
         } else {
             Modal.warning({

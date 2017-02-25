@@ -5,9 +5,12 @@ module.exports = {
         "type": "request",
         "message": {
             "transactionid": "123456789zxa",
-            "action": "challenge",
+            // "action": "challenge",
+            // "username": "username",
+            // "version": "1"
+            "action": "login",
             "username": "username",
-            "version": "1"
+            "cookie": "session-identify"
         }
     },
     logout: {
@@ -71,6 +74,24 @@ module.exports = {
                 "transactionid": "123456789zxc",
                 "action": "unsubscribe",
                 "eventnames": ["CallQueueStatus"]
+            }
+        }]
+    },
+    conference: {
+        "subscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "subscribe", 
+                "eventnames": ["ConferenceStatus"]
+            }
+        }],
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["ConferenceStatus"]
             }
         }]
     }

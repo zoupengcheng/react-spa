@@ -26,6 +26,7 @@ class AnalogTrunk extends Component {
     render() {
         const {formatMessage} = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+
         document.title = formatMessage({
             id: "LANG584"
         }, {

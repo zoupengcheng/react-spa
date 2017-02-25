@@ -146,8 +146,8 @@ const Login = React.createClass({
                             let loginSubscribe = SubscribeEvent.login
 
                             loginSubscribe.message.username = cookie.load("username")
-                            // loginSubscribe.message.cookie = cookie.load("session-identify")
-                            
+                            loginSubscribe.message.cookie = cookie.load("session-identify")
+
                             window.socket.send(loginSubscribe)
                         }
 

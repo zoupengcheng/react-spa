@@ -106,6 +106,8 @@ export const handleRequest = (msg, store) => {
                     store.dispatch({type: 'GET_QUEUEBYCHAIRMAN', callQueueList: callQueueList})
                 }
             }
+        } else if (msg.eventname === "ConferenceStatus") {
+            store.dispatch({type: 'GET_CONFERENCESTATUS', conferenceStatus: eventBody})
         }
     }
 }

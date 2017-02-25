@@ -111,6 +111,15 @@ const spinLoading = (state = {}, action) => {
     }
 }
 
+const conferenceStatus = (state = [], action) => {
+    switch (action.type) {
+        case 'GET_CONFERENCESTATUS':
+            return action.conferenceStatus
+        default:
+            return state
+    }
+}
+
 // ues redux's combineReducers
 const rootReducer = combineReducers({
     msg,
@@ -130,7 +139,8 @@ const rootReducer = combineReducers({
     currentQueue,
     answerCallings,
     waitingCallings,
-    spinLoading
+    spinLoading,
+    conferenceStatus
 })
 
 export default rootReducer

@@ -290,6 +290,13 @@ Validator.prototype = {
         } else {
             callback()
         }
+    },
+    gain: function(data, value, callback, formatMessage, param) {
+        if (value && /^(-|\+)?[0-9]*\.?[0-9]*$/i.test(value) && parseFloat(value) >= parseFloat(param[0]) && parseFloat(value) <= parseFloat(param[1])) {
+            callback(formatMessage({id: "LANG2206"}))
+        } else {
+            callback()
+        }
     }
 }
 

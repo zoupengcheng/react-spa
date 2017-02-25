@@ -409,7 +409,7 @@ class EmailSendLog extends Component {
                         ref="div_start_date"
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5436" />}>
                                 <span>{formatMessage({id: "LANG1048"})}</span>
                             </Tooltip>
                         }>
@@ -423,7 +423,7 @@ class EmailSendLog extends Component {
                         ref="div_end_date"
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5437" />}>
                                 <span>{formatMessage({id: "LANG1049"})}</span>
                             </Tooltip>
                         }>
@@ -437,7 +437,7 @@ class EmailSendLog extends Component {
                         ref="div_recipient"
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5438" />}>
                                 <span>{formatMessage({id: "LANG5385"})}</span>
                             </Tooltip>
                         }>
@@ -452,7 +452,7 @@ class EmailSendLog extends Component {
                         ref="div_send_result"
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5388" />}>
                                 <span>{formatMessage({id: "LANG5388"})}</span>
                             </Tooltip>
                         }>
@@ -467,7 +467,7 @@ class EmailSendLog extends Component {
                         ref="div_return_code"
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5389" />}>
                                 <span>{formatMessage({id: "LANG5389"})}</span>
                             </Tooltip>
                         }>
@@ -482,7 +482,7 @@ class EmailSendLog extends Component {
                         ref="div_module"
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5384" />}>
                                 <span>{formatMessage({id: "LANG5384"})}</span>
                             </Tooltip>
                         }>
