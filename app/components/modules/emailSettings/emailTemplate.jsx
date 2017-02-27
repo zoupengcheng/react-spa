@@ -4,69 +4,88 @@ import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
-import React, { Component, PropTypes } from 'react'
-import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Table } from 'antd'
-const FormItem = Form.Item
+import Title from '../../../views/title'
 import Validator from "../../api/validator"
+
+import Editor from 'react-umeditor'
+import { browserHistory } from 'react-router'
+import React, { Component, PropTypes } from 'react'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+
+const FormItem = Form.Item
+const Option = Select.Option
 
 class EmailTemplate extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
-            account_template: [],
+            content: '',
+            settings: [],
             emailType: {
-                'account': 'LANG85',
                 'cdr': 'LANG7',
-                'conference': 'LANG3775',
-                'alert': 'LANG2553',
                 'fax': 'LANG95',
-                'password': 'LANG2810',
+                'account': 'LANG85',
+                'alert': 'LANG2553',
                 'voicemail': 'LANG20',
+                'password': 'LANG2810',
+                'conference': 'LANG3775',
                 'sip_account': 'LANG2927',
                 'iax_account': 'LANG2928',
                 'fxs_account': 'LANG2929'
-            },
-            fileList: []
+            }
         }
     }
     componentDidMount() {
-        this._getInitData()
     }
-    componentWillUnmount() {
-
+    componentWillMount() {
+        // this._getSIPWebRTCHttpSettings()
     }
-    _getInitData = () => {
+    _getSIPWebRTCHttpSettings = () => {
+        let settings = []
+        let oldTLSPort = ''
+        let oldHTTPPort = ''
         const { formatMessage } = this.props.intl
-        let account_template = this.state.account_template
-        let fileList = this.state.fileList
-        const emailType = this.state.emailType
 
         $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'listFile',
-                type: 'account_template',
-                sord: 'desc',
-                sidx: 'd'
-            },
             type: 'json',
-            async: false,
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getSIPWebRTCHttpSettings'
+            },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     const response = res.response || {}
-                    account_template = response.account_template || []
 
-                    $.each(account_template, function(index, item) {
-                        let name = item.n
-                        let type = name.substr(0, name.length - 14)
+                    settings = response.webrtc_http_settings || []
 
-                        if (emailType[type]) {
-                            fileList.push(item)
+                    oldHTTPPort = settings.bindport
+
+                    if (settings.tlsbindaddr) {
+                        oldTLSPort = settings.tlsbindaddr.split(':')[1]
+
+                        if (UCMGUI.isIPv6(settings.tlsbindaddr)) {
+                            oldTLSPort = settings.tlsbindaddr.split("]:")[1]
                         }
+                    }
+
+                    let httpPort = settings.bindport ? settings.bindport : '8088'
+                    let httpAddr = settings.bindaddr ? settings.bindaddr : '0.0.0.0'
+                    let tlsbindaddr = settings.tlsbindaddr ? settings.tlsbindaddr : '0.0.0.0:8443'
+
+                    settings.websocket_interface = ('ws://' + httpAddr + ':' + httpPort + '/ws')
+                    settings.secure_websocket_interface = ('wss://' + tlsbindaddr + '/ws')
+
+                    this.setState({
+                        settings: settings,
+                        oldTLSPort: oldTLSPort,
+                        oldHTTPPort: oldHTTPPort,
+                        enabled: settings.enabled === 'yes',
+                        tlsenable: settings.tlsenable === 'yes'
                     })
                 }
             }.bind(this),
@@ -74,98 +93,180 @@ class EmailTemplate extends Component {
                 message.error(e.statusText)
             }
         })
-        this.setState({
-            account_template: account_template,
-            fileList: fileList
+    }
+    _getIcons = () => {
+        let icons = [
+            'undo', 'redo', '|',
+            'bold', 'italic', 'underline', 'fontborder', 'strikethrough', 'superscript', 'subscript', 'removeformat', '|', 'forecolor', 'backcolor', 'insertorderedlist', 'insertunorderedlist', 'selectall', 'cleardoc', '|',
+            // 'rowspacingtop', 'rowspacingbottom', 'lineheight', '|',
+            'paragraph', 'fontfamily', 'fontsize', '|',
+            'indent', 'justifyleft', 'justifycenter', 'justifyright', '|', 'touppercase', 'tolowercase'
+            // '|', 'link', 'unlink'
+        ]
+
+        return icons
+    }
+    _handleCancel = (e) => {
+        browserHistory.push('/system-settings/emailSettings')
+    }
+    _handleSubmit = (e) => {
+        // e.preventDefault()
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
+
+        form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
+                message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                let childAction = []
+                let updateWebRTCParamList = []
+                let updateWebRTCSettings = {
+                    'updateSIPWebRTCHttpSettings': ''
+                }
+
+                _.map(values, function(value, key) {
+                    if (key === 'ws_websocket_interface' || key === 'ws_secure_websocket_interface') {
+                        return false
+                    }
+
+                    if (key.indexOf('ws_') === 0) {
+                        let keyValue = key.slice(3) + '=' + (value !== undefined && value !== null ? encodeURIComponent(UCMGUI.transCheckboxVal(value)) : '')
+
+                        updateWebRTCParamList.push(keyValue)
+                    }
+                })
+
+                updateWebRTCSettings.updateSIPWebRTCHttpSettings = updateWebRTCParamList.join('&')
+
+                childAction.push(updateWebRTCSettings)
+
+                $.ajax({
+                    type: 'json',
+                    method: "get",
+                    url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(childAction),
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>, 2)
+
+                            this._handleCancel()
+                        }
+                    }.bind(this)
+                })
+            }
         })
     }
-    _createType = (text, record, index) => {
-        const { formatMessage } = this.props.intl
-        const emailType = this.state.emailType
-        let type = record.n.substr(0, record.n.length - 14)
-        let locale = emailType[type]
-
-        const cellvalue = <span>{ formatMessage({id: locale}) }</span>
-        return <div>
-            { cellvalue }
-        </div>
+    _onChangeHTTP = (e) => {
+        this.setState({
+            enabled: e.target.checked
+        })
     }
-    _edit = (record) => {
-
+    _onChangeTLS = (e) => {
+        this.setState({
+            tlsenable: e.target.checked
+        })
+    }
+    _onHandleChange = (content) => {
+        this.setState({
+            content: content
+        })
     }
     render() {
-        const { getFieldDecorator } = this.props.form
+        let icons = this._getIcons()
+        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const formItemLayout = {
-            labelCol: { span: 6 },
-            wrapperCol: { span: 6 }
+        const settings = this.state.settings || {}
+        const { getFieldDecorator } = this.props.form
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        const title = formatMessage({ id: "LANG222" }, {
+                        0: formatMessage({ id: "LANG4576" }),
+                        1: formatMessage({ id: this.state.emailType[this.props.params.type] })
+                    })
+
+        document.title = formatMessage({ id: "LANG584" }, {
+                    0: model_info.model_name,
+                    1: title
+                })
+
+        const formItemRowLayout = {
+            labelCol: { span: 4 },
+            wrapperCol: { span: 18 }
         }
-        const columns = [{
-                key: 'type',
-                dataIndex: 'type',
-                title: formatMessage({id: "LANG84"}),
-                width: 150,
-                render: (text, record, index) => (
-                    this._createType(text, record, index)
-                )
-            }, {
-                key: 'n',
-                dataIndex: 'n',
-                title: formatMessage({id: "LANG135"}),
-                width: 150
-            }, {
-                key: 'd',
-                dataIndex: 'd',
-                title: formatMessage({id: "LANG247"}),
-                width: 150
-            }, {
-                key: 'options',
-                dataIndex: 'options',
-                title: <span>Warn</span>,
-                width: 150,
-                render: (text, record, index) => {
-                    return <div>
-                            <span
-                                className="sprite sprite-edit"
-                                title={ formatMessage({id: "LANG738"}) }
-                                onClick={ this._edit.bind(this, record) }>
-                            </span>
-                        </div>
-                }
-            }]
 
-        const pagination = {
-                total: this.state.fileList.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
-                }
-            }
-
-        const rowSelection = {
-                onChange: this._onSelectChange,
-                selectedRowKeys: this.state.selectedRowKeys
-            }
         return (
-                <div className="app-content-main" id="app-content-main">
-                    <div className="content">
-                        <Table
-                            rowKey=""
-                            columns={ columns }
-                            pagination={ false }
-                            dataSource={ this.state.fileList }
-                            showHeader={ !!this.state.fileList.length }
+            <div className="content">
+                <Title
+                    headerTitle={ title }
+                    isDisplay='display-block'
+                    onCancel={ this._handleCancel }
+                    onSubmit={ this._handleSubmit.bind(this) }
+                />
+                <div className="ant-form">
+                    <FormItem
+                        { ...formItemRowLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1524" /> }>
+                                    <span>{ formatMessage({id: "LANG1524"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('emailsubject', {
+                            rules: [],
+                            initialValue: settings.emailsubject
+                        })(
+                            <Input />
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        { ...formItemRowLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG5376" /> }>
+                                    <span>{ formatMessage({id: "LANG5376"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        <Editor
+                            ref="editor" 
+                            icons={ icons } 
+                            defaultValue={ title }
+                            value={ this.state.content }
+                            onChange={ this._onHandleChange.bind(this) }
                         />
-                    </div>
+                    </FormItem>
+                    <FormItem
+                        { ...formItemRowLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG5377" /> }>
+                                    <span>{ formatMessage({id: "LANG5377"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('plainText', {
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: settings.plainText
+                        })(
+                            <Input type="textarea" rows={ 4 } />
+                        ) }
+                    </FormItem>
                 </div>
-            )
+            </div>
+        )
     }
-}
-
-EmailTemplate.propTypes = {
 }
 
 export default Form.create()(injectIntl(EmailTemplate))

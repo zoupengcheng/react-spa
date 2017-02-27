@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import EmailSendLog from './emailSendLog'
-import EmailTemplate from './emailTemplate'
+import EmailTemplateList from './emailTemplateList'
 import SMTP from './smtpSettings'
 import $ from 'jquery'
 import api from "../../api/api"
@@ -167,7 +167,7 @@ class EmailSettings extends Component {
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG4572"})} key="2">
-                        <EmailTemplate />
+                        <EmailTemplateList />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG5382"})} key="3">
                         <EmailSendLog />

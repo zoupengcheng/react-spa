@@ -107,6 +107,7 @@ import OfficeTimeItem from '../components/modules/timeSettings/officetimeItem'
 import HolidayTime from '../components/modules/timeSettings/holidaytime'
 import HolidayTimeItem from '../components/modules/timeSettings/holidaytimeItem'
 import EmailSettings from '../components/modules/emailSettings'
+import EmailTemplate from '../components/modules/emailSettings/emailTemplate'
 
 // Maintenance
 import UserManagement from '../components/modules/userManagement'
@@ -421,7 +422,10 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ HolidayTimeItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ HolidayTimeItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
-                    <Route path="emailSettings" onEnter={ requireAuth } component={ EmailSettings } breadcrumbName={ currentLocaleData["LANG58"] } />
+                    <Route path="emailSettings" breadcrumbName={ currentLocaleData["LANG58"] }>
+                        <IndexRoute component={ EmailSettings } />
+                        <Route path="template/:type" onEnter={ requireAuth } component={ EmailTemplate } breadcrumbName={ currentLocaleData["LANG4572"] } />
+                    </Route>
                 </Route>
 
                 {/* Maintenance */}
