@@ -365,7 +365,7 @@ class EditVoipTrunk extends Component {
             }
             if (confirmStr) {
                 Modal.confirm({
-                    title: 'Confirm',
+                    title: '',
                     content: confirmStr,
                     okText: formatMessage({id: "LANG727"}),
                     cancelText: formatMessage({id: "LANG726"}),

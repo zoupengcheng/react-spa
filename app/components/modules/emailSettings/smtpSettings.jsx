@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
+import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Modal } from 'antd'
 import Validator from "../../api/validator"
 
 const FormItem = Form.Item
@@ -15,7 +15,8 @@ class smtpSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            email_settings: {}
+            email_settings: {},
+            visible: false
         }
     }
     componentDidMount() {
@@ -58,13 +59,60 @@ class smtpSettings extends Component {
             email_settings: email_settings
         })
     }
+    _testEmail = () => {
+        this.setState({
+            visible: true
+        })
+    }
+    _handleCancel = () => {
+        this.setState({
+            visible: false
+        })
+    }
+    _sendTestEmail = () => {
+        const { getFieldValue } = this.props.form
+        const { formatMessage } = this.props.intl
+        this.props.form.validateFields({ force: true }, (err, values) => {
+            if (err && err.hasOwnProperty('recipients')) {
+            } else {
+               const email_addr = getFieldValue('recipients')
+               let action = {}
+               action.action = 'sendTestMail'
+               action.email_addr = email_addr
+               $.ajax({
+                   url: api.apiHost,
+                   method: "post",
+                   data: action,
+                   type: 'json',
+                   error: function(e) {
+                       message.error(e.statusText)
+                   },
+                   success: function(data) {
+                       const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+       
+                       if (bool) {
+                           message.destroy()
+                           message.success(formatMessage({id: "LANG873"}))
+                       }
+       
+                       this._handleCancel()
+                   }.bind(this)
+               })
+            }
+        })
+    }
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
         const email_settings = this.state.email_settings
+        const me = this
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
+        }
+        const formItemModalLayout = {
+            labelCol: { span: 6 },
+            wrapperCol: { span: 12 }
         }
 
         return (
@@ -228,12 +276,54 @@ class smtpSettings extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.email(data, value, callback, formatMessage)
+                                }
                             }],
                             initialValue: email_settings.serveremail
                         })(
                             <Input maxLength="120" />
                         ) }
                     </FormItem>
+                    <div className='top-content'>
+                        <Button onClick={ this._testEmail } >
+                            { formatMessage({id: "LANG2273"}) }
+                        </Button>
+                        <Modal 
+                            title={ formatMessage({id: "LANG2273"}) }
+                            visible={ this.state.visible }
+                            onOk={ this._sendTestEmail } 
+                            onCancel={ this._handleCancel }
+                            okText={ formatMessage({id: "LANG2273"}) }
+                            cancelText={ formatMessage({id: "LANG726"}) }>
+                            <div className='content' >
+                                <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2264"})}} ></span>
+                            </div>
+                            <FormItem
+                                ref="div_recipients"
+                                { ...formItemModalLayout }
+                                label={                            
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG126" />}>
+                                        <span>{formatMessage({id: "LANG126"})}</span>
+                                    </Tooltip>
+                                }>
+                                { getFieldDecorator('recipients', {
+                                    rules: [{
+                                        required: me.state.visible,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.visible ? Validator.email(data, value, callback, formatMessage) : callback()
+                                        }
+                                    }],
+                                    initialValue: ""
+                                })(
+                                    <Input maxLength="128" />
+                                ) }
+                            </FormItem>
+                        </Modal>
+                    </div>
                 </Form>
             </div>
         )

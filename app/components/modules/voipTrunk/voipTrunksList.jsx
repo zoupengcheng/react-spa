@@ -9,6 +9,8 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import _ from 'underscore'
 
+const baseServerURl = api.apiHost
+
 class VoipTrunksList extends Component {
     constructor(props) {
         super(props)
@@ -18,6 +20,10 @@ class VoipTrunksList extends Component {
                 showTotal: this._showTotal,
                 showSizeChanger: true,
                 showQuickJumper: true
+            },
+            sort: {
+                field: "trunk_name",
+                order: "asc"
             },
             loading: false
         }
@@ -36,7 +42,8 @@ class VoipTrunksList extends Component {
         pager.current = pagination.current
 
         this.setState({
-            pagination: pager
+            pagination: pager,
+            sorter: sorter
         })
 
         this._listVoipTrunk({
@@ -57,7 +64,7 @@ class VoipTrunksList extends Component {
         this.setState({ loading: true })
 
         $.ajax({
-            url: api.apiHost,
+            url: baseServerURl,
             method: 'post',
             data: {
                 action: 'listVoIPTrunk',
@@ -91,7 +98,7 @@ class VoipTrunksList extends Component {
 
         $.ajax({
             type: "post",
-            url: api.apiHost,
+            url: baseServerURl,
             data: action,
             async: false
         })
@@ -117,18 +124,26 @@ class VoipTrunksList extends Component {
         message.loading(formatMessage({ id: "LANG825" }, {0: "LANG11"}), 0)
 
         $.ajax({
-            url: api.apiHost,
+            url: baseServerURl,
             method: 'post',
             data: action,
             type: 'json',
             async: true,
             success: function(res) {
-                var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                let bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>)
-                    this._listVoipTrunk()
+                    let pagination = this.state.pagination,
+                        sorter = this.state.sorter
+                        
+                    this._listVoipTrunk({
+                        item_num: pagination.pageSize,
+                        page: pagination.current,
+                        sidx: sorter.field,
+                        sord: sorter.order === "ascend" ? "asc" : "desc"
+                    })
                     this._delAstdb(trunkIndex)
                 }
             }.bind(this),
@@ -180,7 +195,7 @@ class VoipTrunksList extends Component {
         /* Start to sync */
         $.ajax({
             type: "Post",
-            url: api.apiHost,
+            url: baseServerURl,
             data: {
                 "action": "syncLDAP",
                 "ldap-sync": "trunk_" + trunkId
@@ -229,7 +244,7 @@ class VoipTrunksList extends Component {
 
         $.ajax({
             type: "POST",
-            url: api.apiHost,
+            url: baseServerURl,
             async: false,
             data: {
                 action: "getldapsyncprogress",
@@ -367,16 +382,6 @@ class VoipTrunksList extends Component {
                 disabled: record.name === 'Disabled User'    // Column configuration not to be checked
             })
         }
-        // const pagination = {
-        //     total: this.state.voipTrunk.length,
-        //     showSizeChanger: true,
-        //     onShowSizeChange(current, pageSize) {
-        //         console.log('Current: ', current, '; PageSize: ', pageSize)
-        //     },
-        //     onChange(current) {
-        //         console.log('Current: ', current)
-        //     }
-        // }
 
         return (
             <div className="content">

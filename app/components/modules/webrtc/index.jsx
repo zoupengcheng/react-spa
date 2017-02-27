@@ -26,7 +26,7 @@ class WebRTC extends Component {
     }
     componentDidMount() {
     }
-    componentWillUnmount() {
+    componentWillMount() {
         this._getInitData()
     }
     _getInitData = () => {
@@ -65,104 +65,37 @@ class WebRTC extends Component {
         // e.preventDefault()
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const getFieldInstance = form.getFieldInstance
 
-        form.validateFields({ force: true }, (err, values) => {
+        form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
-                let action = {
-                        dndwhitelist: []
-                    },
-                    fax = values.faxmode ? values.faxmode : '',
-                    type = values.extension_type ? values.extension_type : ''
+                message.loading(formatMessage({ id: "LANG826" }), 0)
 
-                if (this.state.currentEditId) {
-                    action.action = `update${this.state.extension_type.toUpperCase()}Account`
-                } else {
-                    action.action = `add${this.state.extension_type.toUpperCase()}AccountAndUser`
-
-                    action.first_name = values.first_name ? values.first_name : ''
-                    action.last_name = values.last_name ? values.last_name : ''
-                    action.email = values.email ? values.email : ''
-                    action.language = (values.language && values.language !== 'default') ? values.language : ''
-                    action.user_password = values.user_password ? values.user_password : ''
-                    action.phone_number = values.phone_number ? values.phone_number : ''
-
-                    if (action.first_name && action.last_name) {
-                        action.fullname = action.first_name + ' ' + action.last_name
-                    } else if (action.first_name) {
-                        action.fullname = action.first_name
-                    } else if (action.last_name) {
-                        action.fullname = action.last_name
-                    } else {
-                        action.fullname = ''
-                    }
+                let childAction = []
+                let updateWebRTCParamList = []
+                let updateWebRTCSettings = {
+                    'updateSIPWebRTCHttpSettings': ''
                 }
 
                 _.map(values, function(value, key) {
-                    let fieldInstance = getFieldInstance(key)
-
-                    if (key === 'whiteLists' || key === 'localNetworks' || key === 'enable_cc' ||
-                        key === 'mode' || key === 'out_limitime' || key === 'maximumTime' ||
-                        key === 'room' || key === 'faxmode' || key === 'cc_mode' || key === 'batch_number' ||
-                        key === 'cc_max_agents' || key === 'cc_max_monitors' || key === 'custom_alert_info' ||
-                        key === 'user_password' || key === 'phone_number' || key === 'email' || key === 'language' ||
-                        key === 'extension_type' || key === 'fullname' || key === 'first_name' || key === 'last_name') {
+                    if (key === 'ws_websocket_interface' || key === 'ws_secure_websocket_interface') {
                         return false
                     }
 
-                    if (key.indexOf('whitelist') > -1) {
-                        action.dndwhitelist.push(value)
+                    if (key.indexOf('ws_') === 0) {
+                        let keyValue = key.slice(3) + '=' + (value !== undefined && value !== null ? encodeURIComponent(UCMGUI.transCheckboxVal(value)) : '')
 
-                        return false
-                    }
-
-                    if (fieldInstance && fieldInstance.props) {
-                        let medaData = fieldInstance.props['data-__meta']
-
-                        if (!medaData.className || medaData.className !== 'hidden') {
-                            action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
-                        }
-                    } else {
-                        action[key] = value ? value : ''
+                        updateWebRTCParamList.push(keyValue)
                     }
                 })
 
-                action['time_condition'] = JSON.stringify([])
-                action.dndwhitelist = action.dndwhitelist.join()
+                updateWebRTCSettings.updateSIPWebRTCHttpSettings = updateWebRTCParamList.join('&')
 
-                if (fax === 'no') {
-                    action['faxdetect'] = 'no'
-
-                    if (type === 'fxs') {
-                        action['fax_gateway'] = 'no'
-                    }
-                } else if (fax === 'detect') {
-                    action['faxdetect'] = 'yes'
-
-                    if (type === 'fxs') {
-                        action['fax_gateway'] = 'no'
-                    }
-                } else if (fax === 'gateway') {
-                    action['faxdetect'] = 'no'
-
-                    if (type === 'fxs') {
-                        action['fax_gateway'] = 'yes'
-                    }
-                }
-
-                if (values.maximumTime) {
-                    action['limitime'] = parseInt(values.maximumTime) * 1000
-                } else {
-                    action['limitime'] = ''
-                }
-
-                message.loading(formatMessage({ id: "LANG826" }), 0)
+                childAction.push(updateWebRTCSettings)
 
                 $.ajax({
-                    data: action,
                     type: 'json',
-                    method: "post",
-                    url: api.apiHost,
+                    method: "get",
+                    url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(childAction),
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -170,86 +103,10 @@ class WebRTC extends Component {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
-                            if (this.state.currentEditId) {
-                                let fieldsValue = this._getImportantValues()
+                            message.destroy()
+                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>, 2)
 
-                                let newImportantValues = fieldsValue.secret + fieldsValue.authid +
-                                        fieldsValue.email + fieldsValue.phone_number +
-                                        fieldsValue.first_name + fieldsValue.last_name + fieldsValue.user_password
-
-                                let userAction = {
-                                        'action': 'updateUser',
-                                        'email': values.email ? values.email : '',
-                                        'user_id': this.state.userSettings.user_id,
-                                        'last_name': values.last_name ? values.last_name : '',
-                                        'first_name': values.first_name ? values.first_name : '',
-                                        'phone_number': values.phone_number ? values.phone_number : '',
-                                        'user_password': values.user_password ? values.user_password : '',
-                                        'language': (values.language && values.language !== 'default') ? values.language : ''
-                                    }
-
-                                if (userAction.user_password === '******') {
-                                    delete userAction.user_password
-                                }
-
-                                if (this.state.importantValues !== newImportantValues) {
-                                    userAction.email_to_user = 'no'
-                                }
-
-                                $.ajax({
-                                    type: 'json',
-                                    method: "post",
-                                    url: api.apiHost,
-                                    data: userAction,
-                                    error: function(e) {
-                                        message.error(e.statusText)
-                                    },
-                                    success: function(data) {
-                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                                        if (bool) {
-                                            if ((this.state.importantValues !== newImportantValues) &&
-                                                (this.state.autoEmailToUser === 'yes') && userAction['email']) {
-                                                $.ajax({
-                                                    type: "post",
-                                                    async: false,
-                                                    url: api.apiHost,
-                                                    data: {
-                                                        'action': 'sendAccount2User',
-                                                        'extension': action['extension']
-                                                    },
-                                                    error: function(jqXHR, textStatus, errorThrown) {},
-                                                    success: function(data) {}
-                                                })
-                                            }
-
-                                            message.destroy()
-                                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
-
-                                            this._handleCancel()
-                                        }
-                                    }.bind(this)
-                                })
-                            } else {
-                                if ((this.state.autoEmailToUser === 'yes') && action['email']) {
-                                    $.ajax({
-                                        type: "post",
-                                        async: false,
-                                        url: api.apiHost,
-                                        data: {
-                                            'action': 'sendAccount2User',
-                                            'extension': action['extension']
-                                        },
-                                        error: function(jqXHR, textStatus, errorThrown) {},
-                                        success: function(data) {}
-                                    })
-                                }
-
-                                message.destroy()
-                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
-
-                                this._handleCancel()
-                            }
+                            this._handleCancel()
                         }
                     }.bind(this)
                 })
@@ -291,7 +148,7 @@ class WebRTC extends Component {
                                 portList={ this.state.portList }
                             />
                         </TabPane>
-                        <TabPane tab={ formatMessage({id: "LANG4505"}) } key="2">
+                        {/* <TabPane tab={ formatMessage({id: "LANG4505"}) } key="2">
                             <CloudService
                                 form={ form }
                                 portList={ this.state.portList }
@@ -302,7 +159,7 @@ class WebRTC extends Component {
                                 form={ form }
                                 portList={ this.state.portList }
                             />
-                        </TabPane>
+                        </TabPane> */}
                     </Tabs>
                 </Form>
             </div>

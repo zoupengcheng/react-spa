@@ -159,9 +159,9 @@ class DynamicDefense extends Component {
     _onChangeEnableAsterisk = (e) => {
         let fail2ban = this.state.fail2ban
         if (e.target.checked) {
-            fail2ban.enable = 'yes'
+            fail2ban.enabled = 'yes'
         } else {
-            fail2ban.enable = 'no'
+            fail2ban.enabled = 'no'
         }
         this.setState({
             fail2ban: fail2ban
@@ -258,7 +258,7 @@ class DynamicDefense extends Component {
         }
         const fail2ban = this.state.fail2ban
         const allDisable = this.state.fail2ban_enable === '0'
-        const asteriskDisable = allDisable === true || fail2ban.enable === 'no'
+        const asteriskDisable = allDisable === true || fail2ban.enabled === 'no'
         return (
             <div className="app-content-main">
                 <div className="content">
@@ -458,7 +458,7 @@ class DynamicDefense extends Component {
                     </div>
                     <Form>
                         <FormItem
-                            ref="div_enable"
+                            ref="div_enabled"
                             { ...formItemLayout }
 
                             label={(
@@ -466,17 +466,17 @@ class DynamicDefense extends Component {
                                     <span>{formatMessage({id: "LANG2619"})}</span>
                                 </Tooltip>
                             )}>
-                            { getFieldDecorator('enable', {
+                            { getFieldDecorator('enabled', {
                                 rules: [],
                                 valuePropName: 'checked',
-                                initialValue: fail2ban.enable === 'yes'
+                                initialValue: fail2ban.enabled === 'yes'
                             })(
                                 <Checkbox onChange={ this._onChangeEnableAsterisk } disabled={ allDisable } />
                             ) }
                         </FormItem>
                         <FormItem
                             ref="div_port"
-                            className= { fail2ban.enable === 'yes' ? 'display-block' : 'hidden' }
+                            className= { fail2ban.enabled === 'yes' ? 'display-block' : 'hidden' }
                             { ...formItemLayout }
 
                             label={(
@@ -502,7 +502,7 @@ class DynamicDefense extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_asterisk_maxretry"
-                            className= { fail2ban.enable === 'yes' ? 'display-block' : 'hidden' }
+                            className= { fail2ban.enabled === 'yes' ? 'display-block' : 'hidden' }
                             { ...formItemLayout }
 
                             label={(

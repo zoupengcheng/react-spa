@@ -65,6 +65,7 @@ class Prompt extends Component {
 
                     if (bool) {
                         message.destroy()
+                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
                     }
                 }.bind(this),
                 error: function(e) {

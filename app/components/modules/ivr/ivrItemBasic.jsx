@@ -29,6 +29,7 @@ class BasicSettings extends Component {
             accountList: [],
             numberList: [],
             ivrNameList: [],
+            languageList: [],
             select_alertinfo: "",
             custom_alertinfo: "",
             targetKeys: [],
@@ -106,6 +107,7 @@ class BasicSettings extends Component {
         let fileList = this.props.fileList
         let numberList = this.props.numberList || []
         let ivrNameList = this.props.ivrNameList || []
+        let languageList = this.props.languageList || []
 
         let ivrblackwhiteShow = false
         let isDialTrunk = false
@@ -142,6 +144,7 @@ class BasicSettings extends Component {
         }
         this.props.getSpecialState(checkedList)
         this.setState({
+            languageList: languageList,
             accountList: accountList,
             fileList: fileList,
             ivrblackwhiteShow: ivrblackwhiteShow,
@@ -422,7 +425,7 @@ class BasicSettings extends Component {
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
                             }],
-                            initialValue: ivrItem.permission
+                            initialValue: ivrItem.permission ? ivrItem.permission : 'internal'
                         })(
                             <Select>
                                 <Option value="internal">{ formatMessage({id: "LANG1071"}) }</Option>
@@ -814,8 +817,15 @@ class BasicSettings extends Component {
                         })(
                             <Select>
                                 <Option value="">{ formatMessage({id: "LANG257"}) }</Option>
-                                <Option value="zh">中文</Option>
-                                <Option value="en">English</Option>
+                                {
+                                    this.state.languageList.map(function(item) {
+                                        return <Option
+                                                key={ item.language_id }
+                                                value={ item.language_id }>
+                                                { item.language_name }
+                                            </Option>
+                                    })
+                                }
                             </Select>
                         ) }
                     </FormItem>

@@ -260,6 +260,7 @@ class PagingIntercomItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
+                action.replace_caller_id = values.replace_caller_id === true ? 'yes' : 'no'
 
                 action.members = this.state.targetKeys.join()
 

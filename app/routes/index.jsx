@@ -87,11 +87,14 @@ import VoicePrompt from '../components/modules/voicePrompt'
 import JitterBuffer from '../components/modules/jitterBuffer'
 import InterfaceSettings from '../components/modules/interfaceSettings/'
 import DigitalHardwareItem from '../components/modules/interfaceSettings/digitalHardwareItem'
-import RecordingStorageSettings from '../components/modules/recordingStorageSettings'
+import RecordingStorageSettings from '../components/modules/recordingStorageSettings/index'
+import RecordTypeStorage from '../components/modules/recordingStorageSettings/recordTypeStorage'
 
 // System Settings
 import HTTPServer from '../components/modules/httpServer/index'
 import NetworkSettings from '../components/modules/networkSettings'
+import PortForwarding from '../components/modules/networkSettings/portForwarding'
+import PortForwardingItem from '../components/modules/networkSettings/portForwardingItem'
 import OpenVPN from '../components/modules/openVPN'
 import DDNSSettings from '../components/modules/ddnsSettings'
 import SecuritySettings from '../components/modules/securitySettings'
@@ -300,7 +303,7 @@ const routes = (state, currentLocaleData) => {
                     <Route path="ivr" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG19"] } >
                         <IndexRoute component={ IVR } />
                         <Route path="add" onEnter={ requireAuth } component={ IVRItem } breadcrumbName={ currentLocaleData["LANG769"] } />
-                        <Route path="edit/:id" onEnter={ requireAuth } component={ IVRItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ IVRItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="voicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
                         <IndexRoute component={ Voicemail } />
@@ -376,7 +379,10 @@ const routes = (state, currentLocaleData) => {
                         <IndexRoute component={ InterfaceSettings } />
                         <Route path="digitalHardwareItem/:type/:span" onEnter={ requireAuth } component={ DigitalHardwareItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                     </Route>
-                    <Route path="recordingStorageSettings" onEnter={ requireAuth } component={ RecordingStorageSettings } breadcrumbName={ currentLocaleData["LANG5304"] } />
+                    <Route path="recordingStorageSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG5304"] }>
+                        <IndexRoute component={ RecordingStorageSettings } />
+                        <Route path=":id" onEnter={ requireAuth } component={ RecordTypeStorage } breadcrumbName={ currentLocaleData["LANG3756"] } />
+                    </Route>
                 </Route>
 
                 {/* System Settings */}
@@ -384,6 +390,11 @@ const routes = (state, currentLocaleData) => {
                     <IndexRoute component={ HTTPServer } />
                     <Route path="httpServer" onEnter={ requireAuth } component={ HTTPServer } breadcrumbName={ currentLocaleData["LANG57"] } />
                     <Route path="networkSettings" onEnter={ requireAuth } component={ NetworkSettings } breadcrumbName={ currentLocaleData["LANG48"] } />
+                    <Route path="PortForwarding" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ PortForwarding } />
+                        <Route path="add" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="openVPN" onEnter={ requireAuth } component={ OpenVPN } breadcrumbName={ currentLocaleData["LANG3990"] } />
                     <Route path="ddnsSettings" onEnter={ requireAuth } component={ DDNSSettings } breadcrumbName={ currentLocaleData["LANG4040"] } />
                     <Route path="securitySettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG718"] }>

@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Row, Button, message, Modal, InputNumber, Tooltip, Table, Tag, Switch, Select, Col, Form } from 'antd'
+import { Row, Button, message, Modal, InputNumber, Tooltip, Table, Tag, Switch, Select, Col, Form, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -768,11 +768,14 @@ class WarningEventList extends Component {
                     <Table
                         rowKey="id"
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ false }
                         rowSelection={ rowSelection }
                         dataSource={ this.state.warning_general }
                         showHeader={ !!this.state.warning_general.length }
                     />
+                </div>
+                <div>
+                    <BackTop />
                 </div>
             </div>
         )

@@ -120,6 +120,15 @@ const conferenceStatus = (state = [], action) => {
     }
 }
 
+const activeCallStatus = (state = [], action) => {
+    switch (action.type) {
+        case 'GET_BRIDGECHANNEL':
+            return action.activeCallStatus
+        default:
+            return state
+    }
+}
+
 // ues redux's combineReducers
 const rootReducer = combineReducers({
     msg,
@@ -140,7 +149,8 @@ const rootReducer = combineReducers({
     answerCallings,
     waitingCallings,
     spinLoading,
-    conferenceStatus
+    conferenceStatus,
+    activeCallStatus
 })
 
 export default rootReducer

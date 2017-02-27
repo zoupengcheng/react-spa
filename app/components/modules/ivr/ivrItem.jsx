@@ -39,6 +39,7 @@ class IvrItem extends Component {
             fileList: [],
             ivrNameList: [],
             numberList: [],
+            languageList: [],
             ivrItem: {},
             ivrItemMembers: {},
             ivrStart: '7000',
@@ -117,6 +118,7 @@ class IvrItem extends Component {
         const ivrId = this.props.params.id
         const __this = this
 
+        let languageList = []
         let accountList = []
         let voicemailList = []
         let conferenceList = []
@@ -151,6 +153,7 @@ class IvrItem extends Component {
         getList.push({"getCallbackList": ""})
         getList.push({"getIVRNameList": ""})
         getList.push({"getNumberList": ""})
+        getList.push({"getLanguage": ""})
         $.ajax({
             url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(getList),
             method: 'GET',
@@ -175,6 +178,7 @@ class IvrItem extends Component {
                     const getCallbackList = response.getCallbackList || {}
                     const getIVRNameList = response.getIVRNameList || {}
                     const getNumberList = response.getNumberList || {}
+                    const getLanguage = response.getLanguage || {}
 
                     const getAccountList_extension = getAccountList.extension || []
                     const getVoicemailList_extension = getVoicemailList.extension || []
@@ -188,6 +192,7 @@ class IvrItem extends Component {
                     const getFaxList_fax = getFaxList.fax || []
                     const getDISAList_disa = getDISAList.disa || []
                     const getCallbackList_callback = getCallbackList.callback || []
+                    const getLanguage_languages = getLanguage.languages || []
                     const disabled = formatMessage({id: "LANG273"})
 
                     accountList = getAccountList.extension.map(function(item) {
@@ -273,6 +278,7 @@ class IvrItem extends Component {
                     })
                     numberList = getNumberList.number || []
                     ivrNameList = getIVRNameList.ivr_name || []
+                    languageList = getLanguage_languages || []
                 }
             }.bind(this),
             error: function(e) {
@@ -372,6 +378,7 @@ class IvrItem extends Component {
             fileList: fileList,
             numberList: numberList,
             ivrNameList: ivrNameList, 
+            languageList: languageList,
             ivrItem: ivrItem,
             ivrItemMembers: ivrItemMembers,
             newIvrNum: newIvrNum
@@ -843,7 +850,7 @@ class IvrItem extends Component {
         const title = (this.props.params.id
                 ? formatMessage({id: "LANG222"}, {
                     0: formatMessage({id: "LANG19"}),
-                    1: this.props.params.id
+                    1: this.props.params.name
                 })
                 : formatMessage({id: "LANG766"}))
 
@@ -871,6 +878,7 @@ class IvrItem extends Component {
                                 ivrItem={ this.state.ivrItem }
                                 numberList={ this.state.numberList }
                                 ivrNameList={ this.state.ivrNameList }
+                                languageList={ this.state.languageList }
                                 newIvrNum={ this.state.newIvrNum }
                                 getSpecialState={ this._getSpecialState.bind(this) }
                                 ivrId={ this.props.params.id }

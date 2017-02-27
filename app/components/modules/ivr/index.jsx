@@ -57,7 +57,7 @@ class Ivr extends Component {
         browserHistory.push('/call-features/ivr/add')
     }
     _edit = (record) => {
-        browserHistory.push('/call-features/ivr/edit/' + record.ivr_id)
+        browserHistory.push('/call-features/ivr/edit/' + record.ivr_id + '/' + record.ivr_name)
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -185,7 +185,6 @@ class Ivr extends Component {
                         rowKey="extension"
                         columns={ columns }
                         pagination={ pagination }
-                        rowSelection={ rowSelection }
                         dataSource={ this.state.IVR }
                         showHeader={ !!this.state.IVR.length }
                     />

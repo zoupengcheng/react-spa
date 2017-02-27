@@ -95,7 +95,7 @@ class SecuritySettings extends Component {
                 if (pass === false && values.fail2ban_enable !== undefined) {
                     action_fail2ban.action = 'updateFail2ban'
                     action_fail2ban.fail2ban_enable = values.fail2ban_enable ? 1 : 0
-                    action_fail2ban.enabled = values.enabled
+                    action_fail2ban.enabled = values.enabled ? 'yes' : 'no'
                     action_fail2ban.bantime = values.bantime
                     action_fail2ban.findtime = values.findtime
                     action_fail2ban.maxretry = values.maxretry

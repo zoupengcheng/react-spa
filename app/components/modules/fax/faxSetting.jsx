@@ -35,6 +35,19 @@ class FaxItem extends Component {
             callback()
         }
     }
+    _checkRate = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+
+        const maxrate = parseInt(getFieldValue('maxrate'))
+        const minrate = parseInt(value)
+
+        if (minrate >= maxrate) {
+            callback(formatMessage({id: "LANG2165"}, {0: formatMessage({id: "LANG1266"}), 1: formatMessage({id: "LANG1264"})}))
+        } else {
+            callback()
+        }
+    }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
     }
@@ -216,6 +229,8 @@ class FaxItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkRate
                                 }],
                                 width: 100,
                                 initialValue: faxSetting.minrate ? faxSetting.minrate : "4800"

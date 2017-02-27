@@ -139,6 +139,22 @@ class Security extends Component {
             typicalFirewallsettings: typicalFirewallsettings
         })
     }
+    _checkCanReject = (ruleName) => {
+        const networkSettings = this.props.networkSettings
+
+        let canReject = false
+        ruleName.map(function(item) {
+            if ((item.rule_act === 'accept' &&
+                item.type === 'in' &&
+                item.protocol !== 'udp' &&
+                item.dest_port === networkSettings.port) &&
+                ((networkSettings.method === '1' && item.interface === 'LAN') ||
+                (networkSettings.method !== '1' && item.interface === 'Both'))) {
+                canReject = true
+            }
+        })
+        return canReject
+    }
     _createNetstatType = (text, record, index) => {
         const type = record.pro + '/' + record.ip
         return <div>
@@ -182,6 +198,8 @@ class Security extends Component {
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const networkSettings = this.props.networkSettings
+        const ruleName = this.state.ruleName
+        const canReject = this._checkCanReject(ruleName)
         const columns_rules = [{
                 key: 'sequence',
                 dataIndex: 'sequence',
@@ -359,7 +377,7 @@ class Security extends Component {
                                     valuePropName: 'checked',
                                     initialValue: this.state.typicalFirewallsettings.reject_all === 'yes'
                                 })(
-                                    <Checkbox disabled={ true } />
+                                    <Checkbox disabled={ canReject === false } />
                                 ) }
                             </FormItem>
                         </Col>

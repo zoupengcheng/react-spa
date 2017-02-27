@@ -11,6 +11,7 @@ export const SET_CURRENTQUEUE = 'SET_CURRENTQUEUE'
 export const GET_QUEUEBYCHAIRMAN = 'GET_QUEUEBYCHAIRMAN'
 export const GET_QUEUECALLINGANSWERED = 'GET_QUEUECALLINGANSWERED'
 export const GET_QUEUECALLINGWAITING = 'GET_QUEUECALLINGWAITING'
+export const GET_BRIDGECHANNEL = 'GET_BRIDGECHANNEL'
 
 import $ from 'jquery'
 import _ from 'underscore'
@@ -431,4 +432,56 @@ export const setSpinLoading = (obj) => (dispatch) => {
     } else {
         dispatch({type: 'HIDE_SPIN', spinLoading: {loading: false}})
     }
+}
+
+export const loadBridgeChannel = () => (dispatch) => {
+    $.ajax({
+        type: 'json',
+        method: 'post',
+        url: api.apiHost,
+        data: {
+            "action": 'listBridgedChannels',
+            "sidx": "callerid1",
+            "sord": "asc"
+        },
+        success: function(res) {
+            var bridgeChannel = []
+            const response = res.response || {}
+
+            if (response.channel) {
+                bridgeChannel = response.channel
+            }
+
+            $.ajax({
+                type: 'json',
+                method: 'post',
+                url: api.apiHost,
+                data: {
+                    "action": 'listUnBridgedChannels',
+                    "sidx": "state",
+                    "sord": "asc"
+                },
+                success: function(res) {
+                    var unBridgeChannel = []
+                    const response = res.response || {}
+
+                    if (response.channel) {
+                        unBridgeChannel = response.channel
+                    }
+
+                    _.each(bridgeChannel, function(item) {
+                        unBridgeChannel.push(item)
+                    })
+
+                    dispatch({type: 'GET_BRIDGECHANNEL', activeCallStatus: unBridgeChannel})
+                },
+                error: function(e) {
+                    console.log(e.statusText)
+                }
+            })
+        },
+        error: function(e) {
+            console.log(e.statusText)
+        }
+    })
 }

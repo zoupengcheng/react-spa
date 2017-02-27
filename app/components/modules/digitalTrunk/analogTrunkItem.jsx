@@ -1198,7 +1198,7 @@ class AnalogTrunkItem extends Component {
             mode = this.props.route.path,
             isEdit = (mode.indexOf('edit') === 0),
             isAdd = (mode.indexOf('add') === 0),
-            headerTitle = formatMessage({id: "LANG762"})
+            headerTitle = formatMessage({id: "LANG3142"})
         
         if (isEdit) {
             headerTitle = formatMessage({

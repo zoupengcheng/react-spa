@@ -29,7 +29,7 @@ class Title extends Component {
                         <Button type="primary" onClick={ this._triggerSave } className="save">
                             { this.props.saveTxt }
                         </Button>
-                        <Button type="ghost" onClick={ this._triggerCancel } className="cancel">
+                        <Button type="ghost" onClick={ this._triggerCancel } className={ "cancel " + this.props.isDisplayCancel }>
                             { this.props.cancelTxt }
                         </Button>
                         <Button type="primary" onClick={ this._triggerSearch } className="filter " icon="filter">

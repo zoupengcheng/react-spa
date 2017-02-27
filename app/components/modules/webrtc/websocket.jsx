@@ -19,7 +19,11 @@ class WebSocket extends Component {
         super(props)
 
         this.state = {
-            settings: []
+            settings: [],
+            enabled: false,
+            oldTLSPort: '',
+            oldHTTPPort: '',
+            tlsenable: false
         }
     }
     componentDidMount() {
@@ -29,6 +33,8 @@ class WebSocket extends Component {
     }
     _getSIPWebRTCHttpSettings = () => {
         let settings = []
+        let oldTLSPort = ''
+        let oldHTTPPort = ''
         const { formatMessage } = this.props.intl
 
         $.ajax({
@@ -46,8 +52,29 @@ class WebSocket extends Component {
 
                     settings = response.webrtc_http_settings || []
 
+                    oldHTTPPort = settings.bindport
+
+                    if (settings.tlsbindaddr) {
+                        oldTLSPort = settings.tlsbindaddr.split(':')[1]
+
+                        if (UCMGUI.isIPv6(settings.tlsbindaddr)) {
+                            oldTLSPort = settings.tlsbindaddr.split("]:")[1]
+                        }
+                    }
+
+                    let httpPort = settings.bindport ? settings.bindport : '8088'
+                    let httpAddr = settings.bindaddr ? settings.bindaddr : '0.0.0.0'
+                    let tlsbindaddr = settings.tlsbindaddr ? settings.tlsbindaddr : '0.0.0.0:8443'
+
+                    settings.websocket_interface = ('ws://' + httpAddr + ':' + httpPort + '/ws')
+                    settings.secure_websocket_interface = ('wss://' + tlsbindaddr + '/ws')
+
                     this.setState({
-                        settings: settings
+                        settings: settings,
+                        oldTLSPort: oldTLSPort,
+                        oldHTTPPort: oldHTTPPort,
+                        enabled: settings.enabled === 'yes',
+                        tlsenable: settings.tlsenable === 'yes'
                     })
                 }
             }.bind(this),
@@ -56,28 +83,19 @@ class WebSocket extends Component {
             }
         })
     }
-    _onChangeExtensionType = (value) => {
-        if (value === 'fxs') {
-            this.setState({
-                add_method: 'single'
-            })
-        }
-
-        this.props.onExtensionTypeChange(value)
-    }
-    _onChangeAddMethod = (value) => {
+    _onChangeHTTP = (e) => {
         this.setState({
-            add_method: value
+            enabled: e.target.checked
         })
     }
-    _onChangeQualify = (e) => {
+    _onChangeTLS = (e) => {
         this.setState({
-            enable_qualify: e.target.checked
+            tlsenable: e.target.checked
         })
     }
     render() {
         const form = this.props.form
-        const settings = this.props.settings || {}
+        const settings = this.state.settings || {}
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
 
@@ -99,12 +117,12 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('enabled', {
+                        { getFieldDecorator('ws_enabled', {
                             rules: [],
                             valuePropName: 'checked',
-                            initialValue: settings.enabled === 'yes'
+                            initialValue: this.state.enabled
                         })(
-                            <Checkbox />
+                            <Checkbox onChange={ this._onChangeHTTP } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -117,10 +135,14 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('bindaddr', {
+                        { getFieldDecorator('ws_bindaddr', {
                             rules: [{
-                                required: true,
+                                required: this.state.enabled,
                                 message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.ipAddress(data, value, callback, formatMessage)
+                                }
                             }],
                             initialValue: settings.bindaddr
                         })(
@@ -137,14 +159,18 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('bindport', {
+                        { getFieldDecorator('ws_bindport', {
                             rules: [{
-                                required: true,
+                                required: this.state.enabled,
                                 message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 1, 65535)
+                                }
                             }],
                             initialValue: settings.bindport
                         })(
-                            <InputNumber />
+                            <Input />
                         ) }
                     </FormItem>
                     <FormItem
@@ -157,12 +183,12 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('tlsenable', {
+                        { getFieldDecorator('ws_tlsenable', {
                             rules: [],
                             valuePropName: 'checked',
-                            initialValue: settings.tlsenable === 'yes'
+                            initialValue: this.state.tlsenable
                         })(
-                            <Checkbox />
+                            <Checkbox onChange={ this._onChangeTLS } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -175,8 +201,15 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('tlsbindaddr', {
-                            rules: [],
+                        { getFieldDecorator('ws_tlsbindaddr', {
+                            rules: [{
+                                required: this.state.tlsenable,
+                                message: formatMessage({id: "LANG2150"})
+                            }, { 
+                                validator: (data, value, callback) => {
+                                    Validator.ipAddressPort(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: settings.tlsbindaddr
                         })(
                             <Input />
@@ -192,11 +225,11 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('websocket_interface', {
+                        { getFieldDecorator('ws_websocket_interface', {
                             rules: [],
                             initialValue: settings.websocket_interface
                         })(
-                            <Input />
+                            <Input disabled />
                         ) }
                     </FormItem>
                     <FormItem
@@ -209,11 +242,11 @@ class WebSocket extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('secure_websocket_interface', {
+                        { getFieldDecorator('ws_secure_websocket_interface', {
                             rules: [],
                             initialValue: settings.secure_websocket_interface
                         })(
-                            <Input />
+                            <Input disabled />
                         ) }
                     </FormItem>
                 </div>

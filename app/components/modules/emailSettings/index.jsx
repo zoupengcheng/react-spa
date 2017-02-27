@@ -73,8 +73,10 @@ class EmailSettings extends Component {
         const { formatMessage } = this.props.intl
         const me = this
 
-        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
-            if (!err) {
+        this.props.form.validateFields({ force: true }, (err, values) => {
+            let a = err
+            let b = values
+            if (!err || (err && err.hasOwnProperty('recipients'))) {
                 console.log('Received values of form: ', values)
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
@@ -87,6 +89,7 @@ class EmailSettings extends Component {
                 }
                 action.smtp_tls_enable = action.smtp_tls_enable ? 'yes' : 'no'
                 action["action"] = "updateEmailSettings"
+                delete action.recipients
                 
                 if (this.state.web_https === 0) {
                     confirm({

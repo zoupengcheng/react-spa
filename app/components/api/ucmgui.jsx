@@ -377,15 +377,13 @@ UCMGUI.prototype = {
                 let str = <FormattedMessage
                                 id="LANG2132"
                                 defaultMessage={ '<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?' }
-                                values={{ 0: ext, 1: start, 2: end }}
-                            />
+                                values={{ 0: ext, 1: start, 2: end }}/>
 
                 if (nExtEnd > end) {
                     str = <FormattedMessage
                                 id="welcome"
                                 defaultMessage={ '<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?' }
-                                values={{ 0: nExtEnd, 1: start, 2: end }}
-                            />
+                                values={{ 0: nExtEnd, 1: start, 2: end }}/>
                 }
                 top.dialog.dialogConfirm({
                     confirmStr: str,
@@ -861,6 +859,67 @@ UCMGUI.prototype = {
         })
 
         return s.responseText
+    },
+    bySort: function(name, type) {
+        return function(o, p) {
+            var left = 0,
+                right = 0,
+                a = "",
+                b = ""
+
+            if (typeof o === "object" && typeof p === "object" && o && p) {
+                a = o[name]
+                b = p[name]
+
+                if (a === b) {
+                    return 0
+                }
+
+                if (type === "down") {
+                    if (typeof a === typeof b) {
+                        if ((a.contains(" Bytes") || a.contains(" KB") || a.contains(" MB") || a.contains(" GB")) && (b.contains(" Bytes") || b.contains(" KB") || b.contains(" MB") || b.contains(" GB"))) {
+                            a = UCMGUI.untranSize(a)
+                            b = UCMGUI.untranSize(b)
+                        }
+
+                        if (a.length !== b.length) {
+                            return a.length < b.length ? -1 : 1
+                        }
+
+                        if (/^\d+$/.test(a) && /^\d+$/.test(b)) {
+                            left = parseInt(a, 10)
+                            right = parseInt(b, 10)
+                            return left < right ? -1 : 1
+                        } else {
+                            return a < b ? -1 : 1
+                        }
+                    }
+
+                    return typeof a < typeof b ? -1 : 1
+                } else {
+                    if (typeof a === typeof b) {
+                        if ((a.contains(" Bytes") || a.contains(" KB") || a.contains(" MB") || a.contains(" GB")) && (b.contains(" Bytes") || b.contains(" KB") || b.contains(" MB") || b.contains(" GB"))) {
+                            a = UCMGUI.untranSize(a)
+                            b = UCMGUI.untranSize(b)
+                        }
+
+                        if (a.length !== b.length) {
+                            return a.length > b.length ? -1 : 1
+                        }
+
+                        if (/^\d+$/.test(a) && /^\d+$/.test(b)) {
+                            left = parseInt(a, 10)
+                            right = parseInt(b, 10)
+                            return left > right ? -1 : 1
+                        } else {
+                            return a > b ? -1 : 1
+                        }
+                    }
+
+                    return typeof a > typeof b ? -1 : 1
+                }
+            }
+        }
     }
 }
 

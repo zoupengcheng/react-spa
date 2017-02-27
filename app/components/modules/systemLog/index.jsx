@@ -329,13 +329,13 @@ class SystemLog extends Component {
     _getInitData = () => {
         const { formatMessage } = this.props.intl
         let logServer = this.state.logServer
-        let dynamicSwitch = this.state.dynamicSwitch
-        let dynamicSwitchList = this.state.dynamicSwitchList
-        let staticSwitch = this.state.staticSwitch
-        let logSwitch = this.state.logSwitch
-        let logSwitchList = this.state.logSwitchList
-        let switchAll = this.state.switchAll
-        let dynamicAll = this.state.dynamicAll
+        let dynamicSwitch = []
+        let dynamicSwitchList = []
+        let staticSwitch = []
+        let logSwitch = []
+        let logSwitchList = []
+        let switchAll = false
+        let dynamicAll = false
         const plainOptions = [{
                 label: formatMessage({id: "LANG5142"}),
                 value: 'cdrapi'
@@ -572,7 +572,8 @@ class SystemLog extends Component {
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/maintenance/systemEvent/1')
+        browserHistory.push('/maintenance/systemLog')
+        this._getInitData()
     }
     _handleSubmit = () => {
         const { formatMessage } = this.props.intl
@@ -1017,10 +1018,9 @@ class SystemLog extends Component {
                             <Table
                                 rowKey="id"
                                 columns={ columns }
-                                pagination={ false }
+                                pagination={ pagination }
                                 dataSource={ this.state.staticSwitch }
                                 showHeader={ !!this.state.staticSwitch.length }
-                                scroll={{y: 240}}
                             />
                             <div className="section-title">
                                 <span>{ formatMessage({id: "LANG4161"}) }</span>

@@ -14,7 +14,7 @@ import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, Row } f
 const FormItem = Form.Item
 const Option = Select.Option
 
-class BarItem extends Component {
+class UserItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -60,6 +60,9 @@ class BarItem extends Component {
             userItem: userItem
         })
     }
+    _gotoChangePwd = () => {
+        browserHistory.push('/maintenance/ChangePassword')
+    }
     _handleCancel = () => {
         browserHistory.push('/maintenance/userManagement/1')
     }
@@ -86,11 +89,15 @@ class BarItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
+                action._location = 'user_list'
 
                 if (userName && userId) {
                     action.action = 'updateUser'
                     action.user_id = userId
                     action.user_name = userName
+                    delete action.user_password
+                    delete action.privilege
+                    delete action.email
                 } else {
                     action.action = 'addUser'
                 }
@@ -178,6 +185,7 @@ class BarItem extends Component {
                         <Col span={ 6 } style={{ marginRight: 20 }}>
                             <FormItem
                                 ref="div_user_password"
+                                className={ userItem.privilege === 0 ? 'hidden' : 'display-block'}
                                 { ...formItemLayout }
 
                                 label={(
@@ -193,8 +201,20 @@ class BarItem extends Component {
                                     width: 100,
                                     initialValue: userItem.user_password ? userItem.user_password : ""
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='127' disabled={ userItem.privilege === 0 } />
                                 ) }
+                            </FormItem>
+                            <FormItem
+                                ref="div_user_password"
+                                { ...formItemLayout }
+                                className={ userItem.privilege === 0 ? 'display-block' : 'hidden'}
+
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG2845" />}>
+                                        <span>{formatMessage({id: "LANG2810"})}</span>
+                                    </Tooltip>
+                                )}>
+                                    <a className="prompt_setting" onClick={ this._gotoChangePwd } >{ formatMessage({id: "LANG55"}) }</a>
                             </FormItem>
                         </Col>
                     </Row>
@@ -267,6 +287,7 @@ class BarItem extends Component {
                             <FormItem
                                 ref="div_email"
                                 { ...formItemLayout }
+                                className={ userItem.privilege === 0 ? 'hidden' : 'display-block'}
 
                                 label={(
                                     <Tooltip title={<FormattedHTMLMessage id="LANG1082" />}>
@@ -278,8 +299,20 @@ class BarItem extends Component {
                                     width: 100,
                                     initialValue: userItem.email ? userItem.email : ""
                                 })(
-                                    <Input maxLength='255' />
+                                    <Input maxLength='255' disabled={ userItem.privilege === 0 } />
                                 ) }
+                            </FormItem>
+                            <FormItem
+                                ref="div_email"
+                                { ...formItemLayout }
+                                className={ userItem.privilege === 0 ? 'display-block' : 'hidden'}
+
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG1082" />}>
+                                        <span>{formatMessage({id: "LANG1081"})}</span>
+                                    </Tooltip>
+                                )}>
+                                    <a className="prompt_setting" onClick={ this._gotoChangePwd } >{ formatMessage({id: "LANG4203"}) }</a>
                             </FormItem>
                         </Col>
                     </Row>
@@ -369,4 +402,4 @@ class BarItem extends Component {
     }
 }
 
-export default Form.create()(injectIntl(BarItem))
+export default Form.create()(injectIntl(UserItem))

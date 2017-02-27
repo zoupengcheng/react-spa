@@ -4,11 +4,12 @@ import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
 import BasicSettings from './basicSettings'
 import Network8021x from './8021x'
+import PortForwarding from './portForwarding'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Form, Tabs, message, Modal } from 'antd'
+import { Form, Tabs, message, Modal, BackTop } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 
@@ -30,6 +31,7 @@ class NetWorkSettings extends Component {
             isDisplay: "display-block",
             network_settings: {},
             dhcp_settings: {},
+            dhcp6_settings: {},
             method_8021_calss: {
                 lan1: 'hidden',
                 lan2: 'display-block',
@@ -70,26 +72,30 @@ class NetWorkSettings extends Component {
             let buf = {}
             buf["action"] = "updateNetworkproSettings"
             buf["mode"] = form.getFieldValue('mode')
-            buf["identity"] = form.getFieldValue('identity')
-            buf["md5_secret"] = form.getFieldValue('md5_secret')
-            buf["lan2.802.1x.mode"] = form.getFieldValue('lan2.802.1x.mode')
-            buf["lan2.802.1x.identity"] = form.getFieldValue('lan2.802.1x.identity')
-            buf["lan2.802.1x.username"] = form.getFieldValue('lan2.802.1x.username')
-            buf["lan2.802.1x.password"] = form.getFieldValue('lan2.802.1x.password')
+            if (buf["mode"] !== undefined) {
+                buf["identity"] = form.getFieldValue('identity')
+                buf["md5_secret"] = form.getFieldValue('md5_secret')
+                buf["lan2.802.1x.mode"] = form.getFieldValue('lan2.802.1x.mode')
+                buf["lan2.802.1x.identity"] = form.getFieldValue('lan2.802.1x.identity')
+                buf["lan2.802.1x.username"] = form.getFieldValue('lan2.802.1x.username')
+                buf["lan2.802.1x.password"] = form.getFieldValue('lan2.802.1x.password')
 
-            $.ajax({
-                type: "post",
-                url: baseServerURl,
-                data: buf,
-                success: function(data) {
-                    const bool = UCMGUI.errorHandler(data, null, formatMessage)
+                $.ajax({
+                    type: "post",
+                    url: baseServerURl,
+                    data: buf,
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
-                    if (bool) {
-                        /* -------- End -------- */
-                        __this._saveRes()
+                        if (bool) {
+                            /* -------- End -------- */
+                            __this._saveRes()
+                        }
                     }
-                }
-            })
+                })
+            } else {
+                __this._saveRes()
+            }
         // }
     }
     _saveChangeCallback = (e) => {
@@ -98,10 +104,12 @@ class NetWorkSettings extends Component {
         const __this = this
 
         // if (checkIfRejectRules(method)) {
-            let all = form.getFieldsValue(['method', 'mtu', 'default_interface', 'altdns', 
-                'lan2_ip_method', 'lan2_ip', 'lan2_mask', 'lan2_gateway', 'lan2_dns1', 'lan2_dns2', 'lan2_username', 'lan2_password', 'lan2_vid', 'lan2_priority',
-                'lan1_ip_method', 'lan1_ipaddr', 'lan1_submask', 'lan1_gateway', 'lan1_dns1', 'lan1_dns2', 'lan1_username', 'lan1_password', 'lan1_vid', 'lan1_priority',
-                'dhcp_ipaddr', 'dhcp_submask', 'dhcp_enable', 'dhcp_dns1', 'dhcp_dns2', 'ipfrom', 'ipto', 'dhcp_gateway', 'ipleasetime']) 
+            // let all = form.getFieldsValue(['method', 'mtu', 'default_interface', 'altdns', 
+            //    'lan2_ip_method', 'lan2_ip', 'lan2_mask', 'lan2_gateway', 'lan2_dns1', 'lan2_dns2', 'lan2_username', 'lan2_password', 'lan2_vid', 'lan2_priority',
+            //    'lan1_ip_method', 'lan1_ipaddr', 'lan1_submask', 'lan1_gateway', 'lan1_dns1', 'lan1_dns2', 'lan1_username', 'lan1_password', 'lan1_vid', 'lan1_priority',
+            //    'dhcp_ipaddr', 'dhcp_submask', 'dhcp_enable', 'dhcp_dns1', 'dhcp_dns2', 'ipfrom', 'ipto', 'dhcp_gateway', 'ipleasetime']) 
+            let all = form.getFieldsValue()
+
             let buf = {}
             let methodVal = this.state.network_settings.method
             let lasInterface = ''
@@ -114,7 +122,7 @@ class NetWorkSettings extends Component {
             _.each(all, function(num, key) {
                 if (key === 'dhcp_enable' || key === 'dhcp6_enable') {
                     buf[key] = num ? "1" : "0"
-                } else {
+                } else if (key !== 'mode' && key !== 'identity' && key !== 'md5_secret' && key !== 'lan2.802.1x.mode' && key !== 'lan2.802.1x.identity' && key !== 'lan2.802.1x.username' && key !== 'lan2.802.1x.password') {
                     buf[key] = num
                 }
             })
@@ -242,11 +250,26 @@ class NetWorkSettings extends Component {
             method_8021_calss: method
         })       
     }
+    _onChangeDHCP = (e) => {
+        let data = this.state.network_settings
+        data.dhcp_enable = e.target.checked
+        this.setState({
+            network_settings: data
+        })
+    }
+    _changeDHCP6Enable = (e) => {
+        let data = this.state.network_settings
+        data.dhcp6_enable = e
+        this.setState({
+            network_settings: data
+        })
+    }
     _getInitNetwork = () => {
         const { formatMessage } = this.props.intl
 
         let network_settings = {}
         let dhcp_settings = {}
+        let dhcp6_settings = {}
 
         $.ajax({
             url: baseServerURl,
@@ -262,13 +285,14 @@ class NetWorkSettings extends Component {
                 if (bool) {
                     const response = data.response || {}
                     _.each(response.network_settings, function(num, key) {
-                        if (key === 'dhcp_enable' || key === 'dhcp6_enable') {
+                        if (key === 'dhcp_enable') {
                             network_settings[key] = num === "1" ? true : false
                         } else {
                             network_settings[key] = num
                         }
                     })
                     dhcp_settings = data.response.dhcp_settings
+                    dhcp6_settings = data.response.dhcp6_settings
                }
            }
         })
@@ -307,6 +331,7 @@ class NetWorkSettings extends Component {
         this.setState({
             network_settings: network_settings,
             dhcp_settings: dhcp_settings,
+            dhcp6_settings: dhcp6_settings,
             method_8021_calss: method_calss
         })
     }
@@ -379,7 +404,10 @@ class NetWorkSettings extends Component {
                             form={ this.props.form }
                             dataSource={ this.state.network_settings }
                             dataDHCPSettings={ this.state.dhcp_settings }
+                            dataDHCP6Settings={ this.state.dhcp6_settings }
                             change8021x={ this._change8021xMethod.bind(this) }
+                            dhcpEnable={ this._onChangeDHCP.bind(this) }
+                            dhcp6Enable={ this._changeDHCP6Enable.bind(this) }
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG708"})} key="2">
@@ -388,7 +416,14 @@ class NetWorkSettings extends Component {
                             class8021x={ this.state.method_8021_calss }
                         />
                     </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG709"})} key="4">
+                        <PortForwarding
+                        />
+                    </TabPane>
                 </Tabs>
+                <div>
+                    <BackTop />
+                </div>
             </div>
         )
     }

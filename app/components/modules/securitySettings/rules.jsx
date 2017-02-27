@@ -25,9 +25,9 @@ class Rules extends Component {
         }
     }
     componentDidMount() {
-        this._getInitDate()
+        this._getInitData()
     }
-    _getInitDate = () => {
+    _getInitData = () => {
         const { formatMessage } = this.props.intl
         const name = this.props.params.name
         let rule_name = this.state.rule_name
@@ -51,12 +51,12 @@ class Rules extends Component {
                     const response = res.response || {}
                     const networkSettings = response.network_settings || []
                     netMethod = networkSettings.method
-                    if (netMethod === '0') {
+                    if (netMethod === '1') {
                         interfaceList.push({
                             text: 'LAN',
                             val: 'LAN'
                         })
-                    } else if (netMethod === '1') {
+                    } else if (netMethod === '0') {
                         interfaceList.push({
                             text: 'WAN',
                             val: 'WAN'

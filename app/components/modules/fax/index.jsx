@@ -466,7 +466,12 @@ class Fax extends Component {
     _deleteAllSelectdFile = () => {
         const { formatMessage } = this.props.intl
         const __this = this
-        if (this.state.selectedRowKeysFile.length === 0) {
+        if (this.state.faxFileItem.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG4064"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else if (this.state.selectedRowKeysFile.length === 0) {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG823"}, {0: formatMessage({id: "LANG4064"})})}} ></span>,
                 okText: (formatMessage({id: "LANG727"}))
