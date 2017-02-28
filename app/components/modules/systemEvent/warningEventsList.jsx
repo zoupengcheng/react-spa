@@ -29,38 +29,9 @@ class WarningEventList extends Component {
         }
     }
     componentDidMount() {
-        this._getInitDate()
-        this._getHasContact()
+        this._getInitData()
     }
-    _getHasContact = () => {
-         const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'warningCheckHasContact'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const has_contact = response.body.has_contact
-
-                    this.setState({
-                        has_contact: has_contact
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getInitDate = () => {
+    _getInitData = () => {
         const { formatMessage } = this.props.intl
         let Pmin_send_warningemail = ""
         let Pmode_send_warningemail = ""
@@ -140,7 +111,59 @@ class WarningEventList extends Component {
             }
         })
     }
+    _warningStart = () => {
+        $.ajax({
+            url: api.apiHost + 'action=reloadWarning&warningStart=',
+            method: "GET",
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                }
+            }.bind(this)
+        })
+    }
+    _warningStop = () => {
+        $.ajax({
+            url: api.apiHost + 'action=reloadWarning&warningStop=',
+            method: "GET",
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                }
+            }.bind(this)
+        })
+    }
+    _reloadCrontabs = () => {
+        $.ajax({
+            url: api.apiHost + 'action=reloadCrontabs&crontabjobs=',
+            method: "GET",
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                }
+            }.bind(this)
+        })
+    }
     _turnOnWarningOK = () => {
+        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -175,13 +198,15 @@ class WarningEventList extends Component {
                     this.setState({
                         selectedRows: selectedRows
                     })
+                    this._warningStart()
                 }
 
-                this._getInitDate()
+                this._getInitData()
             }.bind(this)
         })
     }
     _turnOffWarningOK = () => {
+        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -216,13 +241,15 @@ class WarningEventList extends Component {
                     this.setState({
                         selectedRows: selectedRows
                     })
+                    this._warningStart()
                 }
 
-                this._getInitDate()
+                this._getInitData()
             }.bind(this)
         })
     }
     _turnOnMailNotificationOK = () => {
+        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -250,13 +277,15 @@ class WarningEventList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
+                    this._warningStart()
                 }
 
-                this._getInitDate()
+                this._getInitData()
             }.bind(this)
         })
     }
     _turnOffMailNotificationOK = () => {
+        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -284,9 +313,10 @@ class WarningEventList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
+                    this._warningStart()
                 }
 
-                this._getInitDate()
+                this._getInitData()
             }.bind(this)
         })
     }
@@ -363,6 +393,7 @@ class WarningEventList extends Component {
         
     }
     _warningEnable = (id, value) => {
+        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -385,13 +416,15 @@ class WarningEventList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
+                    this._warningStart()
                 }
 
-                this._getInitDate()
+                this._getInitData()
             }.bind(this)
         })
     }
     _warningEnableEmail = (id, record, value) => {
+        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -401,10 +434,10 @@ class WarningEventList extends Component {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4487"})}} ></span>,
                 onOk() {
-                    __this._getInitDate()
+                    __this._getInitData()
                 }
             })
-        } else if (this.state.has_contact === 0) {
+        } else if (this.props.has_contact === 0 && record.enable_email === '0') {
             confirm({
                 title: (formatMessage({id: "LANG543"})),
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2631"})}} ></span>,
@@ -433,15 +466,17 @@ class WarningEventList extends Component {
                     if (bool) {
                         message.destroy()
                         message.success(successMessage)
+                        this._warningStart()
                     }
 
-                    this._getInitDate()
+                    this._getInitData()
                 }.bind(this)
             })
         }
     }
     _gotoWarningContact = () => {
-        browserHistory.push('/maintenance/systemEvent/3')
+        // browserHistory.push('/maintenance/systemEvent/3')
+        this.props.setActiveKey('3')
     }
     _createID = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -593,6 +628,7 @@ class WarningEventList extends Component {
                         if (bool) {
                             message.destroy()
                             message.success(successMessage)
+                            this._reloadCrontabs()
                         }
                     }.bind(this)
                 })
@@ -663,11 +699,6 @@ class WarningEventList extends Component {
 
         return (
             <div className="app-content-main">
-                <Title
-                    headerTitle={ formatMessage({id: "LANG2582"}) }
-                    onSubmit={ this._handleSubmit }
-                    isDisplay='display-block'
-                />
                 <Form>
                     <Row>
                         <Col span={ 6 } >
@@ -782,4 +813,4 @@ class WarningEventList extends Component {
     }
 }
 
-export default Form.create()(injectIntl(WarningEventList))
+export default injectIntl(WarningEventList)

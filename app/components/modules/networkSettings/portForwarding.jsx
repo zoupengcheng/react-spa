@@ -62,7 +62,7 @@ class PortForwarding extends Component {
     }
  
     _edit = (record, index) => {
-        browserHistory.push('/system-settings/portForwarding/edit/' + record.id)
+        browserHistory.push('/system-settings/portForwarding/edit/' + record.id + '/' + record.wan_port)
     }
     _getInitData = () => {
         const { formatMessage } = this.props.intl
@@ -161,13 +161,7 @@ class PortForwarding extends Component {
                                 onClick={ this._edit.bind(this, record) }>
                             </span>
                             <Popconfirm
-                                title={
-                                    formatMessage({id: "LANG2710"}, {
-                                        0: formatMessage({id: "LANG709"}),
-                                        1: this.state.selectedRowName
-                                    })
-
-                                 }
+                                title={ formatMessage({id: "LANG841"}) }
                                 okText={ formatMessage({id: "LANG727"}) }
                                 cancelText={ formatMessage({id: "LANG726"}) }
                                 onConfirm={ this._delete.bind(this, record) }

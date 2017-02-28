@@ -1,16 +1,17 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
-import EmailSendLog from './emailSendLog'
-import EmailTemplateList from './emailTemplateList'
-import SMTP from './smtpSettings'
 import $ from 'jquery'
+import _ from 'underscore'
 import api from "../../api/api"
+import SMTP from './smtpSettings'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import EmailSendLog from './emailSendLog'
+import EmailTemplateList from './emailTemplateList'
+
 import { Form, Tabs, message, Modal } from 'antd'
+import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
-import _ from 'underscore'
 
 const TabPane = Tabs.TabPane
 const confirm = Modal.confirm
@@ -18,17 +19,17 @@ const confirm = Modal.confirm
 class EmailSettings extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
-            activeKey: this.props.params.id ? this.props.params.id : '1',
-            isDisplay: "display-block",
-            web_https: 1
+            web_https: 1,
+            isDisplay: 'display-block',
+            activeKey: this.props.params.tab ? this.props.params.tab : 'settings'
         }
     }
     componentDidMount() {
         this._getHttpServer()
     }
     componentWillUnmount() {
-
     }
     _getHttpServer = () => {
         $.ajax({
@@ -49,6 +50,7 @@ class EmailSettings extends Component {
                     const response = res.response || {}
                     const httpserver = response.httpserver
                     const web_https = httpserver.web_https
+
                     this.setState({
                         web_https: web_https
                     })
@@ -76,8 +78,10 @@ class EmailSettings extends Component {
         this.props.form.validateFields({ force: true }, (err, values) => {
             let a = err
             let b = values
+
             if (!err || (err && err.hasOwnProperty('recipients'))) {
                 console.log('Received values of form: ', values)
+
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
                 let action = {}
@@ -87,8 +91,11 @@ class EmailSettings extends Component {
                         action[item] = values[item]
                     }
                 }
+
                 action.smtp_tls_enable = action.smtp_tls_enable ? 'yes' : 'no'
-                action["action"] = "updateEmailSettings"
+                action.enable_auth = action.enable_auth ? 'yes' : 'no'
+                action.action = "updateEmailSettings"
+ 
                 delete action.recipients
                 
                 if (this.state.web_https === 0) {
@@ -143,11 +150,13 @@ class EmailSettings extends Component {
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: formatMessage({id: "LANG717"})
@@ -155,21 +164,20 @@ class EmailSettings extends Component {
 
         return (
             <div className="app-content-main" id="app-content-main">
-                <Title headerTitle={ formatMessage({id: "LANG717"}) } 
-                    onSubmit={ this._handleSubmit.bind(this) } 
+                <Title
                     onCancel={ this._handleCancel } 
                     isDisplay={ this.state.isDisplay }
+                    onSubmit={ this._handleSubmit.bind(this) } 
+                    headerTitle={ formatMessage({id: "LANG717"}) } 
                 />
-                <Tabs defaultActiveKey={ this.state.activeKey } onChange={this._onChange}>
-                    <TabPane tab={formatMessage({id: "LANG717"})} key="1">
-                        <SMTP 
-                            form={ this.props.form }
-                        />
+                <Tabs activeKey={ this.state.activeKey } onChange={ this._onChange }>
+                    <TabPane tab={formatMessage({id: "LANG717"})} key="settings">
+                        <SMTP form={ this.props.form } />
                     </TabPane>
-                    <TabPane tab={formatMessage({id: "LANG4572"})} key="2">
+                    <TabPane tab={formatMessage({id: "LANG4572"})} key="template">
                         <EmailTemplateList />
                     </TabPane>
-                    <TabPane tab={formatMessage({id: "LANG5382"})} key="3">
+                    <TabPane tab={formatMessage({id: "LANG5382"})} key="log">
                         <EmailSendLog />
                     </TabPane>
                 </Tabs>

@@ -9,6 +9,7 @@ import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
 import { Button, message, Form, Modal, Input, Table, Tag, Tooltip, Col, Icon } from 'antd'
+import Validator from "../../api/validator"
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -197,7 +198,7 @@ class WarningContact extends Component {
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
-                this._warningStart()
+                this._warningStop()
                 console.log('Received values of form: ', values)
 
                 message.loading(loadingMessage)
@@ -233,7 +234,7 @@ class WarningContact extends Component {
                         }
                     }.bind(this)
                 })
-                this._warningStop()
+                this._warningStart()
             }
         })
     }
@@ -332,12 +333,6 @@ class WarningContact extends Component {
 
         return (
             <div className="app-content-main">
-                <Title
-                    headerTitle={ formatMessage({id: "LANG2546"}) }
-                    onSubmit={ this._handleSubmit }
-                    onCancel={ this._handleCancel }
-                    isDisplay='display-block'
-                />
                 <div className="content">
                     <Form>
                         <FormItem
@@ -350,7 +345,11 @@ class WarningContact extends Component {
                             <Col span="8">
                                 <FormItem>
                                     {getFieldDecorator("super_0", {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.email(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         initialValue: superList[0] ? superList[0].value : ""
                                         })(
                                             <Input />
@@ -379,7 +378,11 @@ class WarningContact extends Component {
                             <Col span="8">
                                 <FormItem>
                                     {getFieldDecorator("manager_0", {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.email(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         initialValue: managerList[0] ? managerList[0].value : ""
                                         })(
                                             <Input />
@@ -405,4 +408,4 @@ class WarningContact extends Component {
     }
 }
 
-export default Form.create()(injectIntl(WarningContact))
+export default injectIntl(WarningContact)

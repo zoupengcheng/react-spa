@@ -89,15 +89,17 @@ class PickupGroupItem extends Component {
                     const extension = response.extension || []
                     const disabled = formatMessage({id: "LANG273"})
 
-                    accountList = extension.map(function(item) {
-                        return {
-                                key: item.extension,
-                                out_of_service: item.out_of_service,
-                                // disabled: (item.out_of_service === 'yes'),
-                                title: (item.extension +
-                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                            }
+                    extension.map(function(item) {
+                        if (item.account_type === 'SIP') {
+                            accountList.push({
+                                    key: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    // disabled: (item.out_of_service === 'yes'),
+                                    title: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                            })
+                        }
                     })
                 }
             }.bind(this),

@@ -63,6 +63,14 @@ class EmailSendLog extends Component {
         })
     }
     _handleCancel = () => {
+        const { setFieldsValue} = this.props.form
+        setFieldsValue({
+            start_date: '',
+            end_date: '',
+            recipient: '',
+            send_result: '',
+            return_code: ''
+        })
         this._getMailSendLog()
     }
     _infoCancel = () => {
@@ -88,7 +96,17 @@ class EmailSendLog extends Component {
 
                 if (bool) {
                     const response = res.response || {}
-                    sub_send_mail_log = response.sub_send_mail_log || []
+                    const tmp_sub_send_mail_log = response.sub_send_mail_log || []
+                    tmp_sub_send_mail_log.map(function(item, index) {
+                        sub_send_mail_log.push({
+                            index: index,
+                            msg_id: item.msg_id,
+                            send_time: item.send_time,
+                            send_to: item.send_to,
+                            return_code: item.return_code,
+                            send_result: item.send_result
+                        })
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -291,6 +309,24 @@ class EmailSendLog extends Component {
     _handleFormChange = (changedFields) => {
         _.extend(this.props.dataSource, changedFields)
     }
+    _createModule = (text, record, index) => {
+        const { formatMessage } = this.props.intl
+        const moduleLocales = {
+            'account': 'LANG85',
+            'voicemail': 'LANG20',
+            'conference': 'LANG3775',
+            'password': 'LANG2810',
+            'alert': 'LANG2553',
+            'cdr': 'LANG7',
+            'fax': 'LANG95',
+            'test': 'LANG2273'
+        }
+        if (moduleLocales[text] !== undefined) {
+            return <span>{ formatMessage({id: moduleLocales[text]}) }</span>
+        } else {
+            return <span>{ text }</span>
+        }
+    } 
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
@@ -305,43 +341,46 @@ class EmailSendLog extends Component {
                 dataIndex: 'date',
                 title: formatMessage({id: "LANG5383"}),
                 width: 100,
-                sorter: (a, b) => a.date.length - b.date.length
+                sorter: true
             }, {
                 key: 'module',
                 dataIndex: 'module',
                 title: formatMessage({id: "LANG5384"}),
                 width: 100,
-                sorter: (a, b) => a.module.length - b.module.length
+                sorter: true,
+                render: (text, record, index) => {
+                    return this._createModule(text, record, index)
+                }
             }, {
                 key: 'recipient',
                 dataIndex: 'recipient',
                 title: formatMessage({id: "LANG5385"}),
                 width: 100,
-                sorter: (a, b) => a.recipient.length - b.recipient.length
+                sorter: true
             }, {
                 key: 'send_time',
                 dataIndex: 'send_time',
                 title: formatMessage({id: "LANG5386"}),
                 width: 100,
-                sorter: (a, b) => a.send_time.length - b.send_time.length
+                sorter: true
             }, {
                 key: 'send_to',
                 dataIndex: 'send_to',
                 title: formatMessage({id: "LANG5387"}),
                 width: 100,
-                sorter: (a, b) => a.send_to.length - b.send_to.length
+                sorter: true
             }, {
                 key: 'send_result',
                 dataIndex: 'send_result',
                 title: formatMessage({id: "LANG5388"}),
                 width: 100,
-                sorter: (a, b) => a.send_result.length - b.send_result.length
+                sorter: true
             }, {
                 key: 'return_code',
                 dataIndex: 'return_code',
                 title: formatMessage({id: "LANG5389"}),
                 width: 100,
-                sorter: (a, b) => a.return_code.length - b.return_code.length
+                sorter: true
             }, {
                 key: 'options',
                 dataIndex: 'options',
@@ -372,6 +411,12 @@ class EmailSendLog extends Component {
                 selectedRowKeys: this.state.selectedRowKeys
             }
         const columns_info = [{
+                key: 'index',
+                dataIndex: 'index',
+                title: 'index',
+                className: 'hidden',
+                width: 100
+            }, {
                 key: 'send_time',
                 dataIndex: 'send_time',
                 title: formatMessage({id: "LANG5392"}),
@@ -630,7 +675,7 @@ class EmailSendLog extends Component {
                     ]}
                 >
                     <Table
-                        rowKey="send_time"
+                        rowKey="index"
                         columns={ columns_info }
                         pagination={ false }
                         dataSource={ sub_send_mail_log }

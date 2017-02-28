@@ -16,13 +16,12 @@ const FormItem = Form.Item
 const Option = Select.Option
 const addZero = UCMGUI.addZero
 
-class PortForwardingItem extends Component {
+class DHCPClientItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            portForwarding: {
-                protocol: "0"
-            }
+            ipList: [],
+            macList: []
         }
     }
     componentWillMount() {
@@ -36,15 +35,15 @@ class PortForwardingItem extends Component {
     }
     _getInitData = () => {
         const id = this.props.params.id
-        let portForwarding = this.state.portForwarding || {}
+        let ipList = this.state.ipList || []
+        let macList = this.state.macList || []
 
         if (id) {
             $.ajax({
                 url: api.apiHost,
                 method: 'post',
                 data: {
-                    action: 'getPortForwarding',
-                    id: id
+                    action: 'listDHCPClient'
                 },
                 type: 'json',
                 async: false,
@@ -53,9 +52,11 @@ class PortForwardingItem extends Component {
 
                     if (bool) {
                         const response = res.response || {}
-
-                        portForwarding = response.id
-                        portForwarding['protocol'] = response.id['protocol'].toString()
+                        const dhcplist = response.dhcp_client_list
+                        dhcplist.map(function(item) {
+                            macList.push(item.mac)
+                            ipList.push(item.ip)
+                        })
                     }
                 }.bind(this),
                 error: function(e) {
@@ -65,11 +66,12 @@ class PortForwardingItem extends Component {
         }
 
         this.setState({
-            portForwarding: portForwarding
+            ipList: ipList,
+            macList: macList
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/system-settings/networkSettings/4')
+        browserHistory.push('/system-settings/networkSettings/2')
     }
     _handleSubmit = () => {
         // e.preventDefault()
@@ -93,17 +95,14 @@ class PortForwardingItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = {}
-                action["id"] = values.id
-                action["wan_port"] = values.wan_port
-                action["lan_ip"] = values.lan_ip
-                action["lan_port"] = values.lan_port
-                action["protocol"] = Number(values.protocol)
+                action["ip"] = values.ip
+                action["isbind"] = "yes"
+                action["mac"] = values.mac
 
                 if (id) {
-                    action.action = 'updatePortForwarding'
-                    action.id = id
+                    action.action = 'updateDHCPClient'
                 } else {
-                    action.action = 'addPortForwarding'
+                    action.action = 'addDHCPClient'
                 }
 
                 $.ajax({
@@ -132,7 +131,8 @@ class PortForwardingItem extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, setFieldValue } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
-        const PortForwarding = this.state.portForwarding
+        let mac = this.props.params.id
+        let ip = this.props.params.name
 
         const formItemLayout = {
             labelCol: { span: 3 },
@@ -144,11 +144,10 @@ class PortForwardingItem extends Component {
         }
 
         const title = (this.props.params.id
-                ? formatMessage({id: "LANG222"}, {
-                    0: formatMessage({id: "LANG709"}),
-                    1: this.props.params.name
+                ? formatMessage({id: "LANG4588"}, {
+                    0: this.props.params.id
                 })
-                : formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG709"}) }))
+                : formatMessage({id: "LANG4587"}))
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -169,18 +168,18 @@ class PortForwardingItem extends Component {
                             { ...formItemLayout }
                             label={(
                                 <span>
-                                    <Tooltip title={ <FormattedHTMLMessage id="LANG552" /> }>
-                                        <span>{ formatMessage({id: "LANG552"}) }</span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG4653" /> }>
+                                        <span>{ formatMessage({id: "LANG154"}) }</span>
                                     </Tooltip>
                                 </span>
                             )}
                         >
-                            { getFieldDecorator('wan_port', {
+                            { getFieldDecorator('mac', {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
                                 }],
-                                initialValue: PortForwarding.wan_port
+                                initialValue: mac
                             })(
                                 <Input/>
                             ) }
@@ -189,64 +188,20 @@ class PortForwardingItem extends Component {
                             { ...formItemLayout }
                             label={(
                                 <span>
-                                    <Tooltip title={ <FormattedHTMLMessage id="LANG5194" /> }>
-                                        <span>{ formatMessage({id: "LANG553"}) }</span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG4654" /> }>
+                                        <span>{ formatMessage({id: "LANG155"}) }</span>
                                     </Tooltip>
                                 </span>
                             )}
                         >
-                            { getFieldDecorator('lan_ip', {
+                            { getFieldDecorator('ip', {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
                                 }],
-                                initialValue: PortForwarding.lan_ip
+                                initialValue: ip
                             })(
                                 <Input/>
-                            ) }
-                        </FormItem>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={ <FormattedHTMLMessage id="LANG554" /> }>
-                                        <span>{ formatMessage({id: "LANG554"}) }</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            { getFieldDecorator('lan_port', {
-                                rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }],
-                                initialValue: PortForwarding.lan_port
-                            })(
-                                <Input/>
-                            ) }
-                        </FormItem>
-                        <FormItem
-                            { ...formItemLayout }
-                            label={(
-                                <span>
-                                    <Tooltip title={ <FormattedHTMLMessage id="LANG555" /> }>
-                                        <span>{ formatMessage({id: "LANG555"}) }</span>
-                                    </Tooltip>
-                                </span>
-                            )}
-                        >
-                            { getFieldDecorator('protocol', {
-                                rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }],
-                                initialValue: PortForwarding.protocol
-                            })(
-                                <Select style={{ width: 200 }}>
-                                    <Option value='0'>{formatMessage({id: "LANG556"})}</Option>
-                                    <Option value='1'>{formatMessage({id: "LANG557"})}</Option>
-                                    <Option value='2'>{formatMessage({id: "LANG558"})}</Option>
-                                </Select>
                             ) }
                         </FormItem>
                     </Form>
@@ -256,4 +211,4 @@ class PortForwardingItem extends Component {
     }
 }
 
-export default Form.create()(injectIntl(PortForwardingItem))
+export default Form.create()(injectIntl(DHCPClientItem))

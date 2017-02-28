@@ -9,10 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select } from 'antd'
+import { Row, Col, Form, Input, message, Transfer, Tooltip, Modal, Checkbox, Select } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
 
 class FaxItem extends Component {
     constructor(props) {
@@ -87,6 +88,18 @@ class FaxItem extends Component {
             faxSetting: faxSetting
         })
     }
+    _gotoEmailTemplate = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG4576"})})}} ></span>,
+            onOk() {
+                browserHistory.push('/system-settings/emailSettings/2')
+            },
+            onCancel() {}
+        })
+    }
     _handleCancel = () => {
         browserHistory.push('/call-features/fax')
     }
@@ -145,9 +158,9 @@ class FaxItem extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
-        const formItemTransferLayout = {
+        const formItemGotoLayout = {
             labelCol: { span: 3 },
-            wrapperCol: { span: 18 }
+            wrapperCol: { span: 9 }
         }
 
         const title = formatMessage({id: "LANG753"})
@@ -304,6 +317,10 @@ class FaxItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.specialauthid(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: faxSetting.local_station_id ? faxSetting.local_station_id : ""
@@ -313,23 +330,35 @@ class FaxItem extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_default_email"
-                            { ...formItemLayout }
+                            { ...formItemGotoLayout }
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG1261" />}>
                                     <span>{formatMessage({id: "LANG1260"})}</span>
                                 </Tooltip>
                             )}>
-                            { getFieldDecorator('default_email', {
-                                rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }],
-                                width: 100,
-                                initialValue: faxSetting.default_email ? faxSetting.default_email : ""
-                            })(
-                                <Input maxLength="128" />
-                            ) }
+                            <Row>
+                                <Col span={ 16 }>
+                                { getFieldDecorator('default_email', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.email(data, value, callback, formatMessage)
+                                        }
+                                    }],
+                                    width: 100,
+                                    initialValue: faxSetting.default_email ? faxSetting.default_email : ""
+                                })(
+                                    <Input maxLength="128" />
+                                ) }
+                                </Col>
+                                <Col span={ 6 } offset={ 1 } >
+                                    <a className="prompt_setting" onClick={ this._gotoEmailTemplate } >{ formatMessage({id: "LANG4576"}) }</a>
+                                </Col>
+                            </Row>
                         </FormItem>
+                        
                     </Form>
                 </div>
             </div>

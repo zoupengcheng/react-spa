@@ -315,7 +315,9 @@ Validator.prototype = {
         }
     },
     email: function(data, value, callback, formatMessage, param) {
-        if (value && /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@(([-a-zA-Z0-9])+\.)+([a-zA-Z]{2,4})+$/.test(value)) {
+        if (value && /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@(([-a-zA-Z0-9])+\.)+([a-zA-Z]{2,4})+$/i.test(value)) {
+            callback()
+        } else if (value === '') {
             callback()
         } else {
             callback(formatMessage({id: "LANG2152"}))

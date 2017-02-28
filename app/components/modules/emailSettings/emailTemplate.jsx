@@ -11,7 +11,7 @@ import Editor from 'react-umeditor'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { BackTop, Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -21,8 +21,11 @@ class EmailTemplate extends Component {
         super(props)
 
         this.state = {
-            content: '',
             settings: [],
+            mailPreview: '',
+            txt_content: '',
+            html_content: '',
+            emailSubject: '',
             emailType: {
                 'cdr': 'LANG7',
                 'fax': 'LANG95',
@@ -34,60 +37,116 @@ class EmailTemplate extends Component {
                 'sip_account': 'LANG2927',
                 'iax_account': 'LANG2928',
                 'fxs_account': 'LANG2929'
-            }
+            },
+            subjectType: {
+                'cdr': 'cdr_subject',
+                'fax': 'fax_subject',
+                'alert': 'alert_subject',
+                'account': 'account_subject',
+                'password': 'password_subject',
+                'voicemail': 'voicemail_subject',
+                'conference': 'conference_subject',
+                'sip_account': 'sip_account_subject',
+                'iax_account': 'iax_account_subject',
+                'fxs_account': 'fxs_account_subject'
+            },
+            fileType: this.props.params.type
         }
     }
     componentDidMount() {
     }
     componentWillMount() {
-        // this._getSIPWebRTCHttpSettings()
+        let type = this.state.fileType
+
+        this._getHTMLTemplate(type)
+        this._getTextTemplate(type)
+        this._getMailSubject(type)
+        this._getMailHTMLPreview(type)
     }
-    _getSIPWebRTCHttpSettings = () => {
-        let settings = []
-        let oldTLSPort = ''
-        let oldHTTPPort = ''
+    _getMailSubject = (type) => {
+        let action = {}
         const { formatMessage } = this.props.intl
 
+        action['action'] = 'getMailSubject'
+        action[this.state.subjectType[type]] = ''
+
         $.ajax({
+            data: action,
             type: 'json',
             method: 'post',
             url: api.apiHost,
-            data: {
-                action: 'getSIPWebRTCHttpSettings'
-            },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     const response = res.response || {}
+                    const settings = response.mail_subject_settings || []
 
-                    settings = response.webrtc_http_settings || []
-
-                    oldHTTPPort = settings.bindport
-
-                    if (settings.tlsbindaddr) {
-                        oldTLSPort = settings.tlsbindaddr.split(':')[1]
-
-                        if (UCMGUI.isIPv6(settings.tlsbindaddr)) {
-                            oldTLSPort = settings.tlsbindaddr.split("]:")[1]
-                        }
-                    }
-
-                    let httpPort = settings.bindport ? settings.bindport : '8088'
-                    let httpAddr = settings.bindaddr ? settings.bindaddr : '0.0.0.0'
-                    let tlsbindaddr = settings.tlsbindaddr ? settings.tlsbindaddr : '0.0.0.0:8443'
-
-                    settings.websocket_interface = ('ws://' + httpAddr + ':' + httpPort + '/ws')
-                    settings.secure_websocket_interface = ('wss://' + tlsbindaddr + '/ws')
+                    let emailSubject = settings[this.state.subjectType[type]]
 
                     this.setState({
-                        settings: settings,
-                        oldTLSPort: oldTLSPort,
-                        oldHTTPPort: oldHTTPPort,
-                        enabled: settings.enabled === 'yes',
-                        tlsenable: settings.tlsenable === 'yes'
+                        emailSubject: emailSubject
                     })
                 }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _getMailHTMLPreview = (type) => {
+        let action = {}
+        const { formatMessage } = this.props.intl
+
+        action['mail_preview'] = type
+        action['action'] = 'getMailHtml'
+
+        $.ajax({
+            data: action,
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const mailPreview = response.mail_preview || []
+
+                    this.setState({
+                        mailPreview: mailPreview
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _getHTMLTemplate = (type) => {
+        $.ajax({
+            type: 'GET',
+            dataType: 'html',
+            url: '/mail_template/' + type + '_template.html',
+            success: function(data) {
+                this.setState({
+                    html_content: data
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _getTextTemplate = (type) => {
+        $.ajax({
+            type: 'GET',
+            dataType: 'html',
+            url: '/mail_template/' + type + '_template.txt',
+            success: function(data) {
+                this.setState({
+                    txt_content: data
+                })
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -97,7 +156,7 @@ class EmailTemplate extends Component {
     _getIcons = () => {
         let icons = [
             'undo', 'redo', '|',
-            'bold', 'italic', 'underline', 'fontborder', 'strikethrough', 'superscript', 'subscript', 'removeformat', '|', 'forecolor', 'backcolor', 'insertorderedlist', 'insertunorderedlist', 'selectall', 'cleardoc', '|',
+            'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'removeformat', '|', 'forecolor', 'backcolor', 'insertorderedlist', 'insertunorderedlist', 'selectall', 'cleardoc', '|',
             // 'rowspacingtop', 'rowspacingbottom', 'lineheight', '|',
             'paragraph', 'fontfamily', 'fontsize', '|',
             'indent', 'justifyleft', 'justifycenter', 'justifyright', '|', 'touppercase', 'tolowercase'
@@ -107,7 +166,7 @@ class EmailTemplate extends Component {
         return icons
     }
     _handleCancel = (e) => {
-        browserHistory.push('/system-settings/emailSettings')
+        browserHistory.push('/system-settings/emailSettings/template')
     }
     _handleSubmit = (e) => {
         // e.preventDefault()
@@ -161,24 +220,15 @@ class EmailTemplate extends Component {
             }
         })
     }
-    _onChangeHTTP = (e) => {
-        this.setState({
-            enabled: e.target.checked
-        })
-    }
-    _onChangeTLS = (e) => {
-        this.setState({
-            tlsenable: e.target.checked
-        })
-    }
     _onHandleChange = (content) => {
         this.setState({
-            content: content
+            html_content: content
         })
     }
     render() {
-        let icons = this._getIcons()
         const form = this.props.form
+        const icons = this._getIcons()
+        const fileType = this.state.fileType
         const { formatMessage } = this.props.intl
         const settings = this.state.settings || {}
         const { getFieldDecorator } = this.props.form
@@ -218,9 +268,12 @@ class EmailTemplate extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('emailsubject', {
-                            rules: [],
-                            initialValue: settings.emailsubject
+                        { getFieldDecorator('emailSubject', {
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: this.state.emailSubject
                         })(
                             <Input />
                         ) }
@@ -238,8 +291,7 @@ class EmailTemplate extends Component {
                         <Editor
                             ref="editor" 
                             icons={ icons } 
-                            defaultValue={ title }
-                            value={ this.state.content }
+                            value={ this.state.html_content || title }
                             onChange={ this._onHandleChange.bind(this) }
                         />
                     </FormItem>
@@ -253,17 +305,174 @@ class EmailTemplate extends Component {
                             </span>
                         )}
                     >
-                        { getFieldDecorator('plainText', {
+                        { getFieldDecorator('txt_content', {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
                             }],
-                            initialValue: settings.plainText
+                            initialValue: this.state.txt_content
                         })(
-                            <Input type="textarea" rows={ 4 } />
+                            <Input type="textarea" rows={ 10 } />
                         ) }
                     </FormItem>
+                    <FormItem
+                        { ...formItemRowLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1525" /> }>
+                                    <span>{ formatMessage({id: "LANG1525"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        <div
+                            className={ fileType === 'account' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{ETH\} : ` }<span>{ formatMessage({id: "LANG4706"}) }</span></li>
+                                <li>{ `\$\{SERVR_ADDR\} : ` }<span>{ formatMessage({id: "LANG4707"}) }</span></li>
+                                <li>{ `\$\{PUB_ADDR\} : ` }<span>{ formatMessage({id: "LANG4708"}) }</span></li>
+                                <li>{ `\$\{ACNT_NAME\} : ` }<span>{ formatMessage({id: "LANG4709"}) }</span></li>
+                                <li>{ `\$\{SIP_ID\} : ` }<span>{ formatMessage({id: "LANG4710"}) }</span></li>
+                                <li>{ `\$\{AUTH_ID\} : ` }<span>{ formatMessage({id: "LANG4711"}) }</span></li>
+                                <li>{ `\$\{AUTH_PWD\} : ` }<span>{ formatMessage({id: "LANG4712"}) }</span></li>
+                                <li>{ `\$\{USR_PWD\} : ` }<span>{ formatMessage({id: "LANG4713"}) }</span></li>
+                                <li>{ `\$\{SERVR_QR_IMG\} : ` }<span>{ formatMessage({id: "LANG4714"}) }</span></li>
+                                <li>{ `\$\{SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4715"}) }</span></li>
+                                <li>{ `\$\{LDAP_PATH\} : ` }<span>{ formatMessage({id: "LANG4716"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4717"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4718"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'sip_account' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{ETH\} : ` }<span>{ formatMessage({id: "LANG4706"}) }</span></li>
+                                <li>{ `\$\{SERVR_ADDR\} : ` }<span>{ formatMessage({id: "LANG4707"}) }</span></li>
+                                <li>{ `\$\{PUB_ADDR\} : ` }<span>{ formatMessage({id: "LANG4708"}) }</span></li>
+                                <li>{ `\$\{ACNT_NAME\} : ` }<span>{ formatMessage({id: "LANG4709"}) }</span></li>
+                                <li>{ `\$\{SIP_ID\} : ` }<span>{ formatMessage({id: "LANG4710"}) }</span></li>
+                                <li>{ `\$\{AUTH_ID\} : ` }<span>{ formatMessage({id: "LANG4711"}) }</span></li>
+                                <li>{ `\$\{AUTH_PWD\} : ` }<span>{ formatMessage({id: "LANG4712"}) }</span></li>
+                                <li>{ `\$\{USR_PWD\} : ` }<span>{ formatMessage({id: "LANG4713"}) }</span></li>
+                                <li>{ `\$\{SERVR_QR_IMG\} : ` }<span>{ formatMessage({id: "LANG4714"}) }</span></li>
+                                <li>{ `\$\{SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4715"}) }</span></li>
+                                <li>{ `\$\{LDAP_PATH\} : ` }<span>{ formatMessage({id: "LANG4716"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4717"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4718"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'iax_account' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{ETH\} : ` }<span>{ formatMessage({id: "LANG4706"}) }</span></li>
+                                <li>{ `\$\{SERVR_ADDR\} : ` }<span>{ formatMessage({id: "LANG4707"}) }</span></li>
+                                <li>{ `\$\{PUB_ADDR\} : ` }<span>{ formatMessage({id: "LANG4708"}) }</span></li>
+                                <li>{ `\$\{ACNT_NAME\} : ` }<span>{ formatMessage({id: "LANG4709"}) }</span></li>
+                                <li>{ `\$\{SIP_ID\} : ` }<span>{ formatMessage({id: "LANG4710"}) }</span></li>
+                                <li>{ `\$\{AUTH_ID\} : ` }<span>{ formatMessage({id: "LANG4711"}) }</span></li>
+                                <li>{ `\$\{AUTH_PWD\} : ` }<span>{ formatMessage({id: "LANG4712"}) }</span></li>
+                                <li>{ `\$\{USR_PWD\} : ` }<span>{ formatMessage({id: "LANG4713"}) }</span></li>
+                                <li>{ `\$\{SERVR_QR_IMG\} : ` }<span>{ formatMessage({id: "LANG4714"}) }</span></li>
+                                <li>{ `\$\{SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4715"}) }</span></li>
+                                <li>{ `\$\{LDAP_PATH\} : ` }<span>{ formatMessage({id: "LANG4716"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4717"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4718"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'fxs_account' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{ETH\} : ` }<span>{ formatMessage({id: "LANG4706"}) }</span></li>
+                                <li>{ `\$\{SERVR_ADDR\} : ` }<span>{ formatMessage({id: "LANG4707"}) }</span></li>
+                                <li>{ `\$\{PUB_ADDR\} : ` }<span>{ formatMessage({id: "LANG4708"}) }</span></li>
+                                <li>{ `\$\{ACNT_NAME\} : ` }<span>{ formatMessage({id: "LANG4709"}) }</span></li>
+                                <li>{ `\$\{SIP_ID\} : ` }<span>{ formatMessage({id: "LANG4710"}) }</span></li>
+                                <li>{ `\$\{AUTH_ID\} : ` }<span>{ formatMessage({id: "LANG4711"}) }</span></li>
+                                <li>{ `\$\{AUTH_PWD\} : ` }<span>{ formatMessage({id: "LANG4712"}) }</span></li>
+                                <li>{ `\$\{USR_PWD\} : ` }<span>{ formatMessage({id: "LANG4713"}) }</span></li>
+                                <li>{ `\$\{SERVR_QR_IMG\} : ` }<span>{ formatMessage({id: "LANG4714"}) }</span></li>
+                                <li>{ `\$\{SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4715"}) }</span></li>
+                                <li>{ `\$\{LDAP_PATH\} : ` }<span>{ formatMessage({id: "LANG4716"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4717"}) }</span></li>
+                                <li>{ `\$\{LDAP_SERVR_PUB_ADDR_QR\} : ` }<span>{ formatMessage({id: "LANG4718"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'cdr' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{CDR_NUMBERS\} : ` }<span>{ formatMessage({id: "LANG4703"}) }</span></li>
+                                <li>{ `\$\{START_TIME\} : ` }<span>{ formatMessage({id: "LANG4704"}) }</span></li>
+                                <li>{ `\$\{END_TIME\} : ` }<span>{ formatMessage({id: "LANG4705"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'conference' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{CNF_ACTION\} : ` }<span>{ formatMessage({id: "LANG4691"}) }</span></li>
+                                <li>{ `\$\{CNF_THEME\} : ` }<span>{ formatMessage({id: "LANG4692"}) }</span></li>
+                                <li>{ `\$\{CNF_STARTTIME\} : ` }<span>{ formatMessage({id: "LANG4693"}) }</span></li>
+                                <li>{ `\$\{CNF_ENDTIME\} : ` }<span>{ formatMessage({id: "LANG4694"}) }</span></li>
+                                <li>{ `\$\{CNF_ZONE\} : ` }<span>{ formatMessage({id: "LANG2058"}) }</span></li>
+                                <li>{ `\$\{HELLO\} : ` }<span>{ formatMessage({id: "LANG4696"}) }</span></li>
+                                <li>{ `\$\{CNFR_MSG\} : ` }<span>{ formatMessage({id: "LANG4697"}) }</span></li>
+                                <li>{ `\$\{CNFR_TOPIC\} : ` }<span>{ formatMessage({id: "LANG4698"}) }</span></li>
+                                <li>{ `\$\{CNFR_DESCRIPTION\} : ` }<span>{ formatMessage({id: "LANG4699"}) }</span></li>
+                                <li>{ `\$\{CNFR_PASSWORD\} : ` }<span>{ formatMessage({id: "LANG4700"}) }</span></li>
+                                <li>{ `\$\{CNFR_WHERE\} : ` }<span>{ formatMessage({id: "LANG4701"}) }</span></li>
+                                <li>{ `\$\{CNFR_WHEN\} : ` }<span>{ formatMessage({id: "LANG4702"}) }</span></li>
+                                <li>{ `\$\{CNFR_MEMBERS\} : ` }<span>{ formatMessage({id: "LANG4695"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'alert' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{MAC\} : ` }<span>{ formatMessage({id: "LANG154"}) }</span></li>
+                                <li>{ `\$\{WARNING_MSG\} : ` }<span>{ formatMessage({id: "LANG4690"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'fax' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{CALLERIDNUM\} : ` }<span>{ formatMessage({id: "LANG2251"}) }</span></li>
+                                <li>{ `\$\{CALLERIDNAME\} : ` }<span>{ formatMessage({id: "LANG2272"}) }</span></li>
+                                <li>{ `\$\{RECEIVEEXTEN\} : ` }<span>{ formatMessage({id: "LANG2274"}) }</span></li>
+                                <li>{ `\$\{FILENAME\} : ` }<span>{ formatMessage({id: "LANG4488"}) }</span></li>
+                                <li>{ `\$\{FAXPAGES\} : ` }<span>{ formatMessage({id: "LANG2243"}) }</span></li>
+                                <li>{ `\$\{FAXDATE\} : ` }<span>{ formatMessage({id: "LANG2269"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'password' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ `\$\{USER\} : ` }<span>{ formatMessage({id: "LANG2809"}) }</span></li>
+                                <li>{ `\$\{PASSWORD\} : ` }<span>{ formatMessage({id: "LANG2810"}) }</span></li>
+                            </ul>
+                        </div>
+                        <div
+                            className={ fileType === 'voicemail' ? 'display-block' : 'hidden' }
+                        >
+                            <ul>
+                                <li>{ '\\t : TAB' }</li>
+                                <li>{ `\$\{VM_NAME\} : ` }<span>{ formatMessage({id: "LANG1526"}) }</span></li>
+                                <li>{ `\$\{VM_DUR\} : ` }<span>{ formatMessage({id: "LANG1527"}) }</span></li>
+                                <li>{ `\$\{VM_MAILBOX\} : ` }<span>{ formatMessage({id: "LANG1528"}) }</span></li>
+                                <li>{ `\$\{VM_CALLERID\} : ` }<span>{ formatMessage({id: "LANG1529"}) }</span></li>
+                                <li>{ `\$\{VM_MSGNUM\} : ` }<span>{ formatMessage({id: "LANG1530"}) }</span></li>
+                                <li>{ `\$\{VM_DATE\} : ` }<span>{ formatMessage({id: "LANG1531"}) }</span></li>
+                            </ul>
+                        </div>
+                    </FormItem>
                 </div>
+                <BackTop />
             </div>
         )
     }

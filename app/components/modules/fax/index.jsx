@@ -657,7 +657,7 @@ class Fax extends Component {
                     1: formatMessage({id: "LANG614"})
                 })
         const formItemLayout = {
-            labelCol: { span: 6 },
+            labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
 
@@ -731,34 +731,34 @@ class Fax extends Component {
                         </p>
                     </div>
                     <Row>
-                        <Col span={ 6 } >
-                            <FormItem
-                                ref="div_file_keyword"
-                                { ...formItemLayout }
+                        <FormItem
+                            ref="div_file_keyword"
+                            { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2792" />}>
-                                        <span>{formatMessage({id: "LANG2793"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('file_keyword', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength='127' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col>
-                            <Button
-                                icon="search"
-                                type="primary"
-                                size='default'
-                                onClick={ this._onSearchFile }
-                            >
-                                { formatMessage({id: "LANG803"}) }
-                            </Button>
-                        </Col>
+                            label={(
+                                <Tooltip title={<FormattedHTMLMessage id="LANG2792" />}>
+                                    <span>{formatMessage({id: "LANG2793"})}</span>
+                                </Tooltip>
+                            )}>
+                            <Col span={ 9 }>
+                            { getFieldDecorator('file_keyword', {
+                                rules: [],
+                                initialValue: ""
+                            })(
+                                <Input maxLength='127' />
+                            ) }
+                            </Col>
+                            <Col span={ 6 } offset={ 1 }>
+                                <Button
+                                    icon="search"
+                                    type="primary"
+                                    size='default'
+                                    onClick={ this._onSearchFile }
+                                >
+                                    { formatMessage({id: "LANG803"}) }
+                                </Button>
+                            </Col>
+                        </FormItem>
                     </Row>
                     <div className="top-button">
                         <Button

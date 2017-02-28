@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { Table, Form, Modal, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs, Popconfirm } from 'antd'
-import { FormattedMessage, injectIntl} from 'react-intl'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -100,7 +100,15 @@ class extensionList extends Component {
                 render: (text, record, index) => (
                     <span>
                         <span className="sprite sprite-edit" onClick={this._editTrunk.bind(this, record)}></span>
-                        <Popconfirm title="确定要删除吗？" onConfirm={() => this._deleteTrunk(record)}>
+                        <Popconfirm 
+                            title={
+                            <FormattedHTMLMessage
+                                id='LANG4471'
+                                values={{
+                                    0: record.trunk_name
+                                }}
+                            />} 
+                            onConfirm={() => this._deleteTrunk(record)}>
                             <span className="sprite sprite-del" ></span>
                         </Popconfirm>
                     </span>

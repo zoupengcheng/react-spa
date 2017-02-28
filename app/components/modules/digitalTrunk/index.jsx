@@ -12,17 +12,17 @@ import _ from 'underscore'
 
 const baseServerURl = api.apiHost
 
-class VoipTrunksList extends Component {
+class DigitalTrunksList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            voipTrunk: [],
+            digitalTrunk: [],
             pagination: {
                 showTotal: this._showTotal,
                 showSizeChanger: true,
                 showQuickJumper: true
             },
-            sort: {
+            sorter: {
                 field: "trunk_name",
                 order: "asc"
             },
@@ -30,7 +30,7 @@ class VoipTrunksList extends Component {
         }
     }
     componentDidMount() {
-        this._listVoipTrunk()
+        this._listDigitalTrunk()
     }
     _showTotal = (total) => {
         const { formatMessage } = this.props.intl
@@ -47,7 +47,7 @@ class VoipTrunksList extends Component {
             sorter: sorter
         })
 
-        this._listVoipTrunk({
+        this._listDigitalTrunk({
             item_num: pagination.pageSize,
             page: pagination.current,
             sidx: sorter.field,
@@ -55,7 +55,7 @@ class VoipTrunksList extends Component {
             ...filters
         })
     }
-    _listVoipTrunk = (
+    _listDigitalTrunk = (
         params = {                
             item_num: 10,
             sidx: "trunk_name",
@@ -68,21 +68,21 @@ class VoipTrunksList extends Component {
             url: baseServerURl,
             method: 'post',
             data: {
-                action: 'listVoIPTrunk',
-                options: "trunk_index,trunk_name,host,trunk_type,username,technology,ldap_sync_enable",
+                action: 'listDigitalTrunk',
+                options: "trunk_name,type,trunk_index,span,channel,out_of_service",
                 ...params
             },
             type: 'json',
             async: true,
             success: function(res) {
-                let voipTrunk = res.response.voip_trunk
+                let digitalTrunk = res.response.digital_trunks
                 const pagination = this.state.pagination
                 // Read total count from server
                 pagination.total = res.response.total_item
 
                 this.setState({
                     loading: false,
-                    voipTrunk: voipTrunk,
+                    digitalTrunk: digitalTrunk,
                     pagination
                 })
             }.bind(this),
@@ -108,30 +108,25 @@ class VoipTrunksList extends Component {
         const { formatMessage } = this.props.intl
 
         let trunkIndex = data.trunk_index,
-            technology = data.technology,
             action = {}
 
-        if (technology.toLowerCase() === "sip") {
-            action = {
-                "action": "deleteSIPTrunk",
+        action = {
+                "action": "deleteDigitalTrunk",
                 "trunk": trunkIndex
-            }
-        } else {
-            action = {
-                "action": "deleteIAXTrunk",
-                "trunk": trunkIndex
-            }
         }
+
         message.loading(formatMessage({ id: "LANG825" }, {0: "LANG11"}), 0)
 
         $.ajax({
+            type: "post",
             url: baseServerURl,
-            method: 'post',
             data: action,
-            type: 'json',
-            async: true,
-            success: function(res) {
-                let bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.destroy()
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
                     message.destroy()
@@ -139,7 +134,7 @@ class VoipTrunksList extends Component {
                     let pagination = this.state.pagination,
                         sorter = this.state.sorter
                         
-                    this._listVoipTrunk({
+                    this._listDigitalTrunk({
                         item_num: pagination.pageSize,
                         page: pagination.current,
                         sidx: sorter.field,
@@ -147,25 +142,39 @@ class VoipTrunksList extends Component {
                     })
                     this._delAstdb(trunkIndex)
                 }
-            }.bind(this),
-            error: function(e) {
-                console.log(e.statusText)
-            }
+            }.bind(this)
         })
     }
-    _createSipVoipTrunk = () => {
-        browserHistory.push('/extension-trunk/voipTrunk/createVoipTrunk/addSip')
+    _createDigitalTrunk = () => {
+        browserHistory.push('/extension-trunk/digitalTrunk/add')
     }
-    _editVoipTrunk = (record) => {
+    _editDigitalTrunk = (record) => {
         let trunkId = record.trunk_index,
-            technology = record.technology,
-            trunkType = record.trunk_type,
+            trunkType = record.type,
             trunkName = record.trunk_name
 
-        browserHistory.push('/extension-trunk/voipTrunk/editVoipTrunk/' + trunkId + "/" + technology + "/" + trunkType + "/" + trunkName)
+        browserHistory.push('/extension-trunk/digitalTrunk/edit/' + trunkId + "/" + trunkType + "/" + trunkName)
     }
     _dodTrunksList = (record) => {
-        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index)
+        let signalling = this._transSignallingType(record.type)
+        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index + "/" + signalling)
+    }
+    _transSignallingType = (type) => {
+        if (!type || !type.contains) {
+            return false
+        }
+
+        let result
+
+        if (type.contains('NET') || type.contains('CPE')) {
+            result = 'PRI'
+        } else if (type.contains('SS7')) {
+            result = 'SS7'
+        } else if (type.contains('MFC/R2')) {
+            result = 'MFC/R2'
+        }
+
+        return result
     }
     render() {
         const {formatMessage, formatHTMLMessage} = this.props.intl
@@ -173,51 +182,37 @@ class VoipTrunksList extends Component {
         const menu = (
           <Menu>
             <Menu.Item>
-              <span onClick={this._createSipVoipTrunk} >{formatMessage({id: "LANG2908"})}</span>
+              <span onClick={this._createDigitalTrunk} >{formatMessage({id: "LANG2908"})}</span>
             </Menu.Item>
             <Menu.Item>
-              <span onClick={this._createIaxVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>
+              <span onClick={this._createIaxDigitalTrunk} >{formatMessage({id: "LANG2909"})}</span>
             </Menu.Item>
           </Menu>
         )
         const columns = [
             {
-                title: formatMessage({id: "LANG1382"}),
+                title: formatMessage({id: "LANG3141"}),
                 dataIndex: 'trunk_name',
                 sorter: true
             }, {
-                title: formatMessage({id: "LANG623"}),
-                dataIndex: 'technology',
+                title: formatMessage({id: "LANG1486"}),
+                dataIndex: 'type',
                 sorter: true
             }, {
-                title: formatMessage({id: "LANG84"}),
-                dataIndex: 'trunk_type',
-                sorter: true
-            }, {
-                title: formatMessage({id: "LANG1395"}),
-                dataIndex: 'host',
-                sorter: true
-            }, {
-                title: formatMessage({id: "LANG72"}),
-                dataIndex: 'username',
+                title: formatMessage({id: "LANG2986"}),
+                dataIndex: 'channel',
                 sorter: true
             }, { 
                 title: formatMessage({id: "LANG74"}), 
                 dataIndex: '', 
                 key: 'x', 
                 render: (text, record, index) => {
-                    let ldapCls = "sprite sprite-ldap"
-
-                    if (record.ldap_sync_enable !== "yes") {
-                        ldapCls = "sprite sprite-ldap-disabled"
-                    }
-
                     return <span>
-                        <span className="sprite sprite-edit" title={ formatMessage({ id: "LANG738"})} onClick={this._editVoipTrunk.bind(this, record)}></span>
+                        <span className="sprite sprite-edit" title={ formatMessage({ id: "LANG738"})} onClick={this._editDigitalTrunk.bind(this, record)}></span>
                         <span className="sprite sprite-dod" title={ formatMessage({ id: "LANG2677"})} onClick={this._dodTrunksList.bind(this, record)}></span>
                         <Popconfirm title={
                             <FormattedHTMLMessage
-                                id='LANG4471'
+                                id='LANG818'
                                 values={{
                                     0: record.trunk_name
                                 }}
@@ -253,7 +248,7 @@ class VoipTrunksList extends Component {
                 />
                 <div className="content">
                     <div className="top-button">
-                        <Button icon="plus" type="primary" size="default" onClick={ this._createSipVoipTrunk }>
+                        <Button icon="plus" type="primary" size="default" onClick={ this._createDigitalTrunk }>
                             { formatMessage({id: "LANG3142"}) }
                         </Button>
                     </div>
@@ -261,7 +256,7 @@ class VoipTrunksList extends Component {
                         rowSelection={ false } 
                         columns={ columns }
                         rowKey={ record => record.trunk_index }
-                        dataSource={ this.state.voipTrunk }
+                        dataSource={ this.state.digitalTrunk }
                         pagination={ this.state.pagination }
                         loading={ this.state.loading}
                         onChange={ this._handleTableChange }
@@ -272,8 +267,8 @@ class VoipTrunksList extends Component {
     }
 }
 
-VoipTrunksList.defaultProps = {
+DigitalTrunksList.defaultProps = {
     
 }
 
-export default injectIntl(VoipTrunksList)
+export default injectIntl(DigitalTrunksList)

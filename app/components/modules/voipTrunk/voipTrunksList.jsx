@@ -21,7 +21,7 @@ class VoipTrunksList extends Component {
                 showSizeChanger: true,
                 showQuickJumper: true
             },
-            sort: {
+            sorter: {
                 field: "trunk_name",
                 order: "asc"
             },
@@ -167,7 +167,7 @@ class VoipTrunksList extends Component {
         browserHistory.push('/extension-trunk/voipTrunk/editVoipTrunk/' + trunkId + "/" + technology + "/" + trunkType + "/" + trunkName)
     }
     _dodTrunksList = (record) => {
-        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index)
+        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index + "/" + 0)
     }
     _manual_ldap_sync = (record) => {
         const { formatMessage } = this.props.intl

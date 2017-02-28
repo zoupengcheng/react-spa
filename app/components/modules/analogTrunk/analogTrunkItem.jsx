@@ -1216,7 +1216,7 @@ class AnalogTrunkItem extends Component {
                     onCancel={ this._handleCancel }  
                     isDisplay='display-block' 
                 />
-                <Spin spinning={this.state.loading}>
+                <Spin spinning={ isEdit ? this.state.loading : false}>
                     <Form>
                         <Row>
                             <Col span={12}>

@@ -80,7 +80,7 @@ class OfficeTime extends Component {
             confirm({
                 title: (formatMessage({id: "LANG543"})),
                 content: <span dangerouslySetInnerHTML=
-                                {{__html: formatMessage({id: "LANG818"}, {0: this.state.selectedRowKeys.sort.join('  ')})}}
+                                {{__html: formatMessage({id: "LANG818"}, {0: __this.state.selectedRowKeys.sort().join('  ')})}}
                             ></span>,
                 onOk() {
                     __this._batchdeleteOk()

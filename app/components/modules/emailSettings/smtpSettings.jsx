@@ -107,7 +107,7 @@ class smtpSettings extends Component {
         const email_settings = this.state.email_settings
         const me = this
         const formItemLayout = {
-            labelCol: { span: 3 },
+            labelCol: { span: 4 },
             wrapperCol: { span: 6 }
         }
         const formItemModalLayout = {
@@ -121,7 +121,7 @@ class smtpSettings extends Component {
                     <FormItem
                         ref="div_smtp_tls_enable"
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2047" />}>
                                 <span>{formatMessage({id: "LANG2046"})}</span>
                             </Tooltip>
@@ -137,7 +137,7 @@ class smtpSettings extends Component {
                     <FormItem
                         ref="div_smtp_type"
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2049" />}>
                                 <span>{formatMessage({id: "LANG84"})}</span>
                             </Tooltip>
@@ -155,7 +155,7 @@ class smtpSettings extends Component {
                     <FormItem
                         ref="div_mail_context_mode"
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG5232" />}>
                                 <span>{formatMessage({id: "LANG5231"})}</span>
                             </Tooltip>
@@ -174,7 +174,7 @@ class smtpSettings extends Component {
                         ref="div_smtp_domain"
                         className={ email_settings.smtp_type === 'client' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2051" />}>
                                 <span>{formatMessage({id: "LANG2050"})}</span>
                             </Tooltip>
@@ -193,7 +193,7 @@ class smtpSettings extends Component {
                         ref="div_smtp_server"
                         className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2053" />}>
                                 <span>{formatMessage({id: "LANG2052"})}</span>
                             </Tooltip>
@@ -209,10 +209,30 @@ class smtpSettings extends Component {
                         ) }
                     </FormItem>
                     <FormItem
+                        ref="div_enable_auth"
+                        className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
+                        { ...formItemLayout }
+                        label={
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5445" />}>
+                                <span>{formatMessage({id: "LANG5444"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('enable_auth', {
+                            rules: [{
+                                required: email_settings.smtp_type === 'mta' ? false : true,
+                                message: formatMessage({id: "LANG2052"})
+                            }],
+                            valuePropName: "checked",
+                            initialValue: email_settings.enable_auth === "yes"
+                        })(
+                            <Checkbox />
+                        ) }
+                    </FormItem>
+                    <FormItem
                         ref="div_smtp_username"
                         className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2054" />}>
                                 <span>{formatMessage({id: "LANG72"})}</span>
                             </Tooltip>
@@ -231,7 +251,7 @@ class smtpSettings extends Component {
                         ref="div_smtp_password"
                         className={ email_settings.smtp_type === 'mta' ? 'hidden' : 'display-block' }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2055" />}>
                                 <span>{formatMessage({id: "LANG73"})}</span>
                             </Tooltip>
@@ -249,7 +269,7 @@ class smtpSettings extends Component {
                     <FormItem
                         ref="div_fromstring"
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2255" />}>
                                 <span>{formatMessage({id: "LANG2271"})}</span>
                             </Tooltip>
@@ -267,7 +287,7 @@ class smtpSettings extends Component {
                     <FormItem
                         ref="div_serveremail"
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG2057" />}>
                                 <span>{formatMessage({id: "LANG2056"})}</span>
                             </Tooltip>

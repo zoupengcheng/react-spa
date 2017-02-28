@@ -61,8 +61,8 @@ class PagingIntercom extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+                "action": "deleteRinggroup",
+                "ringgroup": record.extension
             },
             type: 'json',
             async: true,
@@ -73,7 +73,7 @@ class PagingIntercom extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getPaginggroup()
                 }
             }.bind(this),
             error: function(e) {

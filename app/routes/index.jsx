@@ -23,6 +23,7 @@ import ExtensionGroupItem from '../components/modules/extensionGroup/extensionGr
 import AnalogTrunk from '../components/modules/analogTrunk'
 import AnalogTrunkItem from '../components/modules/analogTrunk/analogTrunkItem'
 import DigitalTrunk from '../components/modules/digitalTrunk'
+import DigitalTrunkItem from '../components/modules/digitalTrunk/digitalTrunkItem'
 import DataTrunk from '../components/modules/dataTrunk'
 import EditDataTrunk from '../components/modules/dataTrunk/editDataTrunk'
 import VoIPTrunk from '../components/modules/voipTrunk'
@@ -93,6 +94,8 @@ import RecordTypeStorage from '../components/modules/recordingStorageSettings/re
 // System Settings
 import HTTPServer from '../components/modules/httpServer/index'
 import NetworkSettings from '../components/modules/networkSettings'
+import DHCPClient from '../components/modules/networkSettings/dhcpclient'
+import DHCPClientItem from '../components/modules/networkSettings/dhcpclientItem'
 import PortForwarding from '../components/modules/networkSettings/portForwarding'
 import PortForwardingItem from '../components/modules/networkSettings/portForwardingItem'
 import OpenVPN from '../components/modules/openVPN'
@@ -254,7 +257,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
                         <Route path="edit/:trunkId/:trunkName" onEnter={ requireAuth } component={ AnalogTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
                     </Route>
-                    <Route path="digitalTrunk" onEnter={ requireAuth } component={ DigitalTrunk } breadcrumbName={ currentLocaleData["LANG3141"] } />
+                    <Route path="digitalTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3141"] } >
+                        <IndexRoute component={ DigitalTrunk } />
+                        <Route path="add" onEnter={ requireAuth } component={ DigitalTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
+                        <Route path="edit/:trunkId/:trunkType/:trunkName" onEnter={ requireAuth } component={ DigitalTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
+                    </Route>
                     <Route path="dataTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3573"] } >
                         <IndexRoute component={ DataTrunk } />
                         <Route path="dataTrunk" onEnter={ requireAuth } component={ DataTrunk } breadcrumbName={ currentLocaleData["LANG3573"] } />
@@ -264,7 +271,7 @@ const routes = (state, currentLocaleData) => {
                         <IndexRoute component={ VoIPTrunk } />
                         <Route path="createVoipTrunk/:mode" onEnter={ requireAuth } component={ CreateVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="editVoipTrunk/:trunkId/:technology/:trunkType/:trunkName" onEnter={ requireAuth } component={ EditVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
-                        <Route path="dodTrunksList/:trunkId" onEnter={ requireAuth } component={ DodTrunksList } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="dodTrunksList/:trunkId/:signalling" onEnter={ requireAuth } component={ DodTrunksList } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="createEditDodTrunk/:type" onEnter={ requireAuth } component={ CreateEditDodTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="createEditDodTrunk/:type/:trunkId" onEnter={ requireAuth } component={ CreateEditDodTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                     </Route>
@@ -390,11 +397,19 @@ const routes = (state, currentLocaleData) => {
                 <Route path="system-settings" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG5300"] }>
                     <IndexRoute component={ HTTPServer } />
                     <Route path="httpServer" onEnter={ requireAuth } component={ HTTPServer } breadcrumbName={ currentLocaleData["LANG57"] } />
-                    <Route path="networkSettings" onEnter={ requireAuth } component={ NetworkSettings } breadcrumbName={ currentLocaleData["LANG48"] } />
+                    <Route path="networkSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG48"] } >
+                        <IndexRoute component={ NetworkSettings } />
+                        <Route path=":id" onEnter={ requireAuth } component={ NetworkSettings } breadcrumbName={ currentLocaleData["LANG4855"] } />
+                    </Route>
+                    <Route path="DHCPClient" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                        <IndexRoute component={ DHCPClient } />
+                        <Route path="add" onEnter={ requireAuth } component={ DHCPClientItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ DHCPClientItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="PortForwarding" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
                         <IndexRoute component={ PortForwarding } />
                         <Route path="add" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG769"] } />
-                        <Route path="edit/:id" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="openVPN" onEnter={ requireAuth } component={ OpenVPN } breadcrumbName={ currentLocaleData["LANG3990"] } />
                     <Route path="ddnsSettings" onEnter={ requireAuth } component={ DDNSSettings } breadcrumbName={ currentLocaleData["LANG4040"] } />
@@ -424,6 +439,7 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="emailSettings" breadcrumbName={ currentLocaleData["LANG58"] }>
                         <IndexRoute component={ EmailSettings } />
+                        <Route path=":tab" onEnter={ requireAuth } component={ EmailSettings } breadcrumbName={ currentLocaleData["LANG58"] } />
                         <Route path="template/:type" onEnter={ requireAuth } component={ EmailTemplate } breadcrumbName={ currentLocaleData["LANG4572"] } />
                     </Route>
                 </Route>

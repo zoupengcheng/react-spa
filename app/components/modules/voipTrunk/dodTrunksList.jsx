@@ -287,7 +287,7 @@ class DodTrunksList extends Component {
         let dodExtList = this._transAccountVoicemailData(UCMGUI.isExist.getList("getAccountList"))
 
         // Only VoIP Trunks
-        // if (!signalling) {
+        if (this.props.params.signalling === "0") {
             $.ajax({
                 async: false,
                 type: "post",
@@ -341,7 +341,11 @@ class DodTrunksList extends Component {
                     }
                 }.bind(this)
             })
-        // }
+        } else {
+            this.setState({
+                dodExtList: dodExtList
+            })
+        }
     }
     _transAccountVoicemailData = (res, cb) => {
         const {formatMessage} = this.props.intl

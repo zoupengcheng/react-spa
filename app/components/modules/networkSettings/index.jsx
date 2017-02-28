@@ -3,11 +3,13 @@
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
 import BasicSettings from './basicSettings'
+import DHCPClient from './dhcpclient'
 import Network8021x from './8021x'
 import PortForwarding from './portForwarding'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
+import { browserHistory } from 'react-router'
 import Title from '../../../views/title'
 import { Form, Tabs, message, Modal, BackTop } from 'antd'
 const TabPane = Tabs.TabPane
@@ -51,7 +53,7 @@ class NetWorkSettings extends Component {
 
     }
     _onChange = (e) => {
-        if (e === "3") {
+        if (e === "2" || e === "4") {
             this.setState({
                 activeKey: e,
                 isDisplay: "hidden"
@@ -335,6 +337,9 @@ class NetWorkSettings extends Component {
             method_8021_calss: method_calss
         })
     }
+    _handleCancel = () => {
+        browserHistory.push('/system-settings/networkSettings')
+    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
@@ -410,13 +415,19 @@ class NetWorkSettings extends Component {
                             dhcp6Enable={ this._changeDHCP6Enable.bind(this) }
                         />
                     </TabPane>
-                    <TabPane tab={formatMessage({id: "LANG708"})} key="2">
+                    <TabPane tab={formatMessage({id: "LANG4586"})} key="2" disabled={ model_info.allow_nat === "0" ? true : false }>
+                        <DHCPClient
+                            dataMethod={ this.state.network_settings.method }
+                            dataDHCPEnable={ this.state.network_settings.dhcp_enable }
+                        />
+                    </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG708"})} key="3">
                         <Network8021x
                             form={ this.props.form }
                             class8021x={ this.state.method_8021_calss }
                         />
                     </TabPane>
-                    <TabPane tab={formatMessage({id: "LANG709"})} key="4">
+                    <TabPane tab={formatMessage({id: "LANG709"})} key="4" disabled={ model_info.allow_nat === "0" ? true : false }>
                         <PortForwarding
                         />
                     </TabPane>
