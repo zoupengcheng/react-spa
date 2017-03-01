@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, message, Transfer, Tooltip } from 'antd'
+import { Form, Input, InputNumber, message, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 
@@ -319,6 +319,23 @@ class AgentLoginSettings extends Component {
                                 initialValue: queuelogout
                             })(
                                 <Input onFocus={ this._onFocus } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG1170" /> }>
+                                        <span>{ formatMessage({id: "LANG1169"}) }</span>
+                                    </Tooltip>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('pin', {
+                                rules: [],
+                                initialValue: agentLoginSettings.pin
+                            })(
+                                <InputNumber />
                             ) }
                         </FormItem>
                         <FormItem

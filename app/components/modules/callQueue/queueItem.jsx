@@ -9,9 +9,10 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Tabs, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
+const TabPane = Tabs.TabPane
 
 class QueueItem extends Component {
     constructor(props) {
@@ -285,9 +286,9 @@ class QueueItem extends Component {
                     onCancel={ this._handleCancel }
                     isDisplay='display-block'
                 />
-                <div className="content">
-                    <Form>
-                        <Row>
+                <Form className="form-contain-tab">
+                    <Tabs defaultActiveKey="1" onChange={ this._onChangeTabs }>
+                        <TabPane tab={ formatMessage({id: "LANG2217"}) } key="1">
                             <Col span={ 24 }>
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG3"}) }</span>
@@ -384,114 +385,15 @@ class QueueItem extends Component {
                                     { ...formItemLayout }
                                     label={(
                                         <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1175" /> }>
-                                                <span>{ formatMessage({id: "LANG1174"}) }</span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1177" /> }>
+                                                <span>{ formatMessage({id: "LANG1176"}) }</span>
                                             </Tooltip>
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('leavewhenempty', {
+                                    { getFieldDecorator('maxlen', {
                                         rules: [],
-                                        initialValue: settings.leavewhenempty ? settings.leavewhenempty : 'strict'
-                                    })(
-                                        <Select>
-                                            <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
-                                            <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
-                                            <Option value='strict'>{ formatMessage({id: "LANG1203"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1173" /> }>
-                                                <span>{ formatMessage({id: "LANG1172"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('joinempty', {
-                                        rules: [],
-                                        initialValue: settings.joinempty ? settings.joinempty : 'no'
-                                    })(
-                                        <Select>
-                                            <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
-                                            <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
-                                            <Option value='strict'>{ formatMessage({id: "LANG1203"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1170" /> }>
-                                                <span>{ formatMessage({id: "LANG1169"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('chk_pin', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: settings.chk_pin === 'yes'
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                    { getFieldDecorator('pin', {
-                                        rules: [],
-                                        initialValue: settings.pin
-                                    })(
-                                        <InputNumber
-                                            style={{ 'margin-left': '10px' }}
-                                        />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5072" /> }>
-                                                <span>{ formatMessage({id: "LANG5071"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('replace_caller_id', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: settings.replace_caller_id === 'yes'
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 24 }>
-                                <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG609"}) }</span>
-                                </div>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1185" /> }>
-                                                <span>{ formatMessage({id: "LANG1184"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('ringtime', {
-                                        rules: [],
-                                        initialValue: settings.ringtime ? settings.ringtime : 15
+                                        initialValue: settings.maxlen ? settings.maxlen : 0
                                     })(
                                         <InputNumber />
                                     ) }
@@ -532,45 +434,6 @@ class QueueItem extends Component {
                                         initialValue: settings.retry ? settings.retry : 5
                                     })(
                                         <InputNumber />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1177" /> }>
-                                                <span>{ formatMessage({id: "LANG1176"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('maxlen', {
-                                        rules: [],
-                                        initialValue: settings.maxlen ? settings.maxlen : 0
-                                    })(
-                                        <InputNumber />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1182" /> }>
-                                                <span>{ formatMessage({id: "LANG1181"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('reportholdtime', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: settings.reportholdtime === 'yes'
-                                    })(
-                                        <Checkbox />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -740,120 +603,8 @@ class QueueItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4170" /> }>
-                                                <span>{ formatMessage({id: "LANG4169"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('enable_feature', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: settings.enable_feature === 'yes'
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3249" /> }>
-                                                <span>{ formatMessage({id: "LANG3248"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('alertinfo', {
-                                        rules: [],
-                                        initialValue: settings.alertinfo ? settings.alertinfo : 'none'
-                                    })(
-                                        <Select>
-                                            <Option value="none">{ formatMessage({id: "LANG133"}) }</Option>
-                                            <Option value="ring1">Ring 1</Option>
-                                            <Option value="ring2">Ring 2</Option>
-                                            <Option value="ring3">Ring 3</Option>
-                                            <Option value="ring4">Ring 4</Option>
-                                            <Option value="ring5">Ring 5</Option>
-                                            <Option value="ring6">Ring 6</Option>
-                                            <Option value="ring7">Ring 7</Option>
-                                            <Option value="ring8">Ring 8</Option>
-                                            <Option value="ring9">Ring 9</Option>
-                                            <Option value="ring10">Ring 10</Option>
-                                            <Option value="Bellcore-dr1">Bellcore-dr1</Option>
-                                            <Option value="Bellcore-dr2">Bellcore-dr2</Option>
-                                            <Option value="Bellcore-dr3">Bellcore-dr3</Option>
-                                            <Option value="Bellcore-dr4">Bellcore-dr4</Option>
-                                            <Option value="Bellcore-dr5">Bellcore-dr5</Option>
-                                            <Option value="custom">{ formatMessage({id: "LANG231"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3250" /> }>
-                                                <span>{ formatMessage({id: "LANG3250"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('custom_alert_info', {
-                                        rules: [],
-                                        initialValue: settings.custom_alert_info
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5446" /> }>
-                                                <span>{ formatMessage({id: "LANG5446"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('announce_position', {
-                                        rules: [],
-                                        initialValue: settings.announce_position
-                                    })(
-                                        <InputNumber />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5447" /> }>
-                                                <span>{ formatMessage({id: "LANG5447"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('announce_frequency', {
-                                        rules: [],
-                                        initialValue: settings.announce_frequency ? settings.announce_frequency : 20
-                                    })(
-                                        <InputNumber />
-                                    ) }
-                                </FormItem>
-                            </Col>
+                        </TabPane>
+                        <TabPane tab={ formatMessage({id: "LANG542"}) } key="2">
                             <Col span={ 24 }>
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG5449"}) }</span>
@@ -941,7 +692,50 @@ class QueueItem extends Component {
                             </Col>
                             <Col span={ 24 }>
                                 <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG5408"}) }</span>
+                                    <span>{ formatMessage({id: "LANG5458"}) }</span>
+                                </div>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5446" /> }>
+                                                <span>{ formatMessage({id: "LANG5446"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('announce_position', {
+                                        rules: [],
+                                        initialValue: settings.announce_position
+                                    })(
+                                        <InputNumber />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5447" /> }>
+                                                <span>{ formatMessage({id: "LANG5447"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('announce_frequency', {
+                                        rules: [],
+                                        initialValue: settings.announce_frequency ? settings.announce_frequency : 20
+                                    })(
+                                        <InputNumber />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 24 }>
+                                <div className="section-title">
+                                    <span>CTI</span>
                                 </div>
                             </Col>
                             <Col span={ 12 }>
@@ -985,9 +779,173 @@ class QueueItem extends Component {
                             </Col>
                             <Col span={ 24 }>
                                 <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG143"}) }</span>
+                                    <span>{ formatMessage({id: "LANG629"}) }</span>
                                 </div>
                             </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1175" /> }>
+                                                <span>{ formatMessage({id: "LANG1174"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('leavewhenempty', {
+                                        rules: [],
+                                        initialValue: settings.leavewhenempty ? settings.leavewhenempty : 'strict'
+                                    })(
+                                        <Select>
+                                            <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
+                                            <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
+                                            <Option value='strict'>{ formatMessage({id: "LANG1203"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1173" /> }>
+                                                <span>{ formatMessage({id: "LANG1172"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('joinempty', {
+                                        rules: [],
+                                        initialValue: settings.joinempty ? settings.joinempty : 'no'
+                                    })(
+                                        <Select>
+                                            <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
+                                            <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
+                                            <Option value='strict'>{ formatMessage({id: "LANG1203"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1182" /> }>
+                                                <span>{ formatMessage({id: "LANG1181"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('reportholdtime', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.reportholdtime === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5072" /> }>
+                                                <span>{ formatMessage({id: "LANG5071"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('replace_caller_id', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.replace_caller_id === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4170" /> }>
+                                                <span>{ formatMessage({id: "LANG4169"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('enable_feature', {
+                                        rules: [],
+                                        valuePropName: 'checked',
+                                        initialValue: settings.enable_feature === 'yes'
+                                    })(
+                                        <Checkbox />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3249" /> }>
+                                                <span>{ formatMessage({id: "LANG3248"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('alertinfo', {
+                                        rules: [],
+                                        initialValue: settings.alertinfo ? settings.alertinfo : 'none'
+                                    })(
+                                        <Select>
+                                            <Option value="none">{ formatMessage({id: "LANG133"}) }</Option>
+                                            <Option value="ring1">Ring 1</Option>
+                                            <Option value="ring2">Ring 2</Option>
+                                            <Option value="ring3">Ring 3</Option>
+                                            <Option value="ring4">Ring 4</Option>
+                                            <Option value="ring5">Ring 5</Option>
+                                            <Option value="ring6">Ring 6</Option>
+                                            <Option value="ring7">Ring 7</Option>
+                                            <Option value="ring8">Ring 8</Option>
+                                            <Option value="ring9">Ring 9</Option>
+                                            <Option value="ring10">Ring 10</Option>
+                                            <Option value="Bellcore-dr1">Bellcore-dr1</Option>
+                                            <Option value="Bellcore-dr2">Bellcore-dr2</Option>
+                                            <Option value="Bellcore-dr3">Bellcore-dr3</Option>
+                                            <Option value="Bellcore-dr4">Bellcore-dr4</Option>
+                                            <Option value="Bellcore-dr5">Bellcore-dr5</Option>
+                                            <Option value="custom">{ formatMessage({id: "LANG231"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3250" /> }>
+                                                <span>{ formatMessage({id: "LANG3250"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('custom_alert_info', {
+                                        rules: [],
+                                        initialValue: settings.custom_alert_info
+                                    })(
+                                        <Input />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </TabPane>
+                        <TabPane tab={ formatMessage({id: "LANG143"}) } key="3">
                             <Col span={ 24 }>
                                 <FormItem
                                     { ...formItemTransferLayout }
@@ -1013,9 +971,9 @@ class QueueItem extends Component {
                                     />
                                 </FormItem>
                             </Col>
-                        </Row>
-                    </Form>
-                </div>
+                        </TabPane>
+                    </Tabs>
+                </Form>
             </div>
         )
     }
