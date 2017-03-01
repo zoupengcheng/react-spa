@@ -15,9 +15,10 @@ const baseServerURl = api.apiHost
 class DigitalTrunksList extends Component {
     constructor(props) {
         super(props)
-        this.state = {
-            digitalTrunk: [],
-            pagination: {
+        this.state = {                
+            digitaltrunk: {},
+            digitalGroup: [],
+            pagination: {            
                 showTotal: this._showTotal,
                 showSizeChanger: true,
                 showQuickJumper: true
@@ -31,6 +32,101 @@ class DigitalTrunksList extends Component {
     }
     componentDidMount() {
         this._listDigitalTrunk()
+        this._getNameList()
+    }
+    _getNameList = () => {
+        const { formatMessage } = this.props.intl
+
+        let allTrunkList = UCMGUI.isExist.getList("getTrunkList")
+
+        let trunkNameList = this._transData(allTrunkList)
+
+        $.ajax({
+            url: baseServerURl,
+            type: "POST",
+            dataType: "json",
+            async: true,
+            data: {
+                "action": "listDigitalTrunk",
+                "options": "trunk_name,group_index"
+            },
+            success: function(data) {
+                let res = data.response
+
+                if (res && data.status === 0) {
+                    let digitalTrunks = res.digital_trunks
+
+                    let groupNameList = []
+
+                    for (let i = 0; i < digitalTrunks.length; i++) {
+                        let digitalTrunksIndex = digitalTrunks[i]
+                        groupNameList.push(String(digitalTrunksIndex.group_index))
+                    }
+                    this._listDataTrunk(groupNameList, trunkNameList)
+                }
+            }.bind(this)
+        })
+        this._listDigitalGroup()
+    }
+    _listDigitalGroup = () => {
+        $.ajax({
+            url: baseServerURl,
+            type: "POST",
+            dataType: "json",
+            data: {
+                action: "listDigitalGroup",
+                options: "group_name,group_index"
+            },
+            success: function(data) {
+                if (data && data.status === 0) {
+                    let res = data.response
+
+                    if (res) {
+                        let digitalGroup = res.digital_group
+
+                        this.setState({
+                            digitalGroup: digitalGroup
+                        })
+                    }
+                }
+            }.bind(this)
+        })
+    }
+    _listDataTrunk = (groupNameList, trunkNameList) => {
+        $.ajax({
+            url: baseServerURl,
+            type: "POST",
+            dataType: "json",
+            async: false,
+            data: {
+                action: "listDataTrunk"
+            },
+            success: function(data) {
+                if (data.status === 0) {
+                    let netHDLCSettings = data.response.nethdlc_settings
+
+                    if (netHDLCSettings) {
+                        groupNameList.push(String(netHDLCSettings[0].group_index))
+                    }
+                    this.setState({
+                        groupNameList: groupNameList,
+                        trunkNameList: trunkNameList
+                    })
+                }
+            }.bind(this)
+        })
+    }
+    _transData(res, cb) {
+        let arr = []
+
+        for (let i = 0; i < res.length; i++) {
+            arr.push(res[i]["trunk_name"])
+        }
+        if (cb && typeof cb === "function") {
+            cb(arr)
+        }
+
+        return arr
     }
     _showTotal = (total) => {
         const { formatMessage } = this.props.intl
@@ -146,14 +242,37 @@ class DigitalTrunksList extends Component {
         })
     }
     _createDigitalTrunk = () => {
-        browserHistory.push('/extension-trunk/digitalTrunk/add')
+        let state = this.state,
+            digitalGroup = state.digitalGroup,
+            groupNameList = state.groupNameList,
+            trunkNameList = state.trunkNameList
+
+        browserHistory.push({ 
+            pathname: '/extension-trunk/digitalTrunk/add', 
+            state: {
+                digitalGroup: digitalGroup,
+                groupNameList: groupNameList,
+                trunkNameList: trunkNameList
+            } 
+        })
     }
     _editDigitalTrunk = (record) => {
         let trunkId = record.trunk_index,
             trunkType = record.type,
-            trunkName = record.trunk_name
+            trunkName = record.trunk_name,
+            state = this.state,
+            digitalGroup = state.digitalGroup,
+            groupNameList = state.groupNameList,
+            trunkNameList = state.trunkNameList
 
-        browserHistory.push('/extension-trunk/digitalTrunk/edit/' + trunkId + "/" + trunkType + "/" + trunkName)
+        browserHistory.push({ 
+            pathname: '/extension-trunk/digitalTrunk/edit/' + trunkId + "/" + trunkType + "/" + trunkName, 
+            state: {
+                digitalGroup: digitalGroup,
+                groupNameList: groupNameList,
+                trunkNameList: trunkNameList
+            } 
+        })
     }
     _dodTrunksList = (record) => {
         let signalling = this._transSignallingType(record.type)
@@ -178,7 +297,14 @@ class DigitalTrunksList extends Component {
     }
     render() {
         const {formatMessage, formatHTMLMessage} = this.props.intl
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
 
+        document.title = formatMessage({
+            id: "LANG584"
+        }, {
+            0: model_info.model_name, 
+            1: formatMessage({id: "LANG3141"})
+        })
         const menu = (
           <Menu>
             <Menu.Item>

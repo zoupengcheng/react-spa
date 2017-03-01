@@ -194,10 +194,10 @@ class SecuritySettings extends Component {
                         }
                     } else if (this.state.networkSettings.method === '1') {
                         if (values.ping_enable_lan === true) {
-                            ping_enable_list.push('LAN')
+                            ping_enable_list.push('lan')
                         }
                         if (values.ping_of_death_lan === true) {
-                            ping_of_death_list.push('LAN')
+                            ping_of_death_list.push('lan')
                         }
                     } else if (this.state.networkSettings.method === '2') {
                         if (values.ping_enable_wan === true) {

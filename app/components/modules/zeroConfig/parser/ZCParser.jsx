@@ -506,10 +506,10 @@ ZCParser.prototype = {
                 return this._private.originModel.generateFieldList(data)
             }
 
-            let root = this._private.groups
-
-            for (let i = 0; i < root.length; i++) {
-                let orgLevel1 = root[i]
+            let oriGroups = this._private.groups,
+                oriGroupsLen = oriGroups.length
+            for (let i = 0; i < oriGroupsLen; i++) {
+                let orgLevel1 = oriGroups[i]
                 let level1Scope = {}
                 let newLevel1 = ZCHelper.deepItemClone(orgLevel1, level1Scope)
                 newLevel1.pathName = newLevel1.name
@@ -517,7 +517,8 @@ ZCParser.prototype = {
                 level1Scope.item = newLevel1
                 level1Scope.parent = null
 
-                for (let j = 0; j < orgLevel1.items.length; j++) {
+                let orgLevel1Len = orgLevel1.items ? orgLevel1.items.length : 0
+                for (let j = 0; j < orgLevel1Len; j++) {
                     let orgLevel2 = orgLevel1.items[j]
                     let level2Scope = {}
                     let newLevel2 = ZCHelper.deepItemClone(orgLevel2, level2Scope)
@@ -531,7 +532,8 @@ ZCParser.prototype = {
                     let lastProcessElmId = 0
                     newLevel2._hasRepeatItem = false
 
-                    for (let k = 0; k < orgLevel2.items.length; k++) {
+                    let orgLevel2Len = orgLevel2.items ? orgLevel2.items.length : 0
+                    for (let k = 0; k < orgLevel2Len; k++) {
                         let orgLevel3 = orgLevel2.items[k]
                         let found
                         let level3Scope = {}

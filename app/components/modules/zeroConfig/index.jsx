@@ -4,9 +4,9 @@ import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
 import ZEROCONFIG from './parser/ZCDataSource'
 import Devices from './devices'
-import Globalpolicy from './globalpolicy'
-import Globaltemplates from './globaltemplates'
-import Modeltemplates from './modeltemplates'
+import GlobalPolicy from './globalPolicy'
+import GlobalTemplates from './globalTemplates'
+import ModelTemplates from './modelTemplates'
 import TemplateManagement from './templateManagement'
 import Autoprovision from './autoprovision'
 import $ from 'jquery'
@@ -14,6 +14,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { Tabs, message } from 'antd'
+import { browserHistory } from 'react-router'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 
@@ -67,17 +68,17 @@ class ZeroConfig extends Component {
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG3169"})} key="2">
-                        <Globalpolicy 
+                        <GlobalPolicy 
                             dataSource={this.state.sipMiscSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG3444"})} key="3">
-                        <Globaltemplates 
+                        <GlobalTemplates 
                             dataSource={this.state.sipSessiontimerSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG3445"})} key="4">
-                        <Modeltemplates 
+                        <ModelTemplates 
                             dataSource={this.state.sipTcpSettings}
                         />
                     </TabPane>

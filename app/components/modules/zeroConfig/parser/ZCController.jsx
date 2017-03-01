@@ -206,10 +206,10 @@ ConfigPage.prototype = {
         this.m_currentItem = loadedItem
         this.m_noTypeOverride = noTypeOverride
 
-        // TODO: let model = this.m_zccontext.DataCollection.getModel(mid)
         if (model) {
             this.m_modelInfo = model
-            model.registerCustomLangauge()
+            // TODO: WL figure out what registerCustomLangauge
+            // model.registerCustomLangauge()
         }
 
         // reset everytime when updatePageConfig is called
@@ -234,7 +234,7 @@ ConfigPage.prototype = {
         return this.m_noTypeOverride
     }, 
     modelInfo: function() {
-        return this.m_modeInfo
+        return this.m_modelInfo
     }, 
     mode: function() {
         return this.m_pageMode

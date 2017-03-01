@@ -1461,7 +1461,7 @@ ZEROCONFIG.prototype = {
 	            },
 	            async: true,
 	        })
-	    },
+	    }, */
 	    getTemplate: function(id) {
 	        return $.ajax({
 	            method: "post",
@@ -1470,10 +1470,10 @@ ZEROCONFIG.prototype = {
 	                action: "getTemplate",
 	                id: id
 	            },
-	            async: true,
+	            async: true
 	        })
 	    },
-	    getTemplateByName: function(name, modelId) {
+	    /* getTemplateByName: function(name, modelId) {
 	        return $.ajax({
 	            method: "post",
 	            url: api.apiHost,
@@ -1578,7 +1578,7 @@ ZEROCONFIG.prototype = {
 	            },
 	            async: true,
 	        })
-	    },
+	    }, */
 	    // Provision model template settings
 	    getModelTemplateSettings: function(templateId) {
 	        return $.ajax({
@@ -1588,10 +1588,10 @@ ZEROCONFIG.prototype = {
 	                action: "getModelTemplateSettings",
 	                template_id: templateId
 	            },
-	            async: true,
+	            async: true
 	        })
 	    },
-	    updateModelTemplateSettings: function(templateId, fieldId, entityName, value) {
+	    /* updateModelTemplateSettings: function(templateId, fieldId, entityName, value) {
 	        return $.ajax({
 	            method: "post",
 	            url: api.apiHost,
@@ -1628,7 +1628,7 @@ ZEROCONFIG.prototype = {
 	            },
 	            async: true,
 	        })
-	    },
+	    }, */
 	    // Provision model template custom settings
 	    getModelTemplateCustomSettings: function(templateId) {
 	        return $.ajax({
@@ -1638,10 +1638,10 @@ ZEROCONFIG.prototype = {
 	                action: "getModelTemplateCustomSettings",
 	                template_id: templateId
 	            },
-	            async: true,
+	            async: true
 	        })
 	    },
-	    updateModelTemplateCustomSettings: function(templateId, devName, value) {
+	    /* updateModelTemplateCustomSettings: function(templateId, devName, value) {
 	        return $.ajax({
 	            method: "post",
 	            url: api.apiHost,
@@ -2131,6 +2131,86 @@ ZEROCONFIG.prototype = {
 	            }
 	        })
 	    }
+	},
+	interface: {
+		prepareGlobalTemplateSource: function(templateId, callback) {
+			let pageValueLoadedCallback = result => {
+	            let data = {}
+
+	            if (result.status === 0) {
+	                // NOTE: it is weird the return data is stored under object.template_id
+	                for (let i = 0; i < result.response.template_id.length; i++) {
+	                    let item = result.response.template_id[i]
+	                    let key = item.element_id + "#" + item.element_number
+	                    if (!data[key]) {
+	                        data[key] = { "values": {}, "originName": "", "originType": "" }
+	                    }
+	                    data[key].values[item.entity_name] = item.value
+	                }
+	            } else { 
+	                return
+	            }
+
+	            let source = this.getDataCollection().generateGlobalBlockList(data)
+	            if (typeof callback === "function") {
+					callback(source)
+				}
+	        }
+
+	        this.connector.getTemplateSettings(templateId)
+                .done(result => {
+                    setTimeout(() => {
+                        pageValueLoadedCallback(result)
+                    }, 1)
+                }).fail(() => {
+                    // TODO: add error display here
+                    console.error("FAIL", arguments)
+                    return
+                })
+		},
+		prepareModelTemplateSource: function(templateId, callback) {
+			let pageValueLoadedCallback = result => {
+	            let data = {}
+	            if (result.status === 0) {
+	            	// NOTE: it is weird the return data is stored under object.template_id
+	                for (let i = 0; i < result.response.template_id.length; i++) {
+	                    let item = result.response.template_id[i]
+	                    let key = item.element_id + "#" + item.element_number
+	                    if (!data[key]) {
+	                        data[key] = { "values": {}, "originName": "", "originType": "" }
+	                    }
+	                    data[key].values[item.entity_name] = item.value
+	                }
+	            } else { 
+	                return
+	            }
+
+	            let using = null
+		        let model = ZCCurConfig.modelInfo()
+		        if (model) {
+		            using = model.generateFieldList(data)
+		            // TODO:
+		            // devmappings = using.devmapping
+		            // 	source = using.source
+		            // bindModelThumbnail(model)
+		        }
+
+		        if (typeof callback === "function") {
+					callback(using)
+				}
+	        }
+
+	        this.connector.getModelTemplateSettings(templateId)
+                .done(result => {
+                    setTimeout(() => {
+                        pageValueLoadedCallback(result)
+                    }, 1)
+                }).fail(() => {
+                    // TODO: add error display here
+                    console.error("FAIL", arguments)
+                    return
+                })
+		}
 	} 
 }
 

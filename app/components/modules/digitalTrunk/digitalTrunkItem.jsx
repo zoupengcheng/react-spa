@@ -22,8 +22,40 @@ class DigitalTrunkItem extends Component {
             loading: false,
             firstLoad: true,
             digitaltrunk: {},
-            digitalGroupList: [],
+            // digitalGroup: [],
             faxIntelligentRouteDestinationOpts: []
+        }
+        this._onChangeFaxdetect = (e) => {
+            let isChecked = false
+
+            if (_.isString(e)) {
+                isChecked = (e === "yes" ? true : false)
+            } else {
+                isChecked = e.target.checked
+            }
+
+            if (isChecked) {
+                this.setState({
+                    div_detect_style: true
+                })
+            } else {
+                this.setState({
+                    div_detect_style: false
+                })
+            }
+        }
+        this._onChangefaxIntelligentRoute = (e) => {
+            let isChecked = e.target.checked,
+                digitaltrunk = this.state.digitaltrunk
+
+            if (isChecked) {
+                digitaltrunk["fax_intelligent_route"] = "yes"
+            } else {
+                digitaltrunk["fax_intelligent_route"] = "no"
+            }
+            this.setState({
+                digitaltrunk: digitaltrunk
+            })        
         }
     }
     componentDidMount() {
@@ -40,7 +72,6 @@ class DigitalTrunkItem extends Component {
             this._hideCallee(trunkType)
             this._getDigitalTrunk(trunkId)
         } else {
-            this._optionIsDisabled()
             this._getDigitalHardwareSettings()
         }
     }
@@ -54,30 +85,6 @@ class DigitalTrunkItem extends Component {
         if (this.state.firstLoad && !_.isEmpty(digitaltrunk)) {
             
         }
-    }
-    _optionIsDisabled = (groupIndex) => {
-        // let groupNameList = mWindow.groupNameList,
-        //     groupIndexDom = $("#group_index"),
-        //     options = groupIndexDom.children(),
-        //     flag = true;
-
-        // for (let i = 0; i < options.length; i++) {
-        //     let optionsIndex = options.eq(i);
-
-        //     if (UCMGUI.inArray(optionsIndex.val(), groupNameList)) {
-        //         optionsIndex.attr("disabled", true);
-        //     } else if (flag && mode == "add") {
-        //         flag = false
-        //         groupIndexDom.get(0).selectedIndex = i
-        //     }
-
-        //     if (groupIndex && groupIndex == optionsIndex.val()) {
-        //         optionsIndex.attr("disabled", false)
-        //     }
-        // }
-        // if (options.not(":disabled").length == 0) {
-        //     groupIndexDom.get(0).selectedIndex = -1
-        // }
     }
     _hideCallee = (trunkType) => {
         if (trunkType.match(/em/i)) {
@@ -140,118 +147,13 @@ class DigitalTrunkItem extends Component {
             }.bind(this)
         })
     }
-    _getNameList = () => {
-        const { formatMessage } = this.props.intl
-
-        let allTrunkList = UCMGUI.isExist.getList("getTrunkList")
-
-        let trunkNameList = this._transData(allTrunkList)
-
-        $.ajax({
-            url: baseServerURl,
-            type: "POST",
-            dataType: "json",
-            async: true,
-            data: {
-                "action": "listDigitalTrunk",
-                "options": "trunk_name,group_index"
-            },
-            success: function(data) {
-                let res = data.response
-
-                if (res && data.status === 0) {
-                    let digitalTrunks = res.digital_trunks
-
-                    let groupNameList = []
-
-                    for (let i = 0; i < digitalTrunks.length; i++) {
-                        let digitalTrunksIndex = digitalTrunks[i]
-                        groupNameList.push(String(digitalTrunksIndex.group_index))
-                    }
-                    this._listDataTrunk(groupNameList)
-                }
-            }.bind(this)
-        })
-
-        this._listDigitalGroup(trunkNameList)
-    }
-    _listDigitalGroup = (trunkNameList) => {
-        $.ajax({
-            url: baseServerURl,
-            type: "POST",
-            dataType: "json",
-            data: {
-                action: "listDigitalGroup",
-                options: "group_name,group_index"
-            },
-            success: function(data) {
-                if (data && data.status === 0) {
-                    let res = data.response
-
-                    if (res) {
-                        let digitalGroup = res.digital_group
-                        let arr = []
-
-                        for (let i = 0; i < digitalGroup.length; i++) {
-                            let digitalGroupIndex = digitalGroup[i]
-                            let obj = {}
-
-                            obj["text"] = digitalGroupIndex.group_name
-                            obj["val"] = digitalGroupIndex.group_index
-                            obj["disabled"] = false
-                            arr.push(obj)
-                        }
-                        this.setState({
-                            digitalGroupList: arr,
-                            trunkNameList: trunkNameList
-                        })
-                    }
-                }
-            }.bind(this)
-        })
-    }
-    _listDataTrunk = (groupNameList) => {
-        $.ajax({
-            url: baseServerURl,
-            type: "POST",
-            dataType: "json",
-            async: false,
-            data: {
-                action: "listDataTrunk"
-            },
-            success: function(data) {
-                if (data.status === 0) {
-                    let netHDLCSettings = data.response.nethdlc_settings
-
-                    if (netHDLCSettings) {
-                        groupNameList.push(String(netHDLCSettings[0].group_index))
-                    }
-                    this.setState({
-                        groupNameList: groupNameList
-                    })
-                }
-            }.bind(this)
-        })
-    }
-    _transData(res, cb) {
-        let arr = []
-
-        for (let i = 0; i < res.length; i++) {
-            arr.push(res[i]["trunk_name"])
-        }
-        if (cb && typeof cb === "function") {
-            cb(arr)
-        }
-
-        return arr
-    }
     _getDigitalTrunk = (trunkId) => {
         const { formatMessage } = this.props.intl
         const form = this.props.form 
 
         let action = {
             "action": "getDigitalTrunk",
-            "Digitaltrunk": trunkId
+            "trunk": trunkId
         }
 
         $.ajax({
@@ -277,7 +179,6 @@ class DigitalTrunkItem extends Component {
                     let groupIndex = digitaltrunk.group_index
 
                     this._onChangeFaxdetect(digitaltrunk.faxdetect)
-                    this._optionIsDisabled(groupIndex)
 
                     this.setState({
                         digitaltrunk: digitaltrunk
@@ -285,38 +186,6 @@ class DigitalTrunkItem extends Component {
                 }
             }.bind(this)
         })
-    }
-    _onChangeFaxdetect = (e) => {
-        let isChecked = false
-
-        if (_.isString(e)) {
-            isChecked = (e === "yes" ? true : false)
-        } else {
-            isChecked = e.target.checked
-        }
-
-        if (isChecked) {
-            this.setState({
-                div_detect_style: true
-            })
-        } else {
-            this.setState({
-                div_detect_style: false
-            })
-        }
-    }
-    _onChangefaxIntelligentRoute = (e) => {
-        let isChecked = e.target.checked
-
-        if (isChecked) {
-            this.setState({
-                fax_intelligent_route: true
-            })
-        } else {
-            this.setState({
-                fax_intelligent_route: false
-            })
-        }        
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
@@ -361,7 +230,8 @@ class DigitalTrunkItem extends Component {
             } else if (isEdit) {
                action["trunk"] = trunkId 
             }
-            action["action"] = (mode === 'edit' ? "updateDigitalTrunk" : "addDigitalTrunk")
+            action["action"] = (isEdit ? "updateDigitalTrunk" : "addDigitalTrunk")
+            this._updateOrAddTrunkInfo(action)
         })
     }
     _updateOrAddTrunkInfo = (action) => {
@@ -394,22 +264,46 @@ class DigitalTrunkItem extends Component {
             isAdd = (mode.indexOf('add') === 0)
 
         if (value && value.length >= 2) {
-            if (this.state.checkedChansList.length !== 0) {
-                if (_.find(this.state.trunkNameList, function (num) { 
-                    if (isEdit) {
-                        return (num === value && params && params.trunkName !== value)
-                    } else if (isAdd) {
-                        return num === value
-                    }
-                })) {
-                    callback(errMsg)
+            if (_.find(this.props.location.state.trunkNameList, function (num) { 
+                if (isEdit) {
+                    return (num === value && params && params.trunkName !== value)
+                } else if (isAdd) {
+                    return num === value
                 }
-                callback()
-            } else {
+            })) {
                 callback(errMsg)
             }
+            callback()
         }
         callback()
+    }
+    _transDigitalGroup = () => {
+        let state = this.state,
+            locationState = this.props.location.state,
+            digitaltrunk = state.digitaltrunk,
+            digitalGroup = locationState.digitalGroup,
+            groupNameList = locationState.groupNameList,
+            digitalGroupList = []
+
+        for (let i = 0; i < digitalGroup.length; i++) {
+            let digitalGroupIndex = digitalGroup[i]
+            let obj = {}
+
+            obj["text"] = digitalGroupIndex.group_name
+            obj["val"] = digitalGroupIndex.group_index
+            obj["disabled"] = false
+
+            let isFind = _.find(groupNameList, function(num) { 
+                return digitalGroupIndex.group_index === Number(num) 
+            })
+
+            if (typeof isFind !== "undefined" && Number(digitaltrunk.group_index) !== digitalGroupIndex.group_index) {
+                obj["disabled"] = true
+            }
+
+            digitalGroupList.push(obj)
+        }
+        return digitalGroupList
     }
     render() {
         const { getFieldDecorator, getFieldValue } = this.props.form
@@ -418,26 +312,24 @@ class DigitalTrunkItem extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
+
         let state = this.state,
             digitaltrunk = state.digitaltrunk,
             params = this.props.params,
             mode = this.props.route.path,
             isEdit = (mode.indexOf('edit') === 0),
-            isAdd = (mode.indexOf('add') === 0),
-            headerTitle = formatMessage({id: "LANG3142"})
+            digitalGroupList = this._transDigitalGroup()
         
-        if (isEdit) {
-            headerTitle = formatMessage({
-                id: "LANG642"
-            }, {
-                0: formatMessage({id: "LANG3143"}), 
-                1: params.trunkName
-            })
-        }
         return (
             <div className="app-content-main" id="app-content-main">
                 <Title 
-                    headerTitle={ headerTitle }
+                    headerTitle={ isEdit ? formatMessage({
+                            id: "LANG642"
+                        }, {
+                            0: formatMessage({id: "LANG3143"}), 
+                            1: params.trunkName
+                        }) : formatMessage({id: "LANG3142"})
+                    }
                     onSubmit={ this._handleSubmit.bind(this) } 
                     onCancel={ this._handleCancel }  
                     isDisplay='display-block' 
@@ -490,11 +382,11 @@ class DigitalTrunkItem extends Component {
                                             required: true, 
                                             message: formatMessage({id: "LANG2150"}) 
                                         }],
-                                        initialValue: digitaltrunk.group_index || ""
+                                        initialValue: digitaltrunk.group_index || (digitalGroupList[0] ? digitalGroupList[0].val : "")
                                     })(
                                         <Select>
                                         {
-                                            state.digitalGroupList.map(function(it) {
+                                            digitalGroupList.map(function(it) {
                                                 let val = it.val,
                                                     text = it.text,
                                                     disabled = it.disabled
@@ -567,7 +459,7 @@ class DigitalTrunkItem extends Component {
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }],
-                                            initialValue: digitaltrunk.callerid || 0
+                                            initialValue: Number(digitaltrunk.callerid) || 1
                                         })(
                                             <InputNumber maxLength="32" />
                                         )}

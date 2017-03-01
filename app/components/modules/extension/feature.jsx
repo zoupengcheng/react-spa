@@ -20,6 +20,7 @@ class Feature extends Component {
 
         const cc_mode = this.props.settings.cc_mode
         const strategy_ipacl = this.props.settings.strategy_ipacl
+        const presence_status = this.props.settings.presence_status
         const dnd = this.props.settings.dnd === 'yes' ? true : false
         const bypass_outrt_auth = this.props.settings.bypass_outrt_auth
         const callbarging_monitor = this.props.settings.callbarging_monitor
@@ -38,6 +39,7 @@ class Feature extends Component {
             out_limitime: out_limitime,
             bypass_outrt_auth: bypass_outrt_auth,
             strategy_ipacl: strategy_ipacl ? strategy_ipacl + '' : '0',
+            presence_status: presence_status ? presence_status : 'not_set',
             targetKeysCallbarging: callbarging_monitor ? callbarging_monitor.split(',') : [],
             targetKeysSeamless: seamless_transfer_members ? seamless_transfer_members.split(',') : []
         }
@@ -134,9 +136,9 @@ class Feature extends Component {
         console.log('sourceSelectedKeys: ', sourceSelectedKeys)
         console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
-    _onChangeAlertInfo = (value) => {
+    _onChangePresenceStatus = (value) => {
         this.setState({
-            alertinfo: value
+            presence_status: value
         })
     }
     _onChangeCCMode = (value) => {
@@ -798,6 +800,110 @@ class Feature extends Component {
                                     ],
                                     initialValue: settings.hotline_number,
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
+                                })(
+                                    <Input disabled={ !this.state.en_hotline } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4188" /> }>
+                                            <span>{ formatMessage({id: "LANG4185"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('hotline_type', {
+                                    rules: [
+                                        {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    ],
+                                    initialValue: settings.hotline_type ? settings.hotline_type : '1',
+                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
+                                })(
+                                    <Select disabled={ !this.state.en_hotline }>
+                                        <Option value='1'>{ formatMessage({id: "LANG4186"}) }</Option>
+                                        <Option value='2'>{ formatMessage({id: "LANG4187"}) }</Option>
+                                    </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row
+                        className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
+                    >
+                        <Col span={ 24 }>
+                            <div className="section-title">
+                                <span>{ formatMessage({id: "LANG5450"}) }</span>
+                            </div>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5452" /> }>
+                                            <span>{ formatMessage({id: "LANG5450"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('presence_status', {
+                                    rules: [
+                                        {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    ],
+                                    initialValue: this.state.presence_status,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
+                                })(
+                                    <Select onChange={ this._onChangePresenceStatus }>
+                                        <Option value='not_set'>{ formatMessage({id: "LANG257"}) }</Option>
+                                        <Option value='unavailable'>{ formatMessage({id: "LANG113"}) }</Option>
+                                        <Option value='available'>{ formatMessage({id: "LANG116"}) }</Option>
+                                        <Option value='away'>{ formatMessage({id: "LANG5453"}) }</Option>
+                                        <Option value='chat'>{ formatMessage({id: "LANG4287"}) }</Option>
+                                        <Option value='dnd'>{ formatMessage({id: "LANG4768"}) } }</Option>
+                                        <Option value='userdef1'>{ formatMessage({id: "LANG5451"}) }</Option>
+                                    </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col
+                            span={ 12 }
+                            className={ (extension_type === 'sip' && this.state.presence_status === 'userdef1')
+                                            ? 'display-block'
+                                            : 'hidden' }
+                        >
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5451" /> }>
+                                            <span>{ formatMessage({id: "LANG5451"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('presence_def_script', {
+                                    rules: [
+                                        (extension_type === 'sip' && this.state.presence_status === 'userdef1')
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
+                                    ],
+                                    initialValue: settings.presence_def_script,
+                                    className: (extension_type === 'sip' && this.state.presence_status === 'userdef1')
+                                            ? 'display-block'
+                                            : 'hidden'
                                 })(
                                     <Input disabled={ !this.state.en_hotline } />
                                 ) }

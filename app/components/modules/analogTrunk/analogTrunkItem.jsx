@@ -20,7 +20,6 @@ const baseServerURl = api.apiHost
     global.oldSLAMode = ''
     global.trunkgroup = ""
     global.countryObj = {}
-    global.type = ""
 
 class AnalogTrunkItem extends Component {
     constructor(props) {
@@ -36,6 +35,190 @@ class AnalogTrunkItem extends Component {
             countrytoneOpts: [],
             faxIntelligentRouteDestinationOpts: [],
             analogtrunk: {}
+        }
+        this._onChangeBusydetect = (e) => {
+            let isChecked = e.target.checked
+
+            if (isChecked) {
+                this.setState({
+                    div_busycount_style: true
+                })
+            } else {
+                this.setState({
+                    div_busycount_style: false
+                })
+            }
+        }
+        this._onChangeCongestiondetect = (e) => {
+            let isChecked = e.target.checked
+
+            if (isChecked) {
+                this.setState({
+                    div_congestioncount_style: true
+                })
+            } else {
+                this.setState({
+                    div_congestioncount_style: false
+                })
+            }
+        }
+        this._onChangeTrunkmode = (e) => {
+            const form = this.props.form 
+
+            let isChecked = form.getFieldValue("trunkmode")
+            if (e) {
+                isChecked = e.target.checked
+            }
+            if (isChecked) {
+                this.setState({
+                    trunkmodeVal: isChecked,
+                    div_slaOptions_style: true
+                })
+            } else {
+                this.setState({
+                    trunkmodeVal: isChecked,
+                    div_slaOptions_style: false
+                })
+            }
+        }
+        this._onChangePolarityswitch = (e) => {
+            const form = this.props.form 
+
+            let isChecked = form.getFieldValue("polarityswitch")
+            if (e) {
+                isChecked = e.target.checked
+            }
+            if (isChecked) {
+                this.setState({
+                    div_polarityonanswerdelay_style: true,
+                    polarityswitchVal: true
+                })
+            } else {
+                this.setState({
+                    div_polarityonanswerdelay_style: false,
+                    polarityswitchVal: false
+                })
+            }
+        }
+        this._onChangeEnablecurrentdisconnectthreshold = (e) => {
+            const form = this.props.form 
+
+            let isChecked = form.getFieldValue("enablecurrentdisconnectthreshold")
+            if (e) {
+                isChecked = e.target.checked
+            }
+
+            if (isChecked) {
+                this.setState({
+                    div_currentdisconnectthreshold_style: true
+                })
+            } else {
+                this.setState({
+                    div_currentdisconnectthreshold_style: false
+                })
+            }
+        }
+        this._onChangeCountrytone = (value) => {
+            const form = this.props.form 
+
+            let val = form.getFieldValue("countrytone")
+            if (value) {
+                val = value
+            }
+            let busytone = '',
+                congestiontone = '',
+                freq_tmp = ''
+
+            if (val === 'custom') {
+                this.setState({
+                    busyDisabled: false,
+                    congestionDisabled: false
+                })
+            } else {
+                let countryTone = global.countryObj[val]
+
+                if (countryTone) {
+                    // f1=500[@-11][,f2=440[@-11]],c=500/500[-600/600[-700/700]]
+                    freq_tmp = countryTone.busyfreq.split('+')
+
+                    for (let i = 0, len = freq_tmp.length; i < len; i++) {
+                        busytone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ','
+                    }
+
+                    busytone += 'c=' + countryTone.busypattern.replace(/,/g, '/')
+
+                    freq_tmp = countryTone.congestionfreq.split('+')
+
+                    for (let i = 0, len = freq_tmp.length; i < len; i++) {
+                        congestiontone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ','
+                    }
+
+                    congestiontone += 'c=' + countryTone.congestionpattern.replace(/,/g, '/')
+
+                    form.setFieldsValue({
+                        busy: busytone,
+                        congestion: congestiontone
+                    })
+                }
+                this.setState({
+                    busyDisabled: true,
+                    congestionDisabled: true
+                })
+            }
+        }
+        this._onClickFaxmode = () => {
+            const form = this.props.form 
+
+            let val = form.getFieldValue("faxmode")
+
+            if (val === 'detect') {
+                this.setState({
+                    div_fax_style: true
+                })
+            } else {
+                this.setState({
+                    div_fax_style: false
+                })
+            }
+        }
+        this._onChangefaxIntelligentRoute = (e) => {
+            let isChecked = e.target.checked
+
+            if (isChecked) {
+                this.setState({
+                    faxIntelligentRouteVal: true
+                })
+            } else {
+                this.setState({
+                    faxIntelligentRouteVal: false
+                })
+            }        
+        }
+        this._onChangeDetectModel = () => {
+            const form = this.props.form
+
+            let val = form.getFieldValue("detect_model")
+
+            if (val === 1) {
+                this.setState({
+                    div_des_channels_style: false
+                })
+            } else {
+                this.setState({
+                    div_des_channels_style: true
+                })
+            }        
+        }
+        this._onChangeChans = (checkedChansList) => {
+            let state = this.state,
+                checkedChansListLen = state.checkedChansList.length,
+                totalChansLen = state.totalChans.length
+
+            this.setState({
+                checkedChansList,
+                indeterminate: !!checkedChansListLen && (checkedChansListLen < totalChansLen),
+                checkAll: checkedChansListLen === totalChansLen
+            })
         }
     }
     componentDidMount() {
@@ -455,190 +638,6 @@ class AnalogTrunkItem extends Component {
                     }
                 }
             }.bind(this)
-        })
-    }
-    _onChangeBusydetect = (e) => {
-        let isChecked = e.target.checked
-
-        if (isChecked) {
-            this.setState({
-                div_busycount_style: true
-            })
-        } else {
-            this.setState({
-                div_busycount_style: false
-            })
-        }
-    }
-    _onChangeCongestiondetect = (e) => {
-        let isChecked = e.target.checked
-
-        if (isChecked) {
-            this.setState({
-                div_congestioncount_style: true
-            })
-        } else {
-            this.setState({
-                div_congestioncount_style: false
-            })
-        }
-    }
-    _onChangeTrunkmode = (e) => {
-        const form = this.props.form 
-
-        let isChecked = form.getFieldValue("trunkmode")
-        if (e) {
-            isChecked = e.target.checked
-        }
-        if (isChecked) {
-            this.setState({
-                trunkmodeVal: isChecked,
-                div_slaOptions_style: true
-            })
-        } else {
-            this.setState({
-                trunkmodeVal: isChecked,
-                div_slaOptions_style: false
-            })
-        }
-    }
-    _onChangePolarityswitch = (e) => {
-        const form = this.props.form 
-
-        let isChecked = form.getFieldValue("polarityswitch")
-        if (e) {
-            isChecked = e.target.checked
-        }
-        if (isChecked) {
-            this.setState({
-                div_polarityonanswerdelay_style: true,
-                polarityswitchVal: true
-            })
-        } else {
-            this.setState({
-                div_polarityonanswerdelay_style: false,
-                polarityswitchVal: false
-            })
-        }
-    }
-    _onChangeEnablecurrentdisconnectthreshold = (e) => {
-        const form = this.props.form 
-
-        let isChecked = form.getFieldValue("enablecurrentdisconnectthreshold")
-        if (e) {
-            isChecked = e.target.checked
-        }
-
-        if (isChecked) {
-            this.setState({
-                div_currentdisconnectthreshold_style: true
-            })
-        } else {
-            this.setState({
-                div_currentdisconnectthreshold_style: false
-            })
-        }
-    }
-    _onChangeCountrytone = (value) => {
-        const form = this.props.form 
-
-        let val = form.getFieldValue("countrytone")
-        if (value) {
-            val = value
-        }
-        let busytone = '',
-            congestiontone = '',
-            freq_tmp = ''
-
-        if (val === 'custom') {
-            this.setState({
-                busyDisabled: false,
-                congestionDisabled: false
-            })
-        } else {
-            let countryTone = global.countryObj[val]
-
-            if (countryTone) {
-                // f1=500[@-11][,f2=440[@-11]],c=500/500[-600/600[-700/700]]
-                freq_tmp = countryTone.busyfreq.split('+')
-
-                for (let i = 0, len = freq_tmp.length; i < len; i++) {
-                    busytone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ','
-                }
-
-                busytone += 'c=' + countryTone.busypattern.replace(/,/g, '/')
-
-                freq_tmp = countryTone.congestionfreq.split('+')
-
-                for (let i = 0, len = freq_tmp.length; i < len; i++) {
-                    congestiontone += 'f' + (i + 1) + '=' + freq_tmp[i] + '@-50' + ','
-                }
-
-                congestiontone += 'c=' + countryTone.congestionpattern.replace(/,/g, '/')
-
-                form.setFieldsValue({
-                    busy: busytone,
-                    congestion: congestiontone
-                })
-            }
-            this.setState({
-                busyDisabled: true,
-                congestionDisabled: true
-            })
-        }
-    }
-    _onClickFaxmode = () => {
-        const form = this.props.form 
-
-        let val = form.getFieldValue("faxmode")
-
-        if (val === 'detect') {
-            this.setState({
-                div_fax_style: true
-            })
-        } else {
-            this.setState({
-                div_fax_style: false
-            })
-        }
-    }
-    _onChangefaxIntelligentRoute = (e) => {
-        let isChecked = e.target.checked
-
-        if (isChecked) {
-            this.setState({
-                faxIntelligentRouteVal: true
-            })
-        } else {
-            this.setState({
-                faxIntelligentRouteVal: false
-            })
-        }        
-    }
-    _onChangeDetectModel = () => {
-        const form = this.props.form
-
-        let val = form.getFieldValue("detect_model")
-
-        if (val === 1) {
-            this.setState({
-                div_des_channels_style: false
-            })
-        } else {
-            this.setState({
-                div_des_channels_style: true
-            })
-        }        
-    }
-    _onChangeChans = (checkedChansList) => {
-        let state = this.state,
-            checkedChansListLen = state.checkedChansList.length,
-            totalChansLen = state.totalChans.length
-
-        this.setState({
-            checkedChansList,
-            indeterminate: !!checkedChansListLen && (checkedChansListLen < totalChansLen),
-            checkAll: checkedChansListLen === totalChansLen
         })
     }
     _pstnDetection = () => {

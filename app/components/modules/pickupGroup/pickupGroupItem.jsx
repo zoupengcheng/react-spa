@@ -208,15 +208,15 @@ class PickupGroupItem extends Component {
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
+        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2168"}, {
+                    0: '2'
                 })}}></span>
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
-                if (!this.state.targetKeys.length) {
+                if (this.state.targetKeys.length < 2) {
                     message.error(errorMessage)
 
                     return
@@ -332,7 +332,7 @@ class PickupGroupItem extends Component {
                                 }],
                                 initialValue: name
                             })(
-                                <Input placeholder={ formatMessage({id: "LANG135"}) } />
+                                <Input placeholder={ formatMessage({id: "LANG135"}) } maxLength='40'/>
                             ) }
                         </FormItem>
                         <FormItem

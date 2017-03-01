@@ -94,5 +94,23 @@ module.exports = {
                 "eventnames": ["ConferenceStatus"]
             }
         }]
+    },
+    activityCall: {
+        "subscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "subscribe", 
+                "eventnames": ["ActiveCallStatus"]
+            }
+        }],
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["ActiveCallStatus"]
+            }
+        }]
     }
 }

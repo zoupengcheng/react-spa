@@ -3,42 +3,25 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Checkbox, InputNumber, Input, message, Popover } from 'antd'
+import { Form, message, Tabs } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import RTP from './rtp'
+import Payload from './payload'
 
 const FormItem = Form.Item
+const TabPane = Tabs.TabPane
 
-class RTP extends Component {
+class RTPSettings extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            settings: {}
+            activeKey: "1"
         }
     }
     componentDidMount() {
-        this._getRTPSettings()
-    }
-    _getRTPSettings = () => {
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getRTPSettings' },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                let response = res.response || {}
-
-                this.setState({
-                    settings: response.rtp_settings || {}
-                })
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
     }
     _handleCancel = () => {
         browserHistory.push('/pbx-settings/rtpSettings')
@@ -47,6 +30,7 @@ class RTP extends Component {
         // e.preventDefault()
 
         const { formatMessage } = this.props.intl
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
@@ -54,17 +38,28 @@ class RTP extends Component {
 
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
-                let action = values
+                let action_rtp = {}
 
-                action.action = 'updateRTPSettings'
-                action.strictrtp = (action.strictrtp ? 'yes' : 'no')
-                action.rtpchecksums = (action.rtpchecksums ? 'yes' : 'no')
-                action.icesupport = (action.icesupport ? 'yes' : 'no')
+                action_rtp.action = 'updateRTPSettings'
+                action_rtp.strictrtp = (values.strictrtp ? 'yes' : 'no')
+                action_rtp.rtpchecksums = (values.rtpchecksums ? 'yes' : 'no')
+                action_rtp.icesupport = (values.icesupport ? 'yes' : 'no')
+
+                action_rtp.rtpstart = values.rtpstart
+                action_rtp.rtpend = values.rtpend
+                action_rtp.stunaddr = values.stunaddr
+                action_rtp.bfcpstart = values.bfcpstart
+                action_rtp.bfcpend = values.bfcpend
+                action_rtp.bfcp_tcp_start = values.bfcp_tcp_start
+                action_rtp.bfcp_tcp_end = values.bfcp_tcp_end
+                action_rtp.turnaddr = values.turnaddr
+                action_rtp.turnusername = values.turnusername
+                action_rtp.turnpassword = values.turnpassword
 
                 $.ajax({
                     url: api.apiHost,
                     method: "post",
-                    data: action,
+                    data: action_rtp,
                     type: 'json',
                     error: function(e) {
                         message.error(e.statusText)
@@ -74,264 +69,90 @@ class RTP extends Component {
 
                         if (bool) {
                             message.destroy()
-                            message.success(formatMessage({ id: "LANG815" }))
+                            message.success(successMessage)
                         }
                     }.bind(this)
                 })
+
+                if (values.ast_format_g726_aal2 !== undefined) {
+                    let action_payload = {}
+                    action_payload.action = 'updatePayloadSettings'
+                    action_payload.ast_format_g726_aal2 = values.ast_format_g726_aal2
+                    action_payload.ast_rtp_dtmf = values.ast_rtp_dtmf
+                    action_payload.option_g726_compatible_g721 = values.option_g726_compatible_g721 ? 'yes' : 'no'
+                    action_payload.ast_format_ilbc = values.ast_format_ilbc
+                    action_payload.ast_format_opus = values.ast_format_opus
+                    action_payload.ast_format_h264 = values.ast_format_h264
+                    action_payload.ast_format_vp8 = values.ast_format_vp8
+                    action_payload.ast_format_main_video_fec = values.ast_format_main_video_fec
+                    action_payload.ast_format_slides_video_fec = values.ast_format_main_video_fec
+                    action_payload.ast_format_audio_fec = values.ast_format_main_video_fec
+                    action_payload.ast_format_fecc = values.ast_format_fecc
+                    action_payload.ast_format_h263_plus = values.h263p_1 + ',' + values.h263p_2
+                    action_payload.ast_format_g726 = values.ast_format_g726
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action_payload,
+                        type: 'json',
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                message.destroy()
+                                message.success(successMessage)
+                            }
+                        }.bind(this)
+                    })
+                }
             }
         })
     }
+    _onChangeTabs = (e) => {
+        this.setState({
+            activeKey: e
+        })
+    }
     render() {
+        const form = this.props.form
         const { formatMessage } = this.props.intl
-        const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
-        const formItemLayout = {
-            labelCol: { span: 3 },
-            wrapperCol: { span: 6 }
-        }
 
-        let settings = this.state.settings || {}
-        let rtpstart = settings.rtpstart
-        let rtpend = settings.rtpend
-        let strictrtp = (settings.strictrtp === 'yes')
-        let rtpchecksums = (settings.rtpchecksums === 'yes')
-        let icesupport = (settings.icesupport === 'yes')
-        let stunaddr = settings.stunaddr
-        let bfcpstart = settings.bfcpstart
-        let bfcpend = settings.bfcpend
-        let bfcp_tcp_start = settings.bfcp_tcp_start
-        let bfcp_tcp_end = settings.bfcp_tcp_end
-        let turnaddr = settings.turnaddr
-        let turnusername = settings.turnusername
-        let turnpassword = settings.turnpassword
+        const title = formatMessage({id: "LANG676"})
 
-        document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG676"})})
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: model_info.model_name,
+                    1: title
+                })
 
         return (
-            <div className="app-content-main">
-                <Title headerTitle={ formatMessage({id: "LANG676"}) } onSubmit={ this._handleSubmit } onCancel={ this._handleCancel } isDisplay='display-block' />
-                <Form>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1618"}) } content={ formatMessage({id: "LANG1619"}) }><span>{ formatMessage({id: "LANG1618"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('rtpstart', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
-                            initialValue: rtpstart
-                        })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1616"}) } content={ formatMessage({id: "LANG1617"}) }><span>{ formatMessage({id: "LANG1616"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('rtpend', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
-                            initialValue: rtpend
-                        })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1620"}) } content={ formatMessage({id: "LANG1621"}) }><span>{ formatMessage({id: "LANG1620"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('strictrtp', {
-                            valuePropName: 'checked',
-                            initialValue: strictrtp
-                        })(
-                            <Checkbox />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1614"}) } content={ formatMessage({id: "LANG1615"}) }><span>{ formatMessage({id: "LANG1614"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('rtpchecksums', {
-                            valuePropName: 'checked',
-                            initialValue: rtpchecksums
-                        })(
-                            <Checkbox />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4394"}) } content={ formatMessage({id: "LANG4436"}) }><span>{ formatMessage({id: "LANG4394"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('icesupport', {
-                            valuePropName: 'checked',
-                            initialValue: icesupport
-                        })(
-                            <Checkbox />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1575"}) } content={ formatMessage({id: "LANG4437"}) }><span>{ formatMessage({id: "LANG1575"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('stunaddr', {
-                            rules: [
-                                { validator: this._checkJBMax }
-                            ],
-                            initialValue: stunaddr
-                        })(
-                            <Input />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4738"}) } content={ formatMessage({id: "LANG4742"}) }><span>{ formatMessage({id: "LANG4738"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('bfcpstart', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
-                            initialValue: bfcpstart
-                        })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4739"}) } content={ formatMessage({id: "LANG4743"}) }><span>{ formatMessage({id: "LANG4739"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('bfcpend', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
-                            initialValue: bfcpend
-                        })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4740"}) } content={ formatMessage({id: "LANG4744"}) }><span>{ formatMessage({id: "LANG4740"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('bfcp_tcp_start', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
-                            initialValue: bfcp_tcp_start
-                        })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4741"}) } content={ formatMessage({id: "LANG4745"}) }><span>{ formatMessage({id: "LANG4741"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('bfcp_tcp_end', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
-                            initialValue: bfcp_tcp_end
-                        })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4406"}) } content={ formatMessage({id: "LANG4438"}) }><span>{ formatMessage({id: "LANG4406"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('turnaddr', {
-                            rules: [
-                                { validator: this._checkJBMax }
-                            ],
-                            initialValue: turnaddr
-                        })(
-                            <Input />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4407"}) } content={ formatMessage({id: "LANG4439"}) }><span>{ formatMessage({id: "LANG4407"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        <input type="text" name="turnusername" className="hidden" />
-                        { getFieldDecorator('turnusername', {
-                            rules: [
-                                { validator: this._checkJBMax }
-                            ],
-                            initialValue: turnusername
-                        })(
-                            <Input />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4408"}) } content={ formatMessage({id: "LANG4440"}) }><span>{ formatMessage({id: "LANG4408"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        <input type="password" name="turnpassword" className="hidden" />
-                        { getFieldDecorator('turnpassword', {
-                            rules: [
-                                { validator: this._checkJBMax }
-                            ],
-                            initialValue: turnpassword
-                        })(
-                            <Input type="password" />
-                        ) }
-                    </FormItem>
+            <div className="app-content-main app-content-extension">
+                <Title
+                    headerTitle={ title }
+                    onCancel={ this._handleCancel }
+                    onSubmit={ this._handleSubmit.bind(this) }
+                    isDisplay='display-block'
+                />
+                <Form className="form-contain-tab">
+                    <Tabs defaultActiveKey={ this.state.activeKey } onChange={ this._onChangeTabs }>
+                        <TabPane tab={ formatMessage({id: "LANG676"}) } key="1">
+                            <RTP
+                                form={ form }
+                            />
+                        </TabPane>
+                        <TabPane tab={ formatMessage({id: "LANG2899"}) } key="2">
+                            <Payload
+                                form={ form }
+                            />
+                        </TabPane>
+                    </Tabs>
                 </Form>
             </div>
         )
     }
 }
 
-export default Form.create()(injectIntl(RTP))
+export default Form.create()(injectIntl(RTPSettings))

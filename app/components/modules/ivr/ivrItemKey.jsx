@@ -727,6 +727,7 @@ class KeySettings extends Component {
         const ivrItemMembers = this.props.ivrItemMembers || {}
         const keypressKey = this.state.keypressKey || {}
         const keypressEvent = this.state.keypressEvent || {}
+        const me = this
 
         const formItemLayout = {
             labelCol: { span: 12 },
@@ -777,7 +778,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_0">
                                 { getFieldDecorator('keypress_event_0', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['0'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['0'] ? keypressEvent['0'] : (this.state.pressEventList['0'].length > 0 ? this.state.pressEventList['0'][0].key : "")
                                 })(
@@ -800,11 +804,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_0">
                                 { getFieldDecorator('keypress_event_ext_0', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['0'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['0'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['0']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -850,7 +861,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_1">
                                 { getFieldDecorator('keypress_event_1', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['1'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['1'] ? keypressEvent['1'] : (this.state.pressEventList['1'].length > 0 ? this.state.pressEventList['1'][0].key : "")
                                 })(
@@ -873,11 +887,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_1">
                                 { getFieldDecorator('keypress_event_ext_1', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['1'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['1'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['1']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -923,7 +944,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_2">
                                 { getFieldDecorator('keypress_event_2', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['2'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['2'] ? keypressEvent['2'] : (this.state.pressEventList['2'].length > 0 ? this.state.pressEventList['2'][0].key : "")
                                 })(
@@ -946,11 +970,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_2">
                                 { getFieldDecorator('keypress_event_ext_2', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['2'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['2'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['2']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -996,7 +1027,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_3">
                                 { getFieldDecorator('keypress_event_3', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['3'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['3'] ? keypressEvent['3'] : (this.state.pressEventList['3'].length > 0 ? this.state.pressEventList['3'][0].key : "")
                                 })(
@@ -1019,11 +1053,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_3">
                                 { getFieldDecorator('keypress_event_ext_3', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['3'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['3'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['3']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1069,7 +1110,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_4">
                                 { getFieldDecorator('keypress_event_4', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['4'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['4'] ? keypressEvent['4'] : (this.state.pressEventList['4'].length > 0 ? this.state.pressEventList['4'][0].key : "")
                                 })(
@@ -1092,11 +1136,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_4">
                                 { getFieldDecorator('keypress_event_ext_4', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['4'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['4'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['4']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1142,7 +1193,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_5">
                                 { getFieldDecorator('keypress_event_5', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['5'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['5'] ? keypressEvent['5'] : (this.state.pressEventList['5'].length > 0 ? this.state.pressEventList['5'][0].key : "")
                                 })(
@@ -1165,11 +1219,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_5">
                                 { getFieldDecorator('keypress_event_ext_5', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['5'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['5'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['5']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1215,7 +1276,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_6">
                                 { getFieldDecorator('keypress_event_6', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['6'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['6'] ? keypressEvent['6'] : (this.state.pressEventList['6'].length > 0 ? this.state.pressEventList['6'][0].key : "")
                                 })(
@@ -1238,11 +1302,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_6">
                                 { getFieldDecorator('keypress_event_ext_6', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['6'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['6'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['6']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1288,7 +1359,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_7">
                                 { getFieldDecorator('keypress_event_7', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['7'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['7'] ? keypressEvent['7'] : (this.state.pressEventList['7'].length > 0 ? this.state.pressEventList['7'][0].key : "")
                                 })(
@@ -1311,11 +1385,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_7">
                                 { getFieldDecorator('keypress_event_ext_7', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['7'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['7'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['7']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1361,7 +1442,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_8">
                                 { getFieldDecorator('keypress_event_8', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['8'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['8'] ? keypressEvent['8'] : (this.state.pressEventList['8'].length > 0 ? this.state.pressEventList['8'][0].key : "")
                                 })(
@@ -1384,11 +1468,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_8">
                                 { getFieldDecorator('keypress_event_ext_8', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['8'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['8'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['8']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1434,7 +1525,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_9">
                                 { getFieldDecorator('keypress_event_9', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['9'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['9'] ? keypressEvent['9'] : (this.state.pressEventList['9'].length > 0 ? this.state.pressEventList['9'][0].key : "")
                                 })(
@@ -1457,11 +1551,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_9">
                                 { getFieldDecorator('keypress_event_ext_9', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['9'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['9'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['9']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1507,7 +1608,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_10">
                                 { getFieldDecorator('keypress_event_10', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['*'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['*'] ? keypressEvent['*'] : (this.state.pressEventList['*'].length > 0 ? this.state.pressEventList['*'][0].key : "")
                                 })(
@@ -1530,11 +1634,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_10">
                                 { getFieldDecorator('keypress_event_ext_10', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['*'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['*'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['*']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1580,7 +1691,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_t">
                                 { getFieldDecorator('keypress_event_t', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['t'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['t'] ? keypressEvent['t'] : (this.state.pressEventList['t'].length > 0 ? this.state.pressEventList['t'][0].key : "")
                                 })(
@@ -1603,11 +1717,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_t">
                                 { getFieldDecorator('keypress_event_ext_t', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['t'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['t'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['t']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1653,7 +1774,10 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_i">
                                 { getFieldDecorator('keypress_event_i', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.memberselectShow['i'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     width: 100,
                                     initialValue: keypressEvent['i'] ? keypressEvent['i'] : (this.state.pressEventList['i'].length > 0 ? this.state.pressEventList['i'][0].key : "")
                                 })(
@@ -1676,11 +1800,18 @@ class KeySettings extends Component {
                             <FormItem
                                 ref="div_keypress_event_ext_i">
                                 { getFieldDecorator('keypress_event_ext_i', {
-                                    rules: [],
+                                    rules: [{
+                                        required: this.state.external_numberShow['i'],
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            me.state.external_numberShow['i'] ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                        }
+                                    }],
                                     width: 100,
                                     initialValue: this.state.external_number['i']
                                 })(
-                                    <Input maxLength='127' />
+                                    <Input maxLength='32' />
                                 ) }
                             </FormItem>
                         </Col>

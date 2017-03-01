@@ -315,7 +315,7 @@ class Security extends Component {
             for (let i = 0; i < en_list.length; i++) {
                 if (en_list[i] === 'WAN' || en_list[i] === 'LAN1') {
                     ping_enable_wan = true
-                } else if (en_list[i] === 'LAN' || en_list[i] === 'LAN2') {
+                } else if (en_list[i] === 'LAN' || en_list[i] === 'LAN2' || en_list[i] === 'lan') {
                     ping_enable_lan = true
                 }
             }
@@ -325,7 +325,7 @@ class Security extends Component {
             for (let i = 0; i < en_list.length; i++) {
                 if (en_list[i] === 'WAN' || en_list[i] === 'LAN1') {
                     ping_of_death_wan = true
-                } else if (en_list[i] === 'LAN' || en_list[i] === 'LAN2') {
+                } else if (en_list[i] === 'LAN' || en_list[i] === 'LAN2' || en_list[i] === 'lan') {
                     ping_of_death_lan = true
                 }
             }

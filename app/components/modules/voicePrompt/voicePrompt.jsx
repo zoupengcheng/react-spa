@@ -62,6 +62,11 @@ class VoicePrompt extends Component {
             })   
         }
     }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRowKeys: []
+        })
+    }
     _recordNew = (record) => {
         this._showModal("recordNew")
     }
@@ -292,7 +297,7 @@ class VoicePrompt extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>)
-                    this.state._getVoicePrompt()
+                    this._getVoicePrompt()
                     // initUpload()
                 }
             }.bind(this)
@@ -326,6 +331,7 @@ class VoicePrompt extends Component {
                     message.success(successMessage)
 
                     this._getVoicePrompt()
+                    this._clearSelectRows()
                 }
             }.bind(this),
             error: function(e) {
@@ -381,6 +387,7 @@ class VoicePrompt extends Component {
                     message.success(successMessage)
 
                     this._getVoicePrompt()
+                    this._clearSelectRows()
                 }
             }.bind(this),
             error: function(e) {

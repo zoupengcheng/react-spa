@@ -108,6 +108,8 @@ export const handleRequest = (msg, store) => {
             }
         } else if (msg.eventname === "ConferenceStatus") {
             store.dispatch({type: 'GET_CONFERENCESTATUS', conferenceStatus: eventBody})
+        } else if (msg.eventname === "ActiveCallStatus") {
+            store.dispatch({type: 'GET_BRIDGECHANNEL', activeCallStatus: eventBody})
         }
     }
 }

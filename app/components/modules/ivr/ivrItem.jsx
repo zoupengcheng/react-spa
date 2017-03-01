@@ -514,11 +514,41 @@ class IvrItem extends Component {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
-        this.props.form.validateFields({ force: true }, (err, values) => {
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
             }
-
+            if (err && (err.hasOwnProperty('ivr_name') ||
+                err.hasOwnProperty('extension') ||
+                err.hasOwnProperty('keypress_event_ext_0') ||
+                err.hasOwnProperty('keypress_event_ext_1') ||
+                err.hasOwnProperty('keypress_event_ext_2') ||
+                err.hasOwnProperty('keypress_event_ext_3') ||
+                err.hasOwnProperty('keypress_event_ext_4') ||
+                err.hasOwnProperty('keypress_event_ext_5') ||
+                err.hasOwnProperty('keypress_event_ext_6') ||
+                err.hasOwnProperty('keypress_event_ext_7') ||
+                err.hasOwnProperty('keypress_event_ext_8') ||
+                err.hasOwnProperty('keypress_event_ext_9') ||
+                err.hasOwnProperty('keypress_event_ext_10') ||
+                err.hasOwnProperty('keypress_event_ext_t') ||
+                err.hasOwnProperty('keypress_event_ext_i') ||
+                err.hasOwnProperty('keypress_event_0') ||
+                err.hasOwnProperty('keypress_event_1') ||
+                err.hasOwnProperty('keypress_event_2') ||
+                err.hasOwnProperty('keypress_event_3') ||
+                err.hasOwnProperty('keypress_event_4') ||
+                err.hasOwnProperty('keypress_event_5') ||
+                err.hasOwnProperty('keypress_event_6') ||
+                err.hasOwnProperty('keypress_event_7') ||
+                err.hasOwnProperty('keypress_event_8') ||
+                err.hasOwnProperty('keypress_event_9') ||
+                err.hasOwnProperty('keypress_event_10') ||
+                err.hasOwnProperty('keypress_event_t') ||
+                err.hasOwnProperty('keypress_event_i'))
+                ) {
+                return
+            }
             let action = values
             if (action.keypress_0 ||
                 action.keypress_1 ||
@@ -874,6 +904,7 @@ class IvrItem extends Component {
                                 form={ form }
                                 currentEditId={ this.state.currentEditId }
                                 settings={ this.state.settings }
+                                accountList={ this.state.accountList }
                                 fileList={ this.state.fileList }
                                 ivrItem={ this.state.ivrItem }
                                 numberList={ this.state.numberList }

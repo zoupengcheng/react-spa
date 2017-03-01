@@ -232,11 +232,13 @@ class BasicSettings extends Component {
     _onChangeAlertInfo = (e) => {
         if (e === "custom") {
             this.setState({
-                alertinfoShow: true
+                alertinfoShow: true,
+                select_alertinfo: e
             })
         } else {
             this.setState({
-                alertinfoShow: false
+                alertinfoShow: false,
+                select_alertinfo: e
             })
         }
     }
@@ -353,6 +355,10 @@ class BasicSettings extends Component {
                                 }
                             }, {
                                 validator: (data, value, callback) => {
+                                    Validator.maxlength(data, value, callback, formatMessage, 64)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
                                     Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
                                 }
                             }, {
@@ -360,7 +366,7 @@ class BasicSettings extends Component {
                             }],
                             initialValue: ivrItem.ivr_name
                         })(
-                            <Input placeholder={ formatMessage({id: "LANG135"}) } />
+                            <Input placeholder={ formatMessage({id: "LANG135"}) } maxLength='32' />
                         ) }
                     </FormItem>
                     <FormItem
@@ -382,6 +388,10 @@ class BasicSettings extends Component {
                                 }
                             }, {
                                 validator: (data, value, callback) => {
+                                    Validator.maxlength(data, value, callback, formatMessage, 64)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
                                     Validator.numeric_pound_star(data, value, callback, formatMessage)
                                 }
                             }, {
@@ -390,7 +400,7 @@ class BasicSettings extends Component {
                             width: 100,
                             initialValue: ivrItem.extension ? ivrItem.extension : newIvrNum
                         })(
-                            <Input maxLength='127' />
+                            <Input maxLength='32' />
                         ) }
                     </FormItem>
                     <FormItem
@@ -484,7 +494,7 @@ class BasicSettings extends Component {
                     >
                         { getFieldDecorator('ivr_blackwhite_list', {
                             rules: [{
-                                required: true,
+                                required: this.state.ivrblackwhiteShow,
                                 message: formatMessage({id: "LANG2150"})
                             }],
                             initialValue: this.state.targetKeys
@@ -589,7 +599,7 @@ class BasicSettings extends Component {
                             width: 100,
                             initialValue: this.state.custom_alertinfo
                         })(
-                            <Input maxLength="128" />
+                            <Input maxLength="64" />
                         ) }
                     </FormItem>
                     <FormItem

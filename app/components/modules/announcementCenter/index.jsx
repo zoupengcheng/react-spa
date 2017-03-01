@@ -96,7 +96,7 @@ class Announcement extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getAnnouncementCenter()
                 }
             }.bind(this),
             error: function(e) {
@@ -130,7 +130,7 @@ class Announcement extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getAnnouncementGroup()
                 }
             }.bind(this),
             error: function(e) {

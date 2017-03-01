@@ -242,6 +242,35 @@ class Extension extends Component {
                 </Popconfirm>
             </div>
     }
+    _createPresenceStatus = (text, record, index) => {
+        const { formatMessage } = this.props.intl
+
+        let result,
+            type = record.account_type,
+            presenceStatus = record.presence_status
+
+        if (type !== 'SIP') {
+            result = '--'
+        } else {
+            if (presenceStatus === 'not_set') {
+                result = formatMessage({ id: "LANG257" })
+            } else if (presenceStatus === 'unavailable') {
+                result = formatMessage({ id: "LANG113" })
+            } else if (presenceStatus === 'available') {
+                result = formatMessage({ id: "LANG116" })
+            } else if (presenceStatus === 'away') {
+                result = formatMessage({ id: "LANG5453" })
+            } else if (presenceStatus === 'chat') {
+                result = formatMessage({ id: "LANG4287" })
+            } else if (presenceStatus === 'dnd') {
+                result = formatMessage({ id: "LANG4768" })
+            } else if (presenceStatus === 'userdef1') {
+                result = formatMessage({ id: "LANG5451" })
+            }
+        }
+
+        return result
+    }
     _createStatus = (text, record, index) => {
         const { formatMessage } = this.props.intl
 
@@ -356,7 +385,7 @@ class Extension extends Component {
             let data = {
                     ...params,
                     action: 'listAccount',
-                    options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user"
+                    options: "extension,account_type,fullname,status,addr,out_of_service,email_to_user,presence_status"
                 }
 
             if (ext_num) {
@@ -673,40 +702,36 @@ class Extension extends Component {
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
-        const columns = [
-            {
+        const columns = [{
                 key: 'status',
                 dataIndex: 'status', 
                 title: formatMessage({id: "LANG81"}),
-                sorter: (a, b) => a.status.length - b.status.length,
                 render: (text, record, index) => (
                     this._createStatus(text, record, index)
                 )
             }, {
+                key: 'presence_status',
+                dataIndex: 'presence_status', 
+                title: formatMessage({id: "LANG5450"}),
+                render: (text, record, index) => (
+                    this._createPresenceStatus(text, record, index)
+                )
+            }, {
                 key: 'extension',
                 dataIndex: 'extension',
-                title: formatMessage({id: "LANG85"}),
-                sorter: (a, b) => a.extension - b.extension
+                title: formatMessage({id: "LANG85"})
             }, {
                 key: 'fullname',
                 dataIndex: 'fullname',
-                title: formatMessage({id: "LANG1065"}),
-                sorter: (a, b) => {
-                    const aname = a.fullname ? a.fullname : ''
-                    const bname = b.fullname ? b.fullname : ''
-
-                    return aname.length - bname.length
-                }
+                title: formatMessage({id: "LANG1065"})
             }, {
                 key: 'account_type',
                 dataIndex: 'account_type',
-                title: formatMessage({id: "LANG623"}),
-                sorter: (a, b) => a.account_type.length - b.account_type.length
+                title: formatMessage({id: "LANG623"})
             }, {
                 key: 'addr',
                 dataIndex: 'addr',
                 title: formatMessage({id: "LANG624"}),
-                sorter: (a, b) => a.addr.length - b.addr.length,
                 render: (text, record, index) => (
                     this._createAddr(text, record, index)
                 )
@@ -714,7 +739,6 @@ class Extension extends Component {
                 key: 'email_to_user',
                 dataIndex: 'email_to_user',
                 title: formatMessage({id: "LANG4152"}),
-                sorter: (a, b) => a.email_to_user.length - b.email_to_user.length,
                 render: (text, record, index) => (
                     this._createEmailStatus(text, record, index)
                 )
@@ -725,8 +749,7 @@ class Extension extends Component {
                 render: (text, record, index) => (
                     this._createOption(text, record, index)
                 ) 
-            }
-        ]
+            }]
         
         const pagination = {
                 showSizeChanger: true,

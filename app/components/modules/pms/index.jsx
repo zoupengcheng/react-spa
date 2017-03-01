@@ -20,14 +20,6 @@ class PmsSettings extends Component {
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
             isDisplay: "display-block",
-            basicSettings: {
-                pms_protocol: "",
-                wakeup_prompt: "",
-                pms_addr: "",
-                ucm_port: "",
-                username: "",
-                password: ""
-            },
             fileList: [{
                 val: "wakeup-call",
                 text: "wakeup-call"
@@ -35,7 +27,6 @@ class PmsSettings extends Component {
         }
     }
     componentDidMount() {
-        this._getBasicSettings()
         this._getFileList()
     }
     componentWillUnmount() {
@@ -67,31 +58,6 @@ class PmsSettings extends Component {
                 isDisplay: "hidden"
             })
         }
-    }
-    _getBasicSettings = () => {
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: { action: 'getPMSSettings' },
-            type: 'json',
-            error: function(e) {
-                message.error(e.statusText)
-            },
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    let res = data.response,
-                        basicSettings = res.pms_settings
-                        if (!basicSettings.pms_protocol) {
-                            basicSettings.pms_protocol = 'disable'
-                        }
-                    this.setState({
-                        basicSettings: basicSettings
-                    })
-                }
-            }.bind(this)
-        })        
     }
     _getFileList = () => {
         const __this = this
@@ -134,53 +100,58 @@ class PmsSettings extends Component {
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
-        let action = {}
 
-        let basicSettings = this.state.basicSettings
-
-        let basicSettingsAction = {}
-        basicSettingsAction["action"] = "updatePMSSettings"
-        const pms_protocol = _.isObject(basicSettings.pms_protocol) ? basicSettings.pms_protocol.value : basicSettings.pms_protocol
-        if (pms_protocol === 'disable') {
-            basicSettingsAction["pms_enable"] = 0
-            basicSettingsAction["pms_protocol"] = null
-        } else if (pms_protocol === 'mitel') {
-            basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
-            basicSettingsAction["pms_protocol"] = pms_protocol
-            basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
-            basicSettingsAction["pms_enable"] = 1
-        } else {
-            basicSettingsAction["username"] = _.isObject(basicSettings.username) ? basicSettings.username.value : basicSettings.username
-            basicSettingsAction["password"] = _.isObject(basicSettings.password) ? basicSettings.password.value : basicSettings.password
-            basicSettingsAction["pms_addr"] = _.isObject(basicSettings.pms_addr) ? basicSettings.pms_addr.value : basicSettings.pms_addr
-            basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
-            basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
-            basicSettingsAction["pms_protocol"] = pms_protocol
-            basicSettingsAction["pms_enable"] = 1
-
-            for (let key in basicSettingsAction) {
-                if (basicSettingsAction[key] === null || basicSettingsAction[key] === "") {
-                    return
-                }
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
+                console.log('Received values of form: ', values)
             }
-        }   
+            let action = {}
+            let basicSettings = values
 
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: basicSettingsAction,
-            type: 'json',
-            error: function(e) {
-                message.error(e.statusText)
-            },
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+            let basicSettingsAction = {}
+            basicSettingsAction["action"] = "updatePMSSettings"
+            const pms_protocol = _.isObject(basicSettings.pms_protocol) ? basicSettings.pms_protocol.value : basicSettings.pms_protocol
+            if (pms_protocol === 'disable') {
+                basicSettingsAction["pms_enable"] = 0
+                basicSettingsAction["pms_protocol"] = null
+            } else if (pms_protocol === 'mitel') {
+                basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
+                basicSettingsAction["pms_protocol"] = pms_protocol
+                basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
+                basicSettingsAction["pms_enable"] = 1
+            } else {
+                basicSettingsAction["username"] = _.isObject(basicSettings.username) ? basicSettings.username.value : basicSettings.username
+                basicSettingsAction["password"] = _.isObject(basicSettings.password) ? basicSettings.password.value : basicSettings.password
+                basicSettingsAction["pms_addr"] = _.isObject(basicSettings.pms_addr) ? basicSettings.pms_addr.value : basicSettings.pms_addr
+                basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
+                basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
+                basicSettingsAction["pms_protocol"] = pms_protocol
+                basicSettingsAction["pms_enable"] = 1
 
-                if (bool) {
-                    message.destroy()
-                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                for (let key in basicSettingsAction) {
+                    if (basicSettingsAction[key] === null || basicSettingsAction[key] === "") {
+                        return
+                    }
                 }
-            }.bind(this)
+            }   
+
+            $.ajax({
+                url: api.apiHost,
+                method: "post",
+                data: basicSettingsAction,
+                type: 'json',
+                error: function(e) {
+                    message.error(e.statusText)
+                },
+                success: function(data) {
+                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        message.destroy()
+                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                    }
+                }.bind(this)
+            })
         })
     }
     render() {
@@ -205,8 +176,8 @@ class PmsSettings extends Component {
                 <Tabs defaultActiveKey={ this.state.activeKey } onChange={this._onChange}>
                     <TabPane tab={formatMessage({id: "LANG2217"})} key="1">
                         <BasicSetting 
-                            dataSource={this.state.basicSettings}
                             fileList={this.state.fileList}
+                            form={ this.props.form }
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG4857"})} key="2">
@@ -227,4 +198,4 @@ class PmsSettings extends Component {
 PmsSettings.propTypes = {
 }
 
-export default injectIntl(PmsSettings)
+export default Form.create()(injectIntl(PmsSettings))

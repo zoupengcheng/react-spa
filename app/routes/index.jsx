@@ -141,6 +141,10 @@ import CdrApi from '../components/modules/cdrApi'
 
 // Value-added Features
 import ZeroConfig from '../components/modules/zeroConfig'
+import GlobalTemplates from '../components/modules/zeroConfig/globalTemplates'
+import GlobalTemplateItem from '../components/modules/zeroConfig/globalTemplateItem'
+import ModelTemplates from '../components/modules/zeroConfig/modelTemplates'
+import ModelTemplateItem from '../components/modules/zeroConfig/modelTemplateItem'
 import AMI from '../components/modules/ami'
 import AMIItem from '../components/modules/ami/amiItem'
 import AMISetting from '../components/modules/ami/amiSetting'
@@ -494,7 +498,13 @@ const routes = (state, currentLocaleData) => {
                 {/* Value-added Features */}
                 <Route path="value-added-features" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG4066"] }>
                     <IndexRoute component={ ZeroConfig } />
-                    <Route path="zeroConfig" onEnter={ requireAuth } component={ ZeroConfig } breadcrumbName={ currentLocaleData["LANG16"] } />
+                    <Route path="zeroConfig" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG16"] } >
+                        <IndexRoute component={ ZeroConfig } />
+                        <Route path="createGlobalTemplate" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
+                        <Route path="editGlobalTemplate/:mode/:id" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                        <Route path="createModelTemplate" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
+                        <Route path="editModelTemplate/:mode/:id" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                    </Route>
                     <Route path="ami" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3525"] } >
                     <IndexRoute component={ AMI } />
                         <Route path="add" onEnter={ requireAuth } component={ AMIItem } breadcrumbName={ currentLocaleData["LANG769"] } />
