@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Icon, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, Icon, message, Row, Select, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -22,6 +22,7 @@ class Feature extends Component {
         const strategy_ipacl = this.props.settings.strategy_ipacl
         const presence_status = this.props.settings.presence_status
         const dnd = this.props.settings.dnd === 'yes' ? true : false
+        const presence_dst_type = this.props.settings.presence_dst_type
         const bypass_outrt_auth = this.props.settings.bypass_outrt_auth
         const callbarging_monitor = this.props.settings.callbarging_monitor
         const enable_cc = this.props.settings.enable_cc === 'yes' ? true : false
@@ -32,19 +33,84 @@ class Feature extends Component {
 
         this.state = {
             dnd: dnd,
+            accountList: [],
             cc_mode: cc_mode,
             enable_cc: enable_cc,
             en_hotline: en_hotline,
             en_ringboth: en_ringboth,
             out_limitime: out_limitime,
             bypass_outrt_auth: bypass_outrt_auth,
+            mohNameList: ['default', 'ringbacktone_default'],
             strategy_ipacl: strategy_ipacl ? strategy_ipacl + '' : '0',
             presence_status: presence_status ? presence_status : 'not_set',
+            presence_dst_type: presence_dst_type ? presence_dst_type : '0',
             targetKeysCallbarging: callbarging_monitor ? callbarging_monitor.split(',') : [],
             targetKeysSeamless: seamless_transfer_members ? seamless_transfer_members.split(',') : []
         }
     }
     componentWillMount() {
+        const { formatMessage } = this.props.intl
+        const disabled = formatMessage({id: "LANG273"})
+
+        $.ajax({
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getAccountList'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    let extension = response.extension || []
+
+                    extension = extension.map(function(item) {
+                        return {
+                                key: item.extension,
+                                value: item.extension,
+                                out_of_service: item.out_of_service,
+                                // disabled: (item.out_of_service === 'yes'),
+                                label: (item.extension +
+                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                            }
+                    })
+
+                    this.setState({
+                        accountList: extension
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getMohNameList'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    let mohNameList = response.moh_name || []
+
+                    this.setState({
+                        mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     componentDidMount() {
     }
@@ -76,11 +142,11 @@ class Feature extends Component {
         const currentEditId = this.props.currentEditId
 
         if (currentEditId) {
-            return _.filter(this.props.accountList, function(item) {
+            return _.filter(this.state.accountList, function(item) {
                     return item.key !== currentEditId
                 })
         } else {
-            return this.props.accountList
+            return this.state.accountList
         }
     }
     _filterTransferOption = (inputValue, option) => {
@@ -141,6 +207,11 @@ class Feature extends Component {
             presence_status: value
         })
     }
+    _onChangePresenceDesType = (value) => {
+        this.setState({
+            presence_dst_type: value
+        })
+    }
     _onChangeCCMode = (value) => {
         this.setState({
             cc_mode: value
@@ -191,13 +262,13 @@ class Feature extends Component {
     _renderItem = (item) => {
         const customLabel = (
                 <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                    { item.title }
+                    { item.label }
                 </span>
             )
 
         return {
                 label: customLabel,  // for displayed item
-                value: item.title   // for title and filter matching
+                value: item.value   // for title and filter matching
             }
     }
     _removeWhiteList = (k) => {
@@ -615,7 +686,7 @@ class Feature extends Component {
                                 { getFieldDecorator('cc_max_agents', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -625,7 +696,7 @@ class Feature extends Component {
                                             ? 'display-block'
                                             : 'hidden'
                                 })(
-                                    <InputNumber min={ 1 } />
+                                    <Input min={ 1 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -649,7 +720,7 @@ class Feature extends Component {
                                 { getFieldDecorator('cc_max_monitors', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -659,7 +730,7 @@ class Feature extends Component {
                                             ? 'display-block'
                                             : 'hidden'
                                 })(
-                                    <InputNumber min={ 1 } />
+                                    <Input min={ 1 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -854,12 +925,7 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('presence_status', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: this.state.presence_status,
                                     className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
@@ -868,8 +934,8 @@ class Feature extends Component {
                                         <Option value='unavailable'>{ formatMessage({id: "LANG113"}) }</Option>
                                         <Option value='available'>{ formatMessage({id: "LANG116"}) }</Option>
                                         <Option value='away'>{ formatMessage({id: "LANG5453"}) }</Option>
-                                        <Option value='chat'>{ formatMessage({id: "LANG4287"}) }</Option>
-                                        <Option value='dnd'>{ formatMessage({id: "LANG4768"}) } }</Option>
+                                        <Option value='chat'>{ formatMessage({id: "LANG5465"}) }</Option>
+                                        <Option value='dnd'>{ formatMessage({id: "LANG4768"}) }</Option>
                                         <Option value='userdef1'>{ formatMessage({id: "LANG5451"}) }</Option>
                                     </Select>
                                 ) }
@@ -905,7 +971,7 @@ class Feature extends Component {
                                             ? 'display-block'
                                             : 'hidden'
                                 })(
-                                    <Input disabled={ !this.state.en_hotline } />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -914,26 +980,89 @@ class Feature extends Component {
                                 { ...formItemLayout }
                                 label={(
                                     <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4188" /> }>
-                                            <span>{ formatMessage({id: "LANG4185"}) }</span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5454" /> }>
+                                            <span>{ formatMessage({id: "LANG5454"}) }</span>
                                         </Tooltip>
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('hotline_type', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: settings.hotline_type ? settings.hotline_type : '1',
-                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
+                                { getFieldDecorator('presence_dst_type', {
+                                    rules: [],
+                                    initialValue: this.state.presence_dst_type,
+                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
-                                    <Select disabled={ !this.state.en_hotline }>
-                                        <Option value='1'>{ formatMessage({id: "LANG4186"}) }</Option>
-                                        <Option value='2'>{ formatMessage({id: "LANG4187"}) }</Option>
+                                    <Select onChange={ this._onChangePresenceDesType }>
+                                        <Option value='0'>{ formatMessage({id: "LANG133"}) }</Option>
+                                        <Option value='1'>{ formatMessage({id: "LANG85"}) }</Option>
+                                        <Option value='2'>{ formatMessage({id: "LANG3458"}) }</Option>
+                                        <Option value='3'>{ formatMessage({id: "LANG20"}) }</Option>
                                     </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col
+                            span={ 12 }
+                            className={ (extension_type === 'sip' && (this.state.presence_dst_type === '1' || this.state.presence_dst_type === '3'))
+                                            ? 'display-block'
+                                            : 'hidden' }
+                        >
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5456" /> }>
+                                            <span>{ formatMessage({id: "LANG1535"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('presence_dst_account_voicemail', {
+                                    rules: [],
+                                    initialValue: settings.presence_dst_account
+                                })(
+                                    <Select>
+                                        {
+                                            this.state.accountList.map(function(obj) {
+                                                return <Option
+                                                            key={ obj.key }
+                                                            value={ obj.value }
+                                                            className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
+                                                            { obj.label }
+                                                        </Option>
+                                            })
+                                        }
+                                    </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col
+                            span={ 12 }
+                            className={ (extension_type === 'sip' && this.state.presence_dst_type === '2')
+                                            ? 'display-block'
+                                            : 'hidden' }
+                        >
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5456" /> }>
+                                            <span>{ formatMessage({id: "LANG1535"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('presence_dst_external_number', {
+                                    rules: [
+                                        (extension_type === 'sip' && this.state.presence_dst_type === '2')
+                                            ? {
+                                                    required: true,
+                                                    message: formatMessage({id: "LANG2150"})
+                                                }
+                                            : {}
+                                    ],
+                                    initialValue: settings.presence_dst_account
+                                })(
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1072,14 +1201,10 @@ class Feature extends Component {
                                 )}
                             >
                                 { getFieldDecorator('ring_timeout', {
-                                    rules: [
-                                        {
-                                            type: 'integer'
-                                        }
-                                    ],
+                                    rules: [],
                                     initialValue: settings.ring_timeout
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1296,7 +1421,7 @@ class Feature extends Component {
                                 })(
                                     <Select>
                                         {
-                                            this.props.mohNameList.map(function(value) {
+                                            this.state.mohNameList.map(function(value) {
                                                 return <Option
                                                             key={ value }
                                                             value={ value }

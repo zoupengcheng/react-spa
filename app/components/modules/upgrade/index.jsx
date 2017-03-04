@@ -6,7 +6,7 @@ import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Input, message, Popover, Select, Upload, Icon, Spin, Modal } from 'antd'
+import { Form, Input, Button, Row, Col, message, Popover, Select, Upload, Icon, Spin, Modal } from 'antd'
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
@@ -258,7 +258,7 @@ class Upgrade extends Component {
                     )}>
                     { getFieldDecorator('firmware-server-path', {
                         rules: [
-                            { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                             { validator: this._checkJBLen }
                         ],
                         initialValue: path
@@ -275,7 +275,7 @@ class Upgrade extends Component {
                     )}>
                     { getFieldDecorator('firmware-file-prefix', {
                         rules: [
-                            { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                             { validator: this._checkJBMax }
                         ],
                         initialValue: prefix
@@ -292,7 +292,7 @@ class Upgrade extends Component {
                     )}>
                     { getFieldDecorator('firmware-file-suffix', {
                         rules: [
-                            { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                             { validator: this._checkJBMax }
                         ],
                         initialValue: suffix
@@ -309,7 +309,7 @@ class Upgrade extends Component {
                     )}>
                     { getFieldDecorator('username', {
                         rules: [
-                            { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                             { validator: this._checkJBMax }
                         ],
                         initialValue: username
@@ -326,7 +326,7 @@ class Upgrade extends Component {
                     )}>
                     { getFieldDecorator('password', {
                         rules: [
-                            { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                             { validator: this._checkJBMax }
                         ],
                         initialValue: password

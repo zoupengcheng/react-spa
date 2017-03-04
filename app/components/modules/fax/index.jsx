@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Tooltip, Button, message, Modal, Popconfirm, Popover, Table, Tag, Form, Row, Col, Input } from 'antd'
+import { Tooltip, Button, message, Modal, Popconfirm, Popover, Table, Tag, Form, Input, Row, Col} from 'antd'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -485,7 +485,9 @@ class Fax extends Component {
                 onOk() {
                     __this._deleteAllSelectdFileOK()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -542,7 +544,9 @@ class Fax extends Component {
                 onOk() {
                     __this._deleteAllFileOK()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -708,9 +712,8 @@ class Fax extends Component {
                         </Button>
                     </div>
                     <div>
-                        <p><span>
-                                { formatMessage({id: "LANG1258" })}
-                            </span>
+                        <p>
+                            <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG1258"})}} ></span>
                         </p>
                     </div>
                     <Table

@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip, Modal } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -271,7 +271,7 @@ class BasicSettings extends Component {
         console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
     _gotoPromptOk = () => {
-        browserHistory.push('/pbx-settings/voicePrompt')
+        browserHistory.push('/pbx-settings/voicePrompt/2')
     }
     _gotoPrompt = () => {
         const { formatMessage } = this.props.intl
@@ -282,7 +282,9 @@ class BasicSettings extends Component {
             onOk() {
                 __this._gotoPromptOk()
             },
-            onCancel() {}
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
         })
     }
     _renderItem = (item) => {
@@ -392,7 +394,7 @@ class BasicSettings extends Component {
                                 }
                             }, {
                                 validator: (data, value, callback) => {
-                                    Validator.numeric_pound_star(data, value, callback, formatMessage)
+                                    Validator.digits(data, value, callback, formatMessage)
                                 }
                             }, {
                                 validator: this._checkExtension
@@ -658,7 +660,7 @@ class BasicSettings extends Component {
                             width: 10,
                             initialValue: (ivrItem.digit_timeout ? ivrItem.digit_timeout : 3)
                         })(
-                            <InputNumber min={1} max={60} />
+                            <Input min={1} max={60} />
                         ) }
                     </FormItem>
                     <FormItem
@@ -678,7 +680,7 @@ class BasicSettings extends Component {
                             width: 10,
                             initialValue: (ivrItem.response_timeout ? ivrItem.response_timeout : 10)
                         })(
-                            <InputNumber min={1} max={180} />
+                            <Input min={1} max={180} />
                         ) }
                     </FormItem>
                     <FormItem

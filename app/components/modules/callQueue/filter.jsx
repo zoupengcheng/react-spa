@@ -3,7 +3,7 @@
 import moment from 'moment'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Button, Col, DatePicker, Form, message, Popover, Row, Tooltip, Select, Transfer } from 'antd'
+import { Button, Col, DatePicker, Form, Input, message, Popover, Row, Tooltip, Select, Transfer } from 'antd'
 
 const FormItem = Form.Item
 const dateFormat = 'YYYY-MM-DD'

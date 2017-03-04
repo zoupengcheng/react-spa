@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Form, InputNumber, message, Tooltip } from 'antd'
+import { Form, Input, message, Tooltip } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -115,7 +115,7 @@ class CalendarSettings extends Component {
                         { getFieldDecorator('refresh_time', {
                             initialValue: googlecalendar.refresh_time
                         })(
-                            <InputNumber />
+                            <Input />
                         ) }
                     </FormItem>
                 </Form>

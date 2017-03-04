@@ -15,11 +15,15 @@ class SpeedDial extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            ivr: {},
+            disa: {},
+            directory: {},
             speedDialList: []
         }
     }
     componentDidMount() {
         this._getSpeedDialList()
+        this._getInitData()
     }
     _add = () => {
         browserHistory.push('/call-features/speedDial/add')
@@ -39,7 +43,7 @@ class SpeedDial extends Component {
             method: 'post',
             data: {
                 "action": "deleteSpeedDial",
-                "speed_dial": record.speed_dial
+                "speed_dial": record.extension
             },
             type: 'json',
             async: true,
@@ -61,6 +65,54 @@ class SpeedDial extends Component {
     _edit = (record) => {
         browserHistory.push('/call-features/speedDial/edit/' + record.extension)
     }
+    _transList2Obj = (res, options) => {
+        var val = options.val,
+            text = options.text,
+            arr = [],
+            obj = {},
+            key = ''
+
+        for (var i = 0; i < res.length; i++) {
+            key = res[i][val]
+            obj[key] = res[i][text]
+        }
+
+        return obj
+    }
+   _getInitData = () => {
+        const { formatMessage } = this.props.intl
+        const account = this.props.params.id
+
+        let keyIVRObj = this._transList2Obj(
+            UCMGUI.isExist.getList("getIVRList"),
+            {
+                val: "ivr_id",
+                text: "ivr_name"
+            }
+        )
+
+        let keyDisaObj = this._transList2Obj(
+            UCMGUI.isExist.getList("getDISAList"),
+            {
+                val: "disa_id",
+                text: "display_name"
+            }
+        )
+
+        let keyDirectoryObj = this._transList2Obj(
+            UCMGUI.isExist.getList("getDirectoryList"),
+            {
+                val: "extension",
+                text: "name"
+            }
+        )
+        this.setState({
+            ivr: keyIVRObj,
+            disa: keyDisaObj,
+            directory: keyDirectoryObj
+        })
+    }
+
     _getSpeedDialList = () => {
         const { formatMessage } = this.props.intl
 
@@ -143,6 +195,22 @@ class SpeedDial extends Component {
         }
         return destination_type
     }
+   _destination_num = (text, record, index) => {
+        let destination_num
+        const { formatMessage } = this.props.intl
+
+        if (record.destination_type === 'ivr') {
+            destination_num = this.state.ivr[text]
+        } else if (record.destination_type === 'disa') {
+            destination_num = this.state.disa[text]
+        } else if (record.destination_type === 'directory') {
+            destination_num = this.state.directory[text]
+        } else {
+            destination_num = text
+        }
+        return destination_num
+    }
+
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -171,7 +239,10 @@ class SpeedDial extends Component {
                 key: 'destination_num',
                 dataIndex: 'destination_num',
                 title: formatMessage({id: "LANG1558"}),
-                sorter: (a, b) => a.destination_num - b.destination_num
+                sorter: (a, b) => a.destination_num - b.destination_num,
+                render: (text, record, index) => (
+                    this._destination_num(text, record, index)
+                )
             }, {
                 key: 'options',
                 dataIndex: 'options',

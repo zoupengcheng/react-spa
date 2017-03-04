@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Modal } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Modal } from 'antd'
 import Validator from "../../api/validator"
 
 const FormItem = Form.Item
@@ -182,7 +182,11 @@ class smtpSettings extends Component {
                         { getFieldDecorator('smtp_domain', {
                             rules: [{
                                 required: email_settings.smtp_type === 'client' ? false : true,
-                                message: formatMessage({id: "LANG2050"})
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    email_settings.smtp_type === 'client' ? callback() : Validator.host(data, value, callback, formatMessage, "LANG2050")
+                                }
                             }],
                             initialValue: email_settings.smtp_domain
                         })(
@@ -201,7 +205,11 @@ class smtpSettings extends Component {
                         { getFieldDecorator('smtp_server', {
                             rules: [{
                                 required: email_settings.smtp_type === 'mta' ? false : true,
-                                message: formatMessage({id: "LANG2052"})
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    email_settings.smtp_type === 'mta' ? callback() : Validator.host(data, value, callback, formatMessage, "LANG2052")
+                                }
                             }],
                             initialValue: email_settings.smtp_server
                         })(
@@ -220,7 +228,7 @@ class smtpSettings extends Component {
                         { getFieldDecorator('enable_auth', {
                             rules: [{
                                 required: email_settings.smtp_type === 'mta' ? false : true,
-                                message: formatMessage({id: "LANG2052"})
+                                message: formatMessage({id: "LANG2150"})
                             }],
                             valuePropName: "checked",
                             initialValue: email_settings.enable_auth === "yes"

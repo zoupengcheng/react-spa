@@ -5,7 +5,7 @@ import _ from 'underscore'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { browserHistory } from 'react-router'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Popover, Select, Table, Tabs, Popconfirm } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select, Table, Tabs, Popconfirm } from 'antd'
 const FormItem = Form.Item
 
 import api from "../../api/api"
@@ -27,15 +27,15 @@ class GlobalTemplates extends Component {
     }
     _listGlobalTemplates = () => {
         $.ajax({
-                method: "post",
-                url: api.apiHost,
-                data: {
-                    action: "getAllTemplates",
-                    template_type: "global"
-                },
-                async: true,
-                error: function(e) {
-                    message.error(e.statusText)
+            method: "post",
+            url: api.apiHost,
+            data: {
+                action: "getAllTemplates",
+                template_type: "global"
+            },
+            async: true,
+            error: function(e) {
+                message.error(e.statusText)
             },
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)

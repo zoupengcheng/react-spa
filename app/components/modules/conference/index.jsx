@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, message, Tabs } from 'antd'
+import { Form, Input, message, Tabs } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import '../../../css/conference'

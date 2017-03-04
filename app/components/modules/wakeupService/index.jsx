@@ -50,7 +50,9 @@ class WakeupService extends Component {
                 onOk() {
                     browserHistory.push('/value-added-features/wakeupService')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/value-added-features/wakeupService/add')
@@ -287,7 +289,9 @@ class WakeupService extends Component {
                 dataIndex: 'custom_date',
                 title: formatMessage({id: "LANG203"}),
                 render: (text, record, index) => {
-                    if (text.indexOf('-') > -1) {
+                    if (!text) {
+                        return <span>{ text }</span>
+                    } else if (text.indexOf('-') > -1) {
                         return <span>{ text }</span>
                     } else {
                         const weeklist = text.split(',')

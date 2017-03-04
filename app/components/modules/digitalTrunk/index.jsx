@@ -2,7 +2,7 @@
 
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Form, Icon, Table, Button, message, Modal, Menu, Dropdown, Popconfirm } from 'antd'
+import { Form, Input, Icon, Table, Button, message, Modal, Menu, Dropdown, Popconfirm } from 'antd'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl} from 'react-intl'
 import Title from '../../../views/title'
 import $ from 'jquery'
@@ -12,7 +12,7 @@ import _ from 'underscore'
 
 const baseServerURl = api.apiHost
 
-class DigitalTrunksList extends Component {
+class DigitalTrunk extends Component {
     constructor(props) {
         super(props)
         this.state = {                
@@ -237,6 +237,7 @@ class DigitalTrunksList extends Component {
                         sord: sorter.order === "ascend" ? "asc" : "desc"
                     })
                     this._delAstdb(trunkIndex)
+                    this._getNameList()
                 }
             }.bind(this)
         })
@@ -305,16 +306,7 @@ class DigitalTrunksList extends Component {
             0: model_info.model_name, 
             1: formatMessage({id: "LANG3141"})
         })
-        const menu = (
-          <Menu>
-            <Menu.Item>
-              <span onClick={this._createDigitalTrunk} >{formatMessage({id: "LANG2908"})}</span>
-            </Menu.Item>
-            <Menu.Item>
-              <span onClick={this._createIaxDigitalTrunk} >{formatMessage({id: "LANG2909"})}</span>
-            </Menu.Item>
-          </Menu>
-        )
+
         const columns = [
             {
                 title: formatMessage({id: "LANG3141"}),
@@ -393,8 +385,8 @@ class DigitalTrunksList extends Component {
     }
 }
 
-DigitalTrunksList.defaultProps = {
+DigitalTrunk.defaultProps = {
     
 }
 
-export default injectIntl(DigitalTrunksList)
+export default injectIntl(DigitalTrunk)

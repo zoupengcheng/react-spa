@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Checkbox, Input, message, Popover, Select } from 'antd'
+import { Form, Input, Button, Checkbox, message, Popover, Select } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -291,7 +291,7 @@ class DDNS extends Component {
                         <input type="text" name="username" className="hidden" />
                         { getFieldDecorator('username', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: username
@@ -311,7 +311,7 @@ class DDNS extends Component {
                         <input type="password" name="password" className="hidden" />
                         { getFieldDecorator('password', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: password
@@ -330,7 +330,7 @@ class DDNS extends Component {
                     >
                         { getFieldDecorator('hash', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: hash
@@ -349,7 +349,7 @@ class DDNS extends Component {
                     >
                         { getFieldDecorator('alias', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: alias
@@ -385,7 +385,7 @@ class DDNS extends Component {
                         <input type="text" name="szUserID" className="hidden" />
                         { getFieldDecorator('szUserID', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: szUserID
@@ -405,7 +405,7 @@ class DDNS extends Component {
                         <input type="password" name="szUserPWD" className="hidden" />
                         { getFieldDecorator('szUserPWD', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: szUserPWD

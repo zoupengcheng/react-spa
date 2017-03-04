@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Transfer, Tabs, Modal } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Transfer, Tabs, Modal } from 'antd'
 const FormItem = Form.Item
 const Option = Select.Option
 import $ from 'jquery'
@@ -390,7 +390,7 @@ class EditVoipTrunk extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                let bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
                     message.destroy()

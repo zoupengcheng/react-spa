@@ -10,7 +10,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, InputNumber, message, Transfer, Tooltip, Checkbox, Select, Upload, Icon, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, Upload, Icon, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
 
 const baseServerURl = api.apiHost
 const FormItem = Form.Item

@@ -6,7 +6,7 @@ import UCMGUI from "../../api/ucmgui"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, message, Popconfirm, Tooltip, Row, Col, Input } from 'antd'
+import { Form, Input, Button, message, Popconfirm, Tooltip, Row, Col} from 'antd'
 
 const FormItem = Form.Item
 

@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Tooltip, Button, message, Modal, Popconfirm, Progress, Table, Tag, Form, Row, Col, Input, Upload, Icon } from 'antd'
+import { Tooltip, Button, message, Modal, Popconfirm, Progress, Table, Tag, Form, Input, Row, Col, Upload, Icon } from 'antd'
 import cookie from 'react-cookie'
 
 const confirm = Modal.confirm
@@ -216,7 +216,12 @@ class FaxSending extends Component {
     _deleteAllSelectd = () => {
         const { formatMessage } = this.props.intl
         const __this = this
-        if (this.state.selectedRowKeys.length === 0) {
+        if (this.state.faxItem.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG4064"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else if (this.state.selectedRowKeys.length === 0) {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG823"}, {0: formatMessage({id: "LANG4064"})})}} ></span>,
                 okText: (formatMessage({id: "LANG727"}))
@@ -235,7 +240,9 @@ class FaxSending extends Component {
                 onOk() {
                     __this._deleteAllSelectdOK()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -287,7 +294,9 @@ class FaxSending extends Component {
                 onOk() {
                     __this._deleteAllOK()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -561,7 +570,7 @@ class FaxSending extends Component {
                         </p>
                     </div>
                     <Row>
-                        <Col span={ 9 } >
+                        <Col span={ 12 } >
                             <FormItem
                                 ref="div_callee"
                                 { ...formItemLayout }

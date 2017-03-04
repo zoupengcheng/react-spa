@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip } from 'antd'
 
 let secret
 let vmsecret
@@ -248,7 +248,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('batch_number', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -258,7 +258,7 @@ class BasicSettings extends Component {
                                                     ? 'display-block'
                                                     : 'hidden'
                                 })(
-                                    <InputNumber min={ 1 } max={ 100 } />
+                                    <Input min={ 1 } max={ 100 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -530,7 +530,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('qualifyfreq', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -538,7 +538,7 @@ class BasicSettings extends Component {
                                     initialValue: settings.qualifyfreq ? settings.qualifyfreq : 60,
                                     className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber disabled={ !this.state.enable_qualify } />
+                                    <Input disabled={ !this.state.enable_qualify } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -705,7 +705,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('max_contacts', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer',
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -713,7 +713,7 @@ class BasicSettings extends Component {
                                     initialValue: settings.max_contacts ? settings.max_contacts : 1,
                                     className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>

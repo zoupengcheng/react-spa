@@ -8,24 +8,31 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 
-class DataTrunksList extends Component {
+class DevicesList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            zeroconfig: []
+            zeroconfig: [],
+            filter: props.filter
         }
     }
     componentDidMount() {
-        this._listZeroConfig()
+        this._listZeroConfig(this.state.filter)
     }
-    _listZeroConfig = () => {
+    componentWillReceiveProps(newProps) {
+        this.setState({
+            filter: newProps.filter
+        })
+        this._listZeroConfig(newProps.filter)
+    }
+    _listZeroConfig = (filter) => {
         $.ajax({
             url: api.apiHost,
             method: "post",
             data: { 
                 action: 'listZeroConfig',
                 "options": "mac,ip,members,version,vendor,model,state,last_access",
-                "filter": "all" 
+                "filter": filter
             },
             type: 'json',
             error: function(e) {
@@ -146,8 +153,8 @@ class DataTrunksList extends Component {
     }
 }
 
-DataTrunksList.defaultProps = {
+DevicesList.defaultProps = {
     
 }
 
-export default injectIntl(DataTrunksList)
+export default injectIntl(DevicesList)

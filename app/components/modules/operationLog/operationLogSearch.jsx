@@ -1,7 +1,7 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import { Form, Select, DatePicker, Button, Row, Col, Input, Checkbox, Tooltip, Icon, message } from 'antd'
+import { Form, Input, Select, DatePicker, Button, Row, Col, Checkbox, Tooltip, Icon, message } from 'antd'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"

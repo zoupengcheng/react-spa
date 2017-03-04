@@ -8,7 +8,7 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Form, Tabs, message } from 'antd'
+import { Form, Input, Tabs, message } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 

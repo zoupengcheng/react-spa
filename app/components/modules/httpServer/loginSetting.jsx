@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, formatMessage } from 'react-intl'
-import { Form, Button, Checkbox, Input, Popconfirm, message, Tooltip, Select, Upload, Icon, Modal, Table, BackTop } from 'antd'
+import { Form, Input, Button, Checkbox, Popconfirm, message, Tooltip, Select, Upload, Icon, Modal, Table, BackTop } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"

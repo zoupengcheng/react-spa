@@ -60,7 +60,9 @@ class ExtensionGroup extends Component {
                 onOk() {
                     browserHistory.push('/value-added-features/pmsMinibar')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/value-added-features/pmsMinibar/addbar')
@@ -79,7 +81,9 @@ class ExtensionGroup extends Component {
                 onOk() {
                     browserHistory.push('/value-added-features/pmsMinibar')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/value-added-features/pmsMinibar/addwaiter')
@@ -98,7 +102,9 @@ class ExtensionGroup extends Component {
                 onOk() {
                     browserHistory.push('/value-added-features/pms/4')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/value-added-features/pmsMinibar/addgoods')

@@ -73,8 +73,12 @@ class Extension extends Component {
             browserHistory.push('/extension-trunk/extension/add')
         }
     }
-    _autoRefresh = () => {
+    _autoRefresh = (page) => {
         let data = _.clone(this.state.requestData)
+        
+        if (page) {
+            data['page'] = page
+        }
 
         data['auto-refresh'] = Math.random()
 
@@ -462,8 +466,16 @@ class Extension extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._autoRefresh()
+                    let total = this.state.pagination.total,
+                        current = this.state.pagination.current,
+                        selectedRowsLen = this.state.selectedRows.length,
+                        page = current
 
+                    if ((total % current) !== 0 && (total % (current - 1)) === 0) {
+                        page = current - 1
+                    }
+
+                    this._autoRefresh(page)
                     this._clearSelectRows()
                 }
             }.bind(this),
@@ -604,9 +616,9 @@ class Extension extends Component {
     }
     _handleTableChange = (pagination, filters, sorter) => {
         this._getExtensionList({
-            sidx: sorter.field,
             page: pagination.current,
             item_num: pagination.pageSize,
+            sidx: sorter.field ? sorter.field : 'extension',
             sord: sorter.order === 'ascend' ? 'asc' : 'desc',
             ...filters
         })
@@ -703,13 +715,15 @@ class Extension extends Component {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const columns = [{
+                sorter: true,
                 key: 'status',
-                dataIndex: 'status', 
+                dataIndex: 'status',
                 title: formatMessage({id: "LANG81"}),
                 render: (text, record, index) => (
                     this._createStatus(text, record, index)
                 )
             }, {
+                sorter: true,
                 key: 'presence_status',
                 dataIndex: 'presence_status', 
                 title: formatMessage({id: "LANG5450"}),
@@ -717,18 +731,22 @@ class Extension extends Component {
                     this._createPresenceStatus(text, record, index)
                 )
             }, {
+                sorter: true,
                 key: 'extension',
                 dataIndex: 'extension',
                 title: formatMessage({id: "LANG85"})
             }, {
+                sorter: true,
                 key: 'fullname',
                 dataIndex: 'fullname',
                 title: formatMessage({id: "LANG1065"})
             }, {
+                sorter: true,
                 key: 'account_type',
                 dataIndex: 'account_type',
                 title: formatMessage({id: "LANG623"})
             }, {
+                sorter: true,
                 key: 'addr',
                 dataIndex: 'addr',
                 title: formatMessage({id: "LANG624"}),
@@ -736,6 +754,7 @@ class Extension extends Component {
                     this._createAddr(text, record, index)
                 )
             }, {
+                sorter: true,
                 key: 'email_to_user',
                 dataIndex: 'email_to_user',
                 title: formatMessage({id: "LANG4152"}),
@@ -750,21 +769,6 @@ class Extension extends Component {
                     this._createOption(text, record, index)
                 ) 
             }]
-        
-        const pagination = {
-                showSizeChanger: true,
-                total: this.state.extensionList.length,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-
-                    this._clearSelectRows()
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
-
-                    this._clearSelectRows()
-                }
-            }
 
         const rowSelection = {
                 onChange: this._onSelectChange,
@@ -945,7 +949,7 @@ class Extension extends Component {
                             rowKey="extension"
                             columns={ columns }
                             rowSelection={ rowSelection }
-                            loading={ this.state.loading}
+                            loading={ this.state.loading }
                             pagination={ this.state.pagination }
                             onChange={ this._handleTableChange }
                             dataSource={ this.state.extensionList }

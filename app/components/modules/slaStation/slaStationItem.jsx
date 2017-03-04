@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Input, InputNumber, message, Popover, Select, Transfer } from 'antd'
+import { Form, Input, message, Popover, Select, Transfer } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -311,11 +311,11 @@ class SLAStationItem extends Component {
                         >
                             { getFieldDecorator('ringtimeout', {
                                 rules: [
-                                    { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                    { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                                 ],
                                 initialValue: ringtimeout
                             })(
-                                <InputNumber min={ 0 } max={ 300 } />
+                                <Input min={ 0 } max={ 300 } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -333,11 +333,11 @@ class SLAStationItem extends Component {
                         >
                             { getFieldDecorator('ringdelay', {
                                 rules: [
-                                    { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                    { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                                 ],
                                 initialValue: ringdelay
                             })(
-                                <InputNumber min={ 0 } max={ 300 } />
+                                <Input min={ 0 } max={ 300 } />
                             ) }
                         </FormItem>
                         <FormItem

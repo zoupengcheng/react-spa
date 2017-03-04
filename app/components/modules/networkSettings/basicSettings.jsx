@@ -10,7 +10,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Tabs, Col, Form, Input, InputNumber, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
+import { Tabs, Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
 
 const TabPane = Tabs.TabPane
 const baseServerURl = api.apiHost
@@ -412,7 +412,7 @@ class BasicSettings extends Component {
                             ],
                             initialValue: network_settings.mtu
                         })(
-                            <InputNumber min={ 1280 } max={ 1500 } />
+                            <Input min={ 1280 } max={ 1500 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -609,7 +609,7 @@ class BasicSettings extends Component {
                                         ],
                                         initialValue: network_settings.lan2_vid
                                     })(
-                                        <InputNumber min={ 0 } max={ 4094 } />
+                                        <Input min={ 0 } max={ 4094 } />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -626,7 +626,7 @@ class BasicSettings extends Component {
                                         ],
                                         initialValue: network_settings.lan2_priority
                                     })(
-                                        <InputNumber min={ 0 } max={ 7 } />
+                                        <Input min={ 0 } max={ 7 } />
                                     ) }
                                 </FormItem>
                             </div>
@@ -804,7 +804,7 @@ class BasicSettings extends Component {
                                     ],
                                     initialValue: network_settings.lan1_vid
                                 })(
-                                    <InputNumber min={ 0 } max={ 4094 } />
+                                    <Input min={ 0 } max={ 4094 } />
                                 ) }
                             </FormItem>
                             <FormItem
@@ -821,7 +821,7 @@ class BasicSettings extends Component {
                                     ],
                                     initialValue: network_settings.lan1_priority
                                 })(
-                                    <InputNumber min={ 0 } max={ 7 } />
+                                    <Input min={ 0 } max={ 7 } />
                                 ) }
                             </FormItem>                    
                             <div className={ this.state.method_change_calss.lan}>
@@ -970,11 +970,11 @@ class BasicSettings extends Component {
                                 >
                                     { getFieldDecorator('ipleasetime', {
                                         rules: [
-                                            { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                                         ],
                                         initialValue: dhcp_settings.ipleasetime
                                     })(
-                                        <InputNumber min={ 300 } max={ 172800 } disabled={ !network_settings.dhcp_enable } />
+                                        <Input min={ 300 } max={ 172800 } disabled={ !network_settings.dhcp_enable } />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -991,7 +991,7 @@ class BasicSettings extends Component {
                                         ],
                                         initialValue: network_settings.lan2_vid
                                     })(
-                                        <InputNumber min={ 0 } max={ 4094 } />
+                                        <Input min={ 0 } max={ 4094 } />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -1008,7 +1008,7 @@ class BasicSettings extends Component {
                                         ],
                                         initialValue: network_settings.lan2_priority
                                     })(
-                                        <InputNumber min={ 0 } max={ 7 } />
+                                        <Input min={ 0 } max={ 7 } />
                                     ) }
                                 </FormItem>                       
                             </div>
@@ -1071,7 +1071,7 @@ class BasicSettings extends Component {
                                             }],
                                             initialValue: network_settings.lan2_ip6_prefixlen
                                         })(
-                                            <InputNumber min={1} max={64} />
+                                            <Input min={1} max={64} />
                                         ) }
                                     </FormItem>
                                     <FormItem
@@ -1181,7 +1181,7 @@ class BasicSettings extends Component {
                                             }],
                                             initialValue: network_settings.lan1_ip6_prefixlen
                                         })(
-                                            <InputNumber min={ 1 } max={ 64 } />
+                                            <Input min={ 1 } max={ 64 } />
                                         ) }
                                     </FormItem>
                                     <FormItem
@@ -1271,7 +1271,7 @@ class BasicSettings extends Component {
                                         }],
                                         initialValue: dhcp6_settings.dhcp6_prefixlen
                                     })(
-                                        <InputNumber min={1} max={64} disabled={ network_settings.dhcp6_enable === "0" } />
+                                        <Input min={1} max={64} disabled={ network_settings.dhcp6_enable === "0" } />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -1347,11 +1347,11 @@ class BasicSettings extends Component {
                                     >
                                         { getFieldDecorator('ip6leasetime', {
                                             rules: [
-                                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                                             ],
                                             initialValue: dhcp6_settings.ip6leasetime
                                         })(
-                                            <InputNumber min={ 300 } max={ 172800 } disabled={ network_settings.dhcp6_enable === "0" } />
+                                            <Input min={ 300 } max={ 172800 } disabled={ network_settings.dhcp6_enable === "0" } />
                                         ) }
                                     </FormItem>
                                 </div>

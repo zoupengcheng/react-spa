@@ -355,7 +355,9 @@ class VoicePrompt extends Component {
                 onOk() {
                     __this._deleteSelectOk(record)
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -411,7 +413,9 @@ class VoicePrompt extends Component {
                 onOk() {
                     __this._deleteAllOk()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -702,7 +706,6 @@ class VoicePrompt extends Component {
                     console.log(info.file, info.fileList)
                 }
                 if (me.state.upgradeLoading) {
-                    me.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
                     me.setState({upgradeLoading: false})
                 }
 
@@ -724,6 +727,8 @@ class VoicePrompt extends Component {
                             me._handleCancel()
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
+                        } else if (data.status === -49) {
+                            message.error(formatMessage({id: "LANG2146"}))
                         } else if (!_.isEmpty(response)) {
                             message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
                         } else {
@@ -737,7 +742,6 @@ class VoicePrompt extends Component {
                 }
             },
             onRemove() {
-                me.props.setSpinLoading({loading: false})
                 message.destroy()
             }
         }
@@ -950,7 +954,7 @@ class VoicePrompt extends Component {
                                 ) }
                             </FormItem>
                             <span>{formatMessage({id: "LANG672"})}</span>
-                            <span>{formatMessage({id: "LANG4227"})}</span>
+                            <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4227"})}} ></span>
                             <span>{formatMessage({id: "LANG2640"})}</span>
                         </div>
                     </Form>

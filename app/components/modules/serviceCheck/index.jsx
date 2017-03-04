@@ -6,7 +6,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Col, Checkbox, InputNumber, message, Popover } from 'antd'
+import { Form, Input, Button, Col, Checkbox, message, Popover } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -134,11 +134,11 @@ class ServiceCheck extends Component {
                     >
                         { getFieldDecorator('service_check_timeout', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: timeout
                         })(
-                            <InputNumber min={ 30 } max={ 86400 } disabled={ !this.state.enabled } />
+                            <Input min={ 30 } max={ 86400 } disabled={ !this.state.enabled } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -151,11 +151,11 @@ class ServiceCheck extends Component {
                     >
                         { getFieldDecorator('service_check_count', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: count
                         })(
-                            <InputNumber min={ 1 } max={ 99 } disabled={ !this.state.enabled } />
+                            <Input min={ 1 } max={ 99 } disabled={ !this.state.enabled } />
                         ) }
                     </FormItem>
                 </Form>

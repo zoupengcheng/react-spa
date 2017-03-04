@@ -3,12 +3,13 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Form, Button, Checkbox, InputNumber, Input, message, Popover, Row, Col, Tooltip } from 'antd'
+import { Form, Input, Button, Checkbox, message, Popover, Row, Col, Tooltip } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import _ from 'underscore'
+import Validator from "../../api/validator"
 
 const FormItem = Form.Item
 
@@ -184,7 +185,7 @@ class Payload extends Component {
             }
         }
 
-        if (value && _.indexOf(payload_list, value) > -1) {
+        if (value && _.indexOf(payload_list, parseInt(value)) > -1) {
             callback(formatMessage({id: "LANG2728"}))
         } else {
             callback()
@@ -233,10 +234,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_g726_aal2
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -255,10 +264,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_rtp_dtmf
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -297,10 +314,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            this.state.disable726 ? callback() : Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_g726
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } disabled={ this.state.disable726 }/>
+                                    <Input min={ 96 } max={ 127 } disabled={ this.state.disable726 }/>
                                 ) }
                             </FormItem>
                         </Col>
@@ -321,10 +346,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_ilbc
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -343,10 +376,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_opus
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -378,10 +419,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_h264
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -395,30 +444,50 @@ class Payload extends Component {
                                 )}
                             >
                                 <Col span={ 10 }>
+                                    <FormItem>
                                     { getFieldDecorator('h263p_1', {
                                         rules: [{
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }, {
-                                        validator: this._checkPayloadExists
-                                    }],
+                                            validator: this._checkPayloadExists
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.range(data, value, callback, formatMessage, 96, 127)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.digits(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         initialValue: payloadSettings.ast_format_h263_plus && payloadSettings.ast_format_h263_plus.split(',')[0]
                                     })(
-                                        <InputNumber min={ 96 } max={ 127 } />
+                                        <Input min={ 96 } max={ 127 } />
                                     ) }
+                                    </FormItem>
                                 </Col>
                                 <Col span={ 10 } offset={4}>
+                                    <FormItem>
                                     { getFieldDecorator('h263p_2', {
                                         rules: [{
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }, {
-                                        validator: this._checkPayloadExists
-                                    }],
+                                            validator: this._checkPayloadExists
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.range(data, value, callback, formatMessage, 96, 127)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.digits(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         initialValue: payloadSettings.ast_format_h263_plus && payloadSettings.ast_format_h263_plus.split(',')[1]
                                     })(
-                                        <InputNumber min={ 96 } max={ 127 } />
+                                        <Input min={ 96 } max={ 127 } />
                                     ) }
+                                    </FormItem>
                                 </Col>
                             </FormItem>
                         </Col>
@@ -439,10 +508,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_vp8
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -474,10 +551,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_main_video_fec
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -497,7 +582,7 @@ class Payload extends Component {
                                     }],
                                     initialValue: payloadSettings.ast_format_slides_video_fec
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -519,7 +604,7 @@ class Payload extends Component {
                                     }],
                                     initialValue: payloadSettings.ast_format_audio_fec
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -552,7 +637,7 @@ class Payload extends Component {
                                     }],
                                     initialValue: '122'
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -572,7 +657,7 @@ class Payload extends Component {
                                     }],
                                     initialValue: '122'
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -594,7 +679,7 @@ class Payload extends Component {
                                     }],
                                     initialValue: '122'
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -626,10 +711,18 @@ class Payload extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this._checkPayloadExists
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 96, 127)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                     initialValue: payloadSettings.ast_format_fecc
                                 })(
-                                    <InputNumber min={ 96 } max={ 127 } />
+                                    <Input min={ 96 } max={ 127 } />
                                 ) }
                             </FormItem>
                         </Col>

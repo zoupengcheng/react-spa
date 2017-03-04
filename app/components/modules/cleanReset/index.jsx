@@ -1,30 +1,33 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
-import ResetReboot from './resetReboot'
-import Cleaner from './cleaner'
-import Cleanup from './cleanup'
+import { Form, Input, Tabs, message } from 'antd'
+import React, { Component, PropTypes } from 'react'
+
 import $ from 'jquery'
+import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Form, Tabs, message } from 'antd'
+
+import Cleaner from './cleaner'
+import Cleanup from './cleanup'
+import ResetReboot from './resetReboot'
+
 const TabPane = Tabs.TabPane
-import _ from 'underscore'
 
 class CleanReset extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
-            activeKey: this.props.params.id ? this.props.params.id : '1',
-            isDisplay: "hidden"
+            isDisplay: "hidden",
+            activeKey: this.props.params.id ? this.props.params.id : '1'
         }
     }
     componentDidMount() {
     }
     componentWillUnmount() {
-
     }
     _handleSubmit = () => {
         // e.preventDefault()
@@ -95,13 +98,14 @@ class CleanReset extends Component {
         }
     }
     render() {
-        const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-        const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         return (
             <div className="app-content-main" id="app-content-main">

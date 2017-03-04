@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 

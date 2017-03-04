@@ -3,7 +3,7 @@
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
-import { message, Button, Row, Col, Popconfirm, Modal, Select, Input, Checkbox, Form, Tooltip } from 'antd'
+import { message, Button, Row, Col, Popconfirm, Modal, Select, Checkbox, Form, Input, Tooltip } from 'antd'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 

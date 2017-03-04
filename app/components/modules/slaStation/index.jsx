@@ -16,9 +16,14 @@ class SLAStation extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            pagination: {
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: this._showTotal
+            },
             accountList: [],
             SLAStations: [],
-            // selectedRows: [],
+            postData: {},
             selectedRowKeys: [],
             slaTrunkNameList: []
         }
@@ -26,47 +31,6 @@ class SLAStation extends Component {
     componentDidMount () {
         this._getInitData()
         this._getSLAStations()
-    }
-    _createMember = (text, record, index) => {
-        const members = text ? text.split(',') : []
-
-        if (members.length <= 5) {
-            return <div>
-                    {
-                        members.map(function(value, index) {
-                            return <Tag key={ value }>{ value }</Tag>
-                        }.bind(this))
-                    }
-                </div>
-        } else {
-            const content = <div>
-                        {
-                            members.map(function(value, index) {
-                                if (index >= 4) {
-                                    return <Tag key={ value }>{ value }</Tag>
-                                }
-                            }.bind(this))
-                        }
-                    </div>
-
-            return <div>
-                    {
-                        [0, 1, 2, 3].map(function(value, index) {
-                            return <Tag key={ members[value] }>{ members[value] }</Tag>
-                        }.bind(this))
-                    }
-                    <Popover
-                        title=""
-                        content={ content }
-                    >
-                        <Badge
-                            overflowCount={ 10 }
-                            count={ members.length - 4 }
-                            style={{ backgroundColor: '#87d068', cursor: 'pointer' }}
-                        />
-                    </Popover>
-                </div>
-        }
     }
     _add = () => {
         let confirmContent = ''
@@ -110,14 +74,14 @@ class SLAStation extends Component {
                 message.loading(loadingMessage)
 
                 $.ajax({
-                    url: api.apiHost,
+                    async: true,
+                    type: 'json',
                     method: 'post',
+                    url: api.apiHost,
                     data: {
                         "action": "deleteSLAStation",
                         "sla_station": idList.join(',')
                     },
-                    type: 'json',
-                    async: true,
                     success: function(res) {
                         const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
 
@@ -138,6 +102,11 @@ class SLAStation extends Component {
                 })
             },
             onCancel() {}
+        })
+    }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRowKeys: []
         })
     }
     _delete = (record) => {
@@ -182,25 +151,26 @@ class SLAStation extends Component {
         browserHistory.push('/extension-trunk/slaStation/edit/' + record.station + '/' + record.station_name)
     }
     _getInitData = () => {
-        let accountList = []
-        let slaTrunkNameList = []
         const { formatMessage } = this.props.intl
 
         $.ajax({
-            url: api.apiHost,
+            type: 'json',
             method: 'post',
+            url: api.apiHost,
             data: {
                 action: 'getSLATrunkNameList'
             },
-            type: 'json',
-            async: false,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     const response = res.response || {}
 
-                    slaTrunkNameList = response.trunk_name || []
+                    let slaTrunkNameList = response.trunk_name || []
+
+                    this.setState({
+                        slaTrunkNameList: slaTrunkNameList
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -209,54 +179,22 @@ class SLAStation extends Component {
         })
 
         $.ajax({
-            url: api.apiHost,
+            type: 'json',
             method: 'post',
+            url: api.apiHost,
             data: {
                 action: 'getSIPAccountList'
             },
-            type: 'json',
-            async: false,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     const response = res.response || {}
 
-                    accountList = response.extension || []
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-
-        this.setState({
-            accountList: accountList,
-            slaTrunkNameList: slaTrunkNameList
-        })
-    }
-    _getSLAStations = () => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'listSLAStation',
-                options: "station_name,station,trunks",
-                sidx: 'station',
-                sord: 'asc'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
+                    let accountList = response.extension || []
 
                     this.setState({
-                        SLAStations: response.sla_station || []
+                        accountList: accountList
                     })
                 }
             }.bind(this),
@@ -265,32 +203,91 @@ class SLAStation extends Component {
             }
         })
     }
+    _getSLAStations = (params = {
+            page: 1,
+            sord: 'asc',
+            item_num: 10,
+            sidx: 'station'
+        }) => {
+            const { formatMessage } = this.props.intl
+
+            let data = {
+                    ...params,
+                    action: 'listSLAStation',
+                    options: 'station_name,station,trunks'
+                }
+
+            this.setState({
+                loading: true,
+                postData: data
+            })
+
+            $.ajax({
+                data: data,
+                type: 'json',
+                method: 'post',
+                url: api.apiHost,
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        const response = res.response || {}
+                        let pager = _.clone(this.state.pagination)
+
+                        // Read total count from server
+                        pager.current = data.page
+                        pager.total = res.response.total_item
+
+                        this.setState({
+                            loading: false,
+                            pagination: pager,
+                            SLAStations: response.sla_station || []
+                        })
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        this._getSLAStations({
+            page: pagination.current,
+            item_num: pagination.pageSize,
+            sidx: sorter.field ? sorter.field : 'station',
+            sord: sorter.order === 'ascend' ? 'asc' : 'desc',
+            ...filters
+        })
+
+        this._clearSelectRows()
+    }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
-        console.log('selectedRowKeys changed: ', selectedRowKeys)
         // console.log('selectedRow changed: ', selectedRows)
+        console.log('selectedRowKeys changed: ', selectedRowKeys)
 
         this.setState({ selectedRowKeys })
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+
         const columns = [{
                 key: 'station_name',
                 dataIndex: 'station_name',
-                title: formatMessage({id: "LANG3228"}),
-                sorter: (a, b) => a.station_name.length - b.station_name.length
+                title: formatMessage({id: "LANG3228"})
             }, {
                 key: 'station',
                 dataIndex: 'station',
-                title: formatMessage({id: "LANG3229"}),
-                sorter: (a, b) => a.station - b.station
+                title: formatMessage({id: "LANG3229"})
             }, {
                 key: 'trunks',
                 dataIndex: 'trunks',
-                title: formatMessage({id: "LANG3230"}),
-                render: (text, record, index) => {
-                    this._createMember(text, record, index)
-                }
+                title: formatMessage({id: "LANG3230"})
             }, {
                 key: 'options',
                 dataIndex: 'options',
@@ -312,16 +309,7 @@ class SLAStation extends Component {
                         </div>
                 }
             }]
-        const pagination = {
-                total: this.state.SLAStations.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
-                }
-            }
+
         const rowSelection = {
                 onChange: this._onSelectChange,
                 selectedRowKeys: this.state.selectedRowKeys
@@ -359,13 +347,13 @@ class SLAStation extends Component {
                         </Button>
                     </div>
                     <Table
-                        bordered
                         rowKey="station"
                         columns={ columns }
-                        pagination={ pagination }
                         rowSelection={ rowSelection }
+                        loading={ this.state.loading }
+                        pagination={ this.state.pagination }
+                        onChange={ this._handleTableChange }
                         dataSource={ this.state.SLAStations }
-                        showHeader={ !!this.state.SLAStations.length }
                     />
                 </div>
             </div>

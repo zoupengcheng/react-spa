@@ -8,7 +8,7 @@ import UCMGUI from "../../api/ucmgui"
 import api from "../../api/api"
 import _ from 'underscore'
 import Validator from "../../api/validator"
-import { Form, Row, Col, Icon, message, Button, Input, Select, Table, Popconfirm, Modal, Tooltip } from 'antd'
+import { Form, Input, Row, Col, Icon, message, Button, Select, Table, Popconfirm, Modal, Tooltip } from 'antd'
 const FormItem = Form.Item
 const Option = Select.Option
 const baseServerURl = api.apiHost
@@ -47,7 +47,8 @@ class DigitalHardware extends Component {
             otherChansArr: [],
             optVal: 0,
             digitalHardwareList: [],
-            oldGroupName: ""
+            oldGroupName: "",
+            expandedRowKeys: [""]
         }
     }
     componentDidMount() {
@@ -262,7 +263,8 @@ class DigitalHardware extends Component {
             }
         }
         this.setState({
-            digitalHardwareList: digitalHardwareList
+            digitalHardwareList: digitalHardwareList// ,
+            // expandedRowKeys: [digitalHardwareList[0].spanType]
         })
     }
     _renderGroupTable = (spanInfo) => {
@@ -1033,6 +1035,7 @@ class DigitalHardware extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 12 }
         }
+        const state = this.state
 
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         document.title = formatMessage({
@@ -1090,11 +1093,12 @@ class DigitalHardware extends Component {
             <div className="content">
                 <Table
                     bordered
-                    rowSelection={ false }
+                    rowSelection={ undefined }
+                    rowKey={ record => record.spanType }
                     columns={ columns }
-                    dataSource={ this.state.digitalHardwareList }
+                    dataSource={ state.digitalHardwareList }
                     pagination={ pagination }
-                    showHeader={ !!this.state.digitalHardwareList.length } 
+                    showHeader={ !!state.digitalHardwareList.length } 
                 />
                 <Modal 
                     title={ this._renderModalTitle() }

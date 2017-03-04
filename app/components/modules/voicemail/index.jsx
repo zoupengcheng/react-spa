@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Button, Checkbox, Form, InputNumber, Input, message, Popover, Select } from 'antd'
+import { Button, Checkbox, Form, Input, message, Popover, Select } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -162,11 +162,11 @@ class Voicemail extends Component {
                         >
                             { getFieldDecorator('maxgreet', {
                                 rules: [
-                                    { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                    { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                                 ],
                                 initialValue: maxgreet
                             })(
-                                <InputNumber min={ 60 } max={ 600 } />
+                                <Input min={ 60 } max={ 600 } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -223,11 +223,11 @@ class Voicemail extends Component {
                         >
                             { getFieldDecorator('maxmsg', {
                                 rules: [
-                                    { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                    { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                                 ],
                                 initialValue: maxmsg
                             })(
-                                <InputNumber min={ 10 } max={ 1000 } />
+                                <Input min={ 10 } max={ 1000 } />
                             ) }
                         </FormItem>
                         <FormItem

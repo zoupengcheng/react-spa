@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Checkbox, InputNumber, message, Tooltip } from 'antd'
+import { Form, Input, Checkbox, message, Tooltip } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -154,7 +154,7 @@ class CleanSettings extends Component {
                         { getFieldDecorator('Phour_clean_scheduleconf', {
                             initialValue: cleanSettings.Phour_clean_scheduleconf
                         })(
-                            <InputNumber disabled={ !this.state.cleanEnable } />
+                            <Input disabled={ !this.state.cleanEnable } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -168,7 +168,7 @@ class CleanSettings extends Component {
                         { getFieldDecorator('Pclean_scheduleconf_interval', {
                             initialValue: cleanSettings.Pclean_scheduleconf_interval
                         })(
-                            <InputNumber disabled={ !this.state.cleanEnable } />
+                            <Input disabled={ !this.state.cleanEnable } />
                         ) }
                     </FormItem>
                 </Form>

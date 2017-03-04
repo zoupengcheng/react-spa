@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Modal } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Modal } from 'antd'
 import _ from 'underscore'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
@@ -25,17 +25,31 @@ class Basic extends Component {
                 ucm_port: "",
                 username: "",
                 password: ""
-            }
+            },
+            openPort: ["22"]
         }
     }
     componentDidMount() {
+        this._getOpenPort()
         this._getBasicSettings()
     }
     componentWillUnmount() {
 
     }
+    _checkOpenPort = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.openPort, value) > -1) {
+            callback(formatMessage({id: "LANG3869"}))
+        } else {
+            callback()
+        }
+    }
+    _doNothing = () => {
+
+    }
     _gotoPromptOk = () => {
-        browserHistory.push('/pbx-settings/voicePrompt')
+        browserHistory.push('/pbx-settings/voicePrompt/2')
     }
     _gotoPrompt = () => {
         const { formatMessage } = this.props.intl
@@ -46,7 +60,79 @@ class Basic extends Component {
             onOk() {
                 __this._gotoPromptOk()
             },
-            onCancel() {}
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
+        })
+    }
+    _getOpenPort = () => {
+        let openPort = this.state.openPort
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getNetstatInfo' },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let response = data.response
+                    const netstat = response.netstat
+                    
+                    netstat.map(function(item) {
+                        if ($.inArray(item.port, openPort) > -1) {
+
+                        } else {
+                            openPort.push(item.port)
+                        }
+                    })
+                }
+            }.bind(this)
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getSIPTCPSettings' },
+            async: false,
+            type: "json",
+            error: function(jqXHR, textStatus, errorThrown) {
+                // top.dialog.dialogMessage({
+                //     type: 'error',
+                //     content: errorThrown
+                // });
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    let tlsbindaddr = data.response.sip_tcp_settings.tlsbindaddr
+                    let tcpbindaddr = data.response.sip_tcp_settings.tcpbindaddr
+
+                    if (tlsbindaddr) {
+                        let tlsPort = tlsbindaddr.split(":")[1]
+
+                        if (tlsPort && !($.inArray(tlsPort, openPort) > -1)) {
+                            openPort.push(tlsPort)
+                        }
+                    }
+
+                    if (tcpbindaddr) {
+                        let tcpPort = tcpbindaddr.split(":")[1]
+
+                        if (tcpPort && !($.inArray(tcpPort, openPort) > -1)) {
+                            openPort.push(tcpPort)
+                        }
+                    }
+                }
+            }
+        })
+
+        this.setState({
+            openPort: openPort
         })
     }
     _getBasicSettings = () => {
@@ -55,6 +141,7 @@ class Basic extends Component {
             method: "post",
             data: { action: 'getPMSSettings' },
             type: 'json',
+            async: false,
             error: function(e) {
                 message.error(e.statusText)
             },
@@ -67,12 +154,17 @@ class Basic extends Component {
                         if (!basicSettings.pms_protocol) {
                             basicSettings.pms_protocol = 'disable'
                         }
+                        let openPort = this.state.openPort
+                        if (basicSettings.ucm_port) {
+                            openPort = _.without(openPort, basicSettings.ucm_port)
+                        }
                     this.setState({
-                        basicSettings: basicSettings
+                        basicSettings: basicSettings,
+                        openPort: openPort
                     })
                 }
             }.bind(this)
-        })        
+        })
     }
     _onChangeProtocol = (e) => {
         const basicSettings = this.state.basicSettings
@@ -101,7 +193,7 @@ class Basic extends Component {
                 <Form>
                     <FormItem
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG5246" />}>
                                 <span>{formatMessage({id: "LANG5246"})}</span>
                             </Tooltip>
@@ -120,7 +212,7 @@ class Basic extends Component {
                     <FormItem
                         className={ basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? "hidden" : "display-block" }
                         { ...formItemPromptLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG4859" />}>
                                 <span>{formatMessage({id: "LANG4859"})}</span>
                             </Tooltip>
@@ -140,7 +232,7 @@ class Basic extends Component {
                                                         { item.text }
                                                     </Option>
                                                 }
-                                            ) 
+                                            )
                                         }
                                     </Select>
                                 ) }
@@ -153,7 +245,7 @@ class Basic extends Component {
                     <FormItem
                         className={ basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile" ? "display-block" : "hidden" }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG4940" />}>
                                 <span>{formatMessage({id: "LANG4860"})}</span>
                             </Tooltip>
@@ -171,32 +263,42 @@ class Basic extends Component {
                     <FormItem
                         className={ basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? "hidden" : "display-block" }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG4934" />}>
                                 <span>{formatMessage({id: "LANG4880"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('ucm_port', {
                             rules: [{
-                                required: basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? false : true, 
+                                required: basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? false : true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? callback() : Validator.range(data, value, callback, formatMessage, 1, 65535)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? callback() : Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: basicSettings.pms_protocol === "disable" || basicSettings.pms_protocol.value === "disable" ? this._doNothing() : this._checkOpenPort
                             }],
                             initialValue: basicSettings.ucm_port
                         })(
-                            <InputNumber min={1} max={65535} maxLength="6" />
+                            <Input min={1} max={65535} maxLength="6" />
                         ) }
                     </FormItem>
                     <FormItem
                         className={ basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile" ? "display-block" : "hidden" }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG72" />}>
                                 <span>{formatMessage({id: "LANG72"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('username', {
                             rules: [{
-                                required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile", 
+                                required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile",
                                 message: formatMessage({id: "LANG2150"})
                             }],
                             initialValue: basicSettings.username
@@ -207,17 +309,35 @@ class Basic extends Component {
                     <FormItem
                         className={ basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile" ? "display-block" : "hidden" }
                         { ...formItemLayout }
-                        label={                            
+                        label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG73" />}>
                                 <span>{formatMessage({id: "LANG73"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('password', {
                             rules: [{
-                                required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile", 
+                                required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile",
                                 message: formatMessage({id: "LANG2150"})
                             }],
                             initialValue: basicSettings.password
+                        })(
+                            <Input maxLength="64" />
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        className={ basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile" ? "display-block" : "hidden" }
+                        { ...formItemLayout }
+                        label={
+                            <Tooltip title={<FormattedHTMLMessage id="LANG5459" />}>
+                                <span>{formatMessage({id: "LANG5459"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('site', {
+                            rules: [{
+                                required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile",
+                                message: formatMessage({id: "LANG2150"})
+                            }],
+                            initialValue: basicSettings.site
                         })(
                             <Input maxLength="64" />
                         ) }

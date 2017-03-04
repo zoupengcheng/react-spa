@@ -12,14 +12,15 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
 import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
 
-const baseServerURl = api.apiHost
 const FormItem = Form.Item
 const Option = Select.Option
 const confirm = Modal.confirm
+const baseServerURl = api.apiHost
 
 class ResetReboot extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
             mtype: 'data',
             dateShow: "display-block",
@@ -43,7 +44,6 @@ class ResetReboot extends Component {
     componentDidMount() {
     }
     componentWillUnmount() {
-
     }
     _handleFormChange = (changedFields) => {
         _.extend(this.props.dataSource, changedFields)
@@ -55,6 +55,7 @@ class ResetReboot extends Component {
     }
     _onAllChange = (e) => {
         let DataBox = this.state.DataBox
+
         if (e.target.checked) {
             DataBox.record = true
             DataBox.vfax = true
@@ -82,6 +83,7 @@ class ResetReboot extends Component {
             DataBox.troubleshooting = false
             DataBox.qmail = false
         }
+
         this.setState({
             DataBox: DataBox
         })
@@ -143,12 +145,15 @@ class ResetReboot extends Component {
     }
     _reset = () => {
         const { formatMessage } = this.props.intl
+
         const typeName = {
             data: formatMessage({id: "LANG1488"}),
             all: formatMessage({id: "LANG104"}) 
         }
+
         const typeLabel = typeName[this.state.mtype]
         const content = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG837" }, {0: typeLabel})}}></span>
+
         Modal.confirm({
                 title: 'Confirm',
                 content: content,
@@ -160,10 +165,12 @@ class ResetReboot extends Component {
     _doReboot = () => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
+
         UCMGUI.loginFunction.confirmReboot()
     }
     _reboot = () => {
         const { formatMessage } = this.props.intl
+
         Modal.confirm({
                 title: 'Confirm',
                 content: formatMessage({id: "LANG835"}),
@@ -193,8 +200,9 @@ class ResetReboot extends Component {
         })
     }
     render() {
-        const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
+
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
@@ -213,10 +221,11 @@ class ResetReboot extends Component {
                     <FormItem
                         { ...formItemLayout }
                         label={                            
-                            <Tooltip title={<FormattedHTMLMessage id="LANG2049" />}>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG2253" />}>
                                 <span>{formatMessage({id: "LANG84"})}</span>
                             </Tooltip>
-                        }>
+                        }
+                    >
                         { getFieldDecorator('mtype', {
                             rules: [],
                             initialValue: this.state.mtype
@@ -235,7 +244,8 @@ class ResetReboot extends Component {
                             <Tooltip title={<FormattedHTMLMessage id="LANG5293" />}>
                                 <span>{formatMessage({id: "LANG4805"})}</span>
                             </Tooltip>
-                        )}>
+                        )}
+                    >
                         <Col span={ 2 }>
                             { getFieldDecorator('record', {
                                 rules: [],

@@ -185,8 +185,11 @@
             "name": "LANG5302",
             "path": "cleanReset"
         }, {
-            "name": "LANG68",
-            "path": "troubleshooting"
+            "name": "LANG5461",
+            "path": "netTroubleshooting"
+        }, {
+            "name": "LANG5462",
+            "path": "signalTroubleshooting"
         }, {
             "name": "LANG3437",
             "path": "serviceCheck"

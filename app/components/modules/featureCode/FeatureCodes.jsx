@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip, Button, Modal } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip, Button, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -41,7 +41,8 @@ class FeatureCode extends Component {
             enable_fcode_wakeup: featureCodes.enable_fcode_wakeup === 'yes',
             enable_fcode_pms_status: featureCodes.enable_fcode_pms_status === 'yes',
             barge_enable: featureSettings.barge_enable === 'yes',
-            enable_inboud_multi_mode: featureCodes.enable_inboud_multi_mode === 'yes'
+            enable_inboud_multi_mode: featureCodes.enable_inboud_multi_mode === 'yes',
+            enable_fcode_presence_status: featureCodes.enable_fcode_presence_status === 'yes'
         }
     }
     componentWillMount() {
@@ -790,6 +791,35 @@ class FeatureCode extends Component {
                                 { getFieldDecorator('enable_fcode_pms_status', {
                                     valuePropName: 'checked',
                                     initialValue: this.state.enable_fcode_pms_status
+                                })(
+                                    <Checkbox onChange={ this._onChangeEnable } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={ 6 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5457" /> }>
+                                            <span>{ formatMessage({id: "LANG5450"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}>
+                                { getFieldDecorator('fcode_presence_status', {
+                                    initialValue: featureCodes.fcode_presence_status
+                                })(
+                                    <Input disabled={ !this.state.enable_fcode_presence_status } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 6 }>
+                            <FormItem>
+                                { getFieldDecorator('enable_fcode_presence_status', {
+                                    valuePropName: 'checked',
+                                    initialValue: this.state.enable_fcode_presence_status
                                 })(
                                     <Checkbox onChange={ this._onChangeEnable } />
                                 ) }

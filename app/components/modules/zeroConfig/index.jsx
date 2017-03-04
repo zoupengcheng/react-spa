@@ -8,7 +8,7 @@ import GlobalPolicy from './globalPolicy'
 import GlobalTemplates from './globalTemplates'
 import ModelTemplates from './modelTemplates'
 import TemplateManagement from './templateManagement'
-import Autoprovision from './autoprovision'
+import ZeroConfigSettings from './zeroConfigSettings'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -86,7 +86,7 @@ class ZeroConfig extends Component {
                         <TemplateManagement />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG3904"})} key="6">
-                        <Autoprovision />
+                        <ZeroConfigSettings />
                     </TabPane>
                 </Tabs>
             </div>

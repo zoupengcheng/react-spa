@@ -6,11 +6,13 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, InputNumber, message, Popover } from 'antd'
+import { Form, Input, message, Popover } from 'antd'
 import $ from 'jquery'
+import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from "../../api/validator"
 
 const FormItem = Form.Item
 
@@ -18,12 +20,93 @@ class CTIServer extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            ctimidSettings: {}
+            ctimidSettings: {},
+            openPort: ['22']
         }
     }
     componentWillMount() {}
     componentDidMount() {
+        this._getOpenPort()
         this._getCRMSettings()
+    }
+    _checkOpenPort = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.openPort, value) > -1) {
+            callback(formatMessage({id: "LANG3869"}))
+        } else {
+            callback()
+        }
+    }
+    _getOpenPort = () => {
+        let openPort = this.state.openPort
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getNetstatInfo' },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let response = data.response
+                    const netstat = response.netstat
+                    
+                    netstat.map(function(item) {
+                        if ($.inArray(item.port, openPort) > -1) {
+
+                        } else {
+                            openPort.push(item.port)
+                        }
+                    })
+                }
+            }.bind(this)
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getSIPTCPSettings' },
+            async: false,
+            type: "json",
+            error: function(jqXHR, textStatus, errorThrown) {
+                // top.dialog.dialogMessage({
+                //     type: 'error',
+                //     content: errorThrown
+                // });
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    let tlsbindaddr = data.response.sip_tcp_settings.tlsbindaddr
+                    let tcpbindaddr = data.response.sip_tcp_settings.tcpbindaddr
+
+                    if (tlsbindaddr) {
+                        let tlsPort = tlsbindaddr.split(":")[1]
+
+                        if (tlsPort && !($.inArray(tlsPort, openPort) > -1)) {
+                            openPort.push(tlsPort)
+                        }
+                    }
+
+                    if (tcpbindaddr) {
+                        let tcpPort = tcpbindaddr.split(":")[1]
+
+                        if (tcpPort && !($.inArray(tcpPort, openPort) > -1)) {
+                            openPort.push(tcpPort)
+                        }
+                    }
+                }
+            }
+        })
+
+        this.setState({
+            openPort: openPort
+        })
     }
     _getCRMSettings = () => {
         $.ajax({
@@ -34,9 +117,11 @@ class CTIServer extends Component {
             async: true,
             success: function(res) {
                 let ctimidSettings = res.response.ctimid_settings || {}
-
+                let openPort = this.state.openPort
+                openPort = _.without(openPort, ctimidSettings.port)
                 this.setState({
-                    ctimidSettings: ctimidSettings
+                    ctimidSettings: ctimidSettings,
+                    openPort: openPort
                 })
             }.bind(this),
             error: function(e) {
@@ -116,13 +201,22 @@ class CTIServer extends Component {
                         )}
                     >
                         { getFieldDecorator('port', {
-                            rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._validatePortFormate }
-                            ],
+                            rules: [{ /* type: 'integer', */ 
+                                required: true, message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 1, 65535)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: this._checkOpenPort
+                            }],
                             initialValue: port
                         })(
-                            <InputNumber min={ 1 } max={ 65535 } />
+                            <Input min={ 1 } max={ 65535 } />
                         ) }
                     </FormItem>
                 </Form>

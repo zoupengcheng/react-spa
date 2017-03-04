@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Popover, Select, Tabs } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select, Tabs } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import ZEROCONFIG from './parser/ZCDataSource'

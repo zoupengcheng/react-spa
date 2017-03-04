@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Tooltip, Modal } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Select, Tooltip, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option

@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, InputNumber, message, Checkbox, Tooltip, Select, Row, Col } from 'antd'
+import { Form, Input, message, Checkbox, Tooltip, Select, Row, Col } from 'antd'
 
 const Option = Select.Option
 const FormItem = Form.Item
@@ -222,7 +222,7 @@ class SpeedDialItem extends Component {
         })
 
         let keyDisaList = this._transObjData(
-            UCMGUI.isExist.getList("getFaxList"),
+            UCMGUI.isExist.getList("getDISAList"),
             {
                 val: "disa_id",
                 text: "display_name"

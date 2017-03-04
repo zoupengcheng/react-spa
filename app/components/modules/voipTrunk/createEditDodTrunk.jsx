@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select } from 'antd'
 const FormItem = Form.Item
 const Option = Select.Option
 import _ from 'underscore'
@@ -686,7 +686,7 @@ class CreateVoipTrunk extends Component {
                             }>
                             { getFieldDecorator('cc_max_agents', {
                                 rules: [{ 
-                                    type: "integer", 
+                                    type: 'integer',
                                     required: true, 
                                     message: formatMessage({id: "LANG2150"}) 
                                 }],
@@ -706,7 +706,7 @@ class CreateVoipTrunk extends Component {
                             }>
                             { getFieldDecorator('cc_max_monitors', {
                                 rules: [{ 
-                                    type: "integer", 
+                                    type: 'integer', 
                                     required: true, 
                                     message: formatMessage({id: "LANG2150"}) 
                                 }],

@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
@@ -87,13 +87,13 @@ const CustomizedForm = injectIntl(Form.create({
                 )}>
                 { getFieldDecorator('bindport', {
                     rules: [{ 
-                        type: "integer", 
+                        /* type: 'integer', */ 
                         required: true, 
                         message: formatMessage({id: "LANG2150"}) 
                     }],
                     initialValue: SIPGenSettings.bindport
                 })(
-                    <InputNumber min={1} max={65535} maxLength="6" />
+                    <Input min={1} max={65535} maxLength="6" />
                 ) }
             </FormItem>
             <FormItem

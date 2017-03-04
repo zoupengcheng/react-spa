@@ -10,7 +10,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, InputNumber, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, DatePicker, TimePicker, Button, Modal, Row } from 'antd'
 
 const FormItem = Form.Item
 const confirm = Modal.confirm
@@ -34,6 +34,7 @@ class Cleaner extends Component {
     }
     _getInitData = () => {
         const { formatMessage } = this.props.intl
+
         $.ajax({
             type: "GET",
             url: "/cgi?action=getCleanerValue",
@@ -41,9 +42,12 @@ class Cleaner extends Component {
             },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, formatMessage)
+
                 let data = {}
+
                 if (bool) {
                     const response = res.response || {}
+
                      _.each(response, function(num, key) {
                         if (key === 'Phour_clean_cdr' || key === 'Pclean_cdr_interval' || key === 'Pclean_record_threshold' || key === 'Phour_clean_vr' || key === 'Pclean_record_interval') {
                             data[key] = num
@@ -51,6 +55,7 @@ class Cleaner extends Component {
                             data[key] = num === "1" ? true : false
                         }
                     })
+
                     this.setState({
                         data: data
                     })
@@ -75,6 +80,7 @@ class Cleaner extends Component {
             },
             success: function(data) {
                 let arr = data.split("\n").reverse()
+
                 this.setState({
                     log: arr
                 })
@@ -97,6 +103,7 @@ class Cleaner extends Component {
 
                 if (bool) {
                     message.success(formatMessage({ id: "LANG4831"}))
+
                     this._readLog()
                 }
             }.bind(this)
@@ -104,6 +111,7 @@ class Cleaner extends Component {
     }
     _cleanLog = () => {
         const { formatMessage } = this.props.intl
+
         Modal.confirm({
                 title: 'Confirm',
                 content: formatMessage({id: "LANG3902"}),
@@ -114,21 +122,26 @@ class Cleaner extends Component {
     }
     _onChangeCDR = (e) => {
         let data = this.state.data
+
         data.Pen_auto_clean_cdr = e.target.checked
+
         this.setState({
             data: data
         })
     }
      _onChangeFile = (e) => {
         let data = this.state.data
+
         data.Pen_auto_clean_vr = e.target.checked
+
         this.setState({
             data: data
         })
     }
     render() {
-        const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
+
         const formItemLayout = {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
@@ -153,7 +166,8 @@ class Cleaner extends Component {
                             <Tooltip title={<FormattedHTMLMessage id="LANG1432" />}>
                                 <span>{formatMessage({id: "LANG1431"})}</span>
                             </Tooltip>
-                        }>
+                        }
+                    >
                         { getFieldDecorator('Pen_auto_clean_cdr', {
                             rules: [],
                             valuePropName: "checked",
@@ -172,11 +186,11 @@ class Cleaner extends Component {
                     >
                         { getFieldDecorator('Phour_clean_cdr', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: this.state.data.Phour_clean_cdr
                         })(
-                            <InputNumber min={ 0 } max={ 23 } disabled={ !this.state.data.Pen_auto_clean_cdr } />
+                            <Input min={ 0 } max={ 23 } disabled={ !this.state.data.Pen_auto_clean_cdr } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -189,11 +203,11 @@ class Cleaner extends Component {
                     >
                         { getFieldDecorator('Pclean_cdr_interval', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: this.state.data.Pclean_cdr_interval
                         })(
-                            <InputNumber min={ 1 } max={ 30 } disabled={ !this.state.data.Pen_auto_clean_cdr } />
+                            <Input min={ 1 } max={ 30 } disabled={ !this.state.data.Pen_auto_clean_cdr } />
                         ) }
                     </FormItem>
                     <Row>
@@ -209,7 +223,8 @@ class Cleaner extends Component {
                             <Tooltip title={<FormattedHTMLMessage id="LANG1438" />}>
                                 <span>{formatMessage({id: "LANG1437"})}</span>
                             </Tooltip>
-                        }>
+                        }
+                    >
                         { getFieldDecorator('Pen_auto_clean_vr', {
                             rules: [],
                             valuePropName: "checked",
@@ -224,7 +239,8 @@ class Cleaner extends Component {
                             <Tooltip title={<FormattedHTMLMessage id="LANG3487" />}>
                                 <span>{formatMessage({id: "LANG3486"})}</span>
                             </Tooltip>
-                        )}>
+                        )}
+                    >
                         <Col span={ 2 }>
                             { getFieldDecorator('Pen_auto_clean_monitor', {
                                 rules: [],
@@ -245,7 +261,7 @@ class Cleaner extends Component {
                             ) }
                         </Col>
                         <Col span={ 10 }>{formatMessage({id: "LANG4772"}, { 0: formatMessage({id: 'LANG18'}) })}</Col>
-                       <Col span={ 2 }>
+                        <Col span={ 2 }>
                             { getFieldDecorator('Pen_auto_clean_queue', {
                                 rules: [],
                                 valuePropName: 'checked',
@@ -296,11 +312,11 @@ class Cleaner extends Component {
                     >
                         { getFieldDecorator('Pclean_record_threshold', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: this.state.data.Pclean_record_threshold
                         })(
-                            <InputNumber min={ 1 } max={ 99 } disabled={ !this.state.data.Pen_auto_clean_vr } />
+                            <Input min={ 1 } max={ 99 } disabled={ !this.state.data.Pen_auto_clean_vr } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -313,11 +329,11 @@ class Cleaner extends Component {
                     >
                         { getFieldDecorator('Phour_clean_vr', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: this.state.data.Phour_clean_vr
                         })(
-                            <InputNumber min={ 0 } max={ 23 } disabled={ !this.state.data.Pen_auto_clean_vr } />
+                            <Input min={ 0 } max={ 23 } disabled={ !this.state.data.Pen_auto_clean_vr } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -330,11 +346,11 @@ class Cleaner extends Component {
                     >
                         { getFieldDecorator('Pclean_record_interval', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: this.state.data.Pclean_record_interval
                         })(
-                            <InputNumber min={ 1 } max={ 30 } disabled={ !this.state.data.Pen_auto_clean_vr } />
+                            <Input min={ 1 } max={ 30 } disabled={ !this.state.data.Pen_auto_clean_vr } />
                         ) }
                     </FormItem>
                     <Row>
@@ -348,9 +364,11 @@ class Cleaner extends Component {
                         <Button type="primary" onClick={ this._cleanLog }>{formatMessage({id: "LANG743"})}</Button>
                     </div>
                     <div>
-                        <p > <span >
-                           { this.state.log }
-                        </span></p>
+                        <p>
+                            <span>
+                                { this.state.log }
+                            </span>
+                        </p>
                     </div>
                 </Form>
             </div>

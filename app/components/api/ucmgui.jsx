@@ -430,15 +430,14 @@ UCMGUI.prototype = {
                     },
                     success: function(data) {
                         if (data && data.status === 0) {
-                            var currentTime = data.response.current_time,
+                            let currentTime = data.response.current_time,
                                 needApply = data.response.need_apply,
-                                needReboot = data.response.need_reboot
-
-                                // zcScanProgress = data.response.zc_scan_progress,
-                                // zcScanOperator = data.response.zc_scan_operator
+                                needReboot = data.response.need_reboot,
+                                zcScanProgress = data.response.zc_scan_progress,
+                                zcScanOperator = data.response.zc_scan_operator
 
                             if (type === "ping") { // check user whether has logged per minute.
-                                // var applyChanges = $("#applyChanges_Button", top.frames["frameContainer"].document),
+                                // let applyChanges = $("#applyChanges_Button", top.frames["frameContainer"].document),
                                 //     lineButton = $("#line_Button", top.frames["frameContainer"].document);
                                 
                                 // if (needApply && needApply == 'yes') {
@@ -464,7 +463,7 @@ UCMGUI.prototype = {
                                 // }
 
                                 // if (currentTime) {
-                                //     var time = currentTime.split(' ');
+                                //     let time = currentTime.split(' ');
 
                                 //     time[1] = time[1].slice(0, time[1].length - 3);
 
@@ -472,7 +471,7 @@ UCMGUI.prototype = {
                                 // }
 
                                 if (needReboot && needReboot !== UCMGUI.config.needReboot) {
-                                    var confirmMsg = ''
+                                    let confirmMsg = ''
 
                                     if (needReboot.contains("upgrade")) {
                                         confirmMsg += formatMessage({id: "LANG924"}).split('<br />')[0] + ' '
@@ -509,20 +508,21 @@ UCMGUI.prototype = {
                                     }
                                 }
 
-                                // if (zcScanProgress === '0' && UCMGUI.config.zcScanProgress === '1' && zcScanOperator == username) {
-                                //     top.dialog.clearDialog()
+                                if (zcScanProgress === '0' && UCMGUI.config.zcScanProgress === '1' && zcScanOperator === username) {
+                                    top.dialog.clearDialog()
+                                    message.destroy()
+                                    Modal.confirm({
+                                        title: formatMessage({id: "LANG917"}),
+                                        content: '',
+                                        okText: 'OK',
+                                        cancelText: 'Cancel',
+                                        onOk: () => {
+                                            browserHistory.push('/value-added-features/zeroConfig')
+                                        }
+                                    })
+                                }
 
-                                //     top.dialog.dialogConfirm({
-                                //         confirmStr: $.lang("LANG917"),
-                                //         buttons: {
-                                //             ok: function() {
-                                //                 top.frames["frameContainer"].module.jumpMenu("zc_devices.html", "?filter=res")
-                                //             }
-                                //         }
-                                //     })
-                                // }
-
-                                // UCMGUI.config.zcScanProgress = zcScanProgress
+                                UCMGUI.config.zcScanProgress = zcScanProgress
                             } else {
                                 if (!loginInterval) {
                                     UCMGUI.prototype.loginFunction.checkTrigger()
@@ -584,7 +584,7 @@ UCMGUI.prototype = {
             }, 60000)
         },
         confirmReboot: function(cb) {
-            var reload = function() {
+            let reload = function() {
                 $.ajax({
                     type: "POST",
                     dataType: "json",
@@ -606,7 +606,7 @@ UCMGUI.prototype = {
                 })
                 browserHistory.push('/login')
             }
-            var reboot = function() {
+            let reboot = function() {
                 // delete interval while reboot.
                 // if (top.$.gsec && top.$.gsec.stopSessionCheck) {
                 //     top.$.gsec.stopSessionCheck()
@@ -655,7 +655,7 @@ UCMGUI.prototype = {
 
             message.loading(formatMessage({ id: "LANG836"}))
 
-            var reload = function() {
+            let reload = function() {
                 $.ajax({
                     type: "POST",
                     dataType: "json",
@@ -708,7 +708,7 @@ UCMGUI.prototype = {
         return val
     },
     // getPrivilegeAction: function(actionData, privilegeData, actionType) {
-    //     var action = actionData["action"],
+    //     let action = actionData["action"],
     //         obj = {};
 
     //     if (action) {
@@ -718,9 +718,9 @@ UCMGUI.prototype = {
     //         }
     //     }
     //     if (actionType) {
-    //         for (var attr in actionData) {
+    //         for (let attr in actionData) {
     //             if (actionData.hasOwnProperty(attr) && attr != "action") {
-    //                 var privilegeAttrVal = privilegeData[attr],
+    //                 let privilegeAttrVal = privilegeData[attr],
     //                     privilegeActionArr = UCMGUI.getPrivilegeActionArr({
     //                         attrVal: privilegeAttrVal,
     //                         actionType: actionType,
@@ -739,7 +739,7 @@ UCMGUI.prototype = {
     //     }
     // },
     // getPrivilegeActionArr: function(obj) {
-    //     var attrVal = obj.attrVal,
+    //     let attrVal = obj.attrVal,
     //         actionType = obj.actionType,
     //         id = obj.id,
     //         val = obj.val,
@@ -759,21 +759,21 @@ UCMGUI.prototype = {
     //         if (privilegeVal == "-1") {
     //             privilegeVal = 15;
     //         }
-    //         var privInt = parseInt(privilegeVal, 10);
+    //         let privInt = parseInt(privilegeVal, 10);
 
     //         if (!isNaN(privInt)) {
-    //             var privBinary = privInt.toString(2),
+    //             let privBinary = privInt.toString(2),
     //                 arr = privBinary.split(""),
     //                 str = "";
-    //             for (var i = 0; i < 4 - arr.length; i++) {
+    //             for (let i = 0; i < 4 - arr.length; i++) {
     //                 str += 0;
     //             }
     //             privBinary = str + privBinary;
 
-    //             var matchArr = privBinary.match(/\d/g);
+    //             let matchArr = privBinary.match(/\d/g);
 
     //             if (matchArr.length != 0) {
-    //                 var add = Number(matchArr[0]),
+    //                 let add = Number(matchArr[0]),
     //                     del = Number(matchArr[1]),
     //                     edit = Number(matchArr[2]),
     //                     read = Number(matchArr[3]);
@@ -862,7 +862,7 @@ UCMGUI.prototype = {
     },
     bySort: function(name, type) {
         return function(o, p) {
-            var left = 0,
+            let left = 0,
                 right = 0,
                 a = "",
                 b = ""
@@ -920,6 +920,35 @@ UCMGUI.prototype = {
                 }
             }
         }
+    },
+    ObjectArray: {
+        find: function(item, value, ary) {
+            if (!item || !value || !ary) {
+                return
+            }
+
+            let length = ary.length,
+                i = 0,
+                response = {}
+
+            for (i; i < length; i++) {
+                if (value === ary[i][item]) {
+                    response = ary[i]
+                    break
+                }
+            }
+
+            return response
+        }
+    },
+    serialize: function(data) {
+        let arr = []
+        for (let temp in data) {
+            if (data.hasOwnProperty(temp)) {
+                arr.push(temp + "=" + data[temp])
+            }
+        }
+        return arr.join("&")
     }
 }
 

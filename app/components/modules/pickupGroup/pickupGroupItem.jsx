@@ -90,7 +90,7 @@ class PickupGroupItem extends Component {
                     const disabled = formatMessage({id: "LANG273"})
 
                     extension.map(function(item) {
-                        if (item.account_type === 'SIP') {
+                        if (item.account_type !== 'IAX') {
                             accountList.push({
                                     key: item.extension,
                                     out_of_service: item.out_of_service,

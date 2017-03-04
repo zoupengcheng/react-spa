@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Modal, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs, Spin } from 'antd'
+import { Form, Input, Modal, Button, Row, Col, Checkbox, message, Tooltip, Select, Tabs, Spin } from 'antd'
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
@@ -455,13 +455,13 @@ class DigitalTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('callerid', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }],
                                             initialValue: Number(digitaltrunk.callerid) || 1
                                         })(
-                                            <InputNumber maxLength="32" />
+                                            <Input maxLength="32" />
                                         )}
                                     </FormItem>
                                 </Col>

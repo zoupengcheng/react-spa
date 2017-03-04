@@ -28,12 +28,13 @@ class WakeupServiceItem extends Component {
                 text: "wakeup-call"
                 }],
             wakeupServiceItem: {},
-            dateShow: "display-block",
-            weekShow: "hidden",
+            dateShow: true,
+            weekShow: false,
             customDateCheck: false,
             weekList: [],
             weekAll: false,
-            plainOptions: []
+            plainOptions: [],
+            wakeupNameList: []
         }
     }
     componentWillMount() {
@@ -44,14 +45,11 @@ class WakeupServiceItem extends Component {
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
 
-        if (value && _.indexOf(this.state.groupNameList, value) > -1) {
+        if (value && _.indexOf(this.state.wakeupNameList, value) > -1) {
             callback(formatMessage({id: "LANG2137"}))
         } else {
             callback()
         }
-    }
-    _filterTransferOption = (inputValue, option) => {
-        return (option.title.indexOf(inputValue) > -1)
     }
     _removeSuffix = (filename) => {
         let name = filename.toLocaleLowerCase(),
@@ -67,6 +65,36 @@ class WakeupServiceItem extends Component {
             }
         }
     }
+    _getWakeupName = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listWakeupSchedule'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const wakeupList = response.ucm_wakeup || []
+                    let wakeupNameList = this.state.wakeupNameList
+                    wakeupList.map(function(item) {
+                        wakeupNameList.push(item.wakeup_name)
+                    })
+
+                    this.setState({
+                        wakeupNameList: wakeupNameList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
     _getInitData = () => {
         let targetKeys = []
         let accountList = []
@@ -75,9 +103,11 @@ class WakeupServiceItem extends Component {
         let customCheck = false
         let weekList = []
         let weekAll = false
+        let wakeupNameList = this.state.wakeupNameList
         const __this = this
         const { formatMessage } = this.props.intl
         const wakeupServiceId = this.props.params.id
+        const wakeupServiceName = this.props.params.name
         const plainOptions = [{
                 label: formatMessage({id: "LANG250"}),
                 value: '0'
@@ -179,6 +209,7 @@ class WakeupServiceItem extends Component {
                         } else {
                             customCheck = true
                             weekList = wakeupService.custom_date.split(',')
+                            wakeupService.custom_date = ''
                         }
                         
                         if (weekList.length === 7) {
@@ -190,6 +221,7 @@ class WakeupServiceItem extends Component {
                     message.error(e.statusText)
                 }
             })
+            wakeupNameList = _.without(wakeupNameList, wakeupServiceName)
         }
 
         this.setState({
@@ -197,19 +229,20 @@ class WakeupServiceItem extends Component {
             accountList: accountList,
             fileList: fileList,
             wakeupServiceItem: wakeupService,
-            weekShow: (customCheck ? "display-block" : "hidden"),
-            dateShow: (customCheck ? "hidden" : "display-block"),
+            weekShow: (customCheck ? true : false),
+            dateShow: (customCheck ? false : true),
             customDateCheck: customCheck,
             weekList: weekList,
             weekAll: weekAll,
-            plainOptions: plainOptions
+            plainOptions: plainOptions,
+            wakeupNameList: wakeupNameList
         })
     }
     _handleCancel = () => {
         browserHistory.push('/value-added-features/wakeupService')
     }
     _gotoPromptOk = () => {
-        browserHistory.push('/pbx-settings/voicePrompt')
+        browserHistory.push('/pbx-settings/voicePrompt/2')
     }
     _gotoPrompt = () => {
         const { formatMessage } = this.props.intl
@@ -220,19 +253,21 @@ class WakeupServiceItem extends Component {
             onOk() {
                 __this._gotoPromptOk()
             },
-            onCancel() {}
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
         })
     }
     _onCustomChange = (e) => {
         if (!e.target.checked) {
             this.setState({
-                dateShow: "display-block",
-                weekShow: "hidden"
+                dateShow: true,
+                weekShow: false
             })
         } else {
             this.setState({
-                dateShow: "hidden",
-                weekShow: "display-block"
+                dateShow: false,
+                weekShow: true
             })
         }
     }
@@ -270,7 +305,7 @@ class WakeupServiceItem extends Component {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
@@ -284,6 +319,10 @@ class WakeupServiceItem extends Component {
                 action.prompt = values.prompt
                 action.time = values.time.format('HH:mm')
                 if (values.custom) {
+                    if (this.state.weekList.length === 0) {
+                        message.error(formatMessage({id: "LANG3531"}, {0: 1, 1: formatMessage({id: "LANG243"})}))
+                        return
+                    }
                     action.custom_date = this.state.weekList.sort().join(',')
                 } else {
                     action.custom_date = values.custom_date.format('YYYY-MM-DD')
@@ -514,7 +553,7 @@ class WakeupServiceItem extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_custom_date"
-                            className={ this.state.dateShow }
+                            className={ this.state.dateShow ? "display-block" : "hidden" }
                             { ...formItemLayout }
 
                             label={(
@@ -523,8 +562,8 @@ class WakeupServiceItem extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('custom_date', {
-                                rules: [{ type: 'object',
-                                    required: true,
+                                rules: [{
+                                    required: this.state.dateShow ? true : false,
                                     message: formatMessage({id: "LANG2150"})
                                 }],
                                 initialValue: wakeupServiceItem.custom_date ? moment(wakeupServiceItem.custom_date, "YYYY-MM-DD") : null
@@ -534,7 +573,7 @@ class WakeupServiceItem extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_weekBox"
-                            className={ this.state.weekShow }
+                            className={ this.state.weekShow ? "display-block" : "hidden" }
                             { ...formItemLayout }
 
                             label={(

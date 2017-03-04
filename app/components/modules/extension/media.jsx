@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Icon, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, Icon, message, Row, Select, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -490,7 +490,7 @@ class Media extends Component {
                                 { getFieldDecorator('rxgain', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer'
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -498,7 +498,7 @@ class Media extends Component {
                                     initialValue: settings.rxgain ? settings.rxgain : 0,
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber min={ -30 } max={ 6 } />
+                                    <Input min={ -30 } max={ 6 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -516,7 +516,7 @@ class Media extends Component {
                                 { getFieldDecorator('txgain', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer'
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -524,7 +524,7 @@ class Media extends Component {
                                     initialValue: settings.txgain ? settings.txgain : 0,
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber min={ -30 } max={ 6 } />
+                                    <Input min={ -30 } max={ 6 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -566,7 +566,7 @@ class Media extends Component {
                                 { getFieldDecorator('rxflash_min', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer'
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -574,7 +574,7 @@ class Media extends Component {
                                     initialValue: settings.rxflash_min ? settings.rxflash_min : 200,
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber min={ 30 } max={ 1000 } />
+                                    <Input min={ 30 } max={ 1000 } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -592,7 +592,7 @@ class Media extends Component {
                                 { getFieldDecorator('rxflash', {
                                     rules: [
                                         {
-                                            type: 'integer',
+                                            // type: 'integer'
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
@@ -600,7 +600,7 @@ class Media extends Component {
                                     initialValue: settings.rxflash ? settings.rxflash : 1250,
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -757,12 +757,12 @@ class Media extends Component {
                             >
                                 { getFieldDecorator('maxcallnumbers', {
                                     rules: [
-                                        { type: 'integer' }
+                                        { /* type: 'integer' */ }
                                     ],
                                     initialValue: settings.maxcallnumbers,
                                     className: extension_type === 'iax' ? 'display-block' : 'hidden'
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>

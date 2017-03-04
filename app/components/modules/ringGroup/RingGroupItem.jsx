@@ -9,9 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, message, Select, Tooltip, Checkbox, Row, Col, Transfer } from 'antd'
+import { Form, Input, message, Select, Tooltip, Checkbox, Row, Col, Transfer, Modal } from 'antd'
 
 const FormItem = Form.Item
+const Option = Select.Option
+const confirm = Modal.confirm
 
 class RingGroupItem extends Component {
     constructor(props) {
@@ -27,14 +29,28 @@ class RingGroupItem extends Component {
             fileList: [],
             ringGroupValues: {},
             disabled_exten: false,
-            voicemailDisplay: false
+            voicemailDisplay: false,
+            extensionList: [],
+            voicemailList: [],
+            queueList: [],
+            ringGroupList: [],
+            vmGroupList: [],
+            externalNumber: false
         }
     }
     componentWillMount() {
+        this._getAccountList()
+        this._getVoicemailList()
+        this._getQueueList()
+        this._getRingGroupList()
+        this._getVmGroupList()
+        this._getIvrList()
+        this._getRingGroupValues()
     }
     componentDidMount() {
         this._getInitData()
     }
+
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
         const isCheckName = this.props.params.id ? false : true
@@ -116,46 +132,321 @@ class RingGroupItem extends Component {
             ringGroupValues: ringGroupValues
         })
     }
-    _onChangeMode = (e) => {
-        if (e === 'extension') {
-            this.setState({
-                voicemailDisplay: false
-            })
-        } else if (e === 'voicemail') {
-            this.setState({
-                voicemailDisplay: false
-            })
-        } else if (e === 'callqueue') {
-            this.setState({
-                voicemailDisplay: false
-            })
-        } else if (e === 'vm_group') {
-            this.setState({
-                voicemailDisplay: false
-            })
-        } else if (e === 'ivr') {
-            this.setState({
-                voicemailDisplay: false
-            })
-        } else if (e === 'external_num') {
-            this.setState({
-                voicemailDisplay: false
+
+    _handleSelectExtension = (val) => {
+        console.log('-----value is-----: ', val)
+        let displayList = []
+        let voicemailDisplay = false
+        let externalNumber = false
+        if (val === 'account') {
+            let accountList = this.state.accountList
+            for (let i = 0; i < accountList.length; i++) {
+                let extension = accountList[i].key
+                if (extension) {
+                    let obj = {
+                        key: extension,
+                        val: extension
+                    }
+                    displayList.push(obj)
+                }
+            }
+        } else if (val === 'voicemail') {
+            voicemailDisplay = true
+            let voicemailList = this.state.voicemailList
+            for (let i = 0; i < voicemailList.length; i++) {
+                let extension = voicemailList[i]["extension"]
+                if (extension) {
+                    let obj = {
+                        key: extension,
+                        val: extension
+                    }
+                    displayList.push(obj)
+                }
+            }
+        } else if (val === 'queue') {
+            let queueList = this.state.queueList
+            for (let i = 0; i < queueList.length; i++) {
+                let extension = queueList[i]["extension"]
+                let queueName = queueList[i]["queue_name"]
+                if (extension && queueName) {
+                    let obj = {
+                        key: extension,
+                        val: queueName
+                    }
+                    displayList.push(obj)
+                }
+            }
+        } else if (val === 'ringgroup') {
+            let ringGroupList = this.state.ringGroupList
+            let ringGroupExten = this.state.ringGroupValues.extension
+            for (let i = 0; i < ringGroupList.length; i++) {
+                let extension = ringGroupList[i]["extension"]
+                let ringGroupName = ringGroupList[i]["ringgroup_name"]
+                if (extension && ringGroupName && extension !== ringGroupExten) {
+                    let obj = {
+                        key: extension,
+                        val: ringGroupName
+                    }
+                    displayList.push(obj)
+                }
+            }
+        } else if (val === 'vmgroup') {
+            let vmGroupList = this.state.vmGroupList
+            for (let i = 0; i < vmGroupList.length; i++) {
+                let extension = vmGroupList[i]["extension"]
+                let vmGroupName = vmGroupList[i]["vmgroup_name"]
+                if (extension && vmGroupName) {
+                    let obj = {
+                        key: extension,
+                        val: vmGroupName
+                    }
+                    displayList.push(obj)
+                }
+            }
+        } else if (val === 'ivr') {
+            displayList = this.state.fileList
+        } else if (val === 'external_number') {
+            displayList = []
+            externalNumber = true
+        }
+
+        this.setState({
+            extensionList: displayList,
+            voicemailDisplay: voicemailDisplay,
+            externalNumber: externalNumber
+        })
+        console.log('distination value is: ', displayList)
+    }
+
+    _getAccountList = () => {
+        const { formatMessage } = this.props.intl
+        let accountList = []
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getAccountList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const extension = response.extension || []
+                    const disabled = formatMessage({id: "LANG273"})
+
+                    accountList = extension.map(function(item) {
+                        return {
+                                key: item.extension,
+                                out_of_service: item.out_of_service,
+                                title: (item.extension +
+                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                            }
+                    })
+                    this.setState({
+                        accountList: accountList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _getVoicemailList = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getVoicemailList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    let voicemailList = response.extension || []
+                    this.setState({
+                        voicemailList: voicemailList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _getQueueList = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getQueueList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    let queueList = response.queues || []
+                    this.setState({
+                        queueList: queueList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _getRingGroupList = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getRinggroupList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    let ringGroupList = response.ringgroups || []
+                    this.setState({
+                        ringGroupList: ringGroupList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _getVmGroupList = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getVMgroupList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    let vmGroupList = response.vmgroups || []
+                    this.setState({
+                        vmGroupList: vmGroupList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _getIvrList = () => {
+        let fileList = []
+        let __this = this
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listFile',
+                type: 'ivr',
+                filter: '{"list_dir":0,"list_file":1,"file_suffix":["mp3","wav","gsm","ulaw","alaw"]}',
+                sidx: 'n',
+                sord: 'desc'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    response.ivr.map(function(item) {
+                        let obj = {
+                            text: item.n,
+                            val: "record/" + __this._removeSuffix(item.n)
+                        }
+                        fileList.push(obj)
+                    })
+                    this.setState({
+                        fileList: fileList
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _getRingGroupValues = () => {
+        let ringGroupValues = {}
+        const ringgroup_exten = this.props.params.id
+        if (ringgroup_exten) {
+            $.ajax({
+                url: api.apiHost,
+                method: 'post',
+                data: {
+                    action: 'getRinggroup',
+                    ringgroup: ringgroup_exten
+                },
+                type: 'json',
+                async: false,
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        const response = res.response || {}
+                        ringGroupValues = response.ringgroup
+
+                        this.setState({
+                            disabled_exten: true,
+                            ringGroupValues: ringGroupValues
+                        })
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
             })
         }
     }
+
     _getInitData = () => {
         let targetKeys = []
         let targetKeysLDAP = []
-        let accountList = []
         let ldapList = []
         let ringgroupnameList = []
         let numberList = []
         let mohnameList = []
-        let fileList = []
-        let ringGroupValues = {}
         const { formatMessage } = this.props.intl
-        const ringgroup_exten = this.props.params.id
-        const ringgroup_name = this.props.params.name
+        const ringGroupExten = this.props.params.id
+        const ringGroupName = this.props.params.name
         const __this = this
 
         $.ajax({
@@ -194,37 +485,6 @@ class RingGroupItem extends Component {
                     const response = res.response || {}
 
                     numberList = response.number || []
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'getAccountList'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const extension = response.extension || []
-                    const disabled = formatMessage({id: "LANG273"})
-
-                    accountList = extension.map(function(item) {
-                        return {
-                                key: item.extension,
-                                out_of_service: item.out_of_service,
-                                title: (item.extension +
-                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                            }
-                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -295,79 +555,24 @@ class RingGroupItem extends Component {
             }
         })
 
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'listFile',
-                type: 'ivr',
-                filter: '{"list_dir":0,"list_file":1,"file_suffix":["mp3","wav","gsm","ulaw","alaw"]}',
-                sidx: 'n',
-                sord: 'desc'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+        if (ringGroupExten) {
+            let ringGroupValues = this.state.ringGroupValues
+            let destinationType = ringGroupValues.destination_type
 
-                if (bool) {
-                    const response = res.response || {}
-
-                    response.ivr.map(function(item) {
-                        let obj = {
-                            text: item.n,
-                            val: "record/" + __this._removeSuffix(item.n)
-                        }
-                        fileList.push(obj)
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-
-        if (ringgroup_exten) {
-            $.ajax({
-                url: api.apiHost,
-                method: 'post',
-                data: {
-                    action: 'getRinggroup',
-                    ringgroup: ringgroup_exten
-                },
-                type: 'json',
-                async: false,
-                success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                    if (bool) {
-                        const response = res.response || {}
-                        ringGroupValues = response.ringgroup
-
-                        targetKeys = ringGroupValues.members ? ringGroupValues.members.split(',') : []
-                        targetKeysLDAP = ringGroupValues.members_ldap ? ringGroupValues.members_ldap.split('|') : []
-
-                        this.setState({
-                            disabled_exten: true
-                        })
-                    }
-                }.bind(this),
-                error: function(e) {
-                    message.error(e.statusText)
-                }
-            })
+            targetKeys = ringGroupValues.members ? ringGroupValues.members.split(',') : []
+            targetKeysLDAP = ringGroupValues.members_ldap ? ringGroupValues.members_ldap.split('|') : []
+            this._handleSelectExtension(destinationType)
+        } else {
+            this._handleSelectExtension('account')
         }
 
         this.setState({
             targetKeys: targetKeys,
             targetKeysLDAP: targetKeysLDAP,
-            accountList: accountList,
             ldapList: ldapList,
             ringgroupnameList: ringgroupnameList,
             numberList: numberList,
-            mohnameList: mohnameList,
-            fileList: fileList,
-            ringGroupValues: ringGroupValues
+            mohnameList: mohnameList
         })
     }
     _handleCancel = () => {
@@ -396,6 +601,73 @@ class RingGroupItem extends Component {
         console.log('sourceSelectedKeys: ', sourceSelectedKeys)
         console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
+
+    _updateDestinationInfo = (destType, value, action) => {
+        if (destType === 'account') {
+            action['account'] = value
+        } else {
+            action['account'] = ''
+        }
+
+        if (destType === 'voicemail') {
+            action['vm_extension'] = value
+            action['hasvoicemail'] = 'yes'
+        } else {
+            action['vm_extension'] = ''
+            action['hasvoicemail'] = 'no'
+        }
+
+        if (destType === 'callqueue') {
+            let extension = ''
+            this.state.queueList.map(function(item) {
+                if (item.queue_name === value) {
+                    extension = item.extension
+                }
+            })
+            action['queue'] = extension
+        } else {
+            action['queue'] = ''
+        }
+
+        if (destType === 'ringgroup') {
+            let extension = ''
+            this.state.ringgroupList.map(function(item) {
+                if (item.ringgroup_name === value) {
+                    extension = item.extension
+                }
+            })
+            action['ringgroup_dest'] = extension
+        } else {
+            action['ringgroup_dest'] = ''
+        }
+
+        if (destType === 'vm_group') {
+            let extension = ''
+            this.state.vmGroupList.map(function(item) {
+                if (item.vmgroup_name === value) {
+                    extension = item.extension
+                }
+            })
+            action['vmgroup'] = extension
+        } else {
+            action['vmgroup'] = ''
+        }
+
+        if (destType === 'ivr') {
+            action['ivr'] = value
+        } else {
+            action['ivr'] = ''
+        }
+
+        if (destType === 'external_num') {
+            action['external_number'] = value
+        } else {
+            action['external_number'] = ''
+        }
+
+        console.log('add dest val ', action)
+    }
+
     _handleSubmit = () => {
         let errorMessage = ''
         let loadingMessage = ''
@@ -422,12 +694,17 @@ class RingGroupItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
+                let selectExtension = values.select_extension
+                let selectDestType = values.destination_type
 
+                delete action.select_extension
                 action.members = this.state.targetKeys.join()
                 action.members_ldap = this.state.targetKeysLDAP.join('|')
                 action.auto_record = this.state.ringGroupValues.auto_record
                 action.replace_caller_id = this.state.ringGroupValues.replace_caller_id
                 action.enable_destination = this.state.ringGroupValues.enable_destination
+
+                this._updateDestinationInfo(selectDestType, selectExtension, action)
 
                 if (ringgroup_extension) {
                     action.action = 'updateRinggroup'
@@ -471,6 +748,24 @@ class RingGroupItem extends Component {
                 value: item.title   // for title and filter matching
             }
     }
+    _gotoPromptOk = () => {
+        browserHistory.push('/pbx-settings/voicePrompt/2')
+    }
+    _gotoPrompt = () => {
+        console.log('enter goto Prompt')
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                __this._gotoPromptOk()
+            },
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
+        })
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -478,15 +773,21 @@ class RingGroupItem extends Component {
         const ring_name = this.props.params.name
         const ring_extension = this.props.params.id
         const ringGroupValues = this.state.ringGroupValues
+        const extensionList = this.state.extensionList
 
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
 
+        const formItemPromptLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
+        }
+
         const formItemDestinationLayout = {
-            labelCol: { span: 8 },
-            wrapperCol: { span: 16 }
+            labelCol: { span: 12 },
+            wrapperCol: { span: 12 }
         }
 
         const formItemTransferLayout = {
@@ -590,7 +891,9 @@ class RingGroupItem extends Component {
                         <FormItem
                             { ...formItemTransferLayout }
                             label={(
-                                <span>{ formatMessage({id: "LANG714"}) }</span>
+                                <Tooltip title={<FormattedHTMLMessage id="LANG4724" />}>
+                                    <span>{ formatMessage({id: "LANG714"}) }</span>
+                                </Tooltip>
                             )}
                         >
                             <Transfer
@@ -606,7 +909,7 @@ class RingGroupItem extends Component {
                                 titles={[formatMessage({id: "LANG3214"}), formatMessage({id: "LANG3215"})]}
                             />
                         </FormItem>
-                        <div className="function-description">
+                        <div className="section-title">
                             <span>{ formatMessage({id: "LANG601"}) }</span>
                         </div>
                         <FormItem
@@ -617,7 +920,7 @@ class RingGroupItem extends Component {
                         >
                             { getFieldDecorator('strategy', {
                                 rules: [],
-                                initialValue: "ORDER"
+                                initialValue: ringGroupValues.strategy ? ringGroupValues.strategy : "ORDER"
                             })(
                                 <Select>
                                     <Option value="SIMULTA">{ formatMessage({id: "LANG1062"}) }</Option>
@@ -650,31 +953,38 @@ class RingGroupItem extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_custom_prompt"
-                            { ...formItemLayout }
+                            { ...formItemPromptLayout }
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG3489" />}>
                                     <span>{ formatMessage({id: "LANG28"}) }</span>
                                 </Tooltip>
                             )}
                         >
-                            { getFieldDecorator('custom_prompt', {
-                                rules: [],
-                                initialValue: ringGroupValues.custom_prompt ? ringGroupValues.custom_prompt : ''
-                            })(
-                                 <Select>
-                                    <Option key="" value="">{ formatMessage({id: "LANG133"}) }</Option>
-                                    {
-                                        this.state.fileList.map(function(item) {
-                                            return <Option
-                                                    key={ item.text }
-                                                    value={ item.val }>
-                                                    { item.text }
-                                                </Option>
-                                            }
-                                        )
-                                    }
-                                </Select>
-                            ) }
+                            <Row>
+                                <Col span={ 16 }>
+                                { getFieldDecorator('custom_prompt', {
+                                    rules: [],
+                                    initialValue: ringGroupValues.custom_prompt ? ringGroupValues.custom_prompt : ''
+                                })(
+                                     <Select>
+                                        <Option key="" value="">{ formatMessage({id: "LANG133"}) }</Option>
+                                        {
+                                            this.state.fileList.map(function(item) {
+                                                return <Option
+                                                        key={ item.text }
+                                                        value={ item.val }>
+                                                        { item.text }
+                                                    </Option>
+                                                }
+                                            )
+                                        }
+                                    </Select>
+                                ) }
+                                </Col>
+                                <Col span={6} offset={1} >
+                                    <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                                </Col>
+                            </Row>
                         </FormItem>
                         <FormItem
                             ref="div_ringtime"
@@ -687,6 +997,10 @@ class RingGroupItem extends Component {
                             { getFieldDecorator('ringtime', {
                             rules: [{ required: true,
                                 message: formatMessage({id: "LANG2150"})
+                                }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage, 2)
+                                    }
                                 }],
                                 initialValue: ringGroupValues.ringtime ? ringGroupValues.ringtime : '60'
                             })(
@@ -728,23 +1042,16 @@ class RingGroupItem extends Component {
                         <FormItem
                             ref="div_enable_destination"
                             { ...formItemLayout }
-                            className= { ringGroupValues.voicemailDisplay ? 'display-block' : 'hidden' }
                             label={
                                 <span>{formatMessage({id: "LANG2990"})}</span>
                             }>
-                            { getFieldDecorator('enable_destination', {
-                                rules: [],
-                                initialValue: ringGroupValues.enable_destination ? ringGroupValues.enable_destination : 'no'
-                            })(
-                                <Checkbox onChange={ this._onChangeEnableDestination } />
-                            ) }
+                                <Checkbox onChange={ this._onChangeEnableDestination } checked={ ringGroupValues.enable_destination === 'yes' }/>
                         </FormItem>
                         <Row>
-                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                            <Col span={ 6 } style={{ marginRight: 20 }}>
                                 <FormItem
                                     ref="div_destination_type"
                                     { ...formItemDestinationLayout }
-                                    className= { ringGroupValues.voicemailDisplay ? 'display-block' : 'hidden' }
                                     label={(
                                         <Tooltip title={<FormattedHTMLMessage id="LANG2991" />}>
                                             <span>{ formatMessage({id: "LANG1558"}) }</span>
@@ -754,40 +1061,49 @@ class RingGroupItem extends Component {
                                     { getFieldDecorator('destination_type', {
                                         rules: [],
                                         width: 100,
-                                        initialValue: 'account'
+                                        initialValue: ringGroupValues.destination_type ? ringGroupValues.destination_type : 'account'
                                     })(
-                                        <Select onChange={ this._onChangeMode } >
-                                            <Option value='extension'>{ formatMessage({id: "LANG11"}) }</Option>
+                                        <Select disabled = { ringGroupValues.enable_destination === 'no' } onChange={ this._handleSelectExtension } >
+                                            <Option value='account'>{ formatMessage({id: "LANG11"}) }</Option>
                                             <Option value='voicemail'>{ formatMessage({id: "LANG20"}) }</Option>
-                                            <Option value='callqueue'>{ formatMessage({id: "LANG24"}) }</Option>
-                                            <Option value='vm_group'>{ formatMessage({id: "LANG21"}) }</Option>
+                                            <Option value='queue'>{ formatMessage({id: "LANG24"}) }</Option>
+                                            <Option value='ringgroup'>{ formatMessage({id: "LANG600"}) }</Option>
+                                            <Option value='vmgroup'>{ formatMessage({id: "LANG21"}) }</Option>
                                             <Option value='ivr'>{ formatMessage({id: "LANG19"}) }</Option>
-                                            <Option value='external_num'>{ formatMessage({id: "LANG3458"}) }</Option>
+                                            <Option value='external_number'>{ formatMessage({id: "LANG3458"}) }</Option>
                                         </Select>
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 6 } style={{ marginRight: 20 }}>
-                                <FormItem
-                                    ref="div_external_number"
-                                    { ...formItemLayout }
-                                    className= { ringGroupValues.voicemailDisplay ? 'display-block' : 'hidden' }
-                                >
-                                    { getFieldDecorator('external_number', {
-                                        rules: [],
-                                        width: 100,
-                                        initialValue: ''
-                                    })(
-                                        <Select>
-                                        </Select>
-                                    ) }
-                                </FormItem>
+                            <Col span={ 3 } style={{ marginRight: 20 }} className= { this.state.externalNumber ? 'hidden' : 'display-block' }>
+                                { getFieldDecorator('select_extension', {
+                                    rules: [],
+                                    width: 100,
+                                    initialValue: extensionList.length > 0 ? extensionList[0].val : ''
+                                })(
+                                     <Select disabled = { ringGroupValues.enable_destination === 'no' }>
+                                        {
+                                            extensionList.map(function(item) {
+                                                return <Option value={ item.val }>{ item.val }</Option>
+                                                }
+                                            )
+                                        }
+                                    </Select>
+                                ) }
+                            </Col>
+                            <Col span={ 3 } style={{ marginRight: 20 }} className= { this.state.externalNumber ? 'display-block' : 'hidden' }>
+                                { getFieldDecorator('external_number', {
+                                    rules: [],
+                                    initialValue: ringGroupValues.external_number ? ringGroupValues.external_number : ''
+                                })(
+                                    <Input disabled = { ringGroupValues.enable_destination === 'no' } />
+                                ) }
                             </Col>
                         </Row>
                         <FormItem
                             ref="div_vmsecret"
                             { ...formItemLayout }
-                            className= { ringGroupValues.voicemailDisplay ? 'display-block' : 'hidden' }
+                            className= { this.state.voicemailDisplay ? 'display-block' : 'hidden' }
                             label={
                                 <span>{formatMessage({id: "LANG127"})}</span>
                             }>
@@ -801,7 +1117,7 @@ class RingGroupItem extends Component {
                         <FormItem
                             ref="div_email"
                             { ...formItemLayout }
-                            className= { ringGroupValues.voicemailDisplay ? 'display-block' : 'hidden' }
+                            className= { this.state.voicemailDisplay ? 'display-block' : 'hidden' }
                             label={
                                 <span>{formatMessage({id: "LANG126"})}</span>
                             }>

@@ -9,10 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, InputNumber } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
 
 class AnnouncementCenter extends Component {
     constructor(props) {
@@ -26,6 +27,20 @@ class AnnouncementCenter extends Component {
     }
     componentDidMount() {
         this._getInitData()
+    }
+    _gotoPrompt = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                browserHistory.push('/pbx-settings/voicePrompt/2')
+            },
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
+        })
     }
     _removeSuffix = (filename) => {
         let name = filename.toLocaleLowerCase(),
@@ -178,6 +193,10 @@ class AnnouncementCenter extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
+        const formItemPromptLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
+        }
         const formItemTransferLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 18 }
@@ -249,13 +268,14 @@ class AnnouncementCenter extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_code_prompt"
-                            { ...formItemLayout }
+                            { ...formItemPromptLayout }
 
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG4343" />}>
                                     <span>{formatMessage({id: "LANG28"})}</span>
                                 </Tooltip>
                             )}>
+                            <Col span={ 16 }>
                             { getFieldDecorator('code_prompt', {
                                 rules: [{
                                     required: true,
@@ -277,6 +297,10 @@ class AnnouncementCenter extends Component {
                                     }
                                 </Select>
                             ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
                         </FormItem>
                         <FormItem
                             ref="div_code_timeout"
@@ -295,7 +319,7 @@ class AnnouncementCenter extends Component {
                                 width: 100,
                                 initialValue: centerItem.code_timeout ? centerItem.code_timeout : 30
                             })(
-                                <InputNumber min={3} max={600} maxLength="3" />
+                                <Input min={3} max={600} maxLength="3" />
                             ) }
                         </FormItem>
                     </Form>

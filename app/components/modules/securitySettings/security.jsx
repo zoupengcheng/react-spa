@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Row, Col, Input, Collapse, BackTop } from 'antd'
+import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Input, Row, Col, Collapse, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item

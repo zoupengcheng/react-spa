@@ -11,7 +11,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import { browserHistory } from 'react-router'
 import Title from '../../../views/title'
-import { Form, Tabs, message, Modal, BackTop } from 'antd'
+import { Form, Input, Tabs, message, Modal, BackTop } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 
@@ -128,6 +128,25 @@ class NetWorkSettings extends Component {
                     buf[key] = num
                 }
             })
+
+            if (buf["altdns"] === '') {
+                buf["altdns"] = "0.0.0.0"
+            }
+            if (buf["lan1_dns2"] === '') {
+                buf["lan1_dns2"] = "0.0.0.0"
+            }
+            if (buf["lan1_vid"] === undefined) {
+                buf["lan1_vid"] = ""
+            }
+            if (buf["lan1_priority"] === undefined) {
+                buf["lan1_priority"] = ""
+            }
+            if (buf["lan2_vid"] === undefined) {
+                buf["lan2_vid"] = ""
+            }
+            if (buf["lan2_priority"] === undefined) {
+                buf["lan2_priority"] = ""
+            }
 
             let method = buf["method"] || "1"
             let defaultInterface = buf["default_interface"] || "LAN2"

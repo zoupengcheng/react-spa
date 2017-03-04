@@ -11,7 +11,7 @@ import Editor from 'react-umeditor'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { BackTop, Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { BackTop, Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -177,32 +177,23 @@ class EmailTemplate extends Component {
             if (!err) {
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
-                let childAction = []
-                let updateWebRTCParamList = []
-                let updateWebRTCSettings = {
-                    'updateSIPWebRTCHttpSettings': ''
-                }
-
-                _.map(values, function(value, key) {
-                    if (key === 'ws_websocket_interface' || key === 'ws_secure_websocket_interface') {
-                        return false
+                let subjectAction = {
+                        'action': 'updateMailSubject'
+                    },
+                    action = {
+                        'action': 'writeMailTemplate',
+                        'module': this.state.fileType
                     }
 
-                    if (key.indexOf('ws_') === 0) {
-                        let keyValue = key.slice(3) + '=' + (value !== undefined && value !== null ? encodeURIComponent(UCMGUI.transCheckboxVal(value)) : '')
-
-                        updateWebRTCParamList.push(keyValue)
-                    }
-                })
-
-                updateWebRTCSettings.updateSIPWebRTCHttpSettings = updateWebRTCParamList.join('&')
-
-                childAction.push(updateWebRTCSettings)
+                action['txt_content'] = values.txt_content
+                action['html_content'] = this.refs.editor.getContent()
+                subjectAction[this.state.subjectType[this.state.fileType]] = values.emailSubject
 
                 $.ajax({
                     type: 'json',
-                    method: "get",
-                    url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(childAction),
+                    method: "post",
+                    url: api.apiHost,
+                    data: subjectAction,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -210,19 +201,29 @@ class EmailTemplate extends Component {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
-                            message.destroy()
-                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>, 2)
+                            $.ajax({
+                                type: 'json',
+                                data: action,
+                                method: "post",
+                                url: api.apiHost,
+                                error: function(e) {
+                                    message.error(e.statusText)
+                                },
+                                success: function(data) {
+                                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                            this._handleCancel()
+                                    if (bool) {
+                                        message.destroy()
+                                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>, 2)
+
+                                        this._handleCancel()
+                                    }
+                                }.bind(this)
+                            })
                         }
                     }.bind(this)
                 })
             }
-        })
-    }
-    _onHandleChange = (content) => {
-        this.setState({
-            html_content: content
         })
     }
     render() {
@@ -282,23 +283,6 @@ class EmailTemplate extends Component {
                         { ...formItemRowLayout }
                         label={(
                             <span>
-                                <Tooltip title={ <FormattedHTMLMessage id="LANG5376" /> }>
-                                    <span>{ formatMessage({id: "LANG5376"}) }</span>
-                                </Tooltip>
-                            </span>
-                        )}
-                    >
-                        <Editor
-                            ref="editor" 
-                            icons={ icons } 
-                            value={ this.state.html_content || title }
-                            onChange={ this._onHandleChange.bind(this) }
-                        />
-                    </FormItem>
-                    <FormItem
-                        { ...formItemRowLayout }
-                        label={(
-                            <span>
                                 <Tooltip title={ <FormattedHTMLMessage id="LANG5377" /> }>
                                     <span>{ formatMessage({id: "LANG5377"}) }</span>
                                 </Tooltip>
@@ -314,6 +298,22 @@ class EmailTemplate extends Component {
                         })(
                             <Input type="textarea" rows={ 10 } />
                         ) }
+                    </FormItem>
+                    <FormItem
+                        { ...formItemRowLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG5376" /> }>
+                                    <span>{ formatMessage({id: "LANG5376"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        <Editor
+                            ref="editor" 
+                            icons={ icons }
+                            value={ this.state.html_content || title }
+                        />
                     </FormItem>
                     <FormItem
                         { ...formItemRowLayout }

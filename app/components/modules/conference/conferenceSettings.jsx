@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Checkbox, InputNumber, message, Tooltip } from 'antd'
+import { Form, Input, Checkbox, message, Tooltip } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -134,7 +134,7 @@ class ConferenceSettings extends Component {
                         { getFieldDecorator('dsp_talking_threshold', {
                             initialValue: conferenceSettings.dsp_talking_threshold
                         })(
-                            <InputNumber />
+                            <Input />
                         ) }
                     </FormItem>
                     <FormItem
@@ -148,7 +148,7 @@ class ConferenceSettings extends Component {
                         { getFieldDecorator('dsp_silence_threshold', {
                             initialValue: conferenceSettings.dsp_silence_threshold
                         })(
-                            <InputNumber />
+                            <Input />
                         ) }
                     </FormItem>
                 </Form>

@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import React, { Component, PropTypes } from 'react'
 import { browserHistory } from 'react-router'
-import { Form, Icon, Button, Table, message, Popconfirm } from 'antd'
+import { Form, Input, Icon, Button, Table, message, Popconfirm } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"

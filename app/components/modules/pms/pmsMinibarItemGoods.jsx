@@ -9,10 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
 
 class GoodsItem extends Component {
     constructor(props) {
@@ -109,6 +110,20 @@ class GoodsItem extends Component {
             fileList: fileList
         })
     }
+    _gotoPrompt = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                browserHistory.push('/pbx-settings/voicePrompt/2')
+            },
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
+        })
+    }
     _handleCancel = () => {
         browserHistory.push('/value-added-features/pms/4')
     }
@@ -173,6 +188,10 @@ class GoodsItem extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
+        const formItemPromptLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
+        }
         const formItemTransferLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 18 }
@@ -180,10 +199,10 @@ class GoodsItem extends Component {
 
         const title = (this.props.params.id
                 ? formatMessage({id: "LANG222"}, {
-                    0: formatMessage({id: "LANG5057"}),
+                    0: formatMessage({id: "LANG5050"}),
                     1: this.props.params.name
                 })
-                : formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG5057"}) }))
+                : formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG5050"}) }))
 
         const goodsItem = this.state.goodsItem || {}
 
@@ -227,8 +246,8 @@ class GoodsItem extends Component {
                             { ...formItemLayout }
 
                             label={(
-                                <Tooltip title={<FormattedHTMLMessage id="LANG127" />}>
-                                    <span>{formatMessage({id: "LANG127"}) }</span>
+                                <Tooltip title={<FormattedHTMLMessage id="LANG135" />}>
+                                    <span>{formatMessage({id: "LANG135"}) }</span>
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('goods_name', {
@@ -244,13 +263,14 @@ class GoodsItem extends Component {
                         </FormItem>
                         <FormItem
                             ref="div_prompt_success"
-                            { ...formItemLayout }
+                            { ...formItemPromptLayout }
 
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG5053" />}>
                                     <span>{formatMessage({id: "LANG5053"})}</span>
                                 </Tooltip>
                             )}>
+                            <Col span={16}>
                             { getFieldDecorator('prompt_success', {
                                 rules: [{
                                     required: true,
@@ -272,16 +292,21 @@ class GoodsItem extends Component {
                                     }
                                 </Select>
                             ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
                         </FormItem>
                         <FormItem
                             ref="div_prompt_error"
-                            { ...formItemLayout }
+                            { ...formItemPromptLayout }
 
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG5054" />}>
                                     <span>{formatMessage({id: "LANG5054"})}</span>
                                 </Tooltip>
                             )}>
+                            <Col span={16}>
                             { getFieldDecorator('prompt_error', {
                                 rules: [{
                                     required: true,
@@ -303,6 +328,10 @@ class GoodsItem extends Component {
                                     }
                                 </Select>
                             ) }
+                            </Col>
+                            <Col span={6} offset={1} >
+                                <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                            </Col>
                         </FormItem>
                     </Form>
                 </div>

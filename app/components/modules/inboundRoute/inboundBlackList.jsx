@@ -13,7 +13,7 @@ import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Button, Checkbox, Form, Icon, Input, message, Popconfirm, Spin, Table, Tooltip, Upload } from 'antd'
+import { Button, Checkbox, Form, Input, Icon, message, Popconfirm, Spin, Table, Tooltip, Upload } from 'antd'
 
 const FormItem = Form.Item
 

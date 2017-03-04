@@ -2,7 +2,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Tabs } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
@@ -75,12 +75,12 @@ const CustomizedForm = injectIntl(Form.create({
                     )}>
                     { getFieldDecorator('minregexpire', {
                         rules: [{ 
-                            type: "integer",
+                            /* type: 'integer', */
                             message: formatMessage({id: "LANG2150"}) 
                         }],
                         initialValue: IAXRegSettings.minregexpire
                     })(
-                        <InputNumber min={0} max={65535} maxLength="6" />
+                        <Input min={0} max={65535} maxLength="6" />
                     )}
                 </FormItem>
                 <FormItem
@@ -94,12 +94,12 @@ const CustomizedForm = injectIntl(Form.create({
                     )}>
                     { getFieldDecorator('maxregexpire', {
                         rules: [{ 
-                            type: "integer",
+                            /* type: 'integer', */
                             message: formatMessage({id: "LANG2150"}) 
                         }],
                         initialValue: IAXRegSettings.maxregexpire
                     })(
-                        <InputNumber min={0} max={65535} maxLength="6" />
+                        <Input min={0} max={65535} maxLength="6" />
                     )}
                 </FormItem>
                 <FormItem
@@ -111,12 +111,12 @@ const CustomizedForm = injectIntl(Form.create({
                     }>
                     { getFieldDecorator('iaxthreadcount', {
                         rules: [{ 
-                            type: "integer",
+                            /* type: 'integer', */
                             message: formatMessage({id: "LANG2150"}) 
                         }],
                         initialValue: IAXRegSettings.iaxthreadcount
                     })(
-                        <InputNumber min={0} max={65535} maxLength="6" />
+                        <Input min={0} max={65535} maxLength="6" />
                     )}
                 </FormItem>
                 <FormItem
@@ -128,12 +128,12 @@ const CustomizedForm = injectIntl(Form.create({
                     }>
                     { getFieldDecorator('iaxmaxthreadcount', {
                         rules: [{ 
-                            type: "integer",
+                            /* type: 'integer', */
                             message: formatMessage({id: "LANG2150"}) 
                         }],
                         initialValue: IAXRegSettings.iaxmaxthreadcount
                     })(
-                        <InputNumber min={0} max={65535} maxLength="6" />
+                        <Input min={0} max={65535} maxLength="6" />
                     )}
                 </FormItem>
                 <FormItem
@@ -239,12 +239,12 @@ const CustomizedForm = injectIntl(Form.create({
                     }>
                     { getFieldDecorator('trunkfreq', {
                         rules: [{ 
-                            type: "integer",
+                            /* type: 'integer', */
                             message: formatMessage({id: "LANG2150"}) 
                         }],
                         initialValue: IAXRegSettings.trunkfreq
                     })(
-                        <InputNumber min={0} max={65535} maxLength="6" />
+                        <Input min={0} max={65535} maxLength="6" />
                     )}
                 </FormItem>
                 <FormItem

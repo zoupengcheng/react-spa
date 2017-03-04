@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, DatePicker, message, Tooltip, Select } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, DatePicker, message, Tooltip, Select } from 'antd'
 import Validator from "../../api/validator"
 
 const FormItem = Form.Item

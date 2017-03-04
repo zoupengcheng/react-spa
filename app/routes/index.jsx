@@ -73,6 +73,7 @@ import DISAItem from '../components/modules/disa/disaItem'
 import CallBack from '../components/modules/callback'
 import CallBackItem from '../components/modules/callback/callBackItem'
 import EventList from '../components/modules/eventList'
+import EventListItem from '../components/modules/eventList/eventListItem'
 import FeatureCode from '../components/modules/featureCode'
 import Fax from '../components/modules/fax'
 import FaxItem from '../components/modules/fax/faxItem'
@@ -129,7 +130,8 @@ import WarningContact from '../components/modules/systemEvent/warningContact'
 import Upgrade from '../components/modules/upgrade'
 import Backup from '../components/modules/backup'
 import CleanReset from '../components/modules/cleanReset'
-import Troubleshooting from '../components/modules/troubleshooting'
+import NetTroubleshooting from '../components/modules/netTroubleshooting'
+import SignalTroubleshooting from '../components/modules/signalTroubleshooting'
 import ServiceCheck from '../components/modules/serviceCheck'
 
 // CDR
@@ -366,7 +368,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ CallBackItem } breadcrumbName={ currentLocaleData["LANG3741"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ CallBackItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
-                    <Route path="eventList" onEnter={ requireAuth } component={ EventList } breadcrumbName={ currentLocaleData["LANG2474"] } />
+                    <Route path="eventList" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2474"] } >
+                        <IndexRoute component={ EventList } />
+                        <Route path="add" onEnter={ requireAuth } component={ EventListItem } breadcrumbName={ currentLocaleData["LANG2474"] } />
+                        <Route path="edit" onEnter={ requireAuth } component={ EventListItem } breadcrumbName={ currentLocaleData["LANG2474"] } />
+                    </Route>
                     <Route path="featureCode" onEnter={ requireAuth } component={ FeatureCode } breadcrumbName={ currentLocaleData["LANG26"] } />
                     <Route path="fax" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG29"] } >
                         <IndexRoute component={ Fax } />
@@ -384,7 +390,10 @@ const routes = (state, currentLocaleData) => {
                     <Route path="iaxSettings" onEnter={ requireAuth } component={ IAXSettings } breadcrumbName={ currentLocaleData["LANG34"] } />
                     <Route path="rtpSettings" onEnter={ requireAuth } component={ RTPSettings } breadcrumbName={ currentLocaleData["LANG30"] } />
                     <Route path="musicOnHold" onEnter={ requireAuth } component={ MusicOnHold } breadcrumbName={ currentLocaleData["LANG27"] } />
-                    <Route path="voicePrompt" onEnter={ requireAuth } component={ VoicePrompt } breadcrumbName={ currentLocaleData["LANG4752"] } />
+                    <Route path="voicePrompt" onEnter={ requireAuth } component={ VoicePrompt } breadcrumbName={ currentLocaleData["LANG4752"] }>
+                        <IndexRoute component={ VoicePrompt } />
+                        <Route path=":id" onEnter={ requireAuth } component={ VoicePrompt } breadcrumbName={ currentLocaleData["LANG4752"] } />
+                    </Route>
                     <Route path="jitterBuffer" onEnter={ requireAuth } component={ JitterBuffer } breadcrumbName={ currentLocaleData["LANG40"] } />
                     <Route path="interfaceSettings" onEnter={ requireAuth } component={ InterfaceSettings } breadcrumbName={ currentLocaleData["LANG5303"] } />
                     <Route path="interfaceSettings" breadcrumbName={ currentLocaleData["LANG5303"] }>
@@ -481,7 +490,8 @@ const routes = (state, currentLocaleData) => {
                     <Route path="upgrade" onEnter={ requireAuth } component={ Upgrade } breadcrumbName={ currentLocaleData["LANG61"] } />
                     <Route path="backup" onEnter={ requireAuth } component={ Backup } breadcrumbName={ currentLocaleData["LANG62"] } />
                     <Route path="cleanReset" onEnter={ requireAuth } component={ CleanReset } breadcrumbName={ currentLocaleData["LANG5302"] } />
-                     <Route path="troubleshooting" onEnter={ requireAuth } component={ Troubleshooting } breadcrumbName={ currentLocaleData["LANG5302"] } />
+                    <Route path="netTroubleshooting" onEnter={ requireAuth } component={ NetTroubleshooting } breadcrumbName={ currentLocaleData["LANG5461"] } />
+                    <Route path="signalTroubleshooting" onEnter={ requireAuth } component={ SignalTroubleshooting } breadcrumbName={ currentLocaleData["LANG5462"] } />
                     <Route path="serviceCheck" onEnter={ requireAuth } component={ ServiceCheck } breadcrumbName={ currentLocaleData["LANG3437"] } />
                 </Route>
 

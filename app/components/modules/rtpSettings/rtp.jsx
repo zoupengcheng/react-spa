@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Checkbox, InputNumber, Input, message, Popover } from 'antd'
+import { Form, Input, Button, Checkbox, message, Popover } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -120,11 +120,11 @@ class RTP extends Component {
                     >
                         { getFieldDecorator('rtpstart', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: rtpstart
                         })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
+                            <Input min={ 1024 } max={ 65535 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -137,11 +137,11 @@ class RTP extends Component {
                     >
                         { getFieldDecorator('rtpend', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: rtpend
                         })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
+                            <Input min={ 1024 } max={ 65535 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -216,11 +216,11 @@ class RTP extends Component {
                     >
                         { getFieldDecorator('bfcpstart', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: bfcpstart
                         })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
+                            <Input min={ 1024 } max={ 65535 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -233,11 +233,11 @@ class RTP extends Component {
                     >
                         { getFieldDecorator('bfcpend', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: bfcpend
                         })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
+                            <Input min={ 1024 } max={ 65535 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -250,11 +250,11 @@ class RTP extends Component {
                     >
                         { getFieldDecorator('bfcp_tcp_start', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: bfcp_tcp_start
                         })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
+                            <Input min={ 1024 } max={ 65535 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -267,11 +267,11 @@ class RTP extends Component {
                     >
                         { getFieldDecorator('bfcp_tcp_end', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) }
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
                             ],
                             initialValue: bfcp_tcp_end
                         })(
-                            <InputNumber min={ 1024 } max={ 65535 } />
+                            <Input min={ 1024 } max={ 65535 } />
                         ) }
                     </FormItem>
                     <FormItem

@@ -87,9 +87,9 @@ class BarItem extends Component {
         const privilegeName = this.props.params.name
         let privilegeItem = {}
         let moduleSwitch = {}
-        let moduleList = this.state.moduleList || []
-        let moduleKeyList = this.state.moduleKeyList || []
-        let targetKeys = this.state.targetKeys || []
+        let moduleList = []
+        let moduleKeyList = []
+        let targetKeys = []
         const modulesObj = {
             'PMS': formatMessage({id: 'LANG4855'}),
             'activity_calls': formatMessage({id: 'LANG3006'}),
@@ -121,9 +121,9 @@ class BarItem extends Component {
 
                         privilegeItem = res.response.privilege_id || {}
                         moduleSwitch = response.module_switch || {}
-                        const tmpmoduleList = moduleSwitch.disable_module.split(',')
+                        // const tmpmoduleList = moduleSwitch.disable_module.split(',')
                         targetKeys = moduleSwitch.enable_module.split(',')
-                        tmpmoduleList.map(function(item) {
+                        /* tmpmoduleList.map(function(item) {
                             moduleList.push({
                                 key: item,
                                 title: modulesObj[item]
@@ -136,41 +136,40 @@ class BarItem extends Component {
                                 title: modulesObj[item]
                             })
                             moduleKeyList.push(item)
-                        })
+                        }) */
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
-        } else {
-            moduleList = [{
-                key: 'activity_calls',
-                title: formatMessage({id: 'LANG3006'})
-            }, {
-                key: 'cdr_api',
-                title: "CDR API"
-            }, {
-                key: 'cdr_record',
-                title: formatMessage({id: 'LANG4053'})
-            }, {
-                key: 'meetme',
-                title: formatMessage({id: 'LANG3775'})
-            }, {
-                key: 'conference',
-                title: formatMessage({id: 'LANG18'})
-            }, {
-                key: 'pbx_status',
-                title: formatMessage({id: 'LANG1'})
-            }, {
-                key: 'system_info',
-                title: formatMessage({id: 'LANG2'})
-            }, {
-                key: 'warning',
-                title: formatMessage({id: 'LANG2580'})
-            }]
-            moduleKeyList = ['activity_calls', 'cdr_api', 'cdr_record', 'meetme', 'conference', 'pbx_status', 'system_info', 'warning']
         }
+        moduleList = [{
+            key: 'activity_calls',
+            title: formatMessage({id: 'LANG3006'})
+        }, {
+            key: 'cdr_api',
+            title: "CDR API"
+        }, {
+            key: 'cdr_record',
+            title: formatMessage({id: 'LANG4053'})
+        }, {
+            key: 'meetme',
+            title: formatMessage({id: 'LANG3775'})
+        }, {
+            key: 'conference',
+            title: formatMessage({id: 'LANG18'})
+        }, {
+            key: 'pbx_status',
+            title: formatMessage({id: 'LANG1'})
+        }, {
+            key: 'system_info',
+            title: formatMessage({id: 'LANG2'})
+        }, {
+            key: 'warning',
+            title: formatMessage({id: 'LANG2580'})
+        }]
+        moduleKeyList = ['activity_calls', 'cdr_api', 'cdr_record', 'meetme', 'conference', 'pbx_status', 'system_info', 'warning']
 
         this.setState({
             moduleKeyList: moduleKeyList,

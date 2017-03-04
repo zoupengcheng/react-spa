@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Col, Form, Input, InputNumber, message, Transfer, Tooltip, Checkbox, Select, Row } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, Row } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -52,19 +52,17 @@ class EventListItem extends Component {
         let thresholdValueShow = false
         let sendDelayShow = false
 
-        let warningAction = ''
+        let warningAction = {}
         if (ID === '7') {
-            warningAction = 'getWarningSendDelaySetting'
+            warningAction.action = 'getWarningSendDelaySetting'
         } else {
-            warningAction = 'warningGetConfigSettings'
+            warningAction.action = 'warningGetConfigSettings'
+            warningAction.id = ID
         }
         $.ajax({
             url: api.apiHost,
             method: 'post',
-            data: {
-                action: warningAction,
-                id: ID
-            },
+            data: warningAction,
             type: 'json',
             async: false,
             success: function(res) {
@@ -183,7 +181,7 @@ class EventListItem extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG904" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
@@ -300,10 +298,14 @@ class EventListItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('cycle_time', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.range(data, value, callback, formatMessage, this.state.cycle_time_min, this.state.cycle_time_max)
+                                            }
+                                        }],
                                         initialValue: cycle_time
                                     })(
-                                        <InputNumber min={ this.state.cycle_time_min } max={ this.state.cycle_time_max } />
+                                        <Input min={ this.state.cycle_time_min } max={ this.state.cycle_time_max } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -337,10 +339,14 @@ class EventListItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('percent', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.range(data, value, callback, formatMessage, 1, 100)
+                                            }
+                                        }],
                                         initialValue: dataItem.percent * 100
                                     })(
-                                        <InputNumber min={ 1 } max={ 100 } />
+                                        <Input min={ 1 } max={ 100 } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -360,10 +366,14 @@ class EventListItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('send_delay', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.range(data, value, callback, formatMessage, 1, 1440)
+                                            }
+                                        }],
                                         initialValue: dataItem.send_delay
                                     })(
-                                        <InputNumber min={ 1 } max={ 1440 } />
+                                        <Input min={ 1 } max={ 1440 } />
                                     ) }
                                 </FormItem>
                             </Col>

@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Button, message, Modal, Table, Tag, Select, Form, Row, Col, DatePicker } from 'antd'
+import { Button, message, Modal, Table, Tag, Select, Form, Input, Row, Col, DatePicker } from 'antd'
 
 const confirm = Modal.confirm
 const Option = Select.Option
@@ -88,7 +88,7 @@ class WarningLog extends Component {
         const content = text.split('|')
         let response = ''
         if (id === 4 || id === 16) {
-            response = <span>{ content[0].trim() + formatMessage({id: content[1].trim()}) }</span>
+            response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()})}) }</span>
         } else if (id === 6) {
             if (content.length === 5) {
                 response = <span>{ content[0].trim() + ' ' + formatMessage({id: content[1].trim()}) + ' ' + content[2].trim() + ' ' + formatMessage({id: content[3].trim()})}<a className="corefile" onClick={ this._downloadcore.bind(this, content[4].trim()) } >{ formatMessage({id: "LANG2683"}) }</a></span>
@@ -96,40 +96,40 @@ class WarningLog extends Component {
                 response = <span>{ content[0].trim() + ' ' + formatMessage({id: content[1].trim()}) + ' ' + content[2].trim() + ' ' + formatMessage({id: content[3].trim()})}</span>
             }
         } else if (id === 7 || id === 15) {
-            response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()})}) }</span>
+            response = <span>{ formatMessage({id: "LANG2696"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()})}) }</span>
         } else if (id === 8) {
-            response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()}), 4: formatMessage({id: content[5].trim()})}) }</span>
+            response = <span>{ formatMessage({id: "LANG564"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()}), 4: formatMessage({id: content[4].trim()}), 5: formatMessage({id: content[5].trim()})}) }</span>
         } else if (id === 14) {
-            response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()})}) }</span>
+            response = <span>{ formatMessage({id: "LANG566"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()})}) }</span>
         } else if (id === 10 || id === 11 || id === 17) {
             if (content.length === 3) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()})}) }</span>
+                response = <span>{ formatMessage({id: "LANG567"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()})}) }</span>
             } else if (content.length === 2) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()})}) }</span>
+                response = <span>{ formatMessage({id: "LANG566"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()})}) }</span>
             }
         } else if (id === 3) {
             if (content.length === 5) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: content[2].trim(), 2: formatMessage({id: content[3].trim()}), 3: content[4].trim()}) }</span>
+                response = <span>{ formatMessage({id: "LANG2782"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: content[2].trim(), 3: formatMessage({id: content[3].trim()}), 4: content[4].trim()}) }</span>
             } else {
                 response = <span>{ formatMessage({id: text.trim()}) }</span>
             }
         } else if (id === 1 || id === 18) {
             if (content.length === 6) {
-                response = <span>{ content[5].trim() + formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()})})}</span>
+                response = <span>{ content[5].trim() + formatMessage({id: "LANG2782"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()}), 4: formatMessage({id: content[4].trim()})})}</span>
             } else {
                 response = <span>{ formatMessage({id: text.trim()}) }</span>
             }
         } else if (id === 12) {
             if (content.length === 6) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()}), 4: formatMessage({id: content[5].trim()})}) }</span>
+                response = <span>{ formatMessage({id: "LANG564"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()}), 4: formatMessage({id: content[4].trim()}), 5: formatMessage({id: content[5].trim()})}) }</span>
             } else if (content.length === 7) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()}), 4: formatMessage({id: content[5].trim()}), 5: formatMessage({id: content[6].trim()})}) }</span>
+                response = <span>{ formatMessage({id: "LANG3185"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()}), 4: formatMessage({id: content[4].trim()}), 5: formatMessage({id: content[5].trim()}), 6: formatMessage({id: content[6].trim()})}) }</span>
             }
         } else if (id === 13) {
             if (content.length === 8) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()}), 4: formatMessage({id: content[5].trim()}), 5: formatMessage({id: content[6].trim()}), 6: formatMessage({id: content[7].trim()})}) }</span>
+                response = <span>{ formatMessage({id: "LANG3186"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()}), 4: formatMessage({id: content[4].trim()}), 5: formatMessage({id: content[5].trim()}), 6: formatMessage({id: content[6].trim()}), 7: formatMessage({id: content[7].trim()})}) }</span>
             } else if (content === 9) {
-                response = <span>{ formatMessage({id: content[0].trim()}, {0: formatMessage({id: content[1].trim()}), 1: formatMessage({id: content[2].trim()}), 2: formatMessage({id: content[3].trim()}), 3: formatMessage({id: content[4].trim()}), 4: formatMessage({id: content[5].trim()}), 5: formatMessage({id: content[6].trim()}), 6: formatMessage({id: content[7].trim()}), 7: formatMessage({id: content[8].trim()})}) }</span>
+                response = <span>{ formatMessage({id: "LANG3187"}, {0: formatMessage({id: content[0].trim()}), 1: formatMessage({id: content[1].trim()}), 2: formatMessage({id: content[2].trim()}), 3: formatMessage({id: content[3].trim()}), 4: formatMessage({id: content[4].trim()}), 5: formatMessage({id: content[5].trim()}), 6: formatMessage({id: content[6].trim()}), 7: formatMessage({id: content[7].trim()}), 8: formatMessage({id: content[8].trim()})}) }</span>
             }
         } else {
             response = <span>{ formatMessage({id: text.trim()}) }</span>
@@ -296,7 +296,9 @@ class WarningLog extends Component {
                 onOk() {
                     __this._deleleRequestOk()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -346,7 +348,9 @@ class WarningLog extends Component {
             onOk() {
                 __this._deleleAllOk()
             },
-            onCancel() {}
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
         })
     }
     _hideSearch = () => {
@@ -362,7 +366,13 @@ class WarningLog extends Component {
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/maintenance/systemEvent/1')
+        const { setFieldsValue} = this.props.form
+        setFieldsValue({
+            logid: '',
+            type: '',
+            logstartfrom: '',
+            logstartto: ''
+        })
         this._getWarningLog()
     }
     _handleSubmit = (params = {                

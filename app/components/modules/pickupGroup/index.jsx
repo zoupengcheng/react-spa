@@ -41,7 +41,9 @@ class PickupGroup extends Component {
                 onOk() {
                     browserHistory.push('/extension-trunk/extension')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/call-features/pickupGroup/add')

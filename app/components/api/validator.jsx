@@ -74,6 +74,15 @@ Validator.prototype = {
         minValue: "LANG2164",
         calleridSip: "LANG5031"
     },
+    digits: function(data, value, callback, formatMessage) {
+        if (value && /^\d+$/i.test(value)) {
+            callback()
+        } else if (value === "") {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG2157"}))
+        }
+    },
     range: function(data, value, callback, formatMessage, min, max) {
         if (value && (value > max || value < min)) {
             callback(formatMessage({id: "LANG2147"}, {0: min, 1: max}))
@@ -321,6 +330,28 @@ Validator.prototype = {
             callback()
         } else {
             callback(formatMessage({id: "LANG2152"}))
+        }
+    },
+    phoneNumberOrExtension: function(data, value, callback, formatMessage, param) {
+        if (value && /^([a-zA-Z0-9#\*\-\+]*)$/i.test(value)) {
+            callback()
+        } else if (value === '') {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG2179"}))
+        }
+    },
+    host: function(data, value, callback, formatMessage, param) {
+        if (value && /^((https?|ftp|news):\/\/)?((([a-zA-Z0-9]([a-zA-Z0-9\-]*[\.])+([a-zA-Z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel))|((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])))(\:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9]))?)(\/[a-zA-Z0-9_\-\.~]+)*(\/([a-zA-Z0-9_\-\.]*)(\?[a-zA-Z0-9+_\-\.%=&]*)?)?(#[a-zA-Z][a-zA-Z0-9_]*)?$/.test(value)) {
+            callback()
+        } else if (value && (/^((https?|ftp|news):\/\/)?\[?((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\]?(\/([a-zA-Z0-9_\-\.]*)(\?[a-zA-Z0-9+_\-\.%=&]*)?)?(#[a-zA-Z][a-zA-Z0-9_]*)?$/.test(value) && ((value.contains("[") && value.contains("]")) || (!value.contains("[") && !value.contains("]"))))) {
+            callback()
+        } else if (value && /^((https?|ftp|news):\/\/)?\[((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\](\:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9]))?(\/([a-zA-Z0-9_\-\.]*)(\?[a-zA-Z0-9+_\-\.%=&]*)?)?(#[a-zA-Z][a-zA-Z0-9_]*)?$/.test(value)) {
+            callback()
+        } else if (value === '') {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG2167"}, {0: formatMessage({id: param})}))
         }
     }
 }

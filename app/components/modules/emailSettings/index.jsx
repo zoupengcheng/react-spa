@@ -9,7 +9,7 @@ import Title from '../../../views/title'
 import EmailSendLog from './emailSendLog'
 import EmailTemplateList from './emailTemplateList'
 
-import { Form, Tabs, message, Modal } from 'antd'
+import { Form, Input, Tabs, message, Modal } from 'antd'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl, formatMessage } from 'react-intl'
 
@@ -123,7 +123,9 @@ class EmailSettings extends Component {
                         },
                         onCancel() {
                             message.destroy()
-                        }
+                        },
+                        okText: formatMessage({id: "LANG727"}),
+                        cancelText: formatMessage({id: "LANG726"})
                     })
                 } else {
                     $.ajax({

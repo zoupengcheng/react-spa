@@ -5,7 +5,7 @@ import _ from 'underscore'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { browserHistory } from 'react-router'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Popover, Select, Table, Tabs, Popconfirm } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select, Table, Tabs, Popconfirm } from 'antd'
 const FormItem = Form.Item
 
 import api from "../../api/api"

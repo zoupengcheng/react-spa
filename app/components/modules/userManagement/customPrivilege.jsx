@@ -17,12 +17,8 @@ class UserList extends Component {
         this.state = {
             privilegeList: [],
             selectedRowKeys: [],
-            pagination: {
-                showTotal: this._showTotal,
-                showSizeChanger: true,
-                showQuickJumper: true
-            },
-            loading: false
+            loading: false,
+            custom_num: 0
         }
     }
     componentDidMount() {
@@ -34,12 +30,16 @@ class UserList extends Component {
         return formatMessage({ id: "LANG115" }) + total
     }
     _add = () => {
-        let confirmContent = ''
         const { formatMessage } = this.props.intl
 
-        confirmContent = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG880" })}}></span>
-
-        browserHistory.push('/maintenance/customPrivilege/add')
+        if (this.state.custom_num >= 6) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG808"}, {0: 6, 1: formatMessage({id: "LANG5167"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else {
+            browserHistory.push('/maintenance/customPrivilege/add')
+        }
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -67,7 +67,7 @@ class UserList extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getUserList()
+                    this._getPrivilegeList()
                 }
             }.bind(this),
             error: function(e) {
@@ -87,7 +87,6 @@ class UserList extends Component {
             }
         ) => {
         const { formatMessage } = this.props.intl
-        this.setState({loading: true})
 
         $.ajax({
             url: api.apiHost,
@@ -104,9 +103,7 @@ class UserList extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const tmp_privilegeList = response.privilege_id || []
-                    const pagination = this.state.pagination
-                    // Read total count from server
-                    pagination.total = res.response.total_item - 1
+                    const custom_num = res.response.total_item - 4
                     let privilegeList = []
                     tmp_privilegeList.map(function(item) {
                         if (item.privilege_id !== 2) {
@@ -115,32 +112,14 @@ class UserList extends Component {
                     })
 
                     this.setState({
-                        loading: false,
                         privilegeList: privilegeList,
-                        pagination
+                        custom_num: custom_num
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
-        })
-    }
-    _handleTableChange = (pagination, filters, sorter) => {
-        const pager = this.state.pagination
-
-        pager.current = pagination.current
-
-        this.setState({
-            pagination: pager
-        })
-
-        this._getUserList({
-            item_num: pagination.pageSize,
-            page: pagination.current,
-            sidx: sorter.field ? sorter.field : 'privilege_id',
-            sord: sorter.order === "descend" ? "desc" : "asc",
-            ...filters
         })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -253,9 +232,7 @@ class UserList extends Component {
                         columns={ columns }
                         dataSource={ this.state.privilegeList }
                         showHeader={ !!this.state.privilegeList.length }
-                        pagination={ this.state.pagination }
-                        onChange={ this._handleTableChange }
-                        loading={ this.state.loading}
+                        pagination={ false }
                     />
                 </div>
             </div>

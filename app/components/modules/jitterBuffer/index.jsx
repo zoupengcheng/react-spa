@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, InputNumber, message, Popover, Select } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -147,12 +147,12 @@ class JitterBuffer extends Component {
                     >
                         { getFieldDecorator('gs_jblen', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBLen }
                             ],
                             initialValue: len
                         })(
-                            <InputNumber min={ 100 } max={ 1000 } />
+                            <Input min={ 100 } max={ 1000 } />
                         ) }
                     </FormItem>
                     <FormItem
@@ -165,12 +165,12 @@ class JitterBuffer extends Component {
                     >
                         { getFieldDecorator('gs_jbmax', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBMax }
                             ],
                             initialValue: max
                         })(
-                            <InputNumber min={ 100 } max={ 1000 } />
+                            <Input min={ 100 } max={ 1000 } />
                         ) }
                     </FormItem>
                     <FormItem

@@ -2,7 +2,7 @@
 
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Table, Form, Button, Row, Col, Checkbox, Input, Popconfirm, message, Tooltip, Select, Upload, Icon, Spin, Modal } from 'antd'
+import { Table, Form, Input, Button, Row, Col, Checkbox, Popconfirm, message, Tooltip, Select, Upload, Icon, Spin, Modal } from 'antd'
 const FormItem = Form.Item
 import { FormattedMessage, FormattedHTMLMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'

@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Row, Col, Input, InputNumber, Icon, BackTop } from 'antd'
+import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Input, Row, Col, Icon, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -298,7 +298,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: fail2ban.bantime ? fail2ban.bantime : 600
                             })(
-                                <InputNumber min={ 0 } max={ 999999999999 } disabled={ allDisable } />
+                                <Input min={ 0 } max={ 999999999999 } disabled={ allDisable } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -314,7 +314,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: fail2ban.findtime ? fail2ban.findtime : 600
                             })(
-                                <InputNumber min={ 1 } max={ 999999999999 } disabled={ allDisable } />
+                                <Input min={ 1 } max={ 999999999999 } disabled={ allDisable } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -330,7 +330,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: fail2ban.maxretry ? fail2ban.maxretry : 1
                             })(
-                                <InputNumber min={ 1 } max={ 999999999999 } disabled={ allDisable } />
+                                <Input min={ 1 } max={ 999999999999 } disabled={ allDisable } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -490,7 +490,7 @@ class DynamicDefense extends Component {
                                         rules: [],
                                         initialValue: fail2ban.port ? fail2ban.port : 5060
                                     })(
-                                        <InputNumber min={ 1 } max={ 65535 } disabled={ true } />
+                                        <Input min={ 1 } max={ 65535 } disabled={ true } />
                                     ) }
                                 </Col>
                                 <Col span={6} offset={1} >
@@ -514,7 +514,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: fail2ban.asterisk_maxretry ? fail2ban.asterisk_maxretry : 1
                             })(
-                                <InputNumber min={ 1 } max={ 86399 } disabled={ asteriskDisable } />
+                                <Input min={ 1 } max={ 86399 } disabled={ asteriskDisable } />
                             ) }
                         </FormItem>
                     </Form>

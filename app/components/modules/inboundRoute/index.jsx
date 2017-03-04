@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Badge, Button, Col, Form, message, Modal, Row, Popconfirm, Popover, Select, Table, Tag, Tooltip } from 'antd'
+import { Badge, Button, Col, Form, Input, message, Modal, Row, Popconfirm, Popover, Select, Table, Tag, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option

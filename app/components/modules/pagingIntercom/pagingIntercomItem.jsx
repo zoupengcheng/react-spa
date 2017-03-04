@@ -9,10 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Form, Input, message, Transfer, Tooltip, Select, Checkbox } from 'antd'
+import { Form, Input, message, Transfer, Tooltip, Select, Checkbox, Row, Col, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
 
 class PagingIntercomItem extends Component {
     constructor(props) {
@@ -49,6 +50,23 @@ class PagingIntercomItem extends Component {
         } else {
             callback()
         }
+    }
+    _gotoPromptOk = () => {
+        browserHistory.push('/pbx-settings/voicePrompt/2')
+    }
+    _gotoPrompt = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG28"})})}} ></span>,
+            onOk() {
+                __this._gotoPromptOk()
+            },
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
+        })
     }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
@@ -318,6 +336,11 @@ class PagingIntercomItem extends Component {
             wrapperCol: { span: 6 }
         }
 
+        const formItemPromptLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
+        }
+
         const formItemTransferLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 18 }
@@ -368,7 +391,7 @@ class PagingIntercomItem extends Component {
                                 }],
                                 initialValue: name
                             })(
-                                <Input placeholder={ formatMessage({id: "LANG135"}) } />
+                                <Input placeholder={ formatMessage({id: "LANG135"}) } maxLength='25' />
                             ) }
                         </FormItem>
                         <FormItem
@@ -380,21 +403,18 @@ class PagingIntercomItem extends Component {
                             { getFieldDecorator('extension', {
                                 rules: [{
                                     required: true,
+
                                     message: formatMessage({id: "LANG2150"})
                                 }, {
                                     validator: (data, value, callback) => {
-                                        Validator.minlength(data, value, callback, formatMessage, 2)
-                                    }
-                                }, {
-                                    validator: (data, value, callback) => {
-                                        Validator.numeric_pound_star(data, value, callback, formatMessage)
+                                        Validator.digits(data, value, callback, formatMessage, 2)
                                     }
                                 }, {
                                     validator: this._checkExtension
                                 }],
                                 initialValue: pagingIntercomItem.extension
                             })(
-                                <Input placeholder={ formatMessage({id: "LANG85"}) } />
+                                <Input placeholder={ formatMessage({id: "LANG85"}) } maxLength='25' />
                             ) }
                         </FormItem>
                         <FormItem
@@ -436,31 +456,38 @@ class PagingIntercomItem extends Component {
                             ) }
                         </FormItem>
                         <FormItem
-                            { ...formItemLayout }
+                            { ...formItemPromptLayout }
                             label={(
                                 <Tooltip title={<FormattedHTMLMessage id="LANG3490" />}>
                                     <span>{formatMessage({id: "LANG28"})}</span>
                                 </Tooltip>
                             )}
                         >
-                            { getFieldDecorator('custom_prompt', {
-                                rules: [],
-                                initialValue: pagingIntercomItem.custom_prompt ? pagingIntercomItem.custom_prompt : ""
-                            })(
-                                <Select>
-                                    <Option key="" value="">{ formatMessage({id: "LANG133"}) }</Option>
-                                    {
-                                        this.state.fileList.map(function(item) {
-                                            return <Option
-                                                    key={ item.text }
-                                                    value={ item.val }>
-                                                    { item.text }
-                                                </Option>
-                                            }
-                                        ) 
-                                    }
-                                </Select>
-                            ) }
+                            <Row>
+                                <Col span={16}>
+                                { getFieldDecorator('custom_prompt', {
+                                    rules: [],
+                                    initialValue: pagingIntercomItem.custom_prompt ? pagingIntercomItem.custom_prompt : ""
+                                })(
+                                    <Select>
+                                        <Option key="" value="">{ formatMessage({id: "LANG133"}) }</Option>
+                                        {
+                                            this.state.fileList.map(function(item) {
+                                                return <Option
+                                                        key={ item.text }
+                                                        value={ item.val }>
+                                                        { item.text }
+                                                    </Option>
+                                                }
+                                            ) 
+                                        }
+                                    </Select>
+                                ) }
+                                </Col>
+                                <Col span={6} offset={1} >
+                                    <a className="prompt_setting" onClick={ this._gotoPrompt } >{ formatMessage({id: "LANG1484"}) }</a>
+                                </Col>
+                            </Row>
                         </FormItem>
 
                         <FormItem

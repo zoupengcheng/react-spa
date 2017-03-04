@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Badge, Form, Icon, Input, message, Popconfirm, Popover, Table, Tag, Tooltip, Tree } from 'antd'
+import { Badge, Form, Input, Icon, message, Popconfirm, Popover, Table, Tag, Tooltip, Tree } from 'antd'
 
 const FormItem = Form.Item
 const TreeNode = Tree.TreeNode

@@ -2,7 +2,7 @@
 
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Form, Button, Row, Col, Table, Checkbox, Input, Modal, InputNumber, Popconfirm, Transfer, message, Tooltip, Select } from 'antd'
+import { Form, Input, Button, Row, Col, Table, Checkbox, Modal, Popconfirm, Transfer, message, Tooltip, Select } from 'antd'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"

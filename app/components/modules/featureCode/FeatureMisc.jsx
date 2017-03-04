@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip, Button } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip, Button } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -61,7 +61,7 @@ class FeatureMisc extends Component {
                                 { getFieldDecorator('featuredigittimeout', {
                                     initialValue: featureMisc.featuredigittimeout
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -78,7 +78,7 @@ class FeatureMisc extends Component {
                                 { getFieldDecorator('parkext', {
                                     initialValue: featureMisc.parkext
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>
@@ -134,7 +134,7 @@ class FeatureMisc extends Component {
                                 { getFieldDecorator('parkingtime', {
                                     initialValue: featureMisc.parkingtime
                                 })(
-                                    <InputNumber />
+                                    <Input />
                                 ) }
                             </FormItem>
                         </Col>

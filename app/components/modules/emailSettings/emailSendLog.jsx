@@ -6,13 +6,14 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Table, Popconfirm, Modal, DatePicker, BackTop } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Table, Popconfirm, Modal, DatePicker, BackTop } from 'antd'
 const FormItem = Form.Item
 import _ from 'underscore'
 import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 
 const Option = Select.Option
+const confirm = Modal.confirm
 
 class EmailSendLog extends Component {
     constructor(props) {
@@ -69,7 +70,8 @@ class EmailSendLog extends Component {
             end_date: '',
             recipient: '',
             send_result: '',
-            return_code: ''
+            return_code: '',
+            module: ''
         })
         this._getMailSendLog()
     }
@@ -201,7 +203,7 @@ class EmailSendLog extends Component {
             }
         })
     }
-    _deleteAll = () => {
+    _deleteAllOk = () => {
         const { formatMessage } = this.props.intl
 
         let action = {}
@@ -218,7 +220,7 @@ class EmailSendLog extends Component {
 
                 if (bool) {
                     message.destroy()
-                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG819" })}}></span>)
                     this._getMailSendLog()
                 }
             }.bind(this),
@@ -226,6 +228,29 @@ class EmailSendLog extends Component {
                 message.error(e.statusText)
             }
         })
+    }
+    _deleteAll = () => {
+        const { formatMessage } = this.props.intl
+        const __this = this
+        if (this.state.mailSendLog.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG5382"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG840"})}} ></span>,
+                onOk() {
+                   __this._deleteAllOk()
+                },
+                onCancel() {
+                    return
+                },
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
+            })
+        }
     }
     _showAll = () => {
         this._getMailSendLog()

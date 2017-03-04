@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Button, message, Modal, Table, Card, Select, Form, Tooltip, Input, InputNumber, Checkbox, BackTop, Col } from 'antd'
+import { Button, message, Modal, Table, Card, Select, Form, Input, Tooltip, Checkbox, BackTop, Col } from 'antd'
 
 const confirm = Modal.confirm
 const Option = Select.Option
@@ -25,6 +25,9 @@ class SystemLog extends Component {
             dynamicSwitch: [],
             dynamicSwitchList: [],
             logServer: {},
+            syslog_server: "",
+            syslog_enable: "",
+            syslog_interval: "",
             logSwitch: {},
             plainOptions: [],
             plainOptions_dynamic: [],
@@ -336,6 +339,9 @@ class SystemLog extends Component {
         let logSwitchList = []
         let switchAll = false
         let dynamicAll = false
+        let syslog_server = this.state.syslog_server
+        let syslog_enable = this.state.syslog_enable
+        let syslog_interval = this.state.syslog_interval
         const plainOptions = [{
                 label: formatMessage({id: "LANG5142"}),
                 value: 'cdrapi'
@@ -380,6 +386,9 @@ class SystemLog extends Component {
                 if (bool) {
                     const response = res.response || {}
                     logServer = response || []
+                    syslog_server = logServer['syslog-server']
+                    syslog_enable = logServer['syslogbk_enabled']
+                    syslog_interval = logServer['syslogbk_interval']
                 }
             }.bind(this),
             error: function(e) {
@@ -520,7 +529,10 @@ class SystemLog extends Component {
             plainOptions_dynamic: plainOptions_dynamic,
             switchAll: switchAll,
             staticSwitchAll: staticSwitchAll,
-            dynamicAll: dynamicAll
+            dynamicAll: dynamicAll,
+            syslog_server: syslog_server,
+            syslog_enable: syslog_enable,
+            syslog_interval: syslog_interval
         })
     }
     _onChangeSyslogbk = (e) => {
@@ -554,11 +566,35 @@ class SystemLog extends Component {
         })
     }
     _onChangeDynamic = (checkedList) => {
+        const { formatMessage } = this.props.intl
         const plainOptions = this.state.plainOptions_dynamic
-        this.setState({
-            dynamicSwitchList: checkedList,
-            dynamicAll: checkedList.length === plainOptions.length
-        })
+        const __this = this
+        if (_.indexOf(checkedList, "SECURITY") > -1) {
+            this.setState({
+                dynamicSwitchList: checkedList,
+                dynamicAll: checkedList.length === plainOptions.length
+            })
+        } else {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2997"})}} ></span>,
+                onOk() {
+                    __this.setState({
+                        dynamicSwitchList: checkedList,
+                        dynamicAll: checkedList.length === plainOptions.length
+                    })
+                },
+                onCancel() {
+                    checkedList.push('SECURITY')
+                    __this.setState({
+                        dynamicSwitchList: checkedList,
+                        dynamicAll: checkedList.length === plainOptions.length
+                    })
+                },
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
+            })
+        }
     }
     _onChangeDynamicAll = (e) => {
         const plainOptions = this.state.plainOptions_dynamic
@@ -759,6 +795,49 @@ class SystemLog extends Component {
                             }
                         }.bind(this)
                     })
+                }
+                if (ret) {
+                    const newSyslogServer = values['syslog-server']
+                    const newSyslogbkEnabled = values.syslogbk_enabled ? '1' : '0'
+                    const newSyslogbkInterval = values.syslogbk_interval
+                    const oldSyslogServer = this.state.syslog_server
+                    const oldSyslogbkEnabled = this.state.syslog_enable
+                    const oldSyslogbkInterval = this.state.syslog_interval
+                    if (newSyslogServer !== oldSyslogServer ||
+                        newSyslogbkEnabled !== oldSyslogbkEnabled ||
+                        newSyslogbkInterval !== oldSyslogbkInterval) {
+                        $.ajax({
+                            url: api.apiHost,
+                            data: {
+                                "action": "restartSyslog",
+                                "syslog-restart": ""
+                            },
+                            type: 'POST',
+                            dataType: 'json',
+                            async: false,
+                            error: function(e) {
+                                message.error(e.statusText)
+                                ret = false
+                            },
+                            success: function(data) {
+                                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                if (bool) {
+                                    message.destroy()
+                                    message.success(successMessage)
+                                    this.setState({
+                                        syslog_server: newSyslogServer,
+                                        syslog_enable: newSyslogbkEnabled,
+                                        syslog_interval: newSyslogbkInterval
+                                    })
+                                } else {
+                                    message.destroy()
+                                    message.error(errorMessage)
+                                    ret = false
+                                }
+                            }.bind(this)
+                        })
+                    }
                 }
             }
         })
@@ -974,7 +1053,7 @@ class SystemLog extends Component {
                             width: 100,
                             initialValue: this.state.logServer.syslogbk_interval
                         })(
-                            <InputNumber min={ 3 } max={ 120 } disabled={ this.state.logServer.syslogbk_enabled === '0' }/>
+                            <Input min={ 3 } max={ 120 } disabled={ this.state.logServer.syslogbk_enabled === '0' }/>
                         )}
                     </FormItem>
                 </Form>

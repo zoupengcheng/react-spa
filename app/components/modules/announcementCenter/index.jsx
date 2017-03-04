@@ -64,7 +64,9 @@ class Announcement extends Component {
                 onOk() {
                     browserHistory.push('/value-added-features/announcementCenter')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/value-added-features/announcementCenter/addgroup')

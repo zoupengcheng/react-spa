@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import { injectIntl } from 'react-intl'
 import Title from '../../../views/title'
-import { Form, message, Tabs } from 'antd'
+import { Form, Input, message, Tabs } from 'antd'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 
@@ -25,10 +25,8 @@ class ExtensionItem extends Component {
 
         this.state = {
             settings: {},
-            accountList: [],
             userSettings: {},
             currentEditId: this.props.params.id,
-            mohNameList: ['default', 'ringbacktone_default'],
             extension_type: this.props.params.type ? this.props.params.type : 'sip'
         }
     }
@@ -53,66 +51,6 @@ class ExtensionItem extends Component {
             existNumberList: existNumberList
         })
 
-        $.ajax({
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getAccountList'
-            },
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    let extension = response.extension || []
-
-                    extension = extension.map(function(item) {
-                        return {
-                                key: item.extension,
-                                value: item.extension,
-                                out_of_service: item.out_of_service,
-                                // disabled: (item.out_of_service === 'yes'),
-                                label: (item.extension +
-                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                            }
-                    })
-
-                    this.setState({
-                        accountList: extension
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-
-        $.ajax({
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getMohNameList'
-            },
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    let mohNameList = response.moh_name || []
-
-                    this.setState({
-                        mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-
         if (extensionId) {
             $.ajax({
                 type: 'json',
@@ -129,6 +67,14 @@ class ExtensionItem extends Component {
                     if (bool) {
                         const response = res.response || {}
                         settings = response.extension || {}
+
+                        _.map(settings, (value, key) => {
+                            if (value === null) {
+                                settings[key] = ''
+                            } else {
+                                settings[key] = value
+                            }
+                        })
 
                         this.setState({
                             settings: settings
@@ -244,8 +190,9 @@ class ExtensionItem extends Component {
                 _.map(values, function(value, key) {
                     let fieldInstance = getFieldInstance(key)
 
-                    if (key === 'whiteLists' || key === 'localNetworks' || key === 'enable_cc' ||
-                        key === 'mode' || key === 'out_limitime' || key === 'maximumTime' ||
+                    if (key === 'mode' || key === 'out_limitime' || key === 'maximumTime' ||
+                        key === 'whiteLists' || key === 'localNetworks' || key === 'enable_cc' ||
+                        key === 'presence_dst_account_voicemail' || key === 'presence_dst_external_number' ||
                         key === 'room' || key === 'faxmode' || key === 'cc_mode' || key === 'batch_number' ||
                         key === 'cc_max_agents' || key === 'cc_max_monitors' || key === 'custom_alert_info' ||
                         key === 'user_password' || key === 'phone_number' || key === 'email' || key === 'language' ||
@@ -358,6 +305,12 @@ class ExtensionItem extends Component {
 
                         if (values.room) {
                             action['room'] = action['extension']
+                        }
+
+                        if (values.presence_dst_type === '1' || values.presence_dst_type === '3') {
+                            action['presence_dst_account'] = values.presence_dst_account_voicemail
+                        } else if (values.presence_dst_type === '2') {
+                            action['presence_dst_account'] = values.presence_dst_external_number
                         }
                     }
                 }
@@ -563,8 +516,6 @@ class ExtensionItem extends Component {
                             <Feature
                                 form={ form }
                                 settings={ this.state.settings }
-                                accountList={ this.state.accountList }
-                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }

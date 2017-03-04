@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -716,13 +716,13 @@ class AdvanceSettings extends Component {
                     }>
                     { getFieldDecorator('qualifyfreq', {
                         rules: [{ 
-                            type: "integer", 
+                            /* type: 'integer', */ 
                             required: true, 
                             message: formatMessage({id: "LANG2150"}) 
                         }],
-                        initialValue: trunk.qualifyfreq
+                        initialValue: trunk.qualifyfreq === null ? trunk.qualifyfreq : 1
                     })(
-                        <InputNumber min={1} max={3600} maxLength="4" />
+                        <Input min={1} max={3600} maxLength="4" />
                     ) }
                 </FormItem>
                 <FormItem
@@ -736,13 +736,13 @@ class AdvanceSettings extends Component {
                     }>
                     { getFieldDecorator('out_maxchans', {
                         rules: [{ 
-                            type: "integer", 
+                            /* type: 'integer', */ 
                             required: true, 
                             message: formatMessage({id: "LANG2150"}) 
                         }],
-                        initialValue: trunk.out_maxchans
+                        initialValue: trunk.out_maxchans === null ? trunk.out_maxchans : 1
                     })(
-                        <InputNumber max={999} />
+                        <Input max={999} />
                     ) }
                 </FormItem>
                 <FormItem
@@ -883,7 +883,7 @@ class AdvanceSettings extends Component {
                         }>
                         { getFieldDecorator('ldap_sync_port', {
                             rules: [{ 
-                                type: "integer", 
+                                /* type: 'integer', */ 
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }, { 
@@ -891,9 +891,9 @@ class AdvanceSettings extends Component {
                                     this._checkOpenPort(data, value, callback)
                                 }
                             }],
-                            initialValue: trunk.ldap_sync_port
+                            initialValue: trunk.ldap_sync_port === null ? trunk.ldap_sync_port : 1
                         })(
-                            <InputNumber min={1} max={65534} />
+                            <Input min={1} max={65534} />
                         ) }
                     </FormItem>
                     <FormItem
@@ -934,15 +934,15 @@ class AdvanceSettings extends Component {
                         }>
                         { getFieldDecorator('ldap_outrt_prefix', {
                             rules: [{ 
-                                type: "integer", 
+                                /* type: 'integer', */ 
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }, { 
                                 validator: this._checkLdapPrefix
                             }],
-                            initialValue: Number(trunk.ldap_default_outrt_prefix)
+                            initialValue: trunk.ldap_default_outrt_prefix === null ? Number(trunk.ldap_default_outrt_prefix) : 1
                         })(
-                            <InputNumber maxLength="14" disabled={ this.state.ldapDefaultOutrt !== "custom" ? true : false }/>
+                            <Input maxLength="14" disabled={ this.state.ldapDefaultOutrt !== "custom" ? true : false }/>
                         ) }
                     </FormItem>
                     <FormItem
@@ -987,13 +987,13 @@ class AdvanceSettings extends Component {
                         }>
                         { getFieldDecorator('cc_max_agents', {
                             rules: [{ 
-                                type: "integer", 
+                                /* type: 'integer', */ 
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }],
-                            initialValue: trunk.cc_max_agents
+                            initialValue: trunk.cc_max_agents === null ? trunk.cc_max_agents : 1
                         })(
-                            <InputNumber min={1} max={999} maxLength="10" />
+                            <Input min={1} max={999} maxLength="10" />
                         ) }
                     </FormItem>
                     <FormItem
@@ -1007,13 +1007,13 @@ class AdvanceSettings extends Component {
                         }>
                         { getFieldDecorator('cc_max_monitors', {
                             rules: [{ 
-                                type: "integer", 
+                                /* type: 'integer', */ 
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }],
-                            initialValue: trunk.cc_max_monitors
+                            initialValue: trunk.cc_max_monitors === null ? trunk.cc_max_monitors : 1
                         })(
-                            <InputNumber min={1} max={999} maxLength="10" />
+                            <Input min={1} max={999} maxLength="10" />
                         ) }
                     </FormItem>
                 </div>      

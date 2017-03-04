@@ -9,10 +9,11 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select } from 'antd'
+import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, Modal } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const confirm = Modal.confirm
 
 class FaxItem extends Component {
     constructor(props) {
@@ -180,8 +181,8 @@ class FaxItem extends Component {
                     const response = res.response || {}
 
                     prefSetting = res.response.extension_pref_settings || {}
-                    faxEnd = prefSetting.faxEnd
-                    faxStart = prefSetting.faxStart
+                    faxEnd = prefSetting.fax_end
+                    faxStart = prefSetting.fax_start
                     disable_extension_ranges = prefSetting.disable_extension_ranges
                 }
             }.bind(this),
@@ -217,6 +218,29 @@ class FaxItem extends Component {
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
+
+                const disable_extension_ranges = this.state.disable_extension_ranges
+                const faxStart = this.state.faxStart
+                const faxEnd = this.state.faxEnd
+                if (disable_extension_ranges === 'no') {
+                    const num = parseInt(values.extension)
+                    if (num < parseInt(faxStart) || num > parseInt(faxEnd)) {
+                        const { formatMessage } = this.props.intl
+                        confirm({
+                            title: (formatMessage({id: "LANG543"})),
+                            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2132"}, {0: num, 1: faxStart, 2: faxEnd})}} ></span>,
+                            onOk() {
+                               browserHistory.push('/pbx-settings/pbxGeneralSettings')
+                            },
+                            onCancel() {
+                                return
+                            },
+                            okText: formatMessage({id: "LANG727"}),
+                            cancelText: formatMessage({id: "LANG726"})
+                        })
+                        return
+                    }
+                }
 
                 message.loading(loadingMessage)
 
@@ -320,7 +344,7 @@ class FaxItem extends Component {
                                 width: 100,
                                 initialValue: faxItem.extension ? faxItem.extension : this.state.newFaxNum
                             })(
-                                <Input maxLength="128" disabled={ this.props.params.id ? true : false } />
+                                <Input maxLength="25" disabled={ this.props.params.id ? true : false } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -350,7 +374,7 @@ class FaxItem extends Component {
                                 width: 100,
                                 initialValue: faxItem.fax_name
                             })(
-                                <Input maxLength="128" />
+                                <Input maxLength="25" />
                             ) }
                         </FormItem>
                         <FormItem
@@ -365,6 +389,10 @@ class FaxItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.email(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: faxItem.email ? faxItem.email : ""

@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Modal, Button, Row, Col, Checkbox, Input, InputNumber, message, Tooltip, Select, Tabs, Spin } from 'antd'
+import { Form, Input, Modal, Button, Row, Col, Checkbox, message, Tooltip, Select, Tabs, Spin } from 'antd'
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
@@ -1394,13 +1394,13 @@ class AnalogTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('polarityonanswerdelay', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }],
-                                            initialValue: analogtrunk.polarityonanswerdelay || 600
+                                            initialValue: analogtrunk.polarityonanswerdelay === null ? analogtrunk.polarityonanswerdelay : 600
                                         })(
-                                            <InputNumber maxLength="4" min={ 100 } max={ 2000 }/>
+                                            <Input maxLength="4" min={ 100 } max={ 2000 }/>
                                         )}
                                     </FormItem>
                                 </Col>
@@ -1424,13 +1424,13 @@ class AnalogTrunkItem extends Component {
                                         <span ref="div_currentdisconnectthreshold" className={ state.div_currentdisconnectthreshold_style === false ? "hidden" : "display-inline" }>
                                             { getFieldDecorator('currentdisconnectthreshold', {
                                                 rules: [{ 
-                                                    type: "integer", 
+                                                    /* type: 'integer', */ 
                                                     required: true, 
                                                     message: formatMessage({id: "LANG2150"}) 
                                                 }],
                                                 initialValue: analogtrunk.currentdisconnectthreshold || 200
                                             })(
-                                                <InputNumber min={ 50 } max={ 3000 } />
+                                                <Input min={ 50 } max={ 3000 } />
                                             )}
 
                                         </span>
@@ -1446,13 +1446,13 @@ class AnalogTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('ringtimeout', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }],
                                             initialValue: analogtrunk.ringtimeout || 8000
                                         })(
-                                            <InputNumber min={ 4000 } max={ 20000 } />
+                                            <Input min={ 4000 } max={ 20000 } />
                                         )}
                                     </FormItem>
                                 </Col>
@@ -1635,13 +1635,13 @@ class AnalogTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('fxooutbandcalldialdelay', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }],
                                             initialValue: analogtrunk.fxooutbandcalldialdelay || 0
                                         })(
-                                            <InputNumber min={0} max={3000} />
+                                            <Input min={0} max={3000} />
                                         )}
                                     </FormItem>
                                 </Col>
@@ -1715,7 +1715,7 @@ class AnalogTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('out_maxchans', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }, { 
@@ -1731,7 +1731,7 @@ class AnalogTrunkItem extends Component {
                                             }],
                                             initialValue: analogtrunk.out_maxchans || 0
                                         })(
-                                            <InputNumber disabled={ state.trunkmodeVal ? true : false } />
+                                            <Input disabled={ state.trunkmodeVal ? true : false } />
                                         )}
                                     </FormItem>
                                 </Col>
@@ -1771,7 +1771,7 @@ class AnalogTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('busycount', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }, { 
@@ -1786,7 +1786,7 @@ class AnalogTrunkItem extends Component {
                                             }],
                                             initialValue: Number(analogtrunk.busycount) || 2
                                         })(
-                                            <InputNumber />
+                                            <Input />
                                         )}
                                     </FormItem>
                                 </Col>
@@ -1821,7 +1821,7 @@ class AnalogTrunkItem extends Component {
                                         )}>
                                         { getFieldDecorator('congestioncount', {
                                             rules: [{ 
-                                                type: "integer", 
+                                                /* type: 'integer', */ 
                                                 required: true, 
                                                 message: formatMessage({id: "LANG2150"}) 
                                             }, { 
@@ -2260,7 +2260,7 @@ class AnalogTrunkItem extends Component {
                                     )}>
                                     { getFieldDecorator('des_number', {
                                         rules: [{ 
-                                            type: "integer", 
+                                            /* type: 'integer', */ 
                                             required: true, 
                                             message: formatMessage({id: "LANG2150"}) 
                                         }, { 
@@ -2270,7 +2270,7 @@ class AnalogTrunkItem extends Component {
                                         }],
                                         initialValue: analogtrunk.des_number || ""
                                     })(
-                                        <InputNumber maxLength="32" />
+                                        <Input maxLength="32" />
                                     )}
                                 </FormItem>
                                 <FormItem

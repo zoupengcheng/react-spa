@@ -1,7 +1,7 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import { Form, Icon, Button, Table, Select } from 'antd'
+import { Form, Input, Icon, Button, Table, Select } from 'antd'
 import {injectIntl} from 'react-intl'
 import Title from '../../../views/title'
 import DataTrunksList from './dataTrunksList'

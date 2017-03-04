@@ -232,6 +232,9 @@ class CallBack extends Component {
                     isDisplay='hidden'
                 />
                 <div className="content">
+                    <div className="lite-desc">
+                        { formatMessage({id: "LANG3750"}) }
+                    </div>
                     <div className="top-button">
                         <Button
                             icon="plus"

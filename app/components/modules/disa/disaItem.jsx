@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, InputNumber, message, Checkbox, Tooltip, Select } from 'antd'
+import { Form, Input, message, Checkbox, Tooltip, Select } from 'antd'
 
 const Option = Select.Option
 const FormItem = Form.Item
@@ -301,12 +301,12 @@ class DISAItem extends Component {
                                         required: true,
                                         message: formatMessage({id: "LANG2150"})
                                     }, { 
-                                       type: "integer",
+                                       /* type: 'integer', */
                                        message: formatMessage({id: "LANG2150"}) 
                                     } ],
                                 initialValue: this.state.disaItem.response_timeout
                             })(
-                                <InputNumber min={3} max={180} maxLength="3" />
+                                <Input min={3} max={180} maxLength="3" />
                             ) }
                         </FormItem>
                         <FormItem
@@ -323,12 +323,12 @@ class DISAItem extends Component {
                                         required: true,
                                         message: formatMessage({id: "LANG2150"})
                                     }, { 
-                                       type: "integer",
+                                       /* type: 'integer', */
                                        message: formatMessage({id: "LANG2150"}) 
                                     } ],
                                 initialValue: this.state.disaItem.digit_timeout
                             })(
-                                <InputNumber min={1} max={10} maxLength="2" />
+                                <Input min={1} max={10} maxLength="2" />
                             ) }
                         </FormItem>
                         <FormItem

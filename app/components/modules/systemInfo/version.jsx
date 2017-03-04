@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
-import { Form, Row, Col, Icon, Input, Popover, message } from 'antd'
+import { Form, Input, Row, Col, Icon, Popover, message } from 'antd'
 import * as Actions from './actions/getNetworkInformation'
 const FormItem = Form.Item
 

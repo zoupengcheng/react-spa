@@ -15,6 +15,18 @@ const Option = Select.Option
 const FormItem = Form.Item
 const confirm = Modal.confirm
 const RadioGroup = Radio.Group
+const uploadErrObj = {
+        1: "LANG890",
+        2: "LANG891",
+        3: "LANG892",
+        4: "LANG893",
+        5: "LANG894",
+        6: "LANG895",
+        7: "LANG896",
+        8: "LANG897",
+        9: "LANG898",
+        10: "LANG899"
+    }
 
 class VoicePrompt extends Component {
     constructor(props) {
@@ -272,6 +284,24 @@ class VoicePrompt extends Component {
                 </div>
         }
     }
+    _checkFormat = (file) => {
+        const { formatMessage } = this.props.intl
+        let returnValue = false
+
+        const filename = file.name
+        if (filename.endsWith('.tar.bz2') || filename.endsWith('.tar.gz') ||
+            filename.endsWith('.tar.z') || filename.endsWith('.tgz') ||
+            filename.endsWith('.tar') || filename.endsWith('.bz2') ||
+            filename.endsWith('.zip') || filename.endsWith('.gz')) {
+            returnValue = true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG908"})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        }
+        return returnValue
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -300,7 +330,6 @@ class VoicePrompt extends Component {
                     console.log(info.file, info.fileList)
                 }
                 if (me.state.upgradeLoading) {
-                    me.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
                     me.setState({upgradeLoading: false})
                 }
 
@@ -317,9 +346,13 @@ class VoicePrompt extends Component {
 
                         // me.props.setSpinLoading({loading: false})
 
-                        if (data.status === 0 && response && response.result === 0) {
-                            me._getLanguage()
-                            me._handleCancel()
+                        if (data.status === 0 && response) {
+                            if (response.result === 0) {
+                                me._getLanguage()
+                                me._handleCancel()
+                            } else {
+                                message.error(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: uploadErrObj[Math.abs(parseInt(data.response.result))] })}}></span>)
+                            }
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
                         } else if (!_.isEmpty(response)) {
@@ -335,9 +368,9 @@ class VoicePrompt extends Component {
                 }
             },
             onRemove() {
-                me.props.setSpinLoading({loading: false})
                 message.destroy()
-            }
+            },
+            beforeUpload: me._checkFormat
         }
         const radioStyle = {
             display: 'block',

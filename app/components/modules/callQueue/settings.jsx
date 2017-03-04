@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, InputNumber, message, Transfer, Tooltip } from 'antd'
+import { Form, Input, message, Transfer, Tooltip } from 'antd'
 
 const FormItem = Form.Item
 
@@ -321,7 +321,7 @@ class AgentLoginSettings extends Component {
                                 <Input onFocus={ this._onFocus } />
                             ) }
                         </FormItem>
-                        <FormItem
+                        {/* <FormItem
                             { ...formItemLayout }
                             label={(
                                 <span>
@@ -335,9 +335,9 @@ class AgentLoginSettings extends Component {
                                 rules: [],
                                 initialValue: agentLoginSettings.pin
                             })(
-                                <InputNumber />
+                                <Input />
                             ) }
-                        </FormItem>
+                        </FormItem> */}
                         <FormItem
                             { ...formItemLayout }
                             label={(

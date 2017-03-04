@@ -3,7 +3,7 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
-import { Form, Button, Checkbox, Input, InputNumber, message, Popover, Select, Upload, Icon } from 'antd'
+import { Form, Input, Button, Checkbox, message, Popover, Select, Upload, Icon } from 'antd'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
@@ -264,7 +264,7 @@ class OpenVPN extends Component {
                     >
                         { getFieldDecorator('remote', {
                             rules: [
-                                { type: "integer", required: true, message: formatMessage({id: "LANG2150"}) },
+                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
                                 { validator: this._checkJBLen }
                             ],
                             initialValue: remote

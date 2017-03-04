@@ -41,7 +41,9 @@ class PagingIntercom extends Component {
                 onOk() {
                     browserHistory.push('/extension-trunk/extension')
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             browserHistory.push('/call-features/pagingIntercom/add')
@@ -131,7 +133,9 @@ class PagingIntercom extends Component {
                 onOk() {
                     __this._deleteBatchOK(record)
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }

@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Col, Form, Input, message, Tooltip, Checkbox, Upload, Icon, Modal, InputNumber, Button } from 'antd'
+import { Col, Form, Input, message, Tooltip, Checkbox, Upload, Icon, Modal, Button } from 'antd'
 
 const FormItem = Form.Item
 
@@ -179,8 +179,6 @@ class RoomAdd extends Component {
                             Modal.confirm({
                                 title: formatMessage({id: "LANG924"}),
                                 content: '',
-                                okText: 'OK',
-                                cancelText: 'Cancel',
                                 onOk: () => {
                                     me.setState({
                                         visible: false
@@ -191,7 +189,9 @@ class RoomAdd extends Component {
                                     me.setState({
                                         visible: false
                                     }) 
-                                }
+                                },
+                                okText: formatMessage({id: "LANG727"}),
+                                cancelText: formatMessage({id: "LANG726"})
                             })
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
@@ -246,8 +246,6 @@ class RoomAdd extends Component {
                             Modal.confirm({
                                 title: formatMessage({id: "LANG924"}),
                                 content: '',
-                                okText: 'OK',
-                                cancelText: 'Cancel',
                                 onOk: () => {
                                     me.setState({
                                         visible: false
@@ -258,7 +256,9 @@ class RoomAdd extends Component {
                                     me.setState({
                                         visible: false
                                     }) 
-                                }
+                                },
+                                okText: formatMessage({id: "LANG727"}),
+                                cancelText: formatMessage({id: "LANG726"})
                             })
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
@@ -307,7 +307,7 @@ class RoomAdd extends Component {
                                 width: 100,
                                 initialValue: amiItem.port ? amiItem.port : "7777"
                             })(
-                                <InputNumber min={1024} max={65535} />
+                                <Input min={1024} max={65535} />
                             ) }
                         </FormItem>
                         <FormItem
@@ -348,7 +348,7 @@ class RoomAdd extends Component {
                                 width: 100,
                                 initialValue: amiItem.tlsbindport ? amiItem.tlsbindport : "5039"
                             })(
-                                <InputNumber min={1024} max={65535} />
+                                <Input min={1024} max={65535} />
                             ) }
                         </FormItem>
                         <FormItem
@@ -368,7 +368,7 @@ class RoomAdd extends Component {
                                 width: 100,
                                 initialValue: amiItem.writetimeout ? amiItem.writetimeout : "100"
                             })(
-                                <InputNumber min={100} max={10000} />
+                                <Input min={100} max={10000} />
                             ) }
                         </FormItem>
                         <FormItem

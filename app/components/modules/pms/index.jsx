@@ -10,7 +10,7 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Form, Tabs, message } from 'antd'
+import { Form, Input, Tabs, message } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 
@@ -122,6 +122,7 @@ class PmsSettings extends Component {
             } else {
                 basicSettingsAction["username"] = _.isObject(basicSettings.username) ? basicSettings.username.value : basicSettings.username
                 basicSettingsAction["password"] = _.isObject(basicSettings.password) ? basicSettings.password.value : basicSettings.password
+                basicSettingsAction["site"] = _.isObject(basicSettings.site) ? basicSettings.site.value : basicSettings.site
                 basicSettingsAction["pms_addr"] = _.isObject(basicSettings.pms_addr) ? basicSettings.pms_addr.value : basicSettings.pms_addr
                 basicSettingsAction["ucm_port"] = _.isObject(basicSettings.ucm_port) ? basicSettings.ucm_port.value : basicSettings.ucm_port
                 basicSettingsAction["wakeup_prompt"] = _.isObject(basicSettings.wakeup_prompt) ? basicSettings.wakeup_prompt.value : basicSettings.wakeup_prompt
@@ -132,6 +133,9 @@ class PmsSettings extends Component {
                     if (basicSettingsAction[key] === null || basicSettingsAction[key] === "") {
                         return
                     }
+                }
+                if (err) {
+                    return
                 }
             }   
 

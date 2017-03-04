@@ -292,24 +292,12 @@ class SwitchBoardItem extends Component {
         return (
             <div className="app-content-main">
                 <div className="content">
-                    <Card
-                        className={ 'ant-card-custom-head' }
-                        title={ formatMessage({id: "LANG143"}) }
-                    >
-                        <Table
-                            rowKey="member_extension"
-                            columns={ generalColumns }
-                            dataSource={ this.props.queueMembers }
-                            showHeader={ !!this.props.queueMembers.length }
-                            pagination={ this._pagination(this.props.queueMembers) }
-                        />
-                    </Card>
                     <Row gutter={ 32 }>
                         <Col className="gutter-row" span={ 12 } xs={ 24 } sm={ 12 } md={ 12 } lg={ 12 }>
                             <Card
                                 style={{ 'marginTop': '10px' }}
                                 className={ 'ant-card-custom-head' }
-                                title={ formatMessage({id: "LANG111"}) }
+                                title={ formatMessage({id: "LANG5460"}) }
                             >
                                 <Table
                                     rowKey="position"
@@ -336,6 +324,18 @@ class SwitchBoardItem extends Component {
                             </Card>
                         </Col>
                     </Row>
+                    <Card
+                        className={ 'ant-card-custom-head' }
+                        title={ formatMessage({id: "LANG143"}) }
+                    >
+                        <Table
+                            rowKey="member_extension"
+                            columns={ generalColumns }
+                            dataSource={ this.props.queueMembers }
+                            showHeader={ !!this.props.queueMembers.length }
+                            pagination={ this._pagination(this.props.queueMembers) }
+                        />
+                    </Card>
                 </div>
             </div>
         )

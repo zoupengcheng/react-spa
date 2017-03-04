@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import { injectIntl } from 'react-intl'
 import Title from '../../../views/title'
-import { Form, message, Tabs } from 'antd'
+import { Form, Input, message, Tabs } from 'antd'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 

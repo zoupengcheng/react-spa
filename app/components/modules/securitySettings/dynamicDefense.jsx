@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Row, Col, Input, InputNumber, BackTop } from 'antd'
+import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Input, Row, Col, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -40,8 +40,8 @@ class DynamicDefense extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteFax",
-                "fax": record.extension
+                "action": "deleteBlackip",
+                "blackip": record.blacklist
             },
             type: 'json',
             async: true,
@@ -80,7 +80,12 @@ class DynamicDefense extends Component {
                 if (bool) {
                     const response = res.response || {}
                     if (response.blacklist[0].blacklist !== '') {
-                        blacklist = response.blacklist[0].blacklist.split(',') || []
+                        const list = response.blacklist[0].blacklist.split(',') || []
+                        list.map(function(item) {
+                            blacklist.push({
+                                blacklist: item
+                            })
+                        })
                     }
                 }
             }.bind(this),
@@ -209,7 +214,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: dynamicDefense.timeout ? dynamicDefense.timeout : 1
                             })(
-                                <InputNumber min={ 1 } max={ 59 } disabled={ dynamicDefense.enable === 'no' } />
+                                <Input min={ 1 } max={ 59 } disabled={ dynamicDefense.enable === 'no' } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -225,7 +230,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: dynamicDefense.block_timeout ? dynamicDefense.block_timeout : 120
                             })(
-                                <InputNumber min={ 1 } max={ 86399 } disabled={ dynamicDefense.enable === 'no' } />
+                                <Input min={ 1 } max={ 86399 } disabled={ dynamicDefense.enable === 'no' } />
                             ) }
                         </FormItem>
                         <FormItem
@@ -241,7 +246,7 @@ class DynamicDefense extends Component {
                                 rules: [],
                                 initialValue: dynamicDefense.threshold ? dynamicDefense.threshold : 100
                             })(
-                                <InputNumber min={ 5 } max={ 1000 } disabled={ dynamicDefense.enable === 'no' } />
+                                <Input min={ 5 } max={ 1000 } disabled={ dynamicDefense.enable === 'no' } />
                             ) }
                         </FormItem>
                         <FormItem

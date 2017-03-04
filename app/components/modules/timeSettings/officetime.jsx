@@ -85,7 +85,9 @@ class OfficeTime extends Component {
                 onOk() {
                     __this._batchdeleteOk()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }

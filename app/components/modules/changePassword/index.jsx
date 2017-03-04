@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Button, message, Modal, Input, Tag, Select, Form, Row, Col, Tooltip } from 'antd'
+import { Button, message, Modal, Input, Tag, Select, Form, Row, Col, Tooltip, Checkbox } from 'antd'
 
 const confirm = Modal.confirm
 const Option = Select.Option
@@ -18,7 +18,9 @@ class ChangePassword extends Component {
     constructor(props) {
         super(props)
         this.state = {
-              user_name: {}
+              user_name: {},
+              enableEmail: true,
+              enablePassword: true
         }
     }
     componentDidMount() {
@@ -75,8 +77,12 @@ class ChangePassword extends Component {
                     action.action = 'updateUser'
 
                     action.old_password = values.old_password
-                    action.user_password = values.user_password
-                    action.email = values.email
+                    if (this.state.enablePassword) {
+                        action.user_password = values.user_password
+                    }
+                    if (this.state.enableEmail) {
+                        action.email = values.email
+                    }
 
                     $.ajax({
                         url: api.apiHost,
@@ -92,13 +98,41 @@ class ChangePassword extends Component {
                             if (bool) {
                                 message.destroy()
                                 message.success(formatMessage({ id: "LANG932" }))
-                                browserHistory.push('/login')
+                                if (this.state.enablePassword) {
+                                    browserHistory.push('/login')
+                                }
                             }
                         }.bind(this)
                     })
                 }
             }
         })
+    }
+
+    _onChangePassword = (e) => {
+        console.log('change password: ', e.target.checked)
+        if (e.target.checked) {
+            this.setState({
+                enablePassword: true
+            })
+        } else {
+            this.setState({
+                enablePassword: false
+            })
+        }
+    }
+
+    _onChangeEmail = (e) => {
+        console.log('change email: ', e.target.checked)
+        if (e.target.checked) {
+            this.setState({
+                enableEmail: true
+            })
+        } else {
+            this.setState({
+                enableEmail: false
+            })
+        }
     }
 
     render() {
@@ -112,15 +146,20 @@ class ChangePassword extends Component {
             wrapperCol: { span: 6 }
         }
 
+        const title = formatMessage({id: "LANG5468"}, {
+                    0: formatMessage({id: "LANG55"}),
+                    1: formatMessage({id: "LANG4203"})
+                })
+
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
-                    1: formatMessage({id: "LANG55"})
+                    1: title
                 })
 
         return (
             <div className="app-content-main">
                 <Title
-                    headerTitle={ formatMessage({id: "LANG55"}) }
+                    headerTitle={ title }
                     onSubmit={ this._handleSubmit }
                     onCancel={ this._handleCancel }
                     isDisplay= "display-block"
@@ -144,16 +183,30 @@ class ChangePassword extends Component {
                         ) }
                     </FormItem>
 
+                    <div className="section-title">
+                        <span>{ formatMessage({id: "LANG55"}) }</span>
+                    </div>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={
+                                <span>{formatMessage({id: "LANG5466"})}</span>
+                        }>
+                            <Checkbox
+                                onChange={ this._onChangePassword }
+                                checked={ this.state.enablePassword }
+                            />
+                    </FormItem>
                     <FormItem
                         ref="div_newpass"
                         { ...formItemLayout }
+                        className= { this.state.enablePassword ? 'display-block' : 'hidden' }
                         label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG1990" />}>
                                 <span>{formatMessage({id: "LANG1990"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('user_password', {
-                            rules: [{ required: true,
+                            rules: [{ required: this.state.enablePassword === true,
                                 message: formatMessage({id: "LANG2150"})
                                 }],
                             initialValue: ''
@@ -165,13 +218,14 @@ class ChangePassword extends Component {
                     <FormItem
                         ref="div_newpass_rep"
                         { ...formItemLayout }
+                        className= { this.state.enablePassword ? 'display-block' : 'hidden' }
                         label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG1991" />}>
                                 <span>{formatMessage({id: "LANG1991"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('newpass_rep', {
-                            rules: [{ required: true,
+                            rules: [{ required: this.state.enablePassword === true,
                                 message: formatMessage({id: "LANG2150"})
                                 }],
                             initialValue: ''
@@ -180,16 +234,30 @@ class ChangePassword extends Component {
                         ) }
                     </FormItem>
 
+                    <div className="section-title">
+                        <span>{ formatMessage({id: "LANG4203"}) }</span>
+                    </div>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={
+                                <span>{formatMessage({id: "LANG5467"})}</span>
+                        }>
+                            <Checkbox
+                                onChange={ this._onChangeEmail }
+                                checked={ this.state.enableEmail }
+                            />
+                    </FormItem>
                     <FormItem
                         ref="div_email"
                         { ...formItemLayout }
+                        className= { this.state.enableEmail ? 'display-block' : 'hidden' }
                         label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG4192" />}>
                                 <span>{formatMessage({id: "LANG1081"})}</span>
                             </Tooltip>
                         }>
                         { getFieldDecorator('email', {
-                            rules: [{ required: true,
+                            rules: [{ required: this.state.enableEmail === true,
                                 message: formatMessage({id: "LANG2150"})
                                 }],
                             initialValue: user_name.email ? user_name.email : ''

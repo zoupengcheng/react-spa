@@ -95,9 +95,11 @@ class FaxItem extends Component {
             title: (formatMessage({id: "LANG543"})),
             content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG4576"})})}} ></span>,
             onOk() {
-                browserHistory.push('/system-settings/emailSettings/2')
+                browserHistory.push('/system-settings/emailSettings/template')
             },
-            onCancel() {}
+            onCancel() {},
+            okText: formatMessage({id: "LANG727"}),
+            cancelText: formatMessage({id: "LANG726"})
         })
     }
     _handleCancel = () => {
@@ -155,11 +157,11 @@ class FaxItem extends Component {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const formItemLayout = {
-            labelCol: { span: 3 },
+            labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
         const formItemGotoLayout = {
-            labelCol: { span: 3 },
+            labelCol: { span: 6 },
             wrapperCol: { span: 9 }
         }
 
@@ -315,9 +317,6 @@ class FaxItem extends Component {
                             )}>
                             { getFieldDecorator('local_station_id', {
                                 rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
-                                }, {
                                     validator: (data, value, callback) => {
                                         Validator.specialauthid(data, value, callback, formatMessage)
                                     }
@@ -340,9 +339,6 @@ class FaxItem extends Component {
                                 <Col span={ 16 }>
                                 { getFieldDecorator('default_email', {
                                     rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }, {
                                         validator: (data, value, callback) => {
                                             Validator.email(data, value, callback, formatMessage)
                                         }

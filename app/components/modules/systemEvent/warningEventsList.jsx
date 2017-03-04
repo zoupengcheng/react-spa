@@ -7,7 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
-import { Row, Button, message, Modal, InputNumber, Tooltip, Table, Tag, Switch, Select, Col, Form, BackTop } from 'antd'
+import { Row, Button, message, Modal, Tooltip, Table, Tag, Switch, Select, Col, Form, Input, BackTop } from 'antd'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -324,29 +324,45 @@ class WarningEventList extends Component {
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const __this = this
-
-        confirm({
-            title: (formatMessage({id: "LANG543"})),
-            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2563"})}} ></span>,
-            onOk() {
-                __this._turnOnWarningOK()
-            },
-            onCancel() {}
-        })
+        if (this.state.selectedRowKeys.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG2309"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2563"})}} ></span>,
+                onOk() {
+                    __this._turnOnWarningOK()
+                },
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
+            })
+        }
     }
     _turnOffWarning = () => {
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const __this = this
-
-        confirm({
-            title: (formatMessage({id: "LANG543"})),
-            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2564"})}} ></span>,
-            onOk() {
-                __this._turnOffWarningOK()
-            },
-            onCancel() {}
-        })
+        if (this.state.selectedRowKeys.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG2309"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2564"})}} ></span>,
+                onOk() {
+                    __this._turnOffWarningOK()
+                },
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
+            })
+        }
     }
     _turnOnMailNotification = () => {
         const { form } = this.props
@@ -359,7 +375,12 @@ class WarningEventList extends Component {
                 needTurnWarning = true
             }
         })
-        if (needTurnWarning) {
+        if (this.state.selectedRowKeys.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG2309"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else if (needTurnWarning) {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5004"})}} ></span>,
                 okText: (formatMessage({id: "LANG727"}))
@@ -371,7 +392,9 @@ class WarningEventList extends Component {
                 onOk() {
                     __this._turnOnMailNotificationOK()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         }
     }
@@ -380,14 +403,23 @@ class WarningEventList extends Component {
         const { formatMessage } = this.props.intl
         const __this = this
 
-        confirm({
-            title: (formatMessage({id: "LANG543"})),
-            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2566"})}} ></span>,
-            onOk() {
-                __this._turnOffMailNotificationOK()
-            },
-            onCancel() {}
-        })
+        if (this.state.selectedRowKeys.length === 0) {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {0: formatMessage({id: "LANG2309"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+        } else {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2566"})}} ></span>,
+                onOk() {
+                    __this._turnOffMailNotificationOK()
+                },
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
+            })
+        }
     }
     _onSelectChange = () => {
         
@@ -396,6 +428,7 @@ class WarningEventList extends Component {
         this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
+        const __this = this
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
         let action = {}
         action.action = "warningUpdateGeneralSettings"
@@ -418,7 +451,18 @@ class WarningEventList extends Component {
                     message.success(successMessage)
                     this._warningStart()
                 }
-
+                if (id === 16 && value === true) { /* 16 is sip peer trunk status */
+                    confirm({
+                        title: (formatMessage({id: "LANG543"})),
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4806"})}} ></span>,
+                        onOk() {
+                            browserHistory.push('/extension-trunk/voipTrunk')
+                        },
+                        onCancel() {},
+                        okText: formatMessage({id: "LANG727"}),
+                        cancelText: formatMessage({id: "LANG726"})
+                    })
+                }
                 this._getInitData()
             }.bind(this)
         })
@@ -444,7 +488,9 @@ class WarningEventList extends Component {
                 onOk() {
                     __this._gotoWarningContact()
                 },
-                onCancel() {}
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             let action = {}
@@ -640,8 +686,8 @@ class WarningEventList extends Component {
         const { getFieldDecorator, setFieldValue } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const formItemLayout = {
-            labelCol: { span: 12 },
-            wrapperCol: { span: 12 }
+            labelCol: { span: 3 },
+            wrapperCol: { span: 9 }
         }
         const columns = [{
                 key: 'id',
@@ -701,16 +747,16 @@ class WarningEventList extends Component {
             <div className="app-content-main">
                 <Form>
                     <Row>
-                        <Col span={ 6 } >
-                            <FormItem
-                                ref="div_Pmode_send_warningemail"
-                                { ...formItemLayout }
+                        <FormItem
+                            ref="div_Pmode_send_warningemail"
+                            { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG4801" />}>
-                                        <span>{formatMessage({id: "LANG4802"})}</span>
-                                    </Tooltip>
-                                )}>
+                            label={(
+                                <Tooltip title={<FormattedHTMLMessage id="LANG4801" />}>
+                                    <span>{formatMessage({id: "LANG4802"})}</span>
+                                </Tooltip>
+                            )}>
+                            <Col span={ 12 } >
                                 { getFieldDecorator('Pmode_send_warningemail', {
                                     rules: [],
                                     initialValue: this.state.Pmode_send_warningemail
@@ -720,33 +766,28 @@ class WarningEventList extends Component {
                                         <Option value='1'>{ formatMessage({id: "LANG4800"}) }</Option>
                                     </Select>
                                 ) }
-                            </FormItem>
-                        </Col>
+                            </Col>
+                        </FormItem>
                     </Row>
                     <Row>
-                        <Col span={ 6 } >
-                            <FormItem
-                                ref="div_email_circle"
-                                { ...formItemLayout }
+                        <FormItem
+                            ref="div_email_circle"
+                            { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG4447" />}>
-                                        <span>{formatMessage({id: "LANG4446"})}</span>
-                                    </Tooltip>
-                                )}>
+                            label={(
+                                <Tooltip title={<FormattedHTMLMessage id="LANG4447" />}>
+                                    <span>{formatMessage({id: "LANG4446"})}</span>
+                                </Tooltip>
+                            )}>
+                            <Col span={ 6 } >
                                 { getFieldDecorator('email_circle', {
                                     rules: [],
                                     initialValue: this.state.Pmin_send_warningemail
                                 })(
-                                    <InputNumber min={ this.state.minInterval } max={ this.state.maxInterval } disabled={ this.state.typeDisable } />
+                                    <Input min={ this.state.minInterval } max={ this.state.maxInterval } disabled={ this.state.typeDisable } />
                                 ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 3 } >
-                            <FormItem
-                                ref="div_Ptype_send_warningemail"
-                                { ...formItemLayout }
-                            >
+                            </Col>
+                            <Col span={ 6 } >
                                 { getFieldDecorator('Ptype_send_warningemail', {
                                     rules: [],
                                     initialValue: this.state.Ptype_send_warningemail
@@ -757,8 +798,8 @@ class WarningEventList extends Component {
                                         <Option value='day'>{ formatMessage({id: "LANG2578"}) }</Option>
                                     </Select>
                                 ) }
-                            </FormItem>
-                        </Col>
+                            </Col>
+                        </FormItem>
                     </Row>
                 </Form>
                 <div className="content">

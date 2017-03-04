@@ -3,7 +3,7 @@
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
-import { Form, Row, Col, Icon, message, Button } from 'antd'
+import { Form, Input, Row, Col, Icon, message, Button } from 'antd'
 const FormItem = Form.Item
 
 class AnalogHardware extends Component {

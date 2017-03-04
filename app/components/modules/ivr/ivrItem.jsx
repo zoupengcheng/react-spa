@@ -6,7 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import { injectIntl } from 'react-intl'
 import Title from '../../../views/title'
-import { Form, message, Tabs } from 'antd'
+import { Form, Input, message, Tabs, Modal } from 'antd'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 
@@ -14,6 +14,7 @@ import Key from './ivrItemKey'
 import BasicSetting from './ivrItemBasic'
 
 const TabPane = Tabs.TabPane
+const confirm = Modal.confirm
 
 class IvrItem extends Component {
     constructor(props) {
@@ -549,7 +550,31 @@ class IvrItem extends Component {
                 ) {
                 return
             }
+
+            const disable_extension_ranges = this.state.disable_extension_ranges
+            const ivrStart = this.state.ivrStart
+            const ivrEnd = this.state.ivrEnd
+            if (disable_extension_ranges === 'no') {
+                const num = parseInt(values.extension)
+                if (num < parseInt(ivrStart) || num > parseInt(ivrEnd)) {
+                    const { formatMessage } = this.props.intl
+                    confirm({
+                        title: (formatMessage({id: "LANG543"})),
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2132"}, {0: num, 1: ivrStart, 2: ivrEnd})}} ></span>,
+                        onOk() {
+                           browserHistory.push('/pbx-settings/pbxGeneralSettings')
+                        },
+                        onCancel() {
+                            return
+                        },
+                        okText: formatMessage({id: "LANG727"}),
+                        cancelText: formatMessage({id: "LANG726"})
+                    })
+                    return
+                }
+            }
             let action = values
+            action.ivr_blackwhite_list = values.ivr_blackwhite_list.join(',')
             if (action.keypress_0 ||
                 action.keypress_1 ||
                 action.keypress_2 ||
@@ -570,8 +595,6 @@ class IvrItem extends Component {
                         action.alertinfo = "custom_" + values.custom_alert_info
                     }
                 }
-
-                action.ivr_blackwhite_list = values.ivr_blackwhite_list.join(',')
 
                 let obj = {}
                 if (action.keypress_0) {

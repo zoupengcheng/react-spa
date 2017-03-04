@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, FormattedMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, InputNumber, message, Row, Tooltip, Modal, Button } from 'antd'
+import { Checkbox, Col, Form, Input, message, Row, Tooltip, Modal, Button } from 'antd'
 
 const FormItem = Form.Item
 
@@ -278,7 +278,7 @@ class PbxGeneralSettings extends Component {
                             { getFieldDecorator('ringtime', {
                                 initialValue: generalPrefSettings.ringtime
                             })(
-                                <InputNumber />
+                                <Input />
                             ) }
                         </FormItem>
                         <FormItem
@@ -307,7 +307,7 @@ class PbxGeneralSettings extends Component {
                             { getFieldDecorator('limitime', {
                                 initialValue: limitime
                             })(
-                                <InputNumber />
+                                <Input />
                             ) }
                         </FormItem>
                         <FormItem className={ this.state.isDisplayLimitime }
@@ -321,7 +321,7 @@ class PbxGeneralSettings extends Component {
                             { getFieldDecorator('warningtime', {
                                 initialValue: warningtime
                             })(
-                                <InputNumber />
+                                <Input />
                             ) }
                         </FormItem>
                         <FormItem className={ this.state.isDisplayLimitime }
@@ -335,7 +335,7 @@ class PbxGeneralSettings extends Component {
                             { getFieldDecorator('repeattime', {
                                 initialValue: repeattime
                             })(
-                                <InputNumber />
+                                <Input />
                             ) }
                         </FormItem>
                         <FormItem
@@ -432,7 +432,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('ue_start', {
                                         initialValue: extensionPrefSettings.ue_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -444,7 +444,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('ue_end', {
                                         initialValue: extensionPrefSettings.ue_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -461,7 +461,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('pkue_start', {
                                         initialValue: extensionPrefSettings.pkue_start
                                     })(
-                                        <InputNumber />
+                                        <Input />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -473,7 +473,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('pkue_end', {
                                         initialValue: extensionPrefSettings.pkue_end
                                     })(
-                                        <InputNumber />
+                                        <Input />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -490,7 +490,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('zcue_start', {
                                         initialValue: extensionPrefSettings.zcue_start
                                     })(
-                                        <InputNumber />
+                                        <Input />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -502,7 +502,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('zcue_end', {
                                         initialValue: extensionPrefSettings.zcue_end
                                     })(
-                                        <InputNumber />
+                                        <Input />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -519,7 +519,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('mm_start', {
                                         initialValue: extensionPrefSettings.mm_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -531,7 +531,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('mm_end', {
                                         initialValue: extensionPrefSettings.mm_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -548,7 +548,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('rge_start', {
                                         initialValue: extensionPrefSettings.rge_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -560,7 +560,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('rge_end', {
                                         initialValue: extensionPrefSettings.rge_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -577,7 +577,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('qe_start', {
                                         initialValue: extensionPrefSettings.qe_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -589,7 +589,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('qe_end', {
                                         initialValue: extensionPrefSettings.qe_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -606,7 +606,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('vmg_start', {
                                         initialValue: extensionPrefSettings.vmg_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -618,7 +618,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('vmg_end', {
                                         initialValue: extensionPrefSettings.vmg_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -635,7 +635,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('vme_start', {
                                         initialValue: extensionPrefSettings.vme_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -647,7 +647,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('vme_end', {
                                         initialValue: extensionPrefSettings.vme_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -664,7 +664,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('directory_start', {
                                         initialValue: extensionPrefSettings.directory_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -676,7 +676,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('directory_end', {
                                         initialValue: extensionPrefSettings.directory_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -693,7 +693,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('fax_start', {
                                         initialValue: extensionPrefSettings.ue_start
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>
@@ -705,7 +705,7 @@ class PbxGeneralSettings extends Component {
                                     { getFieldDecorator('fax_end', {
                                         initialValue: extensionPrefSettings.ue_end
                                     })(
-                                        <InputNumber disabled={ this.state.disableRange } />
+                                        <Input disabled={ this.state.disableRange } />
                                     ) }
                                 </FormItem>
                             </Col>

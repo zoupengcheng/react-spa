@@ -8,7 +8,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Button, message, Form, Modal, Input, Table, Tag, Tooltip, Col, Icon } from 'antd'
+import { Button, message, Form, Input, Modal, Table, Tag, Tooltip, Col, Icon } from 'antd'
 import Validator from "../../api/validator"
 
 const confirm = Modal.confirm
@@ -138,7 +138,7 @@ class WarningContact extends Component {
         })
     }
     _gotoEmailTemplateOK = () => {
-        browserHistory.push('/system-settings/emailSettings/2')
+        browserHistory.push('/system-settings/emailSettings/template')
     }
     _gotoEmailTemplate = () => {
         const { formatMessage } = this.props.intl
