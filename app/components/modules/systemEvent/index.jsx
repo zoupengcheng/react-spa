@@ -19,10 +19,13 @@ class WarningIndex extends Component {
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
             isDisplay: "hidden",
-            has_contact: 0
+            has_contact: 0,
+            itemId: 0,
+            warning_general: []
         }
     }
     componentDidMount() {
+        this._getWarningGeneral()
         this._getHasContact()
     }
     componentWillUnmount() {
@@ -48,6 +51,32 @@ class WarningIndex extends Component {
 
                     this.setState({
                         has_contact: has_contact
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _getWarningGeneral = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'warningGetGeneralSettings'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const warning_general = response.body.warning_general || []
+
+                    this.setState({
+                        warning_general: warning_general
                     })
                 }
             }.bind(this),
@@ -157,6 +186,7 @@ class WarningIndex extends Component {
                     method: "post",
                     data: action,
                     type: 'json',
+                    async: false,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -169,6 +199,31 @@ class WarningIndex extends Component {
                             if (admin_email_list.length > 0) {
                                 this.setState({
                                     has_contact: 1
+                                })
+                                const itemId = this.state.itemId
+                                let actionEn = {}
+                                actionEn.action = "warningUpdateGeneralSettings"
+                                actionEn.enable = ""
+                                actionEn.enable_email = 1 
+                                actionEn.id = itemId
+                                $.ajax({
+                                    url: api.apiHost,
+                                    method: "post",
+                                    data: actionEn,
+                                    type: 'json',
+                                    async: false,
+                                    error: function(e) {
+                                        message.error(e.statusText)
+                                    },
+                                    success: function(data) {
+                                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                        if (bool) {
+                                            message.destroy()
+                                            message.success(successMessage)
+                                            this._getWarningGeneral()
+                                        }
+                                    }.bind(this)
                                 })
                             } else if (admin_email_list.length === 0) {
                                 this.setState({
@@ -199,6 +254,7 @@ class WarningIndex extends Component {
                     method: "post",
                     data: action_event,
                     type: 'json',
+                    async: false,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -215,9 +271,10 @@ class WarningIndex extends Component {
             }
         })
     }
-    _setActiveKey = (key) => {
+    _setActiveKey = (key, id) => {
         this.setState({
-            activeKey: key
+            activeKey: key,
+            itemId: id
         })
     }
     render() {
@@ -250,12 +307,15 @@ class WarningIndex extends Component {
                         <WarningEventsList
                             form={ this.props.form }
                             has_contact={ this.state.has_contact }
+                            warning_general={ this.state.warning_general }
                             setActiveKey={ this._setActiveKey }
+                            getWarningGeneral={ this._getWarningGeneral }
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG2546"})} key="3">
                         <WarningContact
                             form={ this.props.form }
+                            itemId={ this.props.itemId }
                         />
                     </TabPane>
                 </Tabs>

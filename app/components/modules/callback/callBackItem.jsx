@@ -21,7 +21,8 @@ class CallBackItem extends Component {
             disaList: [],
             ivrList: [],
             fileList: [],
-            callBackValues: {}
+            callBackValues: {},
+            defaultDestination: ''
         }
     }
     componentWillMount() {
@@ -85,29 +86,32 @@ class CallBackItem extends Component {
         })
     }
 
-    _handleSelectValues = (val) => {
+    _handleSelectValues = (callback) => {
         let displayList = []
-        if (val === 'disa') {
+        let defaultDestination = ''
+        if (callback.destination_type === 'disa') {
             let DisaList = this.state.disaList
+            defaultDestination = callback.disa
             for (let i = 0; i < DisaList.length; i++) {
                 let disaName = DisaList[i]["display_name"]
                 let disaId = DisaList[i]["disa_id"]
                 if (disaName && disaId) {
                     let obj = {
-                        key: disaId,
+                        key: String(disaId),
                         val: disaName
                     }
                     displayList.push(obj)
                 }
             }
-        } else if (val === 'ivr') {
+        } else if (callback.destination_type === 'ivr') {
             let IvrList = this.state.ivrList
+            defaultDestination = callback.ivr
             for (let i = 0; i < IvrList.length; i++) {
                 let IvrName = IvrList[i]["ivr_name"]
                 let ivrId = IvrList[i]["ivr_id"]
                 if (IvrName && ivrId) {
                     let obj = {
-                        key: ivrId,
+                        key: String(ivrId),
                         val: IvrName
                     }
                     displayList.push(obj)
@@ -116,7 +120,8 @@ class CallBackItem extends Component {
         }
 
         this.setState({
-            fileList: displayList
+            fileList: displayList,
+            defaultDestination: defaultDestination
         })
         console.log('distination value is: ', displayList)
     }
@@ -124,7 +129,6 @@ class CallBackItem extends Component {
     _getInitData = () => {
         const callBackIndex = this.props.params.id
         const callBackName = this.props.params.name
-        let destinationType = 'disa'
 
         if (callBackName) {
             $.ajax({
@@ -142,7 +146,8 @@ class CallBackItem extends Component {
                     if (bool) {
                         const response = res.response || {}
                         let callBackValues = response.callback
-                        destinationType = callBackValues.destination_type
+
+                        this._handleSelectValues(callBackValues)
                         this.setState({
                             callBackValues: callBackValues
                         })
@@ -153,8 +158,6 @@ class CallBackItem extends Component {
                 }
             })
         }
-
-        this._handleSelectValues(destinationType)
     }
 
     _handleCancel = () => {
@@ -230,6 +233,7 @@ class CallBackItem extends Component {
 
     _onChangeMode = (e) => {
         let displayList = []
+        let defaultDestination = ''
         if (e === 'disa') {
             let DisaList = this.state.disaList
             for (let i = 0; i < DisaList.length; i++) {
@@ -237,7 +241,7 @@ class CallBackItem extends Component {
                 let disaId = DisaList[i]["disa_id"]
                 if (disaName && disaId) {
                     let obj = {
-                        key: disaId,
+                        key: String(disaId),
                         val: disaName
                     }
                     displayList.push(obj)
@@ -250,7 +254,7 @@ class CallBackItem extends Component {
                 let ivrId = IvrList[i]["ivr_id"]
                 if (IvrName && ivrId) {
                     let obj = {
-                        key: ivrId,
+                        key: String(ivrId),
                         val: IvrName
                     }
                     displayList.push(obj)
@@ -258,8 +262,13 @@ class CallBackItem extends Component {
             }
         }
 
+        if (displayList.length > 0) {
+            defaultDestination = displayList[0].key
+        }
+
         this.setState({
-            fileList: displayList
+            fileList: displayList,
+            defaultDestination: defaultDestination
         })
     }
 
@@ -405,12 +414,12 @@ class CallBackItem extends Component {
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }],
-                                        initialValue: fileList.length > 0 ? fileList[0].val : ''
+                                        initialValue: this.state.defaultDestination
                                     })(
                                          <Select>
                                             {
                                                 fileList.map(function(item) {
-                                                    return <Option value={ item.val }>{ item.val }</Option>
+                                                    return <Option value={ item.key }>{ item.val }</Option>
                                                     }
                                                 )
                                             }

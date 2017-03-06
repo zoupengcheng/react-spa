@@ -550,6 +550,9 @@ class IvrItem extends Component {
                 ) {
                 return
             }
+            if (err && (err.hasOwnProperty('switch') || err.hasOwnProperty('ivr_out_blackwhite_list'))) {
+                return
+            }
 
             const disable_extension_ranges = this.state.disable_extension_ranges
             const ivrStart = this.state.ivrStart

@@ -7,6 +7,7 @@ import Title from '../../../views/title'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
+import Validator from "../../api/validator"
 import { Tooltip, Button, message, Modal, Popconfirm, Checkbox, Table, Tag, Form, Input, Row, Col, BackTop } from 'antd'
 
 const confirm = Modal.confirm
@@ -211,7 +212,15 @@ class DynamicDefense extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('timeout', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 1, 59)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }],
                                 initialValue: dynamicDefense.timeout ? dynamicDefense.timeout : 1
                             })(
                                 <Input min={ 1 } max={ 59 } disabled={ dynamicDefense.enable === 'no' } />
@@ -227,7 +236,15 @@ class DynamicDefense extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('block_timeout', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 1, 86399)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }],
                                 initialValue: dynamicDefense.block_timeout ? dynamicDefense.block_timeout : 120
                             })(
                                 <Input min={ 1 } max={ 86399 } disabled={ dynamicDefense.enable === 'no' } />
@@ -243,7 +260,15 @@ class DynamicDefense extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('threshold', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 5, 1000)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }],
                                 initialValue: dynamicDefense.threshold ? dynamicDefense.threshold : 100
                             })(
                                 <Input min={ 5 } max={ 1000 } disabled={ dynamicDefense.enable === 'no' } />

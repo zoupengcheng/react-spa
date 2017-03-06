@@ -615,13 +615,21 @@ class Extension extends Component {
         })
     }
     _handleTableChange = (pagination, filters, sorter) => {
-        this._getExtensionList({
+        let params = {
             page: pagination.current,
             item_num: pagination.pageSize,
-            sidx: sorter.field ? sorter.field : 'extension',
-            sord: sorter.order === 'ascend' ? 'asc' : 'desc',
             ...filters
-        })
+        }
+
+        if (sorter.field) {
+            params.sidx = sorter.field
+            params.sord = sorter.order === 'ascend' ? 'asc' : 'desc'
+        } else {
+            params.sidx = 'extension'
+            params.sord = 'asc'
+        }
+
+        this._getExtensionList(params)
 
         this._clearSelectRows()
     }

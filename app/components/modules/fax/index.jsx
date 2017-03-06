@@ -441,7 +441,7 @@ class Fax extends Component {
                         "data": this.state.selectedRowKeysFile[i]
                     },
                     type: 'json',
-                    async: true,
+                    async: false,
                     success: function(res) {
                         const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 

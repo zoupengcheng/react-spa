@@ -16,16 +16,17 @@ class SLAStation extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            postData: {},
+            accountList: [],
+            SLAStations: [],
+            selectedRowKeys: [],
+            slaTrunkNameList: [],
             pagination: {
+                defaultPageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
                 showTotal: this._showTotal
-            },
-            accountList: [],
-            SLAStations: [],
-            postData: {},
-            selectedRowKeys: [],
-            slaTrunkNameList: []
+            }
         }
     }
     componentDidMount () {
@@ -79,8 +80,8 @@ class SLAStation extends Component {
                     method: 'post',
                     url: api.apiHost,
                     data: {
-                        "action": "deleteSLAStation",
-                        "sla_station": idList.join(',')
+                        'action': 'deleteSLAStation',
+                        'sla_station': idList.join(',')
                     },
                     success: function(res) {
                         const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
@@ -89,11 +90,9 @@ class SLAStation extends Component {
                             message.destroy()
                             message.success(successMessage)
 
-                            __this._getSLAStations()
+                            __this._reloadTableList(__this.state.selectedRowKeys.length)
 
-                            __this.setState({
-                                selectedRowKeys: []
-                            })
+                            __this._clearSelectRows()
                         }
                     },
                     error: function(e) {
@@ -123,8 +122,8 @@ class SLAStation extends Component {
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deleteSLAStation",
-                "sla_station": record.station
+                'action': 'deleteSLAStation',
+                'sla_station': record.station
             },
             type: 'json',
             async: true,
@@ -135,7 +134,7 @@ class SLAStation extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getSLAStations()
+                    this._reloadTableList(1)
 
                     this.setState({
                         selectedRowKeys: _.without(this.state.selectedRowKeys, record.station)
@@ -212,10 +211,11 @@ class SLAStation extends Component {
             const { formatMessage } = this.props.intl
 
             let data = {
-                    ...params,
-                    action: 'listSLAStation',
-                    options: 'station_name,station,trunks'
+                    ...params
                 }
+
+            data.action = 'listSLAStation'
+            data.options = 'station_name,station,trunks'
 
             this.setState({
                 loading: true,
@@ -251,13 +251,21 @@ class SLAStation extends Component {
             })
     }
     _handleTableChange = (pagination, filters, sorter) => {
-        this._getSLAStations({
+        let params = {
             page: pagination.current,
             item_num: pagination.pageSize,
-            sidx: sorter.field ? sorter.field : 'station',
-            sord: sorter.order === 'ascend' ? 'asc' : 'desc',
             ...filters
-        })
+        }
+
+        if (sorter.field) {
+            params.sidx = sorter.field
+            params.sord = sorter.order === 'ascend' ? 'asc' : 'desc'
+        } else {
+            params.sidx = 'station'
+            params.sord = 'asc'
+        }
+
+        this._getSLAStations(params)
 
         this._clearSelectRows()
     }
@@ -271,6 +279,27 @@ class SLAStation extends Component {
         const { formatMessage } = this.props.intl
 
         return formatMessage({ id: "LANG115" }) + total
+    }
+    _reloadTableList = (selectedRowLenth) => {
+        let params = _.clone(this.state.postData),
+            total = this.state.pagination.total,
+            current = this.state.pagination.current,
+            pageSize = this.state.pagination.pageSize
+
+        pageSize = pageSize ? pageSize : this.state.pagination.defaultPageSize
+
+        let page = current,
+            surplus = total % pageSize,
+            totalPage = Math.ceil(total / pageSize),
+            lastPageNumber = surplus === 0 ? pageSize : surplus
+
+        if ((totalPage === current) && (totalPage > 1) && (lastPageNumber === selectedRowLenth)) {
+            page = current - 1
+        }
+
+        params.page = page
+
+        this._getSLAStations(params)
     }
     render() {
         const { formatMessage } = this.props.intl

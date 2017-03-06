@@ -17,7 +17,6 @@ class WarningEventList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            warning_general: [],
             has_contact: 0,
             noButtonIds: [2, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17],
             Pmin_send_warningemail: "",
@@ -37,30 +36,6 @@ class WarningEventList extends Component {
         let Pmode_send_warningemail = ""
         let Ptype_send_warningemail = ""
 
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'warningGetGeneralSettings'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const warning_general = response.body.warning_general || []
-
-                    this.setState({
-                        warning_general: warning_general
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
         $.ajax({
             url: api.apiHost + "action=getWarningEmailValue",
             method: 'GET',
@@ -163,7 +138,6 @@ class WarningEventList extends Component {
         })
     }
     _turnOnWarningOK = () => {
-        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -173,6 +147,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
+        this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = 1
@@ -200,13 +175,12 @@ class WarningEventList extends Component {
                     })
                     this._warningStart()
                 }
-
+                this.props.getWarningGeneral()
                 this._getInitData()
             }.bind(this)
         })
     }
     _turnOffWarningOK = () => {
-        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -216,6 +190,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
+        this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = 0
@@ -243,13 +218,12 @@ class WarningEventList extends Component {
                     })
                     this._warningStart()
                 }
-
+                this.props.getWarningGeneral()
                 this._getInitData()
             }.bind(this)
         })
     }
     _turnOnMailNotificationOK = () => {
-        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -258,6 +232,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
+        this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = ""
@@ -279,13 +254,12 @@ class WarningEventList extends Component {
                     message.success(successMessage)
                     this._warningStart()
                 }
-
+                this.props.getWarningGeneral()
                 this._getInitData()
             }.bind(this)
         })
     }
     _turnOffMailNotificationOK = () => {
-        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -294,6 +268,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
+        this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = ""
@@ -315,7 +290,7 @@ class WarningEventList extends Component {
                     message.success(successMessage)
                     this._warningStart()
                 }
-
+                this.props.getWarningGeneral()
                 this._getInitData()
             }.bind(this)
         })
@@ -425,7 +400,6 @@ class WarningEventList extends Component {
         
     }
     _warningEnable = (id, value) => {
-        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const __this = this
@@ -435,6 +409,7 @@ class WarningEventList extends Component {
         action.enable = value === true ? 1 : 0
         action.enable_email = ""
         action.id = id
+        this._warningStop()
         $.ajax({
             url: api.apiHost,
             method: "post",
@@ -463,12 +438,12 @@ class WarningEventList extends Component {
                         cancelText: formatMessage({id: "LANG726"})
                     })
                 }
+                this.props.getWarningGeneral()
                 this._getInitData()
             }.bind(this)
         })
     }
     _warningEnableEmail = (id, record, value) => {
-        this._warningStop()
         const { form } = this.props
         const { formatMessage } = this.props.intl
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
@@ -478,6 +453,7 @@ class WarningEventList extends Component {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4487"})}} ></span>,
                 onOk() {
+                    __this.props.getWarningGeneral()
                     __this._getInitData()
                 }
             })
@@ -486,13 +462,14 @@ class WarningEventList extends Component {
                 title: (formatMessage({id: "LANG543"})),
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2631"})}} ></span>,
                 onOk() {
-                    __this._gotoWarningContact()
+                    __this._gotoWarningContact(id)
                 },
                 onCancel() {},
                 okText: formatMessage({id: "LANG727"}),
                 cancelText: formatMessage({id: "LANG726"})
             })
         } else {
+            this._warningStop()
             let action = {}
             action.action = "warningUpdateGeneralSettings"
             action.enable = ""
@@ -514,15 +491,15 @@ class WarningEventList extends Component {
                         message.success(successMessage)
                         this._warningStart()
                     }
-
+                    this.props.getWarningGeneral()
                     this._getInitData()
                 }.bind(this)
             })
         }
     }
-    _gotoWarningContact = () => {
+    _gotoWarningContact = (id) => {
         // browserHistory.push('/maintenance/systemEvent/3')
-        this.props.setActiveKey('3')
+        this.props.setActiveKey('3', id)
     }
     _createID = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -689,6 +666,7 @@ class WarningEventList extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 9 }
         }
+        const warning_general = this.props.warning_general
         const columns = [{
                 key: 'id',
                 dataIndex: 'id',
@@ -723,7 +701,7 @@ class WarningEventList extends Component {
             }]
 
         const pagination = {
-                total: this.state.warning_general.length,
+                total: warning_general.length,
                 showSizeChanger: true,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
@@ -842,8 +820,8 @@ class WarningEventList extends Component {
                         columns={ columns }
                         pagination={ false }
                         rowSelection={ rowSelection }
-                        dataSource={ this.state.warning_general }
-                        showHeader={ !!this.state.warning_general.length }
+                        dataSource={ warning_general }
+                        showHeader={ !!warning_general.length }
                     />
                 </div>
                 <div>

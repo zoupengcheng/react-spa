@@ -73,6 +73,21 @@ class BasicSettings extends Component {
             callback()
         }
     }
+    _checkBlackList = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+
+        const enable = getFieldValue('switch')
+        const targetKeys = this.state.targetKeys
+        const ivr_out_blackwhite_list = getFieldValue('ivr_out_blackwhite_list')
+        const ivr_out_blackwhite_list_length = ivr_out_blackwhite_list.split(',')
+
+        if (value && enable !== 'no' && (ivr_out_blackwhite_list.length === 0 || ivr_out_blackwhite_list === '') && targetKeys.length === 0) {
+            callback(formatMessage({id: "LANG5334"}))
+        } else {
+            callback()
+        }
+    }
     _getInitData = () => {
         const ivrItem = this.props.ivrItem || {}
         const ivrId = this.props.ivrId
@@ -475,6 +490,8 @@ class BasicSettings extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: this._checkBlackList
                             }],
                             initialValue: (ivrItem.switch ? ivrItem.switch : "no")
                         })(
@@ -495,10 +512,7 @@ class BasicSettings extends Component {
                         )}
                     >
                         { getFieldDecorator('ivr_blackwhite_list', {
-                            rules: [{
-                                required: this.state.ivrblackwhiteShow,
-                                message: formatMessage({id: "LANG2150"})
-                            }],
+                            rules: [],
                             initialValue: this.state.targetKeys
                         })(
                         <Transfer
@@ -526,7 +540,11 @@ class BasicSettings extends Component {
                             </Tooltip>
                         )}>
                         { getFieldDecorator('ivr_out_blackwhite_list', {
-                            rules: [],
+                            rules: [{
+                                validator: (data, value, callback) => {
+                                    Validator.digitalAndQuote(data, value, callback, formatMessage)
+                                }
+                            }],
                             initialValue: ivrItem.ivr_out_blackwhite_list
                         })(
                             <Input type="textarea" disabled={ this.state.isDialTrunk ? false : true } />
