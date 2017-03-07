@@ -28,6 +28,7 @@ class DateTime extends Component {
     _getInitData = () => {
         const { formatMessage } = this.props.intl
         let datetime = this.state.datetime
+        let customizeDisable = this.state.customizeDisable
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -47,14 +48,19 @@ class DateTime extends Component {
                 if (bool) {
                     const response = res.response || {}
                     datetime = response || {}
+                    if (datetime.time_zone === 'customize') {
+                        customizeDisable = false
+                    }
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
         })
+        this.props.setInitDatetime(datetime)
         this.setState({
-            datetime: datetime
+            datetime: datetime,
+            customizeDisable: customizeDisable
         })
     }
     _onChangeTimeZone = (value) => {
@@ -62,6 +68,10 @@ class DateTime extends Component {
         if (value === 'customize') {
             this.setState({
                 customizeDisable: false
+            })
+        } else {
+            this.setState({
+                customizeDisable: true
             })
         }
     }

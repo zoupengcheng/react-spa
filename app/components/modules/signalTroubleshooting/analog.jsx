@@ -11,11 +11,7 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Transfer, Tooltip, Button, Radio } from 'antd'
 
-const FormItem = Form.Item
-
-let repeat = null
-
-class Traceroute extends Component {
+class Analog extends Component {
     constructor(props) {
         super(props)
         const { formatMessage } = this.props.intl
@@ -70,20 +66,6 @@ class Traceroute extends Component {
                 msg: output
             })
         }
-
-        if (!done) {
-            repeat = setTimeout(self._repeatRequest, 1000)
-        } else {
-            this._buttonSwitch(false)
-            this.setState({
-                msg: this.state.msg + 'done'
-            })
-        }
-    }
-    _onResponseError = (val) => {
-        this.setState({
-            msg: this._valOrDefault(val.response.body, "UNKNOWN ERROR")
-        })
     }
     _start = () => {
         let loadingMessage = ''
@@ -135,9 +117,6 @@ class Traceroute extends Component {
         const { formatMessage } = this.props.intl
         let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3247" })}}></span>
 
-        clearTimeout(repeat)
-        repeat = null
-
         this.setState({
             stopDisable: true
         })
@@ -162,29 +141,6 @@ class Traceroute extends Component {
             }.bind(this)
         })
     }
-    _repeatRequest = () => {
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: {
-                action: 'getTroubleShooting',
-                traceroute: ''
-            },
-            type: 'json',
-            error: function(e) {
-                this._onResponseError(e)
-
-                message.error(e.statusText)
-            }.bind(this),
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    this._dataBind(data)
-                }
-            }.bind(this)
-        })
-    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
@@ -198,52 +154,32 @@ class Traceroute extends Component {
         return (
             <div className="content">
                 <div>
-                    <Form>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1584" /> }>
-                                                <span>{ formatMessage({id: "LANG1583"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('traceroute')(
-                                        <Input disabled={ this.state.ipDisable } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <div className="top-button">
-                            <Button
-                                type="primary"
-                                size="default"
-                                disabled={ this.state.startDisable }
-                                onClick={ this._start }
-                            >
-                                { formatMessage({id: "LANG724"}) }
-                            </Button>
-                            <Button
-                                type="primary"
-                                size="default"
-                                disabled={ this.state.stopDisable }
-                                onClick={ this._stop }
-                            >
-                                { formatMessage({id: "LANG725"}) }
-                            </Button>
-                        </div>
-                        <div className="lite-desc">
-                            { formatMessage({id: "LANG666"}) }
-                        </div>
-                        <div>{ this.state.msg }</div>
-                    </Form>
+                    <div className="top-button">
+                        <Button
+                            type="primary"
+                            size="default"
+                            disabled={ this.state.startDisable }
+                            onClick={ this._start }
+                        >
+                            { formatMessage({id: "LANG724"}) }
+                        </Button>
+                        <Button
+                            type="primary"
+                            size="default"
+                            disabled={ this.state.stopDisable }
+                            onClick={ this._stop }
+                        >
+                            { formatMessage({id: "LANG725"}) }
+                        </Button>
+                    </div>
+                    <div className="lite-desc">
+                        { formatMessage({id: "LANG666"}) }
+                    </div>
+                    <div>{ this.state.msg }</div>
                 </div>
             </div>
         )
     }
 }
 
-export default Form.create()(injectIntl(Traceroute))
+export default Form.create()(injectIntl(Analog))

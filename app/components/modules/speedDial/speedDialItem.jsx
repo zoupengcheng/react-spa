@@ -22,6 +22,7 @@ class SpeedDialItem extends Component {
             speedDialItem: {},
             keypress: 'account',
             keypressevent: '',
+            memberselectShow: true,
             account: [],
             voicemail: [],
             conference: [],
@@ -33,7 +34,8 @@ class SpeedDialItem extends Component {
             fax: [],
             disa: [],
             directory: [],
-            external_number: []
+            external_number: [],
+            external_numberShow: false
         }
     }
     componentWillMount() {
@@ -99,7 +101,7 @@ class SpeedDialItem extends Component {
         for (var i = 0; i < res.length; i++) {
             var obj = {}
 
-            obj["val"] = res[i][val]
+            obj["val"] = res[i][val].toString()
             obj["text"] = res[i][text]
 
             arr.push(obj)
@@ -108,11 +110,16 @@ class SpeedDialItem extends Component {
         return arr
     }
     _getInitData = () => {
+        const __this = this
         let accountList = []
         let speedDialItem = {}
         const { formatMessage } = this.props.intl
         const account = this.props.params.id
-
+        let keypress = this.state.keypress || 'account'
+        let keypressevent = this.state.keypressevent || ''
+        let memberselectShow = this.state.memberselectShow || true
+        let external_numberShow = this.state.external_numberShow || false
+        let external_number = this.state.external_number || ''
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -135,26 +142,10 @@ class SpeedDialItem extends Component {
             accountList = _.without(accountList, account)
         }
 
-        this.setState({
-            accountList: accountList
-        })
-
         let keyAccountList = this._transAccountVoicemailData(UCMGUI.isExist.getList("getAccountList"))
-        this.setState({
-            account: keyAccountList,
-            keypressevent: keyAccountList[0].val
-        })
-
+        keypressevent = keyAccountList[0].val
         let keyVoicemailList = this._transAccountVoicemailData(UCMGUI.isExist.getList("getVoicemailList"))
-        this.setState({
-            voicemail: keyVoicemailList
-        })
-
         let keyConferencelList = this._transData(UCMGUI.isExist.getList("getConferenceList"))
-        this.setState({
-            conference: keyConferencelList
-        })
-
         let keyVMGrouplList = this._transObjData(
             UCMGUI.isExist.getList("getVMgroupList"),
             {
@@ -162,10 +153,6 @@ class SpeedDialItem extends Component {
                 text: "vmgroup_name"
             }
         )
-        this.setState({
-            vmgroup: keyVMGrouplList
-        })
-
         let keyIVRList = this._transObjData(
             UCMGUI.isExist.getList("getIVRList"),
             {
@@ -173,10 +160,6 @@ class SpeedDialItem extends Component {
                 text: "ivr_name"
             }
         )
-        this.setState({
-            ivr: keyIVRList
-        })
-
         let keyRinggroupList = this._transObjData(
             UCMGUI.isExist.getList("getRinggroupList"),
             {
@@ -184,10 +167,6 @@ class SpeedDialItem extends Component {
                 text: "ringgroup_name"
             }
         )
-        this.setState({
-            ringgroup: keyRinggroupList
-        })
-
         let keyQueueList = this._transObjData(
             UCMGUI.isExist.getList("getQueueList"),
             {
@@ -195,10 +174,6 @@ class SpeedDialItem extends Component {
                 text: "queue_name"
             }
         )
-        this.setState({
-            queue: keyQueueList
-        })
-
         let keyPaginList = this._transObjData(
             UCMGUI.isExist.getList("getPaginggroupList"),
             {
@@ -206,10 +181,6 @@ class SpeedDialItem extends Component {
                 text: "paginggroup_name"
             }
         )
-        this.setState({
-            paginggroup: keyPaginList
-        })
-
         let keyFaxList = this._transObjData(
             UCMGUI.isExist.getList("getFaxList"),
             {
@@ -217,10 +188,6 @@ class SpeedDialItem extends Component {
                 text: "fax_name"
             }
         )
-        this.setState({
-            fax: keyFaxList
-        })
-
         let keyDisaList = this._transObjData(
             UCMGUI.isExist.getList("getDISAList"),
             {
@@ -228,10 +195,6 @@ class SpeedDialItem extends Component {
                 text: "display_name"
             }
         )
-        this.setState({
-            disa: keyDisaList
-        })
-
         let keyDirectoryList = this._transObjData(
             UCMGUI.isExist.getList("getDirectoryList"),
             {
@@ -239,10 +202,6 @@ class SpeedDialItem extends Component {
                 text: "name"
             }
         )
-        this.setState({
-            directory: keyDirectoryList
-        })
-
         if (account) {
             $.ajax({
                 url: api.apiHost,
@@ -260,31 +219,67 @@ class SpeedDialItem extends Component {
                         const response = res.response || {}
 
                         speedDialItem = res.response.speed_dial || {}
+                        keypress = speedDialItem.destination_type
+                        keypressevent = speedDialItem.destination_num
 
-                        this.setState({
-                            keypress: speedDialItem.destination_type,
-                            keypressevent: speedDialItem.destination_num
-                        })
+                        if (speedDialItem.destination_type === 'member_external_number') {
+                            memberselectShow = false
+                            external_numberShow = true
+                            external_number = speedDialItem.destination_num
+                        } else if (speedDialItem.destination_type === "member_hangup") {
+                            memberselectShow = false
+                            external_numberShow = false
+                        } else {
+                            memberselectShow = true
+                            external_numberShow = false
+                        }
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
-
-            this.setState({
-                speedDialItem: speedDialItem 
-            })
         }
+
+        this.setState({
+            accountList: accountList,
+            account: keyAccountList,
+            keypress: keypress,
+            keypressevent: keypressevent,
+            memberselectShow: memberselectShow,
+            external_numberShow: external_numberShow,
+            voicemail: keyVoicemailList,
+            conference: keyConferencelList,
+            vmgroup: keyVMGrouplList,
+            ivr: keyIVRList,
+            ringgroup: keyRinggroupList,
+            queue: keyQueueList,
+            paginggroup: keyPaginList,
+            fax: keyFaxList,
+            disa: keyDisaList,
+            directory: keyDirectoryList,
+            speedDialItem: speedDialItem
+        })
     }
     _handleKeypressChange = (e) => {
         let keypressevent = ''
+        let memberselectShow = this.state.memberselectShow || ''
+        let external_numberShow = this.state.external_numberShow || false
         if (this.state[e].length > 0) {
             keypressevent = this.state[e][0].val
         }
 
+        if (e === 'external_number') {
+            memberselectShow = false
+            external_numberShow = true
+        } else {
+            memberselectShow = true
+            external_numberShow = false
+        }
         this.setState({
-            keypress: e
+            keypress: e,
+            memberselectShow: memberselectShow,
+            external_numberShow: external_numberShow
         })
 
         this.props.form.setFieldsValue({
@@ -316,18 +311,36 @@ class SpeedDialItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
+                action['account'] = ''
+                action['voicemail'] = ''
+                action['conference'] = ''
+                action['vmgroup'] = ''
+                action['ivr'] = ''
+                action['ringgroup'] = ''
+                action['queue'] = ''
+                action['paginggroup'] = ''
+                action['fax'] = ''
+                action['disa'] = ''
+                action['directory'] = ''
+                action['external_number'] = ''
 
-                if (action.enable_destination === true) {
+                if (values.enable_destination === true) {
                     action.enable_destination = "yes"  
                 } else {
                     action.enable_destination = "no" 
                 }
 
-                action.destination_type = action.keypress
+                action.destination_type = values.keypress
                 delete action.keypress
 
-                action[action.destination_type] = action.keypressevent
+               if (values.destination_type === 'external_number') {
+                    action[action.destination_type] = values.keypress_event_ext
+                } else {
+                    action[action.destination_type] = values.keypressevent
+                }
+                
                 delete action.keypressevent
+                delete action.keypress_event_ext
 
                if (account) {
                     action.action = 'updateSpeedDial'
@@ -458,10 +471,12 @@ class SpeedDialItem extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }, {
                                             validator: (data, value, callback) => {
-                                                Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                                Validator.maxlength(data, value, callback, formatMessage, 2)
                                             }
                                         }, {
-                                            validator: this._checkAccount
+                                            validator: (data, value, callback) => {
+                                                Validator.digits(data, value, callback, formatMessage)
+                                            }
                                         }],
                                         initialValue: account
                                     })(
@@ -500,14 +515,37 @@ class SpeedDialItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 3 }>
+                            <Col span={ 3 } className={ this.state.memberselectShow ? "display-block" : "hidden" } >
                                 <FormItem>
                                     { getFieldDecorator('keypressevent', {
+                                        rules: [{
+                                            required: this.state.memberselectShow,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
                                         initialValue: keypressevent
                                     })(
                                         <Select>
                                             { keyOption }
                                         </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 3 } className={ this.state.external_numberShow ? "display-block" : "hidden" } >
+                                <FormItem
+                                    ref="div_keypress_event_ext_0">
+                                    { getFieldDecorator('keypress_event_ext', {
+                                        rules: [{
+                                            required: this.state.external_numberShow,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.external_numberShow ? Validator.phoneNumberOrExtension(data, value, callback, formatMessage, 0) : callback()
+                                            }
+                                        }],
+                                        width: 100,
+                                        initialValue: this.state.external_number
+                                    })(
+                                        <Input maxLength='32' />
                                     ) }
                                 </FormItem>
                             </Col>

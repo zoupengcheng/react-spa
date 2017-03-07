@@ -69,7 +69,11 @@ class FaxSending extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getInitDate()
+                    if (this.state.callee === '') {
+                        this._getInitDate()
+                    } else {
+                        this._searchFile()
+                    }
                     this._clearSelectRows()
                 }
             }.bind(this),

@@ -1,13 +1,18 @@
 'use strict'
 
 import React, { Component, PropTypes } from 'react'
-import { message, Tabs, Form } from 'antd'
+import { message, Tabs } from 'antd'
 import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import _ from 'underscore'
 import Title from '../../../views/title'
+import PriSignal from './priSignal'
+import Ss7Signal from './ss7Signal'
+import MfcSignal from './mfcSignal'
+import Analog from './analog'
+import Digital from './digital'
 
 const TabPane = Tabs.TabPane
 
@@ -15,14 +20,9 @@ class SignalTroubleshooting extends Component {
     constructor(props) {
         super(props)
         this.state = {
-
         }
     }
     componentDidMount () {
-        this._getInitData()
-    }
-    _getInitData = () => {
-        
     }
     render() {
         const form = this.props.form
@@ -40,14 +40,26 @@ class SignalTroubleshooting extends Component {
                 <Title 
                     headerTitle={ formatMessage({id: "LANG5462"}) }
                     isDisplay='hidden' />
-                <Form className="form-contain-tab">
-                    <Tabs defaultActiveKey="1">
-
-                    </Tabs>
-                </Form>
+                <Tabs defaultActiveKey="1">
+                    <TabPane tab={ formatMessage({id: "LANG2788"}) } key="1">
+                        <PriSignal/>
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG3264"}) } key="2">
+                        <Ss7Signal/>
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG3252"}) } key="3">
+                        <MfcSignal/>
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG3238"}) } key="4">
+                        <Analog/>
+                    </TabPane>
+                    <TabPane tab={ formatMessage({id: "LANG4023"}) } key="5">
+                        <Digital/>
+                    </TabPane>
+                </Tabs>
             </div>
         )
     }
 }
 
-export default Form.create()(injectIntl(SignalTroubleshooting))
+export default injectIntl(SignalTroubleshooting)

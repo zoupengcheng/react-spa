@@ -83,6 +83,15 @@ Validator.prototype = {
             callback(formatMessage({id: "LANG2157"}))
         }
     },
+    digitalAndQuote: function(data, value, callback, formatMessage) {
+        if (value && /^\d+(,\d+)*(,)?$/i.test(value)) {
+            callback()
+        } else if (value === "") {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG3822"}))
+        }
+    },
     range: function(data, value, callback, formatMessage, min, max) {
         if (value && (value > max || value < min)) {
             callback(formatMessage({id: "LANG2147"}, {0: min, 1: max}))

@@ -10,7 +10,7 @@ import UCMGUI from "../../api/ucmgui"
 
 const baseServerURl = api.apiHost
 
-class extensionList extends Component {
+class AnalogTrunksList extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -147,7 +147,7 @@ class extensionList extends Component {
     }
 }
 
-extensionList.defaultProps = {
+AnalogTrunksList.defaultProps = {
 }
 
-export default injectIntl(extensionList)
+export default injectIntl(AnalogTrunksList)

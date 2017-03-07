@@ -16,7 +16,7 @@ import NetworkStatus from '../components/modules/networkStatus'
 // Extension / Trunk
 import Extension from '../components/modules/extension'
 import ExtensionItem from '../components/modules/extension/extensionItem'
-import BatchExtensionItem from '../components/modules/extension/batchExtensionItem'
+import EditSelectedExtensions from '../components/modules/extension/editSelectedExtensions'
 import ImportExtension from '../components/modules/extension/importExtension'
 import ExtensionGroup from '../components/modules/extensionGroup'
 import ExtensionGroupItem from '../components/modules/extensionGroup/extensionGroupItem'
@@ -89,6 +89,7 @@ import VoicePrompt from '../components/modules/voicePrompt'
 import JitterBuffer from '../components/modules/jitterBuffer'
 import InterfaceSettings from '../components/modules/interfaceSettings/'
 import DigitalHardwareItem from '../components/modules/interfaceSettings/digitalHardwareItem'
+import AnalogHardwareItem from '../components/modules/interfaceSettings/analogHardwareItem'
 import RecordingStorageSettings from '../components/modules/recordingStorageSettings/index'
 import RecordTypeStorage from '../components/modules/recordingStorageSettings/recordTypeStorage'
 
@@ -105,6 +106,8 @@ import SecuritySettings from '../components/modules/securitySettings'
 import Security from '../components/modules/securitySettings/security'
 import SecurityItem from '../components/modules/securitySettings/rules'
 import LDAPServer from '../components/modules/ldapServer'
+import LdapClientConf from '../components/modules/ldapServer/ldapClientConf'
+import EditLdapPhonebook from '../components/modules/ldapServer/editLdapPhonebook'
 import TimeSettings from '../components/modules/timeSettings'
 import OfficeTime from '../components/modules/timeSettings/officetime'
 import OfficeTimeItem from '../components/modules/timeSettings/officetimeItem'
@@ -250,7 +253,7 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="import" onEnter={ requireAuth } component={ ImportExtension } breadcrumbName={ currentLocaleData["LANG2734"] } />
                         <Route path="edit/:type/:id" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
-                        <Route path="batchEdit/:type/:id" onEnter={ requireAuth } component={ BatchExtensionItem } breadcrumbName={ currentLocaleData["LANG734"] } />
+                        <Route path="editSelected/:type/:id" onEnter={ requireAuth } component={ EditSelectedExtensions } breadcrumbName={ currentLocaleData["LANG734"] } />
                     </Route>
                     <Route path="extensionGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2800"] }>
                         <IndexRoute component={ ExtensionGroup } />
@@ -398,7 +401,9 @@ const routes = (state, currentLocaleData) => {
                     <Route path="interfaceSettings" onEnter={ requireAuth } component={ InterfaceSettings } breadcrumbName={ currentLocaleData["LANG5303"] } />
                     <Route path="interfaceSettings" breadcrumbName={ currentLocaleData["LANG5303"] }>
                         <IndexRoute component={ InterfaceSettings } />
+                        <Route path=":id" onEnter={ requireAuth } component={ InterfaceSettings } breadcrumbName={ currentLocaleData["LANG4752"] } />
                         <Route path="digitalHardwareItem/:type/:span" onEnter={ requireAuth } component={ DigitalHardwareItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="analogHardwareItem/:type" onEnter={ requireAuth } component={ AnalogHardwareItem } breadcrumbName={ currentLocaleData["LANG687"] } />
                     </Route>
                     <Route path="recordingStorageSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG5304"] }>
                         <IndexRoute component={ RecordingStorageSettings } />
@@ -435,7 +440,11 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ SecurityItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ SecurityItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
-                    <Route path="ldapServer" onEnter={ requireAuth } component={ LDAPServer } breadcrumbName={ currentLocaleData["LANG56"] } />
+                    <Route path="ldapServer" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG56"] } >
+                        <IndexRoute component={ LDAPServer } />
+                        <Route path="ldapClientConf" onEnter={ requireAuth } component={ LdapClientConf } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit" onEnter={ requireAuth } component={ EditLdapPhonebook } breadcrumbName={ currentLocaleData["LANG769"] } />
+                    </Route>
                     <Route path="timeSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG718"] }>
                         <IndexRoute component={ TimeSettings } />
                         <Route path=":id" onEnter={ requireAuth } component={ TimeSettings } breadcrumbName={ currentLocaleData["LANG4855"] } />

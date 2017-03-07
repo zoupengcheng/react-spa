@@ -48,6 +48,7 @@ class ChangeTime extends Component {
                 message.error(e.statusText)
             }
         })
+        this.props.setInitNTP(NTPStatus)
         this.setState({
             NTPStatus: NTPStatus
         })

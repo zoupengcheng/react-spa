@@ -156,6 +156,8 @@ class BasicSettings extends Component {
             alertinfoShow = true
             select_alertinfo = "custom"
             custom_alertinfo = ivrItem.alertinfo.slice(7)
+        } else {
+            select_alertinfo = ivrItem.alertinfo
         }
         this.props.getSpecialState(checkedList)
         this.setState({
@@ -615,6 +617,10 @@ class BasicSettings extends Component {
                             rules: [{
                                 required: (this.state.select_alertinfo === "custom" ? true : false),
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.select_alertinfo === "custom" ? Validator.letterDigitUndHyphen(data, value, callback, formatMessage) : callback()
+                                }
                             }],
                             width: 100,
                             initialValue: this.state.custom_alertinfo

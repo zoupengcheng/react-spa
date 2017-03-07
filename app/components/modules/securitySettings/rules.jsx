@@ -27,6 +27,54 @@ class Rules extends Component {
     componentDidMount() {
         this._getInitData()
     }
+    _check_ipaddr = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        if (value === "") {
+            callback()
+        }
+
+        // 192.168.0.0 or 192.168.0.0/16
+        // if (!/^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])){3}(\/([1-9]|[12][0-9]|3[0-2]))?$/i.test(value) && !/^Anywhere$/.test(value)) {
+        if (/^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])){3}(\/\d+)?$/i.test(value) || UCMGUI.isIPv6(value) || /^Anywhere$/.test(value)) {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG2195"}))
+        }
+    }
+    _check_port = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        if (/^Any$/.test(value) || value === "") {
+            callback()
+            return
+        }
+        if (/^(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9])$/.test(value)) {
+            callback()
+            return
+        }
+        if (!/^(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9])[-]?(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9])$/.test(value)) {
+            callback(formatMessage({id: "LANG2767"}))
+            return
+        }
+        var arr = value.split("-")
+        var cntFirst = parseInt(arr[0], 10)
+        var cntSecond = parseInt(arr[1], 10)
+
+        if (cntFirst < 0 || cntFirst > 65535) {
+            callback(formatMessage({id: "LANG2767"}))
+            return
+        }
+
+        if (cntSecond && (cntSecond < 0 || cntSecond > 65535)) {
+            callback(formatMessage({id: "LANG2767"}))
+            return
+        }
+
+        if (cntFirst > cntSecond) {
+            callback(formatMessage({id: "LANG2767"}))
+            return
+        }
+        callback()
+    }
     _getInitData = () => {
         const { formatMessage } = this.props.intl
         const name = this.props.params.name
@@ -181,22 +229,44 @@ class Rules extends Component {
                     action.sequence = this.state.nameList.length + 1
                     action.action = 'addStaticDefense'
                 }
-                let net_interface = 'LAN'
+                let net_interface = 'lan'
                 if (this.state.netMethod === '0') {
                     net_interface = 'WAN'
                 } else if (this.state.netMethod === '1') {
-                    net_interface = 'LAN'
+                    net_interface = 'lan'
                 } else if (this.state.netMethod === '2') {
                     net_interface = 'LAN1'
-                } 
-                action.source_addr = values.source_addr.split('/')[0]
-                action.source_sub = values.source_addr.split('/')[1] ? parseInt(values.source_addr.split('/')[1]) : 0
-                action.source_port = values.source_port === 'Any' ? '-1' : values.source_port
-                action.dest_addr = values.dest_addr.split('/')[0]
-                action.dest_sub = values.dest_addr.split('/')[1] ? parseInt(values.dest_addr.split('/')[1]) : 0
-                action.dest_port = values.dest_port === 'Any' ? '-1' : values.dest_port
+                }
+                if (values.source_addr === "") {
+                    action.source_addr = "Anywhere"
+                    action.source_sub = 0
+                } else {
+                    action.source_addr = values.source_addr.split('/')[0]
+                    action.source_sub = values.source_addr.split('/')[1] ? parseInt(values.source_addr.split('/')[1]) : 0
+                }
+                if (values.source_port === "") {
+                    action.source_port = "-1"
+                } else {
+                    action.source_port = values.source_port === 'Any' ? '-1' : values.source_port
+                }
+                if (values.dest_addr === "") {
+                    action.dest_addr = "Anywhere"
+                    action.dest_sub = 0
+                } else {
+                    action.dest_addr = values.dest_addr.split('/')[0]
+                    action.dest_sub = values.dest_addr.split('/')[1] ? parseInt(values.dest_addr.split('/')[1]) : 0
+                }
+                if (values.dest_port === "") {
+                    action.dest_port = "-1"
+                } else {
+                    action.dest_port = values.dest_port === 'Any' ? '-1' : values.dest_port
+                }
                 action.protocol = values.protocol ? values.protocol : 'tcp'
-                action.interface = values.interface ? values.interface : net_interface
+                if (this.state.netMethod === '1') {
+                    action.interface = 'lan'
+                } else {
+                    action.interface = values.interface ? values.interface : net_interface
+                }
 
                 $.ajax({
                     url: api.apiHost,
@@ -410,29 +480,31 @@ class Rules extends Component {
                             )}>
                             <Row>
                                 <Col span={ 12 }>
+                                    <FormItem>
                                     { getFieldDecorator('source_addr', {
                                         rules: [{
-                                            required: rule_name.flags === 'custom',
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._check_ipaddr
                                         }],
                                         initialValue: source_addr ? source_addr : 'Anywhere'
                                     })(
                                         <Input />
                                     ) }
+                                    </FormItem>
                                 </Col>
                                 <Col span={ 1 } offset={ 1 } >
                                     <span>:</span>
                                 </Col>
                                 <Col span={ 6 }>
+                                    <FormItem>
                                     { getFieldDecorator('source_port', {
                                         rules: [{
-                                            required: rule_name.flags === 'custom',
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._check_port
                                         }],
                                         initialValue: rule_name.source_port && rule_name.source_port !== '-1' ? rule_name.source_port : 'Any'
                                     })(
                                         <Input min={ 1 } max={ 65535 } />
                                     ) }
+                                    </FormItem>
                                 </Col>
                             </Row>
                         </FormItem>
@@ -446,29 +518,31 @@ class Rules extends Component {
                             )}>
                             <Row>
                                 <Col span={ 12 }>
+                                    <FormItem>
                                     { getFieldDecorator('dest_addr', {
                                         rules: [{
-                                            required: rule_name.flags === 'custom',
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._check_ipaddr
                                         }],
                                         initialValue: dest_addr ? dest_addr : 'Anywhere'
                                     })(
                                         <Input />
                                     ) }
+                                    </FormItem>
                                 </Col>
                                 <Col span={ 1 } offset={ 1 } >
                                     <span>:</span>
                                 </Col>
                                 <Col span={ 6 }>
+                                    <FormItem>
                                     { getFieldDecorator('dest_port', {
                                         rules: [{
-                                            required: rule_name.flags === 'custom',
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._check_port
                                         }],
                                         initialValue: rule_name.dest_port && rule_name.dest_port !== '-1' ? rule_name.dest_port : 'Any'
                                     })(
                                         <Input min={ 1 } max={ 65535 } />
                                     ) }
+                                    </FormItem>
                                 </Col>
                             </Row>
                         </FormItem>

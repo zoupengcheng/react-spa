@@ -233,6 +233,10 @@ class BarItem extends Component {
                 action.privilege_name = values.privilege_name
 
                 if (privilegeId && privilegeName) {
+                    if (privilegeId === '3') {
+                        action = {}
+                        action.en_rm_voice_recording = values.en_rm_voice_recording ? 'yes' : 'no'
+                    }
                     action.action = 'updateCustomPrivilege'
                     action.privilege_id = privilegeId
                 } else {

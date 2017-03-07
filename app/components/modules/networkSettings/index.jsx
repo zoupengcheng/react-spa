@@ -30,7 +30,7 @@ class NetWorkSettings extends Component {
         super(props)
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
-            isDisplay: "display-block",
+            isDisplay: (this.props.params.id === '2' || this.props.params.id === '4') ? "hidden" : "display-block",
             network_settings: {},
             dhcp_settings: {},
             dhcp6_settings: {},

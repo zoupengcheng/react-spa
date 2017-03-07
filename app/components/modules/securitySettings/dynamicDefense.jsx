@@ -18,7 +18,8 @@ class DynamicDefense extends Component {
         super(props)
         this.state = {
             blacklist: [],
-            dynamicDefense: {}
+            dynamicDefense: {},
+            firstLoad: true
         }
     }
     componentDidMount() {
@@ -62,10 +63,9 @@ class DynamicDefense extends Component {
             }
         })
     }
-    _getInitData = () => {
+    _getBlackList = () => {
         const { formatMessage } = this.props.intl
         let blacklist = this.state.blacklist
-        let dynamicDefense = this.state.dynamicDefense
 
         $.ajax({
             url: api.apiHost,
@@ -94,6 +94,15 @@ class DynamicDefense extends Component {
                 message.error(e.statusText)
             }
         })
+        this.setState({
+            blacklist: blacklist,
+            firstLoad: false
+        })
+    }
+    _getInitData = () => {
+        const { formatMessage } = this.props.intl
+        let dynamicDefense = this.state.dynamicDefense
+
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -115,7 +124,6 @@ class DynamicDefense extends Component {
             }
         })
         this.setState({
-            blacklist: blacklist,
             dynamicDefense: dynamicDefense
         })
     }
@@ -135,6 +143,16 @@ class DynamicDefense extends Component {
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const dynamicDefense = this.state.dynamicDefense
+
+        if (this.state.firstLoad && this.props.firstLoad) {
+            this._getBlackList()
+        }
+        if (!this.state.firstLoad && !this.props.firstLoad) {
+            this.setState({
+                firstLoad: true
+            })
+        }
+
         const columns = [{
                 key: 'blacklist',
                 dataIndex: 'blacklist',

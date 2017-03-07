@@ -39,11 +39,14 @@ class EnternetCapture extends Component {
         this._getTroubleShooting()
     }
     _getTroubleShooting = () => {
+        const { formatMessage } = this.props.intl
+
         $.ajax({
             url: api.apiHost,
             type: "post",
             data: {
-                'action': 'getDisabledPortList'
+                'action': 'getTroubleShooting',
+                'shooting-state': ''
             },
             async: false,
             error: function(e) {
@@ -52,7 +55,9 @@ class EnternetCapture extends Component {
             }.bind(this),
             success: function(val) {
                 if (typeof val === "object") {
-                    var shooting = val.response.body
+                    var shooting = val.response.body,
+                        useSD = shooting.useSD,
+                        capture = shooting.capture
 
                     if (shooting) {
                         this.setState({
@@ -60,7 +65,24 @@ class EnternetCapture extends Component {
                         })
                     }
 
-                    this._buttonSwitch(true)
+                    if (useSD) {
+                        this.setState({
+                            useSftpDisable: true,
+                            useSDDisable: false,
+                            useSDEnable: true,
+                            useSftpEnable: false
+                        })
+                    }
+
+                    if (capture) {
+                        this.setState({
+                            msg: formatMessage({id: "LANG1582"})
+                        })
+
+                        this._buttonSwitch(true)
+
+                        return
+                    }
                 }
 
                 this._buttonSwitch(false)
@@ -157,8 +179,7 @@ class EnternetCapture extends Component {
                 captureDisable: true,
                 captureFilterDisable: true,
                 useSftpDisable: true,
-                useSDDisable: true,
-                useSDEnable: false
+                useSDDisable: true
             })
         } else {
             this.setState({
@@ -212,7 +233,7 @@ class EnternetCapture extends Component {
                     })
                 } else {
                     this.setState({
-                        downloadDisable: false
+                        downloadDisable: true
                     })
                 }
             }.bind(this)
@@ -461,7 +482,7 @@ class EnternetCapture extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('capture', {
-                                        initialValue: captureList[0].val
+                                        initialValue: capture ? capture.interface : captureList[0].val
                                     })(
                                         <Select disabled={ this.state.captureDisable }>
                                             {
@@ -502,7 +523,10 @@ class EnternetCapture extends Component {
                                         </span>
                                     )}
                                 >
-                                    { getFieldDecorator('useSD')(
+                                    { getFieldDecorator('useSD', {
+                                        valuePropName: 'checked',
+                                        initialValue: this.state.useSDEnable
+                                    })(
                                         <Checkbox disabled={ this.state.useSDDisable } onChange={ this._useSDChange } />
                                     ) }
                                 </FormItem>
@@ -519,7 +543,7 @@ class EnternetCapture extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('capture-filter', {
-                                        initialValue: ''
+                                        initialValue: capture ? capture.param : ''
                                     })(
                                         <Input disabled={ this.state.captureFilterDisable } />
                                     ) }
@@ -531,7 +555,9 @@ class EnternetCapture extends Component {
                                 <FormItem
                                     { ...formItemLayoutOffset }
                                 >
-                                    { getFieldDecorator('device')(
+                                    { getFieldDecorator('device', {
+                                        initialValue: useSD
+                                    })(
                                         <RadioGroup disabled={ !this.state.useSDEnable }>
                                             {
                                                 deviceRadio.map(function(item, key) {

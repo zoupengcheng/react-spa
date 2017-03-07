@@ -449,7 +449,7 @@ class WarningEventList extends Component {
         const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
         const isDoCheck = record.enable
         const __this = this
-        if (isDoCheck === '0') {
+        if (isDoCheck === '0' && record.enable_email === '0') {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4487"})}} ></span>,
                 onOk() {

@@ -553,6 +553,9 @@ class IvrItem extends Component {
             if (err && (err.hasOwnProperty('switch') || err.hasOwnProperty('ivr_out_blackwhite_list'))) {
                 return
             }
+            if (err && err.hasOwnProperty('custom_alert_info')) {
+                return
+            }
 
             const disable_extension_ranges = this.state.disable_extension_ranges
             const ivrStart = this.state.ivrStart
@@ -578,6 +581,11 @@ class IvrItem extends Component {
             }
             let action = values
             action.ivr_blackwhite_list = values.ivr_blackwhite_list.join(',')
+            if (values.alertinfo === "custom") {
+                if (values.custom_alert_info !== "") {
+                    action.alertinfo = "custom_" + values.custom_alert_info
+                }
+            }
             if (action.keypress_0 ||
                 action.keypress_1 ||
                 action.keypress_2 ||
@@ -592,12 +600,6 @@ class IvrItem extends Component {
                 action.keypress_t ||
                 action.keypress_i) {
                 let members = []
-
-                if (values.alertinfo === "custom") {
-                    if (values.custom_alert_info !== "") {
-                        action.alertinfo = "custom_" + values.custom_alert_info
-                    }
-                }
 
                 let obj = {}
                 if (action.keypress_0) {

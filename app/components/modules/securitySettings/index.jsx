@@ -20,7 +20,9 @@ class SecuritySettings extends Component {
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
             isDisplay: "display-block",
-            networkSettings: {}
+            networkSettings: {},
+            dynamicLoad: false,
+            fail2banLoad: false
         }
     }
     componentDidMount() {
@@ -61,12 +63,30 @@ class SecuritySettings extends Component {
         if (e === "1") {
             this.setState({
                 activeKey: e,
-                isDisplay: "display-block"
+                isDisplay: "display-block",
+                dynamicLoad: false,
+                fail2banLoad: false
             })
-        } else {
+        } else if (e === '2') {
             this.setState({
                 activeKey: e,
-                isDisplay: "hidden"
+                isDisplay: "hidden",
+                dynamicLoad: true,
+                fail2banLoad: false
+            })
+        } else if (e === '3') {
+            this.setState({
+                activeKey: e,
+                isDisplay: "hidden",
+                dynamicLoad: false,
+                fail2banLoad: true
+            })
+        } else if (e === '4') {
+            this.setState({
+                activeKey: e,
+                isDisplay: "hidden",
+                dynamicLoad: false,
+                fail2banLoad: false
             })
         }
     }
@@ -273,11 +293,13 @@ class SecuritySettings extends Component {
                     <TabPane tab={formatMessage({id: "LANG2303"})} key="2">
                         <DynamicDefense
                             form={ this.props.form }
+                            firstLoad={this.state.dynamicLoad}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG2600"})} key="3">
                         <Fail2ban
                             form={ this.props.form }
+                            firstLoad={this.state.fail2banLoad}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG4179"})} key="4">

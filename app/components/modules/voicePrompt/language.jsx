@@ -136,9 +136,14 @@ class VoicePrompt extends Component {
         })
     }
     _infoCancel = () => {
-        this.setState({
-            infoVisible: false
-        })
+        const { formatMessage } = this.props.intl
+        if (this.state.loading === false) {
+            this.setState({
+                infoVisible: false
+            })
+        } else {
+            message.loading(formatMessage({id: "LANG2462"}, {0: formatMessage({id: "LANG2468"})}))
+        }
     }
     _onChangeRadio = (e) => {
         this.setState({

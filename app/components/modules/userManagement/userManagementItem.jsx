@@ -323,7 +323,7 @@ class UserItem extends Component {
                                 { ...formItemLayout }
 
                                 label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2849" />}>
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG2848" />}>
                                         <span>{formatMessage({id: "LANG2817"})}</span>
                                     </Tooltip>
                                 )}>
@@ -342,7 +342,7 @@ class UserItem extends Component {
                                 { ...formItemLayout }
 
                                 label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2848" />}>
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG2849" />}>
                                         <span>{formatMessage({id: "LANG2813"})}</span>
                                     </Tooltip>
                                 )}>

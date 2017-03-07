@@ -205,11 +205,13 @@ class EventListItem extends Component {
                     action.send_delay = values.send_delay
                 }
 
+                this._warningStop()
                 $.ajax({
                     url: api.apiHost,
                     method: "post",
                     data: action,
                     type: 'json',
+                    async: false,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -222,7 +224,6 @@ class EventListItem extends Component {
                         }
 
                         this._warningStart()
-                        this._warningStop()
                         this._handleCancel()
                     }.bind(this)
                 })

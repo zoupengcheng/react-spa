@@ -21,7 +21,8 @@ class DynamicDefense extends Component {
             fail2ban: {},
             fail2ban_enable: '',
             ignoreip_list: [],
-            numList: [2, 3, 4, 5]
+            numList: [2, 3, 4, 5],
+            firstLoad: true
         }
     }
     componentDidMount() {
@@ -65,6 +66,47 @@ class DynamicDefense extends Component {
             }
         })
     }
+    _getFail2banList = () => {
+        const { formatMessage } = this.props.intl
+        let fail2banlist = []
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getFail2banList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const tmp_fail2banlist = response.fail2banlist || []
+                    tmp_fail2banlist.map(function(item) {
+                        for (let tmp in item) {
+                            if (item.hasOwnProperty(tmp)) {
+                                let ips = item[tmp]
+                                ips.map(function(ip_item) {
+                                    fail2banlist.push({
+                                        bandType: tmp,
+                                        ip: ip_item
+                                    })
+                                })
+                            }
+                        }
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            fail2banlist: fail2banlist,
+            firstLoad: false
+        })
+    }
     _getInitData = () => {
         const { formatMessage } = this.props.intl
         let fail2ban = this.state.fail2ban
@@ -105,43 +147,9 @@ class DynamicDefense extends Component {
                 message.error(e.statusText)
             }
         })
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: 'getFail2banList'
-            },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    const tmp_fail2banlist = response.fail2banlist || []
-                    tmp_fail2banlist.map(function(item) {
-                        for (let tmp in item) {
-                            if (item.hasOwnProperty(tmp)) {
-                                let ips = item[tmp]
-                                ips.map(function(ip_item) {
-                                    fail2banlist.push({
-                                        bandType: tmp,
-                                        ip: ip_item
-                                    })
-                                })
-                            }
-                        }
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
         this.setState({
             fail2ban: fail2ban,
             fail2ban_enable: fail2ban_enable,
-            fail2banlist: fail2banlist,
             ignoreip_list: ignoreip_list
         })
     }
@@ -207,6 +215,16 @@ class DynamicDefense extends Component {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const dynamicDefense = this.state.dynamicDefense
         const numList = this.state.numList
+
+        if (this.state.firstLoad && this.props.firstLoad) {
+            this._getFail2banList()
+        }
+        if (!this.state.firstLoad && !this.props.firstLoad) {
+            this.setState({
+                firstLoad: true
+            })
+        }
+
         const columns = [{
                 key: 'bandType',
                 dataIndex: 'bandType',

@@ -22,14 +22,9 @@ class Extension extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            pagination: {
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: this._showTotal
-            },
+            postData: {},
             loading: false,
             rebootList: [],
-            requestData: {},
             selectedRows: [],
             autoRefresh: null,
             extensionList: [],
@@ -39,7 +34,12 @@ class Extension extends Component {
             selectedRebootRowKeys: [],
             rebootModalVisible: false,
             sendEmailModalVisible: false,
-            batchDeleteModalVisible: false
+            batchDeleteModalVisible: false,
+            pagination: {
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: this._showTotal
+            }
         }
     }
     componentDidMount() {
@@ -74,7 +74,7 @@ class Extension extends Component {
         }
     }
     _autoRefresh = (page) => {
-        let data = _.clone(this.state.requestData)
+        let data = _.clone(this.state.postData)
         
         if (page) {
             data['page'] = page
@@ -129,7 +129,7 @@ class Extension extends Component {
             return false
         }
 
-        browserHistory.push('/extension-trunk/extension/batchEdit/' + typeList[0] + '/' + this.state.selectedRowKeys.join(','))
+        browserHistory.push('/extension-trunk/extension/editSelected/' + typeList[0] + '/' + this.state.selectedRowKeys.join(','))
     }
     _batchDelete = () => {
         this.setState({ batchDeleteModalVisible: true })
@@ -398,7 +398,7 @@ class Extension extends Component {
 
             this.setState({
                 loading: true,
-                requestData: data
+                postData: data
             })
 
             $.ajax({

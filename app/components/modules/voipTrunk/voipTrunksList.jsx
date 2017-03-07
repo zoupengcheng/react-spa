@@ -307,16 +307,6 @@ class VoipTrunksList extends Component {
     render() {
         const {formatMessage, formatHTMLMessage} = this.props.intl
 
-        const menu = (
-          <Menu>
-            <Menu.Item>
-              <span onClick={this._createSipVoipTrunk} >{formatMessage({id: "LANG2908"})}</span>
-            </Menu.Item>
-            <Menu.Item>
-              <span onClick={this._createIaxVoipTrunk} >{formatMessage({id: "LANG2909"})}</span>
-            </Menu.Item>
-          </Menu>
-        )
         const columns = [
             {
                 title: formatMessage({id: "LANG1382"}),
@@ -386,12 +376,6 @@ class VoipTrunksList extends Component {
         return (
             <div className="content">
                 <div className="top-button">
-                    {/* <Dropdown overlay={menu}>
-                            <a className="ant-dropdown-link" href="#">
-                            Create Voip Trunk<Icon type="down" />
-                            </a>
-                        </Dropdown> 
-                    */}
                     <Button icon="plus" type="primary" size="default" onClick={ this._createSipVoipTrunk }>
                         { formatMessage({id: "LANG2908"}) }
                     </Button>
@@ -404,7 +388,7 @@ class VoipTrunksList extends Component {
                     */}
                 </div>
                 <Table
-                    rowSelection={ false } 
+                    rowSelection={ undefined } 
                     columns={ columns }
                     rowKey={ record => record.trunk_index }
                     dataSource={ this.state.voipTrunk }

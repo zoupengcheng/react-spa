@@ -56,7 +56,7 @@ class UserList extends Component {
             method: 'post',
             data: {
                 "action": "deleteUser",
-                "user_id": record.user_id
+                "user_name": record.user_name
             },
             type: 'json',
             async: true,
@@ -107,6 +107,7 @@ class UserList extends Component {
                     const pagination = this.state.pagination
                     // Read total count from server
                     pagination.total = res.response.total_item
+                    pagination.current = params.page
 
                     this.setState({
                         loading: false,
@@ -179,21 +180,51 @@ class UserList extends Component {
                 dataIndex: 'options',
                 title: formatMessage({id: "LANG74"}),
                 render: (text, record, index) => {
-                    return <div>
-                            <span
-                                className="sprite sprite-edit"
-                                title={ formatMessage({id: "LANG738"}) }
-                                onClick={ this._edit.bind(this, record) }>
-                            </span>
-                            <Popconfirm
-                                title={ formatMessage({id: "LANG841"}) }
-                                okText={ formatMessage({id: "LANG727"}) }
-                                cancelText={ formatMessage({id: "LANG726"}) }
-                                onConfirm={ this._delete.bind(this, record) }
-                            >
-                                <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
-                            </Popconfirm>
-                        </div>
+                    if (record.privilege === 0) {
+                        return <div>
+                                <span
+                                    className="sprite sprite-edit"
+                                    title={ formatMessage({id: "LANG738"}) }
+                                    onClick={ this._edit.bind(this, record) }>
+                                </span>
+                                <span
+                                    className="sprite sprite-del sprite-del-disabled"
+                                    title={ formatMessage({id: "LANG739"}) }>
+                                </span>
+                            </div>
+                    } else if (record.privilege === 3) {
+                        return <div>
+                                <span
+                                    className="sprite sprite-edit"
+                                    title={ formatMessage({id: "LANG738"}) }
+                                    onClick={ this._edit.bind(this, record) }>
+                                </span>
+                                <Popconfirm
+                                    title={ <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4100"}, {0: formatMessage({id: "LANG82"}), 1: record.user_name})}}></span> }
+                                    okText={ formatMessage({id: "LANG727"}) }
+                                    cancelText={ formatMessage({id: "LANG726"}) }
+                                    onConfirm={ this._delete.bind(this, record) }
+                                >
+                                    <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
+                                </Popconfirm>
+                            </div>
+                    } else {
+                        return <div>
+                                <span
+                                    className="sprite sprite-edit"
+                                    title={ formatMessage({id: "LANG738"}) }
+                                    onClick={ this._edit.bind(this, record) }>
+                                </span>
+                                <Popconfirm
+                                    title={ formatMessage({id: "LANG841"}) }
+                                    okText={ formatMessage({id: "LANG727"}) }
+                                    cancelText={ formatMessage({id: "LANG726"}) }
+                                    onConfirm={ this._delete.bind(this, record) }
+                                >
+                                    <span className="sprite sprite-del" title={ formatMessage({id: "LANG739"}) }></span>
+                                </Popconfirm>
+                            </div>
+                    }
                 }
             }]
         const pagination = {
