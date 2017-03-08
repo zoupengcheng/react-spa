@@ -13,18 +13,20 @@ import { Col, Form, Input, message, Tooltip, Checkbox, Upload, Icon, Modal, Butt
 
 const FormItem = Form.Item
 
-class RoomAdd extends Component {
+class AMISetting extends Component {
     constructor(props) {
         super(props)
         this.state = {
             roomList: [],
             availableAccountList: [],
-            roomItem: {}
+            roomItem: {},
+            openPort: ["22"]
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
+        this._getOpenPort()
         this._getInitData()
     }
     _checkName = (rule, value, callback) => {
@@ -35,6 +37,92 @@ class RoomAdd extends Component {
         } else {
             callback()
         }
+    }
+    _checkOpenPort = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const port = getFieldValue('port')
+        const tlsbindport = getFieldValue('tlsbindport')
+        if (port === tlsbindport) {
+            callback(formatMessage({id: "LANG3869"}))
+        } else if (value && _.indexOf(this.state.openPort, value) > -1) {
+            callback(formatMessage({id: "LANG3869"}))
+        } else {
+            callback()
+        }
+    }
+    _doNothing = () => {
+
+    }
+    _getOpenPort = () => {
+        let openPort = this.state.openPort
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getNetstatInfo' },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let response = data.response
+                    const netstat = response.netstat
+                    
+                    netstat.map(function(item) {
+                        if ($.inArray(item.port, openPort) > -1) {
+
+                        } else {
+                            openPort.push(item.port)
+                        }
+                    })
+                }
+            }.bind(this)
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getSIPTCPSettings' },
+            async: false,
+            type: "json",
+            error: function(jqXHR, textStatus, errorThrown) {
+                // top.dialog.dialogMessage({
+                //     type: 'error',
+                //     content: errorThrown
+                // });
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    let tlsbindaddr = data.response.sip_tcp_settings.tlsbindaddr
+                    let tcpbindaddr = data.response.sip_tcp_settings.tcpbindaddr
+
+                    if (tlsbindaddr) {
+                        let tlsPort = tlsbindaddr.split(":")[1]
+
+                        if (tlsPort && !($.inArray(tlsPort, openPort) > -1)) {
+                            openPort.push(tlsPort)
+                        }
+                    }
+
+                    if (tcpbindaddr) {
+                        let tcpPort = tcpbindaddr.split(":")[1]
+
+                        if (tcpPort && !($.inArray(tcpPort, openPort) > -1)) {
+                            openPort.push(tcpPort)
+                        }
+                    }
+                }
+            }
+        })
+
+        this.setState({
+            openPort: openPort
+        })
     }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
@@ -303,6 +391,16 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 1024, 65535)
+                                    }
+                                }, {
+                                    validator: this._checkOpenPort
                                 }],
                                 width: 100,
                                 initialValue: amiItem.port ? amiItem.port : "7777"
@@ -344,11 +442,21 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 1, 65535)
+                                    }
+                                }, {
+                                    validator: this._checkOpenPort
                                 }],
                                 width: 100,
                                 initialValue: amiItem.tlsbindport ? amiItem.tlsbindport : "5039"
                             })(
-                                <Input min={1024} max={65535} />
+                                <Input min={1} max={65535} />
                             ) }
                         </FormItem>
                         <FormItem
@@ -364,6 +472,14 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 100, 10000)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: amiItem.writetimeout ? amiItem.writetimeout : "100"
@@ -384,6 +500,10 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.ipAddress(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: amiItem.tlsbindaddr ? amiItem.tlsbindaddr : "0.0.0.0"
@@ -459,4 +579,4 @@ class RoomAdd extends Component {
     }
 }
 
-export default Form.create()(injectIntl(RoomAdd))
+export default Form.create()(injectIntl(AMISetting))

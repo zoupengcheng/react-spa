@@ -5,6 +5,7 @@ import api from "../../api/api"
 import _ from 'underscore'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from '../../api/validator'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
@@ -313,7 +314,18 @@ class DynamicDefense extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('bantime', {
-                                rules: [],
+                                rules: [{
+                                    required: allDisable === false,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        allDisable ? callback() : Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        allDisable ? callback() : Validator.range(data, value, callback, formatMessage, 0, 999999999999)
+                                    }
+                                }],
                                 initialValue: fail2ban.bantime ? fail2ban.bantime : 600
                             })(
                                 <Input min={ 0 } max={ 999999999999 } disabled={ allDisable } />
@@ -329,7 +341,18 @@ class DynamicDefense extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('findtime', {
-                                rules: [],
+                                rules: [{
+                                    required: allDisable === false,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        allDisable ? callback() : Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        allDisable ? callback() : Validator.range(data, value, callback, formatMessage, 1, 999999999999)
+                                    }
+                                }],
                                 initialValue: fail2ban.findtime ? fail2ban.findtime : 600
                             })(
                                 <Input min={ 1 } max={ 999999999999 } disabled={ allDisable } />
@@ -340,12 +363,23 @@ class DynamicDefense extends Component {
                             { ...formItemLayout }
 
                             label={(
-                                <Tooltip title={<FormattedHTMLMessage id="LANG2296" />}>
-                                    <span>{formatMessage({id: "LANG2300"})}</span>
+                                <Tooltip title={<FormattedHTMLMessage id="LANG2615" />}>
+                                    <span>{formatMessage({id: "LANG2614"})}</span>
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('maxretry', {
-                                rules: [],
+                                rules: [{
+                                    required: allDisable === false,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        allDisable ? callback() : Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        allDisable ? callback() : Validator.range(data, value, callback, formatMessage, 1, 999999999999)
+                                    }
+                                }],
                                 initialValue: fail2ban.maxretry ? fail2ban.maxretry : 1
                             })(
                                 <Input min={ 1 } max={ 999999999999 } disabled={ allDisable } />
@@ -362,7 +396,11 @@ class DynamicDefense extends Component {
                             )}>
                             <Col span={ 16 }>
                                 { getFieldDecorator('ignoreip1', {
-                                    rules: [],
+                                    rules: [{
+                                        validator: (data, value, callback) => {
+                                            Validator.ipv4withcidr(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: fail2ban.ignoreip1 ? fail2ban.ignoreip1 : ''
                                 })(
                                     <Input disabled={ allDisable } />
@@ -385,6 +423,10 @@ class DynamicDefense extends Component {
                                     rules: [{
                                             required: fail2ban[`ignoreip${numList[0]}`] !== undefined && fail2ban[`ignoreip${numList[0]}`] !== null,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
+                                            }
                                         }],
                                     initialValue: fail2ban[`ignoreip${numList[0]}`] ? fail2ban[`ignoreip${numList[0]}`] : ''
                                 })(
@@ -408,6 +450,10 @@ class DynamicDefense extends Component {
                                     rules: [{
                                             required: fail2ban[`ignoreip${numList[1]}`] !== undefined && fail2ban[`ignoreip${numList[1]}`] !== null,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
+                                            }
                                         }],
                                     initialValue: fail2ban[`ignoreip${numList[1]}`] ? fail2ban[`ignoreip${numList[1]}`] : ''
                                 })(
@@ -431,6 +477,10 @@ class DynamicDefense extends Component {
                                     rules: [{
                                             required: fail2ban[`ignoreip${numList[2]}`] !== undefined && fail2ban[`ignoreip${numList[2]}`] !== null,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
+                                            }
                                         }],
                                     initialValue: fail2ban[`ignoreip${numList[2]}`] ? fail2ban[`ignoreip${numList[2]}`] : ''
                                 })(
@@ -454,6 +504,10 @@ class DynamicDefense extends Component {
                                     rules: [{
                                             required: fail2ban[`ignoreip${numList[3]}`] !== undefined && fail2ban[`ignoreip${numList[3]}`] !== null,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
+                                            }
                                         }],
                                     initialValue: fail2ban[`ignoreip${numList[3]}`] ? fail2ban[`ignoreip${numList[3]}`] : ''
                                 })(
@@ -498,8 +552,8 @@ class DynamicDefense extends Component {
                             { ...formItemLayout }
 
                             label={(
-                                <Tooltip title={<FormattedHTMLMessage id="LANG2298" />}>
-                                    <span>{formatMessage({id: "LANG2302"})}</span>
+                                <Tooltip title={<FormattedHTMLMessage id="LANG2620" />}>
+                                    <span>{formatMessage({id: "LANG5292"})}</span>
                                 </Tooltip>
                             )}>
                             <Row>

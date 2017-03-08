@@ -300,10 +300,17 @@ class EventListItem extends Component {
                                     )}>
                                     { getFieldDecorator('cycle_time', {
                                         rules: [{
-                                            validator: (data, value, callback) => {
-                                                Validator.range(data, value, callback, formatMessage, this.state.cycle_time_min, this.state.cycle_time_max)
-                                            }
-                                        }],
+                                                required: this.state.cycleShow,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.cycleShow ? Validator.range(data, value, callback, formatMessage, this.state.cycle_time_min, this.state.cycle_time_max) : callback()
+                                                }
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.cycleShow ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }],
                                         initialValue: cycle_time
                                     })(
                                         <Input min={ this.state.cycle_time_min } max={ this.state.cycle_time_max } />
@@ -341,11 +348,18 @@ class EventListItem extends Component {
                                     )}>
                                     { getFieldDecorator('percent', {
                                         rules: [{
+                                            required: this.state.thresholdValueShow,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
                                             validator: (data, value, callback) => {
-                                                Validator.range(data, value, callback, formatMessage, 1, 100)
+                                                this.state.thresholdValueShow ? Validator.range(data, value, callback, formatMessage, 1, 100) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.thresholdValueShow ? Validator.digits(data, value, callback, formatMessage) : callback()
                                             }
                                         }],
-                                        initialValue: dataItem.percent * 100
+                                        initialValue: dataItem.percent && (dataItem.percent * 100)
                                     })(
                                         <Input min={ 1 } max={ 100 } />
                                     ) }
@@ -368,10 +382,17 @@ class EventListItem extends Component {
                                     )}>
                                     { getFieldDecorator('send_delay', {
                                         rules: [{
-                                            validator: (data, value, callback) => {
-                                                Validator.range(data, value, callback, formatMessage, 1, 1440)
-                                            }
-                                        }],
+                                                required: this.state.sendDelayShow,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.sendDelayShow ? Validator.range(data, value, callback, formatMessage, 1, 1440) : callback()
+                                                }
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.sendDelayShow ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }],
                                         initialValue: dataItem.send_delay
                                     })(
                                         <Input min={ 1 } max={ 1440 } />

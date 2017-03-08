@@ -20,18 +20,107 @@ class AnnouncementGroup extends Component {
         this.state = {
             targetKeys: [],
             accountList: [],
-            groupItem: {}
+            groupItem: {},
+            groupNameList: [],
+            groupNumberList: [],
+            numberList: []
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
+        this._getNumberList()
+        this._getGroupList()
         this._getInitData()
+    }
+    _checkName = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.groupNameList, value) > -1) {
+            callback(formatMessage({id: "LANG2137"}))
+        } else {
+            callback()
+        }
+    }
+    _checkExtension = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.numberList, value) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
+        } else if (value && _.indexOf(this.state.groupNumberList, value) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
+        } else {
+            callback()
+        }
+    }
+    _getNumberList = () => {
+        let numberList = this.state.numberList || []
+        const __this = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getNumberList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    numberList = response.number
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            numberList: numberList
+        })
+    }
+    _getGroupList = () => {
+        let groupNumberList = this.state.groupNumberList || []
+        let groupNameList = this.state.groupNameList || []
+        const __this = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listCodeblueGroup'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    response.codeblue_group.map(function(item) {
+                        groupNumberList.push(item.extension)
+                        groupNameList.push(item.group_name)
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            groupNumberList: groupNumberList
+        })
     }
     _getInitData = () => {
         const groupId = this.props.params.id
         const groupName = this.props.params.name
         const { formatMessage } = this.props.intl
+        let groupNameList = this.state.groupNameList
+        let groupNumberList = this.state.groupNameList
         let accountList = []
         let groupItem = {}
         let targetKeys = []
@@ -94,11 +183,19 @@ class AnnouncementGroup extends Component {
                 }
             })
         }
+        if (groupId) {
+            groupNumberList = _.without(groupNumberList, groupId)
+        }
+        if (groupName) {
+            groupNameList = _.without(groupNameList, groupName)
+        }
 
         this.setState({
             accountList: accountList,
             groupItem: groupItem,
-            targetKeys: targetKeys
+            targetKeys: targetKeys,
+            groupNameList: groupNameList,
+            groupNumberList: groupNumberList
         })
     }
     _handleCancel = () => {
@@ -244,6 +341,8 @@ class AnnouncementGroup extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkName
                                 }],
                                 width: 100,
                                 initialValue: groupItem.group_name
@@ -264,6 +363,12 @@ class AnnouncementGroup extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._checkExtension
                                 }],
                                 width: 100,
                                 initialValue: groupItem.extension

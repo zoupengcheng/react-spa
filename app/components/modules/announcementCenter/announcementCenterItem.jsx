@@ -20,13 +20,21 @@ class AnnouncementCenter extends Component {
         super(props)
         this.state = {
             fileList: [],
-            centerItem: {}
+            centerItem: {},
+            codeNameList: [],
+            codeNumberList: [],
+            groupNumberList: [],
+            numberList: [],
+            otherNumberList: []
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
+        this._getCodeList()
+        this._getGroupList()
         this._getInitData()
+        this._getNumberList()
     }
     _gotoPrompt = () => {
         const { formatMessage } = this.props.intl
@@ -56,9 +64,148 @@ class AnnouncementCenter extends Component {
             }
         }
     }
+    _checkName = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.codeNameList, value) > -1) {
+            callback(formatMessage({id: "LANG2137"}))
+        } else {
+            callback()
+        }
+    }
+    _checkExtension = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.numberList, value) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
+        } else if (value && _.indexOf(this.state.codeNumberList, value) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
+        } else {
+            callback()
+        }
+    }
+    _checkIfContainOtherCodes = (rule, value, callback) => {
+        if (value) {
+            const { formatMessage } = this.props.intl
+            const me = this
+            var contain = false,
+                codeNumberList = this.state.codeNumberList,
+                groupNumberList = this.state.groupNumberList,
+                numberList = this.state.numberList
+
+            codeNumberList.map(function(item) {
+                if (me._beginsWith(value, item)) {
+                    contain = true
+                    callback(formatMessage({id: "LANG2126"}))
+                    return
+                } else if (me._beginsWith(item, value)) {
+                    contain = true
+                    callback(formatMessage({id: "LANG2126"}))
+                    return
+                }
+            })
+            groupNumberList.map(function(item) {
+                numberList.map(function(num) {
+                    if ((value + '' + item) === num) {
+                        contain = true
+                        callback(formatMessage({id: "LANG2126"}))
+                        return
+                    }
+                })
+            })
+
+            if (contain) {
+                callback(formatMessage({id: "LANG2126"}))
+            } else {
+                callback()
+            }
+        } else {
+            callback()
+        }
+    }
+    _beginsWith = (value, sub) => {
+        if (value && sub && value.length > sub.length) {
+            const len = sub.length
+            const tmp = value.slice(0, len)
+            if (tmp === sub) {
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
+    }
+    _getCodeList = () => {
+        let codeNameList = this.state.codeNameList || []
+        let codeNumberList = this.state.codeNumberList || []
+        const __this = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listCodeblueCode'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    response.codeblue_code.map(function(item) {
+                        codeNameList.push(item.code_name)
+                        codeNumberList.push(item.extension)
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            codeNameList: codeNameList,
+            codeNumberList: codeNumberList
+        })
+    }
+    _getGroupList = () => {
+        let groupNumberList = this.state.groupNumberList || []
+        const __this = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listCodeblueGroup'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    response.codeblue_group.map(function(item) {
+                        groupNumberList.push(item.extension)
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            groupNumberList: groupNumberList
+        })
+    }
     _getInitData = () => {
         const centerId = this.props.params.id
         const centerName = this.props.params.name
+        let codeNameList = this.state.codeNameList || []
+        let codeNumberList = this.state.codeNumberList || []
         let fileList = []
         let centerItem = {}
         const __this = this
@@ -119,10 +266,58 @@ class AnnouncementCenter extends Component {
                 }
             })
         }
+        if (centerId) {
+            codeNumberList = _.without(codeNumberList, centerId)
+        }
+        if (centerName) {
+            codeNameList = _.without(codeNameList, centerName)
+        }
 
         this.setState({
             fileList: fileList,
-            centerItem: centerItem
+            centerItem: centerItem,
+            codeNameList: codeNameList,
+            codeNumberList: codeNumberList
+        })
+    }
+    _getNumberList = () => {
+        let numberList = this.state.numberList || []
+        const __this = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getNumberList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    numberList = response.number
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        const codeNumberList = this.state.codeNumberList
+        const groupNumberList = this.state.groupNumberList
+        let otherNumberList = this.state.otherNumberList
+        codeNumberList.map(function(code) {
+            groupNumberList.map(function(group) {
+                otherNumberList.push(code + '' + group)
+            })
+        })
+
+        this.setState({
+            numberList: numberList,
+            otherNumberList: otherNumberList
         })
     }
     _handleCancel = () => {
@@ -239,6 +434,8 @@ class AnnouncementCenter extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkName
                                 }],
                                 width: 100,
                                 initialValue: centerItem.code_name
@@ -259,6 +456,14 @@ class AnnouncementCenter extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._checkExtension
+                                }, {
+                                    validator: this._checkIfContainOtherCodes
                                 }],
                                 width: 100,
                                 initialValue: centerItem.extension

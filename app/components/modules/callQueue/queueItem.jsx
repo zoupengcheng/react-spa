@@ -24,8 +24,12 @@ class QueueItem extends Component {
             targetKeys: [],
             queueRange: [],
             numberList: [],
+            vmPromptList: [],
             destination_value: '',
             destination_type: 'account',
+            destination_value_prompt: '',
+            destination_type_prompt: 'account',
+            mohNameList: ['default', 'ringbacktone_default'],
             destinationListDataSource: {
                 'account': [],
                 'voicemail': [],
@@ -33,7 +37,8 @@ class QueueItem extends Component {
                 'ringgroup': [],
                 'vmgroup': [],
                 'ivr': [],
-                'external_number': []
+                'external_number': [],
+                'hangup': []
             }
         }
     }
@@ -50,6 +55,9 @@ class QueueItem extends Component {
         } else {
             callback()
         }
+    }
+    _endsWith = (str, a) => {
+        return str.length >= a.length && str.substring(str.length - a.length) === a
     }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
@@ -71,8 +79,13 @@ class QueueItem extends Component {
         let queueItem = {}
         let targetKeys = []
         let memberList = []
+        let mohNameList = []
         let extgroupList = []
+        let vmPromptList = []
+        let destination_value = ''
         let destination_type = 'account'
+        let destination_value_prompt = ''
+        let destination_type_prompt = 'account'
         let destinationListDataSource = {}
 
         const queueId = this.props.params.id
@@ -120,6 +133,8 @@ class QueueItem extends Component {
                         }
                 })
 
+        queue = _.filter(queue, (data) => { return data.value !== queueId })
+
         ringgroup = ringgroup.map(function(item) {
                     return {
                             key: item.extension,
@@ -153,7 +168,8 @@ class QueueItem extends Component {
             ringgroup: ringgroup,
             vmgroup: vmgroup,
             ivr: ivr,
-            external_number: []
+            external_number: [],
+            hangup: []
         }
 
         $.ajax({
@@ -179,6 +195,67 @@ class QueueItem extends Component {
                                 value: item.group_id,
                                 label: extgroupLabel + " -- " + item.group_name
                             })
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            async: false,
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getMohNameList'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    mohNameList = response.moh_name || []
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            async: false,
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                page: 1,
+                sidx: 'd',
+                sord: 'asc',
+                type: 'ivr',
+                action: 'listFile',
+                filter: JSON.stringify({
+                    'list_dir': 0,
+                    'list_file': 1,
+                    'file_suffix': ['mp3', 'wav', 'gsm', 'ulaw', 'alaw']
+                })
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let ivr = data.response.ivr,
+                        options = {
+                            val: 'n',
+                            text: 'n'
+                        }
+
+                    vmPromptList = this._transVoicemailPromptData(ivr, options, (arr) => {
+                        for (let i = 0; i < arr.length; i++) {
+                            arr[i].val = 'record/' + this._removeSuffix(arr[i].val)
+                        }
                     })
                 }
             }.bind(this),
@@ -213,7 +290,25 @@ class QueueItem extends Component {
                             }
                         })
 
-                        destination_type = queueItem.destination_type
+                        destination_type = queueItem.destination_type_t
+                        destination_type_prompt = queueItem.destination_type_v
+
+                        if (destination_type === 'voicemail') {
+                            destination_value = queueItem['vm_extension_t']
+                        } else if (destination_type === 'queue') {
+                            destination_value = queueItem['queue_dest_t']
+                        } else {
+                            destination_value = queueItem[destination_type + '_t']
+                        }
+
+                        if (destination_type_prompt === 'voicemail') {
+                            destination_value_prompt = queueItem['vm_extension_v']
+                        } else if (destination_type_prompt === 'queue') {
+                            destination_value_prompt = queueItem['queue_dest_v']
+                        } else {
+                            destination_value_prompt = queueItem[destination_type_prompt + '_v']
+                        }
+
                         targetKeys = queueItem.members ? queueItem.members.split(',') : []
                     }
                 }.bind(this),
@@ -229,8 +324,13 @@ class QueueItem extends Component {
             queueRange: queueRange,
             numberList: numberList,
             targetKeys: targetKeys,
-            destination_type: destination_type,
-            destinationListDataSource: destinationListDataSource
+            vmPromptList: vmPromptList,
+            destination_value: destination_value,
+            destination_value_prompt: destination_value_prompt,
+            destinationListDataSource: destinationListDataSource,
+            destination_type: destination_type.replace(/_t/g, ''),
+            destination_type_prompt: destination_type_prompt.replace(/_t/g, ''),
+            mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
         })
     }
     _handleCancel = () => {
@@ -275,15 +375,64 @@ class QueueItem extends Component {
                 _.map(values, function(value, key) {
                     let fieldInstance = getFieldInstance(key)
 
-                    if (key === 'destination_value' || key === 'custom_alert_info') {
+                    if (key === 'destination_type' || key === 'destination_value' ||
+                        key === 'destination_type_prompt' || key === 'destination_value_prompt' || key === 'custom_alert_info') {
                         return false
                     }
 
                     action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
                 })
 
-                action.musicclass = 'default'
                 action.members = this.state.targetKeys.join(',')
+
+                action.destination_type_t = values.destination_type
+                action.destination_type_v = values.destination_type_prompt
+
+                if (action.custom_prompt === 'none') {
+                    action.custom_prompt = ''
+                }
+
+                _.map(this.state.destinationListDataSource, (data, key) => {
+                    if (key === 'hangup' || key === 'external_number') {
+                        return
+                    }
+
+                    if (key === values.destination_type) {
+                        if (key === 'queue') {
+                            action['queue_dest_t'] = values.destination_value
+                        } else if (key === 'voicemail') {
+                            action['vm_extension_t'] = values.destination_value
+                        } else {
+                            action[key + '_t'] = values.destination_value
+                        }
+                    } else {
+                        if (key === 'queue') {
+                            action['queue_dest_t'] = ''
+                        } else if (key === 'voicemail') {
+                            action['vm_extension_t'] = ''
+                        } else {
+                            action[key + '_t'] = ''
+                        }
+                    }
+
+                    if (key === values.destination_type_prompt) {
+                        if (key === 'queue') {
+                            action['queue_dest_v'] = values.destination_value_prompt
+                        } else if (key === 'voicemail') {
+                            action['vm_extension_v'] = values.destination_value_prompt
+                        } else {
+                            action[key + '_v'] = values.destination_value_prompt
+                        }
+                    } else {
+                        if (key === 'queue') {
+                            action['queue_dest_v'] = ''
+                        } else if (key === 'voicemail') {
+                            action['vm_extension_v'] = ''
+                        } else {
+                            action[key + '_v'] = ''
+                        }
+                    }
+                })
 
                 // console.log('Received values of form: ', action)
                 // console.log('Received values of form: ', values)
@@ -317,6 +466,25 @@ class QueueItem extends Component {
             destination_type: value
         })
     }
+    _onChangeDesTypePrompr = (value) => {
+        this.setState({
+            destination_type_prompt: value
+        })
+    }
+    _removeSuffix = (filename) => {
+        let name = filename.toLocaleLowerCase(),
+            file_suffix = ['.mp3', '.wav', '.gsm', '.ulaw', '.alaw']
+
+        for (let i = 0; i < file_suffix.length; i++) {
+            let num = name.lastIndexOf(file_suffix[i])
+
+            if (num !== -1 && this._endsWith(name, file_suffix[i])) {
+                filename = filename.substring(0, num)
+
+                return filename
+            }
+        }
+    }
     _renderItem = (item) => {
         const customLabel = (
                 <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
@@ -328,6 +496,28 @@ class QueueItem extends Component {
                 label: customLabel,  // for displayed item
                 value: item.value   // for title and filter matching
             }
+    }
+    _transVoicemailPromptData = (res, options, cb) => {
+        let arr = [],
+            val = options.val,
+            text = options.text
+
+        if ($.isArray(res)) {
+            for (let i = 0; i < res.length; i++) {
+                let obj = {}
+
+                obj['val'] = res[i][val]
+                obj['text'] = res[i][text]
+
+                arr.push(obj)
+            }
+
+            if (cb && typeof cb === "function") {
+                cb(arr)
+            }
+
+            return arr
+        }
     }
     render() {
         const settings = this.state.queueItem
@@ -460,9 +650,20 @@ class QueueItem extends Component {
                                             >
                                                 { getFieldDecorator('musicclass', {
                                                     rules: [],
-                                                    initialValue: settings.musicclass
+                                                    initialValue: settings.musicclass ? settings.musicclass : 'default'
                                                 })(
-                                                    <Select></Select>
+                                                    <Select>
+                                                        {
+                                                            this.state.mohNameList.map(function(value) {
+                                                                return <Option
+                                                                            key={ value }
+                                                                            value={ value }
+                                                                        >
+                                                                            { value }
+                                                                        </Option>
+                                                            })
+                                                        }
+                                                    </Select>
                                                 ) }
                                             </FormItem>
                                         </Col>
@@ -559,9 +760,9 @@ class QueueItem extends Component {
                                                     </span>
                                                 )}
                                             >
-                                                { getFieldDecorator('waittime', {
+                                                { getFieldDecorator('queue_timeout', {
                                                     rules: [],
-                                                    initialValue: settings.waittime
+                                                    initialValue: settings.queue_timeout
                                                 })(
                                                     <Input />
                                                 ) }
@@ -591,24 +792,32 @@ class QueueItem extends Component {
                                                             <Option value='vmgroup'>{ formatMessage({id: "LANG89"}) }</Option>
                                                             <Option value='ivr'>{ formatMessage({id: "LANG19"}) }</Option>
                                                             <Option value='external_number'>{ formatMessage({id: "LANG3458"}) }</Option>
+                                                            <Option value='hangup'>{ formatMessage({id: "LANG3007"}) }</Option>
                                                         </Select>
                                                     ) }
                                                 </FormItem>
                                             </Col>
                                             <Col
                                                 span={ 6 }
-                                                className={ this.state.destination_type !== 'external_number'
+                                                className={ this.state.destination_type !== 'external_number' && this.state.destination_type !== 'hangup'
                                                                 ? 'display-block'
                                                                 : 'hidden' }
                                             >
                                                 <FormItem>
                                                     { getFieldDecorator('destination_value', {
-                                                        rules: [],
+                                                        rules: [
+                                                            this.state.destination_type !== 'external_number' && this.state.destination_type !== 'hangup'
+                                                                ? {
+                                                                        required: true,
+                                                                        message: formatMessage({id: "LANG2150"})
+                                                                    }
+                                                                : {}
+                                                        ],
                                                         initialValue: this.state.destination_value
                                                     })(
                                                         <Select>
                                                             {
-                                                                this.state.destinationListDataSource[this.state.destination_type].map(function(obj) {
+                                                                this.state.destinationListDataSource[this.state.destination_type.replace(/_t/g, '')].map(function(obj) {
                                                                         return <Option
                                                                                     key={ obj.key }
                                                                                     value={ obj.value }
@@ -628,7 +837,7 @@ class QueueItem extends Component {
                                                                 : 'hidden' }
                                             >
                                                 <FormItem>
-                                                    { getFieldDecorator('external_number', {
+                                                    { getFieldDecorator('external_number_t', {
                                                         rules: [
                                                             this.state.destination_type === 'external_number'
                                                                 ? {
@@ -637,21 +846,21 @@ class QueueItem extends Component {
                                                                     }
                                                                 : {}
                                                         ],
-                                                        initialValue: settings.external_number
+                                                        initialValue: settings.external_number_t
                                                     })(
                                                         <Input />
                                                     ) }
                                                 </FormItem>
                                             </Col>
                                         </Col>
-                                        {/* <Col span={ 24 }>
+                                        <Col span={ 24 }>
                                             <div className="section-title">
                                                 <span>{ formatMessage({id: "LANG4580"}) }</span>
                                             </div>
                                         </Col>
-                                        <Col span={ 12 }>
+                                        <Col span={ 24 }>
                                             <FormItem
-                                                { ...formItemLayout }
+                                                { ...formItemRowLayout }
                                                 label={(
                                                     <span>
                                                         <Tooltip title={ <FormattedHTMLMessage id="LANG4581" /> }>
@@ -668,9 +877,9 @@ class QueueItem extends Component {
                                                 ) }
                                             </FormItem>
                                         </Col>
-                                        <Col span={ 12 }>
+                                        <Col span={ 24 }>
                                             <FormItem
-                                                { ...formItemLayout }
+                                                { ...formItemRowLayout }
                                                 label={(
                                                     <span>
                                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5060" /> }>
@@ -681,12 +890,108 @@ class QueueItem extends Component {
                                             >
                                                 { getFieldDecorator('custom_prompt', {
                                                     rules: [],
-                                                    initialValue: settings.custom_prompt
+                                                    initialValue: settings.custom_prompt ? settings.custom_prompt : 'none'
                                                 })(
-                                                    <Select></Select>
+                                                    <Select>
+                                                        <Option value="none">{ formatMessage({id: "LANG133"}) }</Option>
+                                                        {
+                                                            this.state.vmPromptList.map(function(data, index) {
+                                                                return <Option
+                                                                            key={ data.val }
+                                                                            value={ data.val }
+                                                                        >
+                                                                            { data.text }
+                                                                        </Option>
+                                                            })
+                                                        }
+                                                    </Select>
                                                 ) }
                                             </FormItem>
-                                        </Col> */}
+                                        </Col>
+                                        <Col span={ 24 }>
+                                            <Col span={ 12 }>
+                                                <FormItem
+                                                    { ...formItemLayout }
+                                                    label={(
+                                                        <span>
+                                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3751" /> }>
+                                                                <span>{ formatMessage({id: "LANG1535"}) }</span>
+                                                            </Tooltip>
+                                                        </span>
+                                                    )}
+                                                >
+                                                    { getFieldDecorator('destination_type_prompt', {
+                                                        rules: [],
+                                                        initialValue: this.state.destination_type_prompt
+                                                    })(
+                                                        <Select onChange={ this._onChangeDesTypePrompr }>
+                                                            <Option value='account'>{ formatMessage({id: "LANG85"}) }</Option>
+                                                            <Option value='voicemail'>{ formatMessage({id: "LANG90"}) }</Option>
+                                                            <Option value='queue'>{ formatMessage({id: "LANG91"}) }</Option>
+                                                            <Option value='ringgroup'>{ formatMessage({id: "LANG600"}) }</Option>
+                                                            <Option value='vmgroup'>{ formatMessage({id: "LANG89"}) }</Option>
+                                                            <Option value='ivr'>{ formatMessage({id: "LANG19"}) }</Option>
+                                                            <Option value='external_number'>{ formatMessage({id: "LANG3458"}) }</Option>
+                                                        </Select>
+                                                    ) }
+                                                </FormItem>
+                                            </Col>
+                                            <Col
+                                                span={ 6 }
+                                                className={ this.state.destination_type_prompt !== 'external_number'
+                                                                ? 'display-block'
+                                                                : 'hidden' }
+                                            >
+                                                <FormItem>
+                                                    { getFieldDecorator('destination_value_prompt', {
+                                                        rules: [
+                                                            this.state.destination_type_prompt !== 'external_number'
+                                                                ? {
+                                                                        required: true,
+                                                                        message: formatMessage({id: "LANG2150"})
+                                                                    }
+                                                                : {}
+                                                        ],
+                                                        initialValue: this.state.destination_value_prompt
+                                                    })(
+                                                        <Select>
+                                                            {
+                                                                this.state.destinationListDataSource[this.state.destination_type_prompt.replace(/_t/g, '')].map(function(obj) {
+                                                                        return <Option
+                                                                                    key={ obj.key }
+                                                                                    value={ obj.value }
+                                                                                    className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
+                                                                                    { obj.label }
+                                                                                </Option>
+                                                                    })
+                                                            }
+                                                        </Select>
+                                                    ) }
+                                                </FormItem>
+                                            </Col>
+                                            <Col
+                                                span={ 6 }
+                                                className={ this.state.destination_type_prompt === 'external_number'
+                                                                ? 'display-block'
+                                                                : 'hidden' }
+                                            >
+                                                <FormItem>
+                                                    { getFieldDecorator('external_number_v', {
+                                                        rules: [
+                                                            this.state.destination_type_prompt === 'external_number'
+                                                                ? {
+                                                                        required: true,
+                                                                        message: formatMessage({id: "LANG2150"})
+                                                                    }
+                                                                : {}
+                                                        ],
+                                                        initialValue: settings.external_number_v
+                                                    })(
+                                                        <Input />
+                                                    ) }
+                                                </FormItem>
+                                            </Col>
+                                        </Col>
                                     </Row>
                                 </div>
                             </div>
@@ -845,7 +1150,7 @@ class QueueItem extends Component {
                                                 })(
                                                     <Select>
                                                         {
-                                                            this.state.destinationListDataSource.account.map(function(obj) {
+                                                            this.state.destinationListDataSource['account'].map(function(obj) {
                                                                     return <Option
                                                                                 key={ obj.key }
                                                                                 value={ obj.value }

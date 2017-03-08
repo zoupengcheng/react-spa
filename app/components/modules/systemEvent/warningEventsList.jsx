@@ -137,6 +137,11 @@ class WarningEventList extends Component {
             }.bind(this)
         })
     }
+    _clearSelectRows = () => {
+        this.setState({
+            selectedRowKeys: []
+        })
+    }
     _turnOnWarningOK = () => {
         const { form } = this.props
         const { formatMessage } = this.props.intl
@@ -177,6 +182,17 @@ class WarningEventList extends Component {
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
+                this._clearSelectRows()
+                confirm({
+                    title: (formatMessage({id: "LANG543"})),
+                    content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4806"})}} ></span>,
+                    onOk() {
+                        browserHistory.push('/extension-trunk/voipTrunk')
+                    },
+                    onCancel() {},
+                    okText: formatMessage({id: "LANG727"}),
+                    cancelText: formatMessage({id: "LANG726"})
+                })
             }.bind(this)
         })
     }
@@ -220,6 +236,7 @@ class WarningEventList extends Component {
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
+                this._clearSelectRows()
             }.bind(this)
         })
     }
@@ -256,6 +273,7 @@ class WarningEventList extends Component {
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
+                this._clearSelectRows()
             }.bind(this)
         })
     }
@@ -292,6 +310,7 @@ class WarningEventList extends Component {
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
+                this._clearSelectRows()
             }.bind(this)
         })
     }
@@ -359,6 +378,17 @@ class WarningEventList extends Component {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5004"})}} ></span>,
                 okText: (formatMessage({id: "LANG727"}))
+            })
+        } else if (this.props.has_contact === 0) {
+            confirm({
+                title: (formatMessage({id: "LANG543"})),
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2631"})}} ></span>,
+                onOk() {
+                    __this._gotoWarningContact(0)
+                },
+                onCancel() {},
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"})
             })
         } else {
             confirm({

@@ -189,7 +189,7 @@ class SpeedDial extends Component {
         } else if (text === 'directory') {
             destination_type = <span>{ formatMessage({ id: "LANG2884" }) }</span>
         } else if (text === 'external_number') {
-            destination_type = <span>{ formatMessage({ id: "LANG2884" }) }</span>
+            destination_type = <span>{ formatMessage({ id: "LANG3458" }) }</span>
         } else {
             destination_type = <span></span>
         }

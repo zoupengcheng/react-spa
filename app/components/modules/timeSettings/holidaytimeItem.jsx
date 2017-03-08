@@ -214,7 +214,7 @@ class HolidayTimeItem extends Component {
                                     }
                                 }, {
                                     validator: (data, value, callback) => {
-                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                        Validator.cidName(data, value, callback, formatMessage)
                                     }
                                 }, {
                                     validator: this._checkName

@@ -205,6 +205,9 @@ class AMIItem extends Component {
             priAll: e.target.checked
         })
     }
+    _reBoot = () => {
+        UCMGUI.loginFunction.confirmReboot()
+    }
     _handleCancel = () => {
         browserHistory.push('/value-added-features/ami')
     }
@@ -281,6 +284,12 @@ class AMIItem extends Component {
                             if (bool) {
                                 message.destroy()
                                 message.success(successMessage)
+                                Modal.confirm({
+                                    content: <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG833" })}}></span>,
+                                    okText: formatMessage({id: "LANG727"}),
+                                    cancelText: formatMessage({id: "LANG726"}),
+                                    onOk: this._reBoot.bind(this)
+                                })
                             }
 
                             this._handleCancel()
@@ -348,6 +357,10 @@ class AMIItem extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.ipAddress(data, value, callback, formatMessage)
+                                }
                             }],
                             initialValue: ipList[index + 1]
                             })(
@@ -364,6 +377,10 @@ class AMIItem extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.ipAddress(data, value, callback, formatMessage)
+                                }
                             }],
                             initialValue: netmaskList[index + 1]
                             })(
@@ -431,6 +448,14 @@ class AMIItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 6)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.keyboradNoSpacesemicolon(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: userItem.secret ? userItem.secret : ""
@@ -451,6 +476,10 @@ class AMIItem extends Component {
                                         rules: [{
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.ipAddress(data, value, callback, formatMessage)
+                                            }
                                         }],
                                         initialValue: ipList[0] ? ipList[0] : ""
                                         })(
@@ -467,6 +496,10 @@ class AMIItem extends Component {
                                         rules: [{
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.ipAddress(data, value, callback, formatMessage)
+                                            }
                                         }],
                                         initialValue: netmaskList[0] ? netmaskList[0] : ""
                                         })(

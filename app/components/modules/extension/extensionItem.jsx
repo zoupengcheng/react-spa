@@ -529,7 +529,7 @@ class ExtensionItem extends Component {
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
-                        </TabPane>
+                        </TabPane> */}
                         <TabPane tab={ formatMessage({id: "LANG568"}) } key="5">
                             <FollowMe
                                 form={ form }
@@ -538,7 +538,7 @@ class ExtensionItem extends Component {
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
-                        </TabPane> */}
+                        </TabPane>
                     </Tabs>
                 </Form>
             </div>
