@@ -361,27 +361,22 @@ class FollowMe extends Component {
             <div className="content">
                 <div className="ant-form">
                     <Row>
-                        <Col span={ 24 }>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG3887"}) }</span>
-                            </div>
-                        </Col>
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
                                     <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1084" /> }>
-                                            <span>{ formatMessage({id: "LANG1083"}) }</span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1980" /> }>
+                                            <span>{ formatMessage({id: "LANG274"}) }</span>
                                         </Tooltip>
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('cfu', {
+                                { getFieldDecorator('fm_enable_followme', {
                                     rules: [],
-                                    initialValue: settings.cfu
+                                    initialValue: settings.fm_enable_followme === 'yes'
                                 })(
-                                    <Input />
+                                    <Checkbox />
                                 ) }
                             </FormItem>
                         </Col>
@@ -390,30 +385,17 @@ class FollowMe extends Component {
                                 { ...formItemLayout }
                                 label={(
                                     <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3374" /> }>
-                                            <span>{ formatMessage({id: "LANG3371"}) }</span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4043" /> }>
+                                            <span>{ formatMessage({id: "LANG1142"}) }</span>
                                         </Tooltip>
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('cfu_timetype', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0'
+                                { getFieldDecorator('fm_bypass_outrt_auth', {
+                                    rules: [],
+                                    initialValue: settings.fm_bypass_outrt_auth === 'yes'
                                 })(
-                                    <Select>
-                                        <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
-                                        <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
-                                        <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
-                                        <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
-                                        <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
-                                        <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
-                                        <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
-                                    </Select>
+                                    <Checkbox />
                                 ) }
                             </FormItem>
                         </Col>
