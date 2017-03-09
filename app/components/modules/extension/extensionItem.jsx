@@ -159,7 +159,8 @@ class ExtensionItem extends Component {
         form.validateFields({ force: true }, (err, values) => {
             if (!err) {
                 let action = {
-                        dndwhitelist: []
+                        dndwhitelist: [],
+                        fwdwhitelist: []
                     },
                     fax = values.faxmode ? values.faxmode : '',
                     type = values.extension_type ? values.extension_type : ''
@@ -190,8 +191,8 @@ class ExtensionItem extends Component {
                 _.map(values, function(value, key) {
                     let fieldInstance = getFieldInstance(key)
 
-                    if (key === 'mode' || key === 'out_limitime' || key === 'maximumTime' ||
-                        key === 'whiteLists' || key === 'localNetworks' || key === 'enable_cc' ||
+                    if (key === 'mode' || key === 'out_limitime' || key === 'maximumTime' || key === 'enable_cc' ||
+                        key === 'whiteLists' || key === 'fwdwhiteLists' || key === 'localNetworks' ||
                         key === 'presence_dst_account_voicemail' || key === 'presence_dst_external_number' ||
                         key === 'room' || key === 'faxmode' || key === 'cc_mode' || key === 'batch_number' ||
                         key === 'cc_max_agents' || key === 'cc_max_monitors' || key === 'custom_alert_info' ||
@@ -200,8 +201,18 @@ class ExtensionItem extends Component {
                         return false
                     }
 
-                    if (key.indexOf('whitelist') > -1) {
+                    if (key.indexOf('fm_') === 0) {
+                        return false
+                    }
+
+                    if (key.indexOf('whitelist') === 0) {
                         action.dndwhitelist.push(value)
+
+                        return false
+                    }
+
+                    if (key.indexOf('fwdwhitelist') === 0) {
+                        action.fwdwhitelist.push(value)
 
                         return false
                     }
@@ -219,6 +230,7 @@ class ExtensionItem extends Component {
 
                 action['time_condition'] = JSON.stringify([])
                 action.dndwhitelist = action.dndwhitelist.join()
+                action.fwdwhitelist = action.fwdwhitelist.join()
 
                 if (fax === 'no') {
                     action['faxdetect'] = 'no'

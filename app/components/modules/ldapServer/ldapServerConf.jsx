@@ -19,9 +19,38 @@ class LdapServerConf extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            ldapConfigs: {}
         }
     }
     componentDidMount() {
+        this._getLDAPConfig()
+    }
+    _getLDAPConfig = () => {
+        $.ajax({
+            type: "post",
+            url: baseServerURl,
+            async: false,
+            data: {
+                "action": "getLDAPConfig",
+                "ldap_configs": null
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                message.destroy()
+                message.error(errorThrown)
+            },
+            success: function(data) {
+                let bool = UCMGUI.errorHandler(data, null, this.props.formatMessage)
+
+                if (bool) {
+                    if (data.response.ldap_configs) {
+                        let ldapConfigs = data.response.ldap_configs[0]
+                        this.setState({
+                            ldapConfigs: ldapConfigs
+                        })
+                    }
+                }
+            }.bind(this)
+        })        
     }
     render() {
         const { getFieldDecorator, getFieldValue } = this.props.form
@@ -30,66 +59,65 @@ class LdapServerConf extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
+        const state = this.state
 
         return (
-            <div className="app-content-main" id="app-content-main">
-                <Form>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={ formatMessage({id: "LANG1992"}) }>
-                        { getFieldDecorator('basedn', {
-                            rules: [],
-                            initialValue: ""
-                        })(
-                            <Input />
-                        )}
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={ formatMessage({id: "LANG2016"}) }>
-                        { getFieldDecorator('pbxdn', {
-                            rules: [],
-                            initialValue: ""
-                        })(
-                            <Input />
-                        )}
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={ formatMessage({id: "LANG1993"}) }>
-                        { getFieldDecorator('rootdn', {
-                            rules: [],
-                            initialValue: ""
-                        })(
-                            <Input />
-                        )}
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={ formatMessage({id: "LANG1994"}) }>
-                        <Input type="password" name="rootpw" className="hidden" />
-                        { getFieldDecorator('rootpw', {
-                            rules: [],
-                            initialValue: ""
-                        })(
-                            <Input type="password" />
-                        )}
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={ formatMessage({id: "LANG1995"}) }>
-                        <Input type="password" name="rootpwCfm" className="hidden" />
-                        { getFieldDecorator('rootpwCfm', {
-                            rules: [],
-                            initialValue: ""
-                        })(
-                            <Input type="password" />
-                        )}
-                    </FormItem>
-                </Form>
+            <div className="content">
+                <FormItem
+                    { ...formItemLayout }
+                    label={ formatMessage({id: "LANG1992"}) }>
+                    { getFieldDecorator('basedn', {
+                        rules: [],
+                        initialValue: state.ldapConfigs.basedn || ""
+                    })(
+                        <Input />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={ formatMessage({id: "LANG2016"}) }>
+                    { getFieldDecorator('pbxdn', {
+                        rules: [],
+                        initialValue: state.ldapConfigs.pbxdn || ""
+                    })(
+                        <Input />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={ formatMessage({id: "LANG1993"}) }>
+                    { getFieldDecorator('rootdn', {
+                        rules: [],
+                        initialValue: state.ldapConfigs.rootdn || ""
+                    })(
+                        <Input />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={ formatMessage({id: "LANG1994"}) }>
+                    <Input type="password" name="root_passwd" className="hidden" />
+                    { getFieldDecorator('root_passwd', {
+                        rules: [],
+                        initialValue: state.ldapConfigs.root_passwd || ""
+                    })(
+                        <Input type="password" />
+                    )}
+                </FormItem>
+                <FormItem
+                    { ...formItemLayout }
+                    label={ formatMessage({id: "LANG1995"}) }>
+                    <Input type="password" name="root_passwd_cfm" className="hidden" />
+                    { getFieldDecorator('root_passwd_cfm', {
+                        rules: [],
+                        initialValue: state.ldapConfigs.root_passwd || ""
+                    })(
+                        <Input type="password" />
+                    )}
+                </FormItem>
             </div>
         )
     }
 }
 
-module.exports = Form.create()(injectIntl(LdapServerConf))
+module.exports = injectIntl(LdapServerConf)

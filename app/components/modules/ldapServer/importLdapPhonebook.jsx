@@ -29,6 +29,13 @@ class ImportLdapPhonebook extends Component {
     }
     componentDidMount() {
     }
+    _normFile(e) {
+        if (Array.isArray(e)) {
+            return e
+        }
+
+        return e && e.fileList
+    }
     render() {
         const { getFieldDecorator, getFieldValue } = this.props.form
         const { formatMessage } = this.props.intl
@@ -40,18 +47,18 @@ class ImportLdapPhonebook extends Component {
 
         const props = {
             name: 'file',
-            action: baseServerURl + 'action=uploadfile&type=firmware',
+            action: baseServerURl + 'action=uploadfile&type=' + getFieldValue("lead_type"),
             headers: {
                 authorization: 'authorization-text'
             },
             onChange(info) {
-                // message.loading(formatMessage({ id: "LANG979" }), 0)
+                message.loading(formatMessage({ id: "LANG905" }), 0)
                 console.log(info.file.status)
                 if (info.file.status !== 'uploading') {
                     console.log(info.file, info.fileList)
                 }
                 if (me.state.upgradeLoading) {
-                    me.setState({upgradeLoading: false})
+                    // me.setState({upgradeLoading: false})
                 }
 
                 if (info.file.status === 'removed') {
@@ -65,30 +72,52 @@ class ImportLdapPhonebook extends Component {
                         let status = data.status,
                             response = data.response
 
-                        if (data.status === 0 && response && response.result === 0) {
-                            Modal.confirm({
-                                title: formatMessage({id: "LANG924"}),
-                                content: '',
-                                okText: 'OK',
-                                cancelText: 'Cancel',
-                                onOk: () => {
-                                    me.setState({
-                                        visible: false
-                                    })
-                                    UCMGUI.loginFunction.confirmReboot() 
-                                },
-                                onCancel: () => {
-                                    me.setState({
-                                        visible: false
-                                    }) 
+                        if (status === 0) {
+                            // import extensions after upload successfully
+                            $.ajax({
+                                type: "GET",
+                                async: false,
+                                dataType: "json",
+                                url: "../import_phonebook_response.json",
+                                error: function (jqXHR, textStatus, errorThrown) {},
+                                success: function (data) {
+                                    let aErr = {
+                                        '-2': 'LANG4365',
+                                        '-3': 'LANG3203',
+                                        '-4': 'LANG4366',
+                                        '-5': 'LANG2152'
+                                    }
+
+                                    let nRes = data.result,
+                                        sResult = formatMessage({ id: "LANG3917" }, {0: data.success, 1: data.failed}) + ' ',
+                                        sErrMsg = ''
+
+                                    if (nRes === -4) {
+                                        // let sDn = mWindow.$("#pbxdn", mWindow.document).val().split(',')[0].split('=')[1]
+                                        sErrMsg = nRes === 0 ? '' : formatMessage({ id: "LANG4364"}, {0: formatMessage({ id: aErr[nRes] })})
+                                    } else {
+                                        sErrMsg = nRes === 0 ? '' : formatMessage({ id: "LANG4364"}, {0: formatMessage({ id: aErr[nRes] })})
+                                    }
+
+                                    sResult = sResult + sErrMsg
+
+                                    message.success(sResult)
                                 }
                             })
-                        } else if (data.status === 4) {
-                            message.error(formatMessage({id: "LANG915"}))
-                        } else if (!_.isEmpty(response)) {
-                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
+                        } else if (status === -1) {
+                            message.error(formatMessage({ id: "LANG3204"}))
                         } else {
-                            message.error(formatMessage({id: "LANG916"}))
+                            message.destroy()
+                            let msg = formatMessage({ id: "LANG907" })
+
+                            if (parseInt(status) < 0) {
+                                msg = formatMessage({ id: this.props.uploadErrObj[Math.abs(parseInt(response.result)).toString()] })
+                            } else if (parseInt(data.response.result) === 4) {
+                                msg = formatMessage({ id: "LANG915" })
+                            } else if (data.response.body) {
+                                msg = data.response.body
+                            }
+                            message.error(msg)
                         }
                     } else {
                         message.error(formatMessage({id: "LANG916"}))
@@ -96,6 +125,8 @@ class ImportLdapPhonebook extends Component {
                 } else if (info.file.status === 'error') {
                     message.error(`${info.file.name} file upload failed.`)
                 }
+                me._handleCancel()
+                me.props.listPhonebookDn()
             },
             onRemove() {
                 message.destroy()
@@ -111,7 +142,7 @@ class ImportLdapPhonebook extends Component {
                 <Form>
                     <FormItem
                         { ...formItemLayout }
-                        label={ formatMessage({id: "LANG1321"}) }>
+                        label={ formatMessage({id: "LANG573"}) }>
                         { getFieldDecorator('lead_type', {
                             rules: [],
                             initialValue: "csv"
@@ -124,15 +155,8 @@ class ImportLdapPhonebook extends Component {
                     </FormItem>
                     <FormItem
                         { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1284"}) } content={ formatMessage({id: "LANG1285"}) }><span>{ formatMessage({id: "LANG1284"}) }</span></Popover>
-                            </span>
-                        )}>
-                        { getFieldDecorator('upload', {
-                            valuePropName: 'fileList',
-                            normalize: this._normFile
-                        })(
+                        label={ formatMessage({id: "LANG3652"})}>
+                        { getFieldDecorator('upload')(
                             <Upload {...props}>
                                 <Button type="ghost">
                                     <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
@@ -154,4 +178,18 @@ class ImportLdapPhonebook extends Component {
     }
 }
 
+ImportLdapPhonebook.defaultProps = {
+    uploadErrObj: {
+        "1": "LANG890",
+        "2": "LANG891",
+        "3": "LANG892",
+        "4": "LANG893",
+        "5": "LANG894",
+        "6": "LANG895",
+        "7": "LANG896",
+        "8": "LANG897",
+        "9": "LANG898",
+        "10": "LANG899"
+    }
+}
 module.exports = Form.create()(injectIntl(ImportLdapPhonebook))

@@ -178,7 +178,7 @@ class TemplateManagement extends Component {
                     if (data.hasOwnProperty('response') && data.response.hasOwnProperty('result') && data.response.result === 0) {
                         this._reloadData()
                     } else if (data.hasOwnProperty('response') && data.response.hasOwnProperty('result') && uploadErrObj.hasOwnProperty(data.response.result)) {
-                        message.error(uploadErrObj[data.response.result])
+                        message.error(formatMessage({id: uploadErrObj[data.response.result]}))
                     } else {
                         message.error(formatMessage({id: "LANG4144"}))
                     }
@@ -226,7 +226,7 @@ class TemplateManagement extends Component {
                         if (status === 0 && response && response.result === 0) {
                             me._reloadData()
                         } else if (response && uploadErrObj.hasOwnProperty(response.result)) {
-                            message.error(uploadErrObj[response.result])
+                            message.error(formatMessage({id: uploadErrObj[data.response.result]}))
                         } else {
                             message.error(formatMessage({id: "LANG4144"}))
                         }

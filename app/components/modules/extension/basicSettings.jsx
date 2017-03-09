@@ -27,7 +27,7 @@ class BasicSettings extends Component {
 
         this.state = {
             languages: [],
-            batch_number: 5,
+            batch_number: '5',
             add_method: 'single',
             enable_qualify: false
         }
@@ -291,7 +291,7 @@ class BasicSettings extends Component {
                                     ],
                                     initialValue: settings.extension ? settings.extension : newExtension
                                 })(
-                                    <Input />
+                                    <Input disabled={ !!currentEditId } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -535,7 +535,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.qualifyfreq ? settings.qualifyfreq : 60,
+                                    initialValue: settings.qualifyfreq ? settings.qualifyfreq + '' : '60',
                                     className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Input disabled={ !this.state.enable_qualify } />
@@ -710,7 +710,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.max_contacts ? settings.max_contacts : 1,
+                                    initialValue: settings.max_contacts ? settings.max_contacts + '' : '1',
                                     className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Input />

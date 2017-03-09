@@ -27,8 +27,8 @@ class BatchEditExtension extends Component {
             targetKeysSeamless: [],
             bypass_outrt_auth: 'no',
             targetKeysCallbarging: [],
-            currentEditId: this.props.params.id,
             extensionType: this.props.params.type,
+            selectedExtensions: this.props.params.id,
             mohNameList: ['default', 'ringbacktone_default'],
             targetKeysAllow: ['ulaw', 'alaw', 'gsm', 'g726', 'g722', 'g729', 'h264', 'ilbc'],
             availableCodecs: [
@@ -206,34 +206,12 @@ class BatchEditExtension extends Component {
 
         form.validateFields({ force: true }, (err, values) => {
             if (!err) {
-                let action = {
-                        dndwhitelist: []
-                    },
-                    fax = values.faxmode ? values.faxmode : '',
-                    type = values.extension_type ? values.extension_type : ''
+                let action = {},
+                    type = this.state.extensionType,
+                    fax = values.faxmode ? values.faxmode : ''
 
-                if (this.state.currentEditId) {
-                    action.action = `update${this.state.extensionType.toUpperCase()}Account`
-                } else {
-                    action.action = `add${this.state.extensionType.toUpperCase()}AccountAndUser`
-
-                    action.first_name = values.first_name ? values.first_name : ''
-                    action.last_name = values.last_name ? values.last_name : ''
-                    action.email = values.email ? values.email : ''
-                    action.language = (values.language && values.language !== 'default') ? values.language : ''
-                    action.user_password = values.user_password ? values.user_password : ''
-                    action.phone_number = values.phone_number ? values.phone_number : ''
-
-                    if (action.first_name && action.last_name) {
-                        action.fullname = action.first_name + ' ' + action.last_name
-                    } else if (action.first_name) {
-                        action.fullname = action.first_name
-                    } else if (action.last_name) {
-                        action.fullname = action.last_name
-                    } else {
-                        action.fullname = ''
-                    }
-                }
+                action.extension = this.state.selectedExtensions
+                action.action = `update${this.state.extensionType.toUpperCase()}Account`
 
                 _.map(values, function(value, key) {
                     let fieldInstance = getFieldInstance(key)
@@ -258,15 +236,18 @@ class BatchEditExtension extends Component {
                         let medaData = fieldInstance.props['data-__meta']
 
                         if (!medaData.className || medaData.className !== 'hidden') {
-                            action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
+                            if (typeof value === 'boolean') {
+                                action[key] = UCMGUI.transCheckboxVal(value)
+                            } else if (value) {
+                                action[key] = value
+                            }
                         }
                     } else {
-                        action[key] = value ? value : ''
+                        if (value) {
+                            action[key] = value
+                        }
                     }
                 })
-
-                action['time_condition'] = JSON.stringify([])
-                action.dndwhitelist = action.dndwhitelist.join()
 
                 if (fax === 'no') {
                     action['faxdetect'] = 'no'
@@ -354,12 +335,6 @@ class BatchEditExtension extends Component {
                         if (values.room) {
                             action['room'] = action['extension']
                         }
-
-                        if (values.presence_dst_type === '1' || values.presence_dst_type === '3') {
-                            action['presence_dst_account'] = values.presence_dst_account_voicemail
-                        } else if (values.presence_dst_type === '2') {
-                            action['presence_dst_account'] = values.presence_dst_external_number
-                        }
                     }
                 }
 
@@ -369,134 +344,27 @@ class BatchEditExtension extends Component {
                     action['limitime'] = ''
                 }
 
-                // console.log('Received values of form: ', action)
-                // console.log('Received values of form: ', values)
+                message.loading(formatMessage({ id: "LANG826" }), 0)
 
-                // if (values.batch_number) {
-                //     let batchAddExtList = []
-                //     let newusersLists = []
-                //     let addNumber = values.batch_number
+                $.ajax({
+                    data: action,
+                    type: 'json',
+                    method: "post",
+                    url: api.apiHost,
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                //     batchAddExtList = this._getBatchUsers()
-                    
-                //     if (askExtensionRange($("#batch_extension").val(), extensionRange[0], extensionRange[1], extensionRange[2], batchAddExtList[batchAddExtList.length - 1])) {
-                //         newusersLists.push("<font>" + batchAddExtList[0] + "</font>");
+                        if (bool) {
+                            message.destroy()
+                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
 
-                //         for (var i = 1; i < addNumber; i++) {
-                //             var newusersItem = batchAddExtList[i],
-                //                 prevItem = batchAddExtList[i - 1],
-                //                 prev = bigNumDelete(newusersItem);
-
-                //             if ((typeof prevItem == 'string' ? prevItem.replace(/0*(\d+)/, "$1") : prevItem) == prev) {
-                //                 newusersItem = "<font>" + newusersItem + "</font>";
-                //             } else {
-                //                 newusersItem = "<font color='green'>" + newusersItem + "</font>";
-                //             }
-
-                //             newusersLists.push(newusersItem);
-                //         }
-
-                //         action['extension'] = batchAddExtList.toString();
-                //     }
-                // } else {
-                    message.loading(formatMessage({ id: "LANG826" }), 0)
-
-                    $.ajax({
-                        data: action,
-                        type: 'json',
-                        method: "post",
-                        url: api.apiHost,
-                        error: function(e) {
-                            message.error(e.statusText)
-                        },
-                        success: function(data) {
-                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                            if (bool) {
-                                if (this.state.currentEditId) {
-                                    let fieldsValue = this._getImportantValues()
-
-                                    let newImportantValues = fieldsValue.secret + fieldsValue.authid +
-                                            fieldsValue.email + fieldsValue.phone_number +
-                                            fieldsValue.first_name + fieldsValue.last_name + fieldsValue.user_password
-
-                                    let userAction = {
-                                            'action': 'updateUser',
-                                            'email': values.email ? values.email : '',
-                                            'user_id': this.state.userSettings.user_id,
-                                            'last_name': values.last_name ? values.last_name : '',
-                                            'first_name': values.first_name ? values.first_name : '',
-                                            'phone_number': values.phone_number ? values.phone_number : '',
-                                            'user_password': values.user_password ? values.user_password : '',
-                                            'language': (values.language && values.language !== 'default') ? values.language : ''
-                                        }
-
-                                    if (userAction.user_password === '******') {
-                                        delete userAction.user_password
-                                    }
-
-                                    if (this.state.importantValues !== newImportantValues) {
-                                        userAction.email_to_user = 'no'
-                                    }
-
-                                    $.ajax({
-                                        type: 'json',
-                                        method: "post",
-                                        url: api.apiHost,
-                                        data: userAction,
-                                        error: function(e) {
-                                            message.error(e.statusText)
-                                        },
-                                        success: function(data) {
-                                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                                            if (bool) {
-                                                if ((this.state.importantValues !== newImportantValues) &&
-                                                    (this.state.autoEmailToUser === 'yes') && userAction['email']) {
-                                                    $.ajax({
-                                                        type: "post",
-                                                        async: false,
-                                                        url: api.apiHost,
-                                                        data: {
-                                                            'action': 'sendAccount2User',
-                                                            'extension': action['extension']
-                                                        },
-                                                        error: function(jqXHR, textStatus, errorThrown) {},
-                                                        success: function(data) {}
-                                                    })
-                                                }
-
-                                                message.destroy()
-                                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
-
-                                                this._handleCancel()
-                                            }
-                                        }.bind(this)
-                                    })
-                                } else {
-                                    if ((this.state.autoEmailToUser === 'yes') && action['email']) {
-                                        $.ajax({
-                                            type: "post",
-                                            async: false,
-                                            url: api.apiHost,
-                                            data: {
-                                                'action': 'sendAccount2User',
-                                                'extension': action['extension']
-                                            },
-                                            error: function(jqXHR, textStatus, errorThrown) {},
-                                            success: function(data) {}
-                                        })
-                                    }
-
-                                    message.destroy()
-                                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
-
-                                    this._handleCancel()
-                                }
-                            }
-                        }.bind(this)
-                    })
-                // }
+                            this._handleCancel()
+                        }
+                    }.bind(this)
+                })
             }
         })
     }

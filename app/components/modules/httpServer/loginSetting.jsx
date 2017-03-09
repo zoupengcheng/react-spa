@@ -9,6 +9,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import _ from 'underscore'
+import Validator from "../../api/validator"
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -396,11 +397,19 @@ class LoginSetting extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 0, 60)
+                                }
                             }],
                             width: 100,
-                            initialValue: sessionItem.cookie_timeout
+                            initialValue: (sessionItem.cookie_timeout / 60) + ''
                         })(
-                            <Input />
+                            <Input maxLength='2'/>
                         ) }
                     </FormItem>
                     <FormItem
@@ -417,11 +426,19 @@ class LoginSetting extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 0, 100)
+                                }
                             }],
                             width: 100,
                             initialValue: sessionItem.login_max_num
                         })(
-                            <Input />
+                            <Input maxLength='3'/>
                         ) }
                     </FormItem>
                     <FormItem
@@ -438,11 +455,19 @@ class LoginSetting extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 0, 10000)
+                                }
                             }],
                             width: 100,
-                            initialValue: sessionItem.login_band_time / 60
+                            initialValue: (sessionItem.login_band_time / 60) + ''
                         })(
-                            <Input />
+                            <Input maxLength='5'/>
                         ) }
                     </FormItem>
                 </Form>
@@ -464,6 +489,10 @@ class LoginSetting extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, {
                                         validator: this.state.visible ? this._checkName : ""
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            this.state.visible ? Validator.ipAddress(data, value, callback, formatMessage) : callback()
+                                        }
                                     }],
                                 initialValue: ''
                             })(

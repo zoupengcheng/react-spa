@@ -290,24 +290,24 @@ class QueueItem extends Component {
                             }
                         })
 
-                        destination_type = queueItem.destination_type_t
-                        destination_type_prompt = queueItem.destination_type_v
+                        // destination_type = queueItem.destination_type_t
+                        // destination_type_prompt = queueItem.destination_type_v
 
-                        if (destination_type === 'voicemail') {
-                            destination_value = queueItem['vm_extension_t']
-                        } else if (destination_type === 'queue') {
-                            destination_value = queueItem['queue_dest_t']
-                        } else {
-                            destination_value = queueItem[destination_type + '_t']
-                        }
+                        // if (destination_type === 'voicemail') {
+                        //     destination_value = queueItem['vm_extension_t']
+                        // } else if (destination_type === 'queue') {
+                        //     destination_value = queueItem['queue_dest_t']
+                        // } else {
+                        //     destination_value = queueItem[destination_type + '_t']
+                        // }
 
-                        if (destination_type_prompt === 'voicemail') {
-                            destination_value_prompt = queueItem['vm_extension_v']
-                        } else if (destination_type_prompt === 'queue') {
-                            destination_value_prompt = queueItem['queue_dest_v']
-                        } else {
-                            destination_value_prompt = queueItem[destination_type_prompt + '_v']
-                        }
+                        // if (destination_type_prompt === 'voicemail') {
+                        //     destination_value_prompt = queueItem['vm_extension_v']
+                        // } else if (destination_type_prompt === 'queue') {
+                        //     destination_value_prompt = queueItem['queue_dest_v']
+                        // } else {
+                        //     destination_value_prompt = queueItem[destination_type_prompt + '_v']
+                        // }
 
                         targetKeys = queueItem.members ? queueItem.members.split(',') : []
                     }
@@ -385,54 +385,54 @@ class QueueItem extends Component {
 
                 action.members = this.state.targetKeys.join(',')
 
-                action.destination_type_t = values.destination_type
-                action.destination_type_v = values.destination_type_prompt
+                // action.destination_type_t = values.destination_type
+                // action.destination_type_v = values.destination_type_prompt
 
                 if (action.custom_prompt === 'none') {
                     action.custom_prompt = ''
                 }
 
-                _.map(this.state.destinationListDataSource, (data, key) => {
-                    if (key === 'hangup' || key === 'external_number') {
-                        return
-                    }
+                // _.map(this.state.destinationListDataSource, (data, key) => {
+                //     if (key === 'hangup' || key === 'external_number') {
+                //         return
+                //     }
 
-                    if (key === values.destination_type) {
-                        if (key === 'queue') {
-                            action['queue_dest_t'] = values.destination_value
-                        } else if (key === 'voicemail') {
-                            action['vm_extension_t'] = values.destination_value
-                        } else {
-                            action[key + '_t'] = values.destination_value
-                        }
-                    } else {
-                        if (key === 'queue') {
-                            action['queue_dest_t'] = ''
-                        } else if (key === 'voicemail') {
-                            action['vm_extension_t'] = ''
-                        } else {
-                            action[key + '_t'] = ''
-                        }
-                    }
+                //     if (key === values.destination_type) {
+                //         if (key === 'queue') {
+                //             action['queue_dest_t'] = values.destination_value
+                //         } else if (key === 'voicemail') {
+                //             action['vm_extension_t'] = values.destination_value
+                //         } else {
+                //             action[key + '_t'] = values.destination_value
+                //         }
+                //     } else {
+                //         if (key === 'queue') {
+                //             action['queue_dest_t'] = ''
+                //         } else if (key === 'voicemail') {
+                //             action['vm_extension_t'] = ''
+                //         } else {
+                //             action[key + '_t'] = ''
+                //         }
+                //     }
 
-                    if (key === values.destination_type_prompt) {
-                        if (key === 'queue') {
-                            action['queue_dest_v'] = values.destination_value_prompt
-                        } else if (key === 'voicemail') {
-                            action['vm_extension_v'] = values.destination_value_prompt
-                        } else {
-                            action[key + '_v'] = values.destination_value_prompt
-                        }
-                    } else {
-                        if (key === 'queue') {
-                            action['queue_dest_v'] = ''
-                        } else if (key === 'voicemail') {
-                            action['vm_extension_v'] = ''
-                        } else {
-                            action[key + '_v'] = ''
-                        }
-                    }
-                })
+                //     if (key === values.destination_type_prompt) {
+                //         if (key === 'queue') {
+                //             action['queue_dest_v'] = values.destination_value_prompt
+                //         } else if (key === 'voicemail') {
+                //             action['vm_extension_v'] = values.destination_value_prompt
+                //         } else {
+                //             action[key + '_v'] = values.destination_value_prompt
+                //         }
+                //     } else {
+                //         if (key === 'queue') {
+                //             action['queue_dest_v'] = ''
+                //         } else if (key === 'voicemail') {
+                //             action['vm_extension_v'] = ''
+                //         } else {
+                //             action[key + '_v'] = ''
+                //         }
+                //     }
+                // })
 
                 // console.log('Received values of form: ', action)
                 // console.log('Received values of form: ', values)
@@ -729,6 +729,25 @@ class QueueItem extends Component {
                                                 { ...formItemLayout }
                                                 label={(
                                                     <span>
+                                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1185" /> }>
+                                                            <span>{ formatMessage({id: "LANG1184"}) }</span>
+                                                        </Tooltip>
+                                                    </span>
+                                                )}
+                                            >
+                                                { getFieldDecorator('ringtime', {
+                                                    rules: [],
+                                                    initialValue: settings.ringtime ? settings.ringtime : 5
+                                                })(
+                                                    <Input />
+                                                ) }
+                                            </FormItem>
+                                        </Col>
+                                        <Col span={ 12 }>
+                                            <FormItem
+                                                { ...formItemLayout }
+                                                label={(
+                                                    <span>
                                                         <Tooltip title={ <FormattedHTMLMessage id="LANG2544" /> }>
                                                             <span>{ formatMessage({id: "LANG2543"}) }</span>
                                                         </Tooltip>
@@ -768,7 +787,7 @@ class QueueItem extends Component {
                                                 ) }
                                             </FormItem>
                                         </Col>
-                                        <Col span={ 24 }>
+                                        {/* <Col span={ 24 }>
                                             <Col span={ 12 }>
                                                 <FormItem
                                                     { ...formItemLayout }
@@ -852,7 +871,7 @@ class QueueItem extends Component {
                                                     ) }
                                                 </FormItem>
                                             </Col>
-                                        </Col>
+                                        </Col> */}
                                         <Col span={ 24 }>
                                             <div className="section-title">
                                                 <span>{ formatMessage({id: "LANG4580"}) }</span>
@@ -908,7 +927,7 @@ class QueueItem extends Component {
                                                 ) }
                                             </FormItem>
                                         </Col>
-                                        <Col span={ 24 }>
+                                        {/* <Col span={ 24 }>
                                             <Col span={ 12 }>
                                                 <FormItem
                                                     { ...formItemLayout }
@@ -991,7 +1010,7 @@ class QueueItem extends Component {
                                                     ) }
                                                 </FormItem>
                                             </Col>
-                                        </Col>
+                                        </Col> */}
                                     </Row>
                                 </div>
                             </div>

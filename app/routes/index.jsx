@@ -132,6 +132,8 @@ import WarningEventsListItem from '../components/modules/systemEvent/warningEven
 import WarningContact from '../components/modules/systemEvent/warningContact'
 import Upgrade from '../components/modules/upgrade'
 import Backup from '../components/modules/backup'
+import BackupCreate from '../components/modules/backup/backupCreate'
+import BackupRegular from '../components/modules/backup/backupRegular'
 import CleanReset from '../components/modules/cleanReset'
 import NetTroubleshooting from '../components/modules/netTroubleshooting'
 import SignalTroubleshooting from '../components/modules/signalTroubleshooting'
@@ -146,6 +148,7 @@ import CdrApi from '../components/modules/cdrApi'
 
 // Value-added Features
 import ZeroConfig from '../components/modules/zeroConfig'
+import Devices from '../components/modules/zeroConfig/devices'
 import GlobalTemplates from '../components/modules/zeroConfig/globalTemplates'
 import GlobalTemplateItem from '../components/modules/zeroConfig/globalTemplateItem'
 import ModelTemplates from '../components/modules/zeroConfig/modelTemplates'
@@ -497,7 +500,11 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="warningContact" onEnter={ requireAuth } component={ WarningContact } breadcrumbName={ currentLocaleData["LANG61"] } />
                     <Route path="upgrade" onEnter={ requireAuth } component={ Upgrade } breadcrumbName={ currentLocaleData["LANG61"] } />
-                    <Route path="backup" onEnter={ requireAuth } component={ Backup } breadcrumbName={ currentLocaleData["LANG62"] } />
+                    <Route path="backup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG62"] } >
+                        <IndexRoute component={ Backup } />
+                        <Route path="create" onEnter={ requireAuth } component={ BackupCreate } breadcrumbName={ currentLocaleData["LANG758"] } />
+                        <Route path="regular" onEnter={ requireAuth } component={ BackupRegular } breadcrumbName={ currentLocaleData["LANG4048"] } />
+                    </Route>
                     <Route path="cleanReset" onEnter={ requireAuth } component={ CleanReset } breadcrumbName={ currentLocaleData["LANG5302"] } />
                     <Route path="netTroubleshooting" onEnter={ requireAuth } component={ NetTroubleshooting } breadcrumbName={ currentLocaleData["LANG5461"] } />
                     <Route path="signalTroubleshooting" onEnter={ requireAuth } component={ SignalTroubleshooting } breadcrumbName={ currentLocaleData["LANG5462"] } />
@@ -519,6 +526,7 @@ const routes = (state, currentLocaleData) => {
                     <IndexRoute component={ ZeroConfig } />
                     <Route path="zeroConfig" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG16"] } >
                         <IndexRoute component={ ZeroConfig } />
+                        <Route path="showDevices/:filter:" onEnter={ requireAuth } component={ Devices } breadcrumbName={ currentLocaleData["LANG16"] } />
                         <Route path="createGlobalTemplate" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
                         <Route path="editGlobalTemplate/:mode/:id" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
                         <Route path="createModelTemplate" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />

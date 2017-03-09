@@ -28,7 +28,8 @@ class LdapPhonebook extends Component {
                 field: "dn",
                 order: "asc"
             },
-            firstLoad: true
+            firstLoad: true,
+            selectedRowKeys: []
         }
         this._showCreateModal = () => {
             this.setState({
@@ -80,9 +81,12 @@ class LdapPhonebook extends Component {
                 pathname: '/system-settings/ldapServer/ldapClientConf'
             })
         }
-        this._editLdapPhonebook = (e) => {
+        this._editLdapPhonebook = (record) => {
             browserHistory.push({
-                pathname: '/system-settings/ldapServer/edit'
+                pathname: '/system-settings/ldapServer/edit',
+                state: {
+                    record: record
+                }
             })
         }
     }
@@ -149,8 +153,11 @@ class LdapPhonebook extends Component {
         const { formatMessage } = this.props.intl
 
         let phonebookdn = data.dn
-        message.loading(formatMessage({id: "LANG825"}, {0: "LANG11"}), 0)
 
+        if (data.id === 1) {
+            return
+        }
+        message.loading(formatMessage({id: "LANG825"}, {0: "LANG11"}), 0)
         $.ajax({
             url: api.apiHost,
             method: 'post',
@@ -212,7 +219,7 @@ class LdapPhonebook extends Component {
                                 id='LANG952'
                             />} 
                             onConfirm={() => this._deleteLdapPhonebook(record)}>
-                            <span className="sprite sprite-del" title={ formatMessage({ id: "LANG739"})} ></span>
+                            <span className={ record.id === 1 ? "sprite sprite-del-disabled" : "sprite sprite-del" } title={ formatMessage({ id: "LANG739"})} ></span>
                         </Popconfirm>
                     </span>
                 } 
@@ -228,6 +235,16 @@ class LdapPhonebook extends Component {
                 firstLoad: true
             })
         }
+        // rowSelection objects indicates the need for row selection
+        const rowSelection = {
+            onChange: (selectedRowKeys, selectedRows) => {
+                this.setState({ selectedRowKeys, selectedRows })
+            },
+            onSelect: (record, selected, selectedRows) => {
+            },
+            onSelectAll: (selected, selectedRows, changeRows) => {
+            }
+        }
         const pagination = {
             total: ldapPhonebooks.length,
             showSizeChanger: true,
@@ -240,74 +257,75 @@ class LdapPhonebook extends Component {
         }
 
         return (
-            <div className="app-content-main" id="app-content-main">
-                <div className="content">
-                    <div className="top-button">
-                        <Button icon="plus" type="primary" size="default" onClick={ this._showCreateModal } >
-                            {formatMessage({id: "LANG769"})}
-                        </Button>
-                        <Button icon="setting" type="primary" size="default" onClick={ this._ldapClientConf } >
-                            {formatMessage({id: "LANG713"})}
-                        </Button>
-                        <Button icon="upload" type="primary" size="default" onClick={ this._showImportModal } >
-                            {formatMessage({id: "LANG3914"})}
-                        </Button>
-                        <Button icon="export" type="primary" size="default" onClick={ this._showExportModal } >
-                            {formatMessage({id: "LANG3915"})}
-                        </Button>
-                    </div>
-                    <div className="lite-desc">{ formatMessage({ id: "LANG1997" }) }</div>
-                    <Table
-                        rowSelection={ undefined } 
-                        columns={ columns }
-                        rowKey={ record => record.dn }
-                        dataSource={ state.ldapPhonebooks }
-                        pagination={ state.pagination }
-                        onChange={ this._handleTableChange }
-                    />
-                    <Modal
-                        className="app-content-ldapPhonebook"
-                        title={ formatMessage({ id: "LANG955" })}
-                        visible={ state.createVisible }
-                        onOk={ this._handleCreateOk } 
-                        onCancel={ this._handleCreateCancel }
-                    >
-                        { 
-                            <CreateLdapPhonebook 
-                                handleOk = { this._handleCreateOk }
-                                handleCancel = { this._handleCreateCancel }
-                            /> 
-                        }
-                    </Modal>
-                    <Modal
-                        className="app-content-ldapPhonebook"
-                        title={ formatMessage({ id: "LANG3914" })}
-                        visible={ state.importVisible }
-                        onOk={ this._handleImportOk } 
-                        onCancel={ this._handleImportCancel }
-                    >
-                        { 
-                            <ImportLdapPhonebook 
-                                handleOk = { this._handleImportOk }
-                                handleCancel = { this._handleImportCancel }
-                            /> 
-                        }
-                    </Modal>
-                    <Modal
-                        className="app-content-ldapPhonebook"
-                        title={ formatMessage({ id: "LANG3915" })}
-                        visible={ state.exportVisible }
-                        onOk={ this._handleExportOk } 
-                        onCancel={ this._handleExportCancel }
-                    >
-                        { 
-                            <ExportLdapPhonebook 
-                                handleOk = { this._handleExportOk }
-                                handleCancel = { this._handleExportCancel }
-                            /> 
-                        }
-                    </Modal>
+            <div className="content">
+                <div className="top-button">
+                    <Button icon="plus" type="primary" size="default" onClick={ this._showCreateModal } >
+                        {formatMessage({id: "LANG769"})}
+                    </Button>
+                    <Button icon="setting" type="primary" size="default" onClick={ this._ldapClientConf } >
+                        {formatMessage({id: "LANG713"})}
+                    </Button>
+                    <Button icon="upload" type="primary" size="default" onClick={ this._showImportModal } >
+                        {formatMessage({id: "LANG3914"})}
+                    </Button>
+                    <Button icon="export" type="primary" size="default" onClick={ this._showExportModal } >
+                        {formatMessage({id: "LANG3915"})}
+                    </Button>
                 </div>
+                <div className="lite-desc">{ formatMessage({ id: "LANG1997" }) }</div>
+                <Table
+                    rowSelection={ rowSelection } 
+                    columns={ columns }
+                    rowKey={ record => record.dn }
+                    dataSource={ state.ldapPhonebooks }
+                    pagination={ state.pagination }
+                    onChange={ this._handleTableChange }
+                />
+                <Modal
+                    className="app-content-ldapPhonebook"
+                    title={ formatMessage({ id: "LANG955" })}
+                    visible={ state.createVisible }
+                    onOk={ this._handleCreateOk } 
+                    onCancel={ this._handleCreateCancel }
+                >
+                    { 
+                        <CreateLdapPhonebook 
+                            handleOk = { this._handleCreateOk }
+                            handleCancel = { this._handleCreateCancel }
+                            listPhonebookDn = { this._listPhonebookDn }
+                        /> 
+                    }
+                </Modal>
+                <Modal
+                    className="app-content-ldapPhonebook"
+                    title={ formatMessage({ id: "LANG3914" })}
+                    visible={ state.importVisible }
+                    onOk={ this._handleImportOk } 
+                    onCancel={ this._handleImportCancel }
+                >
+                    { 
+                        <ImportLdapPhonebook 
+                            handleOk = { this._handleImportOk }
+                            handleCancel = { this._handleImportCancel }
+                            listPhonebookDn = { this._listPhonebookDn }
+                        /> 
+                    }
+                </Modal>
+                <Modal
+                    className="app-content-ldapPhonebook"
+                    title={ formatMessage({ id: "LANG3915" })}
+                    visible={ state.exportVisible }
+                    onOk={ this._handleExportOk } 
+                    onCancel={ this._handleExportCancel }
+                >
+                    { 
+                        <ExportLdapPhonebook 
+                            handleOk = { this._handleExportOk }
+                            handleCancel = { this._handleExportCancel }
+                            selectedRowKeys= { state.selectedRowKeys }
+                        /> 
+                    }
+                </Modal>
             </div>
         )
     }

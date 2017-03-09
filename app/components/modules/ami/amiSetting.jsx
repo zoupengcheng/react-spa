@@ -20,7 +20,9 @@ class AMISetting extends Component {
             roomList: [],
             availableAccountList: [],
             roomItem: {},
-            openPort: ["22"]
+            openPort: ["22"],
+            hasKey: false,
+            hasCert: false
         }
     }
     componentWillMount() {
@@ -28,6 +30,7 @@ class AMISetting extends Component {
     componentDidMount() {
         this._getOpenPort()
         this._getInitData()
+        this._checkFile()
     }
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
@@ -53,6 +56,54 @@ class AMISetting extends Component {
     }
     _doNothing = () => {
 
+    }
+    _checkFile = () => {
+        let hasCert = this.state.hasCert
+        let hasKey = this.state.hasKey
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: {
+                action: 'checkFile',
+                type: 'ami_tls_key'
+            },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                hasKey = false
+            },
+            success: function(data) {
+                if (data.status === 0) {
+                    hasKey = true
+                } else {
+                    hasKey = false
+                }
+            }.bind(this)
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: {
+                action: 'checkFile',
+                type: 'ami_tls_cert'
+            },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                hasCert = false
+            },
+            success: function(data) {
+                if (data.status === 0) {
+                    hasCert = true
+                } else {
+                    hasCert = false
+                }
+            }.bind(this)
+        })
+        this.setState({
+            hasCert: hasCert,
+            hasKey: hasKey
+        })
     }
     _getOpenPort = () => {
         let openPort = this.state.openPort
@@ -156,6 +207,9 @@ class AMISetting extends Component {
             amiItem: amiItem
         })
     }
+    _reBoot = () => {
+        UCMGUI.loginFunction.confirmReboot()
+    }
     _handleCancel = () => {
         browserHistory.push('/value-added-features/ami')
     }
@@ -199,7 +253,13 @@ class AMISetting extends Component {
                         if (bool) {
                             message.destroy()
                             message.success(successMessage)
-                        }
+                            Modal.confirm({
+                                content: <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG833" })}}></span>,
+                                okText: formatMessage({id: "LANG727"}),
+                                cancelText: formatMessage({id: "LANG726"}),
+                                onOk: this._reBoot.bind(this)
+                            })
+                    }
 
                         this._handleCancel()
                     }.bind(this)
@@ -214,11 +274,103 @@ class AMISetting extends Component {
 
         return e && e.fileList
     }
+    _onRemoveFileCert = () => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: "removeFile",
+                type: "ami_tls_cert"
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+                    this._checkFile()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _onRemoveFileKey = () => {
+        let loadingMessage = ''
+        let successMessage = ''
+        const { formatMessage } = this.props.intl
+
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: "removeFile",
+                type: "ami_tls_key"
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+                    this._checkFile()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _checkKey = (file) => {
+        const { formatMessage } = this.props.intl
+        if (file.size < (2 * 1024 * 1024) && file.name.slice(-4) === '.pem') {
+            return true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG911"}, {0: ".pem", 1: formatMessage({id: "LANG3000"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+            return false
+        }
+    }
+    _checkCert = (file) => {
+        const { formatMessage } = this.props.intl
+        if (file.size < (2 * 1024 * 1024) && file.name.slice(-4) === '.pem') {
+            return true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG911"}, {0: ".pem", 1: formatMessage({id: "LANG3002"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+            return false
+        }
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, setFieldValue } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const amiItem = this.state.amiItem || {}
+        let hasCert = this.state.hasCert
+        let hasKey = this.state.hasKey
 
         const formItemLayout = {
             labelCol: { span: 3 },
@@ -246,7 +398,6 @@ class AMISetting extends Component {
                     console.log(info.file, info.fileList)
                 }
                 if (me.state.upgradeLoading) {
-                    me.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
                     me.setState({upgradeLoading: false})
                 }
 
@@ -261,26 +412,9 @@ class AMISetting extends Component {
                         let status = data.status,
                             response = data.response
 
-                        me.props.setSpinLoading({loading: false})
-
                         if (data.status === 0 && response && response.result === 0) {
-                            Modal.confirm({
-                                title: formatMessage({id: "LANG924"}),
-                                content: '',
-                                onOk: () => {
-                                    me.setState({
-                                        visible: false
-                                    })
-                                    UCMGUI.loginFunction.confirmReboot() 
-                                },
-                                onCancel: () => {
-                                    me.setState({
-                                        visible: false
-                                    }) 
-                                },
-                                okText: formatMessage({id: "LANG727"}),
-                                cancelText: formatMessage({id: "LANG726"})
-                            })
+                            message.success(formatMessage({id: "LANG906"}))
+                            me._checkFile()
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
                         } else if (!_.isEmpty(response)) {
@@ -296,9 +430,9 @@ class AMISetting extends Component {
                 }
             },
             onRemove() {
-                me.props.setSpinLoading({loading: false})
                 message.destroy()
-            }
+            },
+            beforeUpload: me._checkKey
         }
         const props_cert = {
             name: 'file',
@@ -313,7 +447,6 @@ class AMISetting extends Component {
                     console.log(info.file, info.fileList)
                 }
                 if (me.state.upgradeLoading) {
-                    me.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG979"})})
                     me.setState({upgradeLoading: false})
                 }
 
@@ -328,26 +461,9 @@ class AMISetting extends Component {
                         let status = data.status,
                             response = data.response
 
-                        me.props.setSpinLoading({loading: false})
-
                         if (data.status === 0 && response && response.result === 0) {
-                            Modal.confirm({
-                                title: formatMessage({id: "LANG924"}),
-                                content: '',
-                                onOk: () => {
-                                    me.setState({
-                                        visible: false
-                                    })
-                                    UCMGUI.loginFunction.confirmReboot() 
-                                },
-                                onCancel: () => {
-                                    me.setState({
-                                        visible: false
-                                    }) 
-                                },
-                                okText: formatMessage({id: "LANG727"}),
-                                cancelText: formatMessage({id: "LANG726"})
-                            })
+                            message.success(formatMessage({id: "LANG906"}))
+                            me._checkFile()
                         } else if (data.status === 4) {
                             message.error(formatMessage({id: "LANG915"}))
                         } else if (!_.isEmpty(response)) {
@@ -363,9 +479,9 @@ class AMISetting extends Component {
                 }
             },
             onRemove() {
-                me.props.setSpinLoading({loading: false})
                 message.destroy()
-            }
+            },
+            beforeUpload: me._checkCert
         }
 
         return (
@@ -375,6 +491,8 @@ class AMISetting extends Component {
                     onSubmit={ this._handleSubmit }
                     onCancel={ this._handleCancel }
                     isDisplay='display-block'
+                    saveTxt={ formatMessage({id: "LANG4384"}) }
+                    cancelTxt={ formatMessage({id: "LANG726"}) }
                 />
                 <div className="content">
                     <Form>
@@ -541,6 +659,7 @@ class AMISetting extends Component {
                                     <span>{formatMessage({id: "LANG3000"})}</span>
                                 </Tooltip>
                             )}>
+                            <Col span={12}>
                             { getFieldDecorator('tlsprivatekey', {
                                 valuePropName: 'fileList',
                                 normalize: this._normFile
@@ -551,6 +670,17 @@ class AMISetting extends Component {
                                     </Button>
                                 </Upload>
                             ) }
+                            </Col>
+                            <Col span={12}>
+                                <Button
+                                    icon="delete"
+                                    type="primary"
+                                    size='default'
+                                    disabled= {this.state.hasKey === false}
+                                    onClick={ this._onRemoveFileKey }>
+                                    { formatMessage({id: "LANG739"}) }
+                                </Button>
+                            </Col>
                         </FormItem>
                         <FormItem
                             ref="div_tlscertfile"
@@ -561,6 +691,7 @@ class AMISetting extends Component {
                                     <span>{formatMessage({id: "LANG3002"})}</span>
                                 </Tooltip>
                             )}>
+                            <Col span={12}>
                             { getFieldDecorator('tlscertfile', {
                                 valuePropName: 'fileList',
                                 normalize: this._normFile
@@ -571,6 +702,17 @@ class AMISetting extends Component {
                                     </Button>
                                 </Upload>
                             ) }
+                            </Col>
+                            <Col span={12}>
+                                <Button
+                                    icon="delete"
+                                    type="primary"
+                                    size='default'
+                                    disabled= {this.state.hasCert === false}
+                                    onClick={ this._onRemoveFileCert }>
+                                    { formatMessage({id: "LANG739"}) }
+                                </Button>
+                            </Col>
                         </FormItem>
                     </Form>
                 </div>

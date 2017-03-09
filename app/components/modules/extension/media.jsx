@@ -495,7 +495,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxgain ? settings.rxgain : 0,
+                                    initialValue: settings.rxgain ? settings.rxgain + '' : '0',
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Input min={ -30 } max={ 6 } />
@@ -521,7 +521,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.txgain ? settings.txgain : 0,
+                                    initialValue: settings.txgain ? settings.txgain + '' : '0',
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Input min={ -30 } max={ 6 } />
@@ -571,7 +571,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxflash_min ? settings.rxflash_min : 200,
+                                    initialValue: settings.rxflash_min ? settings.rxflash_min + '' : '200',
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Input min={ 30 } max={ 1000 } />
@@ -597,7 +597,7 @@ class Media extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.rxflash ? settings.rxflash : 1250,
+                                    initialValue: settings.rxflash ? settings.rxflash + '' : '1250',
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Input />

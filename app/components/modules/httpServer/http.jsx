@@ -8,6 +8,8 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from "../../api/validator"
+import _ from 'underscore'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -16,11 +18,98 @@ class HttpServer extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            httpserver: {}
+            httpserver: {},
+            openPort: ["22"]
         }
     }
     componentDidMount () {
         this._getHttpServerSettings()
+        this._getOpenPort()
+    }
+    _checkOpenPort = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const web_redirect = getFieldValue('web_redirect')
+        if (web_redirect === '1' && value === '80') {
+            callback(formatMessage({id: "LANG3869"}))
+        } else if (value && _.indexOf(this.state.openPort, value) > -1) {
+            callback(formatMessage({id: "LANG3869"}))
+        } else {
+            callback()
+        }
+    }
+    _getOpenPort = () => {
+        let openPort = this.state.openPort
+        const me = this
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getNetstatInfo' },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let response = data.response
+                    const netstat = response.netstat
+                    
+                    netstat.map(function(item) {
+                        if ($.inArray(item.port, openPort) > -1) {
+
+                        } else if (me.state.httpserver.web_port === item.port) {
+
+                        } else {
+                            openPort.push(item.port)
+                        }
+                    })
+                }
+            }.bind(this)
+        })
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getSIPTCPSettings' },
+            async: false,
+            type: "json",
+            error: function(jqXHR, textStatus, errorThrown) {
+                // top.dialog.dialogMessage({
+                //     type: 'error',
+                //     content: errorThrown
+                // });
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    let tlsbindaddr = data.response.sip_tcp_settings.tlsbindaddr
+                    let tcpbindaddr = data.response.sip_tcp_settings.tcpbindaddr
+
+                    if (tlsbindaddr) {
+                        let tlsPort = tlsbindaddr.split(":")[1]
+
+                        if (tlsPort && !($.inArray(tlsPort, openPort) > -1)) {
+                            openPort.push(tlsPort)
+                        }
+                    }
+
+                    if (tcpbindaddr) {
+                        let tcpPort = tcpbindaddr.split(":")[1]
+
+                        if (tcpPort && !($.inArray(tcpPort, openPort) > -1)) {
+                            openPort.push(tcpPort)
+                        }
+                    }
+                }
+            }
+        })
+
+        this.setState({
+            openPort: openPort
+        })
     }
     _getHttpServerSettings = () => {
         $.ajax({
@@ -147,6 +236,30 @@ class HttpServer extends Component {
             }
         })
     }
+    _checkKey = (file) => {
+        const { formatMessage } = this.props.intl
+        if (file.size < (2 * 1024 * 1024) && file.name.slice(-4) === '.pem') {
+            return true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG911"}, {0: ".pem", 1: formatMessage({id: "LANG3000"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+            return false
+        }
+    }
+    _checkCert = (file) => {
+        const { formatMessage } = this.props.intl
+        if (file.size < (2 * 1024 * 1024) && file.name.slice(-4) === '.pem') {
+            return true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG911"}, {0: ".pem", 1: formatMessage({id: "LANG3002"})})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+            return false
+        }
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -155,6 +268,7 @@ class HttpServer extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
+        const me = this
 
         let httpserver = this.state.httpserver || {}
         let web_https = (httpserver.web_https === 1 ? 'enable' : 'disable')
@@ -162,7 +276,102 @@ class HttpServer extends Component {
         let web_redirect = String(httpserver.web_redirect)
 
         document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG716"})})
+        const props_key = {
+            name: 'file',
+            action: api.apiHost + 'action=uploadfile&type=http_tls_key',
+            headers: {
+                authorization: 'authorization-text'
+            },
+            onChange(info) {
+                // message.loading(formatMessage({ id: "LANG979" }), 0)
+                console.log(info.file.status)
+                if (info.file.status !== 'uploading') {
+                    console.log(info.file, info.fileList)
+                }
+                if (me.state.upgradeLoading) {
+                    me.setState({upgradeLoading: false})
+                }
 
+                if (info.file.status === 'removed') {
+                    return
+                }
+
+                if (info.file.status === 'done') {
+                    // message.success(`${info.file.name} file uploaded successfully`)
+                    let data = info.file.response
+                    if (data) {
+                        let status = data.status,
+                            response = data.response
+
+                        if (data.status === 0 && response && response.result === 0) {
+                            message.success(formatMessage({id: "LANG906"}))
+                        } else if (data.status === 4) {
+                            message.error(formatMessage({id: "LANG915"}))
+                        } else if (!_.isEmpty(response)) {
+                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
+                        } else {
+                            message.error(formatMessage({id: "LANG916"}))
+                        }
+                    } else {
+                        message.error(formatMessage({id: "LANG916"}))
+                    }
+                } else if (info.file.status === 'error') {
+                    message.error(`${info.file.name} file upload failed.`)
+                }
+            },
+            onRemove() {
+                message.destroy()
+            },
+            beforeUpload: me._checkKey
+        }
+        const props_cert = {
+            name: 'file',
+            action: api.apiHost + 'action=uploadfile&type=http_tls_cert',
+            headers: {
+                authorization: 'authorization-text'
+            },
+            onChange(info) {
+                // message.loading(formatMessage({ id: "LANG979" }), 0)
+                console.log(info.file.status)
+                if (info.file.status !== 'uploading') {
+                    console.log(info.file, info.fileList)
+                }
+                if (me.state.upgradeLoading) {
+                    me.setState({upgradeLoading: false})
+                }
+
+                if (info.file.status === 'removed') {
+                    return
+                }
+
+                if (info.file.status === 'done') {
+                    // message.success(`${info.file.name} file uploaded successfully`)
+                    let data = info.file.response
+                    if (data) {
+                        let status = data.status,
+                            response = data.response
+
+                        if (data.status === 0 && response && response.result === 0) {
+                            message.success(formatMessage({id: "LANG906"}))
+                        } else if (data.status === 4) {
+                            message.error(formatMessage({id: "LANG915"}))
+                        } else if (!_.isEmpty(response)) {
+                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
+                        } else {
+                            message.error(formatMessage({id: "LANG916"}))
+                        }
+                    } else {
+                        message.error(formatMessage({id: "LANG916"}))
+                    }
+                } else if (info.file.status === 'error') {
+                    message.error(`${info.file.name} file upload failed.`)
+                }
+            },
+            onRemove() {
+                message.destroy()
+            },
+            beforeUpload: me._checkCert
+        }
         return (
             <div className="app-content-main">
                 <Form>
@@ -217,6 +426,20 @@ class HttpServer extends Component {
                         )}
                     >
                         { getFieldDecorator('web_port', {
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 1, 65535)
+                                }
+                            }, {
+                                validator: this._checkOpenPort
+                            }],
                             initialValue: web_port
                         })(
                             <Input />
@@ -237,12 +460,12 @@ class HttpServer extends Component {
                             valuePropName: 'fileList',
                             normalize: this._normFile
                         })(
-                            <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
+                            <Upload {...props_key}>
                                 <Button type="ghost">
                                     <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
                                 </Button>
                             </Upload>
-                        ) }
+                    ) }
                     </FormItem>
 
                     <FormItem
@@ -259,12 +482,12 @@ class HttpServer extends Component {
                             valuePropName: 'fileList',
                             normalize: this._normFile
                         })(
-                            <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
+                            <Upload {...props_cert}>
                                 <Button type="ghost">
                                     <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
                                 </Button>
                             </Upload>
-                        ) }
+                    ) }
                     </FormItem>
 
                     <div>

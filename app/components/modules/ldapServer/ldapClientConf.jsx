@@ -23,6 +23,95 @@ class LdapClientConf extends Component {
         this._handleSubmit = (e) => {
             const { formatMessage } = this.props.intl
             const form = this.props.form
+
+            this.props.form.validateFieldsAndScroll((err, values) => {
+                let me = this
+                let refs = this.refs,
+                    action = {}
+                action = values
+                for (let key in values) {
+                    if (values.hasOwnProperty(key)) {
+                        let divKey = refs["div_" + key]
+                        if (divKey && 
+                           divKey.props &&
+                            ((divKey.props.className &&
+                            divKey.props.className.indexOf("hidden") === -1) ||
+                            typeof divKey.props.className === "undefined")) {
+                            if (!err || (err && typeof err[key] === "undefined")) {
+                                action[key] = UCMGUI.transCheckboxVal(values[key])   
+                            } else {
+                                return
+                            }
+                        } else if (typeof divKey === "undefined") {
+                            if (!err || (err && typeof err[key] === "undefined")) {
+                                action[key] = UCMGUI.transCheckboxVal(values[key])   
+                            } else {
+                                return
+                            }
+                        }
+                    }
+                }
+                message.loading(formatMessage({ id: "LANG904" }), 0)
+                action["action"] = "updateLDAPClientConfig"
+                let ldapServerAddress = action["ldap_server_address"]
+                if (UCMGUI.isIPv6NoPort(ldapServerAddress)) {
+                    action["ldap_server_address"] = "[" + ldapServerAddress + "]"
+                }
+
+                $.ajax({
+                    type: "post",
+                    url: baseServerURl,
+                    data: action,
+                    async: false,
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        message.destroy()
+                        message.error(errorThrown)
+                    },
+                    success: function(data) {
+                        let bool = UCMGUI.errorHandler(data, null, this.props.formatMessage)
+
+                        if (bool) {
+                            $.ajax({
+                                type: 'GET',
+                                url: baseServerURl + 'action=runLDAPClient&runldapclient',
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                    message.error(errorThrown)
+                                }, 
+                                success: function(data) {
+                                    let bool = UCMGUI.errorHandler(data, null, this.props.formatMessage),
+                                        sRes = data.response.runldapclient,
+                                        sError
+
+                                    message.destroy()
+                                    if (bool) {
+                                        if (sRes === "") {
+                                            message.success(formatMessage({ id: "LANG844" }))
+                                        } else {
+                                            switch (sRes) {
+                                                case "-1":
+                                                    sError = "LANG4121"
+                                                    break
+                                                case "-2":
+                                                    sError = "LANG4122"
+                                                    break
+                                                case "-3":
+                                                    sError = "LANG2969"
+                                                    break
+                                                case "-4":
+                                                    sError = "LANG4123"
+                                                    break
+                                                default:
+                                                    sError = "LANG909"
+                                            }
+                                            message.error(formatMessage({id: sError}))
+                                        }
+                                    }
+                                }.bind(this)
+                            })
+                        }
+                    }.bind(this)
+                })
+            })
         }
         this._handleCancel = (e) => {
             const { formatMessage } = this.props.intl
@@ -54,7 +143,10 @@ class LdapClientConf extends Component {
                                 { ...formItemLayout }
                                 label={ formatMessage({id: "LANG56"}) }>
                                 { getFieldDecorator('ldap_server_name', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input placeholder="LdapClient" />
@@ -66,7 +158,10 @@ class LdapClientConf extends Component {
                                 { ...formItemLayout }
                                 label={ formatMessage({id: "LANG2444"}) }>
                                 { getFieldDecorator('ldap_server_address', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input placeholder="192.168.1.1" />
@@ -80,7 +175,10 @@ class LdapClientConf extends Component {
                                 { ...formItemLayout }
                                 label={ formatMessage({id: "LANG1999"}) }>
                                 { getFieldDecorator('ldap_base', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input placeholder="dc=pbx,dc=com" />
@@ -119,7 +217,10 @@ class LdapClientConf extends Component {
                                 { ...formItemLayout }
                                 label={ formatMessage({id: "LANG2006"}) }>
                                 { getFieldDecorator('ldap_number_filter', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
                                     <Input placeholder="(objectClass=*)" />
@@ -133,10 +234,13 @@ class LdapClientConf extends Component {
                                 { ...formItemLayout }
                                 label={ formatMessage({id: "LANG2008"}) }>
                                 { getFieldDecorator('ldap_port', {
-                                    rules: [],
+                                    rules: [{ 
+                                        required: true, 
+                                        message: formatMessage({id: "LANG2150"}) 
+                                    }],
                                     initialValue: ""
                                 })(
-                                    <Input type="password" placeholder="389" />
+                                    <Input placeholder="389" />
                                 )}
                             </FormItem>
                         </Col>

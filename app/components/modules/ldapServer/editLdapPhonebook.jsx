@@ -3,23 +3,22 @@
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, Modal, Button, Row, Col, Checkbox, message, Tooltip, Select, Tabs, Spin, Table } from 'antd'
+import { Modal, Button, Table, message, Popconfirm } from 'antd'
 import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
 import Validator from "../../api/validator"
 import Title from '../../../views/title'
 import UCMGUI from "../../api/ucmgui"
+import EditLdapPhonebookItem from "./editLdapPhonebookItem"
 
-const FormItem = Form.Item
-const Option = Select.Option
 const baseServerURl = api.apiHost
 
 class EditLdapPhonebook extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            ldapPhonebooks: [],
+            phonebookDn: [],
             pagination: {
                 showTotal: this._showTotal,
                 showSizeChanger: true,
@@ -28,11 +27,79 @@ class EditLdapPhonebook extends Component {
             sorter: {
                 field: "dn",
                 order: "asc"
-            }
+            },
+            record: {},
+            addVisible: false,
+            editVisible: false
+        }
+        this._showAddModal = (record) => {               
+            this.setState({
+                addVisible: true,
+                record: this.props.location.state.record
+            })
+        }
+        this._showEditModal = (record) => {
+            this.setState({
+                editVisible: true,
+                record: record
+            })
+        }
+        this._handleAddOk = (e) => {
+            this.setState({
+                addVisible: false
+            })
+        }
+        this._handleAddCancel = (e) => {
+            this.setState({
+                addVisible: false
+            })
+        }
+        this._handleEditOk = (e) => {
+            this.setState({
+                editVisible: false
+            })
+        }
+        this._handleEditCancel = (e) => {
+            this.setState({
+                editVisible: false
+            })
+        }
+        this._handleSubmit = () => {
+            const { formatMessage } = this.props.intl
+            const form = this.props.form
+
+            this.props.form.validateFieldsAndScroll((err, values) => {
+                let me = this
+                let refs = this.refs,
+                    action = {}
+                action = values
+                for (let key in values) {
+                    if (values.hasOwnProperty(key)) {
+                        let divKey = refs["div_" + key]
+                        if (divKey && 
+                           divKey.props &&
+                            ((divKey.props.className &&
+                            divKey.props.className.indexOf("hidden") === -1) ||
+                            typeof divKey.props.className === "undefined")) {
+                            if (!err || (err && typeof err[key] === "undefined")) {
+                                action[key] = UCMGUI.transCheckboxVal(values[key])   
+                            } else {
+                                return
+                            }
+                        } else if (typeof divKey === "undefined") {
+                            if (!err || (err && typeof err[key] === "undefined")) {
+                                action[key] = UCMGUI.transCheckboxVal(values[key])   
+                            } else {
+                                return
+                            }
+                        }
+                    }
+                }
+            })
         }
     }
     componentDidMount() {
-        this._listPhonebookDn()
+        this._listContacts()
     }
     _showTotal = (total) => {
         const { formatMessage } = this.props.intl
@@ -49,7 +116,7 @@ class EditLdapPhonebook extends Component {
             sorter: sorter
         })
 
-        this._listPhonebookDn({
+        this._listContacts({
             item_num: pagination.pageSize,
             page: pagination.current,
             sidx: sorter.field,
@@ -57,31 +124,36 @@ class EditLdapPhonebook extends Component {
             ...filters
         })
     }
-    _listPhonebookDn = (
-        params = {                
-            item_num: 10,
-            sidx: "dn",
-            sord: "asc",
-            page: 1 
-        }) => {
+    _listContacts = () => {
+        const locationState = this.props.location.state
+        let action = {
+            action: 'listLDAPContacts',
+            phonebook_dn: locationState.record.dn
+        }
+        if (locationState.record.id === 1) {
+            action = {
+                action: 'listPBXContacts',
+                pbx_contacts: null
+            }
+        }
         $.ajax({
             url: baseServerURl,
             method: 'post',
-            data: {
-                action: 'listPhonebookDn',
-                ...params
-            },
+            data: action,
             type: 'json',
             async: true,
             success: function(res) {
-                let ldapPhonebooks = res.response.ldap_phonebooks
+                let phonebookDn = res.response.phonebook_dn
+
+                if (locationState.record.id === 1) {
+                    phonebookDn = res.response.pbx_contacts
+                }
                 const pagination = this.state.pagination
                 // Read total count from server
                 pagination.total = res.response.total_item
 
                 this.setState({
-                    firstLoad: false,
-                    ldapPhonebooks: ldapPhonebooks,
+                    phonebookDn: phonebookDn,
                     pagination
                 })
             }.bind(this),
@@ -90,18 +162,26 @@ class EditLdapPhonebook extends Component {
             }
         })
     }
-    _deleteLdapPhonebook = (data) => {
+    _deleteContact = (record) => {
         const { formatMessage } = this.props.intl
+        const locationState = this.props.location.state
 
-        let phonebookdn = data.dn
-        message.loading(formatMessage({id: "LANG825"}, {0: "LANG11"}), 0)
+        let phonebookdn = locationState.record.dn
+        message.loading(formatMessage({id: "LANG825"}, {0: formatMessage({ id: "LANG11" })}), 0)
 
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
-                "action": "deletePhonebook",
-                "ldap_phonebooks": phonebookdn
+                "action": "deleteContact",
+                "ldap_contacts": JSON.stringify({
+                    "phonebook_dn": phonebookdn,
+                    "accountnumber": record.accountnumber
+                }),
+                "ringgroup_mem_exten": JSON.stringify({
+                    "phonebook_dn": phonebookdn,
+                    "member_extension": record.accountnumber
+                })
             },
             type: 'json',
             async: true,
@@ -110,25 +190,8 @@ class EditLdapPhonebook extends Component {
 
                 if (bool) {
                     message.destroy()
+                    this._listContacts()
                     // message.success(formatMessage({id: "LANG816"}))
-                    let cmd_action = {
-                        "action": "phonebookDel",
-                        "phonebook_del": phonebookdn
-                    }
-
-                    $.ajax({
-                        type: "post",
-                        url: baseServerURl,
-                        async: false,
-                        data: cmd_action,
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            message.destroy()
-                            message.error(errorThrown)
-                        }.bind(this),
-                        success: function(data) {
-                            this._listPhonebookDn()
-                        }.bind(this)
-                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -136,18 +199,31 @@ class EditLdapPhonebook extends Component {
             }
         })
     }
-    render() {
-        const { getFieldDecorator, getFieldValue } = this.props.form
-        const { formatMessage } = this.props.intl
-        const formItemLayout = {
-            labelCol: { span: 6 },
-            wrapperCol: { span: 6 }
+    _editContact = (record) => {
+        const locationState = this.props.location.state
+        if (locationState.record.id === 1) {
+            return
         }
+        this._showEditModal(record)  
+    }
+    _addContact = (record) => {
+        const locationState = this.props.location.state
+        if (locationState.record.id === 1) {
+            return
+        }
+        this._showAddModal()
+    }
+    render() {
+        const { formatMessage } = this.props.intl
         const state = this.state
-        const columns = [
-            {
-                title: formatMessage({id: "LANG2003"}),
-                dataIndex: 'dn',
+        const locationState = this.props.location.state
+        const columns = [{
+                title: formatMessage({id: "LANG2222"}),
+                dataIndex: 'accountnumber',
+                sorter: true
+            }, {
+                title: formatMessage({id: "LANG1361"}),
+                dataIndex: 'calleridname',
                 sorter: true
             }, { 
                 title: formatMessage({id: "LANG74"}), 
@@ -155,20 +231,20 @@ class EditLdapPhonebook extends Component {
                 key: 'x', 
                 render: (text, record, index) => {
                     return <span>
-                        <span className="sprite sprite-edit" title={ formatMessage({ id: "LANG738"})} onClick={this._editLdapPhonebook.bind(this, record)}></span>
+                        <span className={ locationState.record.id === 1 ? "sprite sprite-edit-disabled" : "sprite sprite-edit" } title={ formatMessage({ id: "LANG738"})} onClick={this._editContact.bind(this, record)}></span>
                         <Popconfirm title={
                             <FormattedHTMLMessage
                                 id='LANG952'
                             />} 
-                            onConfirm={() => this._deleteLdapPhonebook(record)}>
-                            <span className="sprite sprite-del" title={ formatMessage({ id: "LANG739"})} ></span>
+                            onConfirm={() => this._deleteContact(record)}>
+                            <span className={ locationState.record.id === 1 ? "sprite sprite-del-disabled" : "sprite sprite-del" } title={ formatMessage({ id: "LANG739"})} ></span>
                         </Popconfirm>
                     </span>
                 } 
             }
         ]
         const pagination = {
-            total: state.ldapPhonebooks.length,
+            total: state.phonebookDn.length,
             showSizeChanger: true,
             onShowSizeChange(current, pageSize) {
                 console.log('Current: ', current, '; PageSize: ', pageSize)
@@ -178,182 +254,62 @@ class EditLdapPhonebook extends Component {
             }
         }
         return (
-            <div className="content">
+            <div className="app-content-main" id="app-content-main">
                 <Title 
-                    headerTitle={ formatMessage({ id: "LANG953" }, { 0: "dn" }) } 
-                    onSubmit={ this._handleSubmit } 
-                    onCancel={ this._handleCancel } 
-                    isDisplay="display-block"
+                    headerTitle={ formatMessage({ id: "LANG953" }, { 0: locationState.record.dn ? locationState.record.dn.split(",")[0].split("=")[1] : "" }) } 
+                    isDisplay="hidden"
                 />
-                <Form>
-                    <Row>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2227"}) }>
-                                        {formatMessage({id: "LANG2222"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('accountnumber', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2025"}) }>
-                                        {formatMessage({id: "LANG1361"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('calleridname', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2033"}) }>
-                                        {formatMessage({id: "LANG2032"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('email', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="64" />
-                                )}
-                            </FormItem>
-                        </Col>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2027"}) }>
-                                        {formatMessage({id: "LANG2026"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('firstname', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2029"}) }>
-                                        {formatMessage({id: "LANG2028"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('lastname', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2031"}) }>
-                                        {formatMessage({id: "LANG2030"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('department', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2035"}) }>
-                                        {formatMessage({id: "LANG2034"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('mobilenumber', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2037"}) }>
-                                        {formatMessage({id: "LANG2036"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('homenumber', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={12}>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <Tooltip title={ formatMessage({id: "LANG2039"}) }>
-                                        {formatMessage({id: "LANG95"})}
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('fax', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength="32" />
-                                )}
-                            </FormItem>
-                        </Col>
-                        <Col span={12}>
-                        </Col>
-                    </Row>
-                </Form>
-                <Table
-                    rowSelection={ undefined } 
-                    columns={ columns }
-                    rowKey={ record => record.dn }
-                    dataSource={ state.ldapPhonebooks }
-                    pagination={ state.pagination }
-                    onChange={ this._handleTableChange }
-                />
+                <div className="content">
+                    <div className="top-button">
+                        <Button icon="plus" type="primary" size="default" onClick={ this._addContact } disabled={ locationState.record.id === 1 ? true : false }>
+                            {formatMessage({id: "LANG4949"})}
+                        </Button>
+                    </div>
+                    <Table
+                        rowSelection={ undefined } 
+                        columns={ columns }
+                        rowKey={ record => record.accountnumber }
+                        dataSource={ state.phonebookDn }
+                        pagination={ state.pagination }
+                        onChange={ this._handleTableChange }
+                    />
+                    <Modal
+                        className="app-content-ldapPhonebook-width700"
+                        title={ formatMessage({ id: "LANG4949" })}
+                        visible={ state.addVisible }
+                        onOk={ this._handleAddOk } 
+                        onCancel={ this._handleAddCancel }
+                    >
+                        { 
+                            <EditLdapPhonebookItem 
+                                handleOk = { this._handleAddOk }
+                                handleCancel = { this._handleAddCancel }
+                                record = { state.record }
+                                listContacts = { this._listContacts }
+
+                            /> 
+                        }
+                    </Modal>
+                    <Modal
+                        className="app-content-ldapPhonebook-width700"
+                        title={ formatMessage({ id: "LANG5473" })}
+                        visible={ state.editVisible }
+                        onOk={ this._handleEditOk } 
+                        onCancel={ this._handleEditCancel }
+                    >
+                        { 
+                            <EditLdapPhonebookItem 
+                                handleOk = { this._handleEditOk }
+                                handleCancel = { this._handleEditCancel }
+                                record = { state.record }
+                                listContacts = { this._listContacts }
+                            /> 
+                        }
+                    </Modal>
+                </div>
             </div>
         )
     }
 }
 
-module.exports = Form.create()(injectIntl(EditLdapPhonebook))
+module.exports = injectIntl(EditLdapPhonebook)

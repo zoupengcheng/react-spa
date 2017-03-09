@@ -287,7 +287,7 @@ class Cleanup extends Component {
         return (
             <div className="app-content-main" id="app-content-main">
                 <Form>
-                    <Row>
+                    {/* <Row>
                         <Col span={ 6 }>
                             <div
                                 style={{
@@ -321,7 +321,7 @@ class Cleanup extends Component {
                                 dataSource={ this.state.extensionGroups }
                             />
                         </Col>
-                    </Row>
+                    </Row> */}
                 </Form>
             </div>
         )

@@ -2,13 +2,17 @@
 
 import $ from 'jquery'
 import React, { Component, PropTypes } from 'react'
+import { browserHistory } from 'react-router'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
 import { Col, Form, Input, Row, message, Transfer, Tooltip, Checkbox, Icon, Modal, Select} from 'antd'
-const FormItem = Form.Item
-const Option = Select.Option
+
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+
+const FormItem = Form.Item
+const Option = Select.Option
+const confirm = Modal.confirm
 
 class ZeroConfigSettings extends Component {
     constructor(props) {
@@ -169,8 +173,28 @@ class ZeroConfigSettings extends Component {
     _handleCancel = () => {
     }
     _toggleZeroconfig = () => {
+        const enableZeroConfigPrev = this.state.enableZeroConfig
+        this.setState({
+            enableZeroConfig: !enableZeroConfigPrev
+        })
     }
-    _toggleAutoAssign = () => {
+    _togglePickExt = () => {
+        const enablePickExtPrev = this.state.enablePickExt
+        this.setState({
+            enablePickExt: !enablePickExtPrev 
+        })
+    }
+    _promptGeneralPage = () => {
+        confirm({
+            title: '',
+            content: formatMessage({ id: "LANG843" }, { 0: formatMessage({id: "LANG3"}) }),
+            okText: formatMessage({id: "LANG727" }),
+            cancelText: formatMessage({id: "LANG726" }),
+            onOk() {
+                browserHistory.push('/pbx-settings/pbxGeneralSettings')
+            },
+            onCancel() {}
+        })
     }
     _addSubnet = () => {
         const { formatMessage } = this.props.intl
@@ -258,7 +282,7 @@ class ZeroConfigSettings extends Component {
                                 valuePropName: 'checked',
                                 initialValue: enableAutoConfigAssign
                             })(
-                                <Checkbox onChange={ this._toggleAutoAssign }/>
+                                <Checkbox disabled={ !enableZeroConfig }/>
                             ) }
                         </FormItem>
                     </div>
@@ -280,7 +304,7 @@ class ZeroConfigSettings extends Component {
                                 valuePropName: 'checked',
                                 initialValue: enableAutoExtAssign
                             })(
-                                <Checkbox />
+                                <Checkbox disabled={ !enableZeroConfig }/>
                             ) }
                         </FormItem>
                         <FormItem
@@ -290,9 +314,18 @@ class ZeroConfigSettings extends Component {
                                     <span>{formatMessage({id: "LANG2713"})}</span>
                                 </Tooltip>
                             )}>
-                            <span>                            
-                                {zcExtRange[0]} - {zcExtRange[1]}
-                            </span>
+                            <Col span={ 16 }>
+                                <span>                            
+                                    {zcExtRange[0]} - {zcExtRange[1]}
+                                </span>
+                            </Col>
+                            <Col span={ 16 } offset={ 1 }>
+                                <span
+                                    onClick={ this._promptGeneralPage }
+                                >
+                                {formatMessage({id: "LANG2713"})}
+                                </span>
+                            </Col>
                         </FormItem>
                         <FormItem
                             ref="div_enablePickExt"
@@ -308,7 +341,7 @@ class ZeroConfigSettings extends Component {
                                 valuePropName: 'checked',
                                 initialValue: enablePickExt
                             })(
-                                <Checkbox />
+                                <Checkbox onChange={ this._togglePickExt } disabled={ !enableZeroConfig }/>
                             ) }
                         </FormItem>
                         <FormItem
@@ -333,7 +366,7 @@ class ZeroConfigSettings extends Component {
                             { getFieldDecorator('pickExtPeriod', {
                                 initialValue: pickExtPeriod
                             })(
-                                <Input />
+                                <Input disabled={ !enableZeroConfig || !enablePickExt }/>
                             ) }
                         </FormItem>
                     </div>
@@ -352,7 +385,7 @@ class ZeroConfigSettings extends Component {
                                     rules: [],
                                     initialValue: subnetList[0]
                                 })(
-                                    <Input />
+                                    <Input disabled={ !enableZeroConfig }/>
                                 ) }
                             </Col>
                             <Col span={ 1 } offset={ 1 }>
@@ -375,7 +408,7 @@ class ZeroConfigSettings extends Component {
                                         }],
                                     initialValue: subnet1 ? subnet1 : ''
                                 })(
-                                    <Input />
+                                    <Input disabled={ !enableZeroConfig }/>
                                 ) }
                             </Col>
                             <Col span={ 1 } offset={ 1 }>
@@ -398,7 +431,7 @@ class ZeroConfigSettings extends Component {
                                         }],
                                     initialValue: subnet2 ? subnet2 : ''
                                 })(
-                                    <Input/>
+                                    <Input disabled={ !enableZeroConfig }/>
                                 ) }
                             </Col>
                             <Col span={ 1 } offset={ 1 }>
@@ -421,7 +454,7 @@ class ZeroConfigSettings extends Component {
                                         }],
                                     initialValue: subnet3 ? subnet3 : ''
                                 })(
-                                    <Input />
+                                    <Input disabled={ !enableZeroConfig }/>
                                 ) }
                             </Col>
                             <Col span={ 1 } offset={ 1 }>
@@ -444,7 +477,7 @@ class ZeroConfigSettings extends Component {
                                         }],
                                     initialValue: subnet4 ? subnet4 : ''
                                 })(
-                                    <Input/>
+                                    <Input disabled={ !enableZeroConfig }/>
                                 ) }
                             </Col>
                             <Col span={ 1 } offset={ 1 }>

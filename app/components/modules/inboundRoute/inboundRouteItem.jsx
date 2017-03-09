@@ -181,7 +181,7 @@ class InBoundRouteItem extends Component {
         }, {
             key: 'ext_conference',
             value: 'ext_conference',
-            label: formatMessage({id: "LANG85"})
+            label: formatMessage({id: "LANG18"})
         }, {
             key: 'ext_queues',
             value: 'ext_queues',
@@ -333,7 +333,7 @@ class InBoundRouteItem extends Component {
                         if (!match) {
                             return false
                         } else {
-                            trueMatch.push((match !== '_') ? '_' + match : match)
+                            trueMatch.push((match.indexOf('_') === 0) ? match : '_' + match)
                         }
                     })
 
@@ -343,12 +343,12 @@ class InBoundRouteItem extends Component {
                         if (!allow) {
                             return false
                         } else {
-                            trueAllow.push((allow !== '_') ? '_' + allow : allow)
+                            trueAllow.push((allow.indexOf('_') === 0) ? allow : '_' + allow)
                         }
                     })
 
                     _.map(this.state.DIDParams, (value) => {
-                        if (this.state.diddes_members.indexOf(value) > -1) {
+                        if (this.state.diddes_members.indexOf(value) > -1 || (this.state.diddes_members.length === 1 && this.state.diddes_members[0] === 'all')) {
                             action[value] = 'yes'
                         } else {
                             action[value] = 'no'

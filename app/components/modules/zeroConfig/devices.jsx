@@ -5,24 +5,38 @@ import _ from 'underscore'
 import cookie from 'react-cookie'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select, Tabs, Modal, Tooltip } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select, Tabs, Modal, Tooltip, Table, Popconfirm } from 'antd'
 import api from "../../api/api"
 import Validator from "../../api/validator"
 import UCMGUI from "../../api/ucmgui"
-import DevicesList from "./devicesList"
 
 const FormItem = Form.Item
 const Option = Select.Option
 const confirm = Modal.confirm
+
+const zeroconfigErr = {
+    "1": "LANG918",
+    "2": "LANG919",
+    "3": "LANG920",
+    "4": "LANG2538",
+    "5": "LANG4389"
+}
+
+let checkInterval = null
 
 class Devices extends Component {
     constructor(props) {
         super(props)
         this.state = {
             zeroConfigSettings: UCMGUI.isExist.getList("getZeroConfigSettings"),
-            filter: "all",
-            audoDiscoverVisible: false,
+            deviceList: [],
+            filter: this.props.filter ? this.props.filter : "all",
+            selectedRowKeys: [],
+            selectedRows: [],
+            autoDiscoverVisible: false,
             modalType: null,
+            zcScanProgress: false,
+            broadcastDiscover: false,
             networkInfo: {
                 LANAddr: null,
                 netSegFromAddr: null,
@@ -31,7 +45,8 @@ class Devices extends Component {
         }
     }
     componentDidMount() {
-        this._getAllDeviceExtensions()
+        // this._getAllDeviceExtensions()
+        this._listZeroConfig()
     }
     componentWillUnmount() {
 
@@ -84,38 +99,81 @@ class Devices extends Component {
             }.bind(this)
         })          
     }
-    _handleFilterChange = (e) => {
-        this.setState({
-            filter: e
-        })
-    }
-    /**                          
-    *   Handle Auto Discover Modal    
-    */    
-    _showAutoDiscoverModal = () => {      
+    
+    _listZeroConfig = () => {
         $.ajax({
-            url: api.apiHost + 'action=getNetworkInformation',
-            method: 'GET',
+            url: api.apiHost,
+            method: "post",
+            data: { 
+                action: 'listZeroConfig',
+                "options": "mac,ip,members,version,vendor,model,state,last_access",
+                "filter": this.state.filter
+            },
             type: 'json',
-            async: true,
             error: function(e) {
                 message.error(e.statusText)
             },
             success: function(data) {
-                if (data.status === 0) {
-                    const LIST = ["wan", "lan", "lan1", "lan2"]
-                    
-                    for (let i = 3; i >= 0; i--) {
-                        const mode = data.response[LIST[i]]
-                        // ZeroConfig AutoDiscover only available for lan/lan1
-                        if (mode && mode.ip && mode.mask && LIST[i] !== 'wan' && LIST[i] !== 'lan2') {
-                            this._processNetRange(mode.ip, mode.mask)
-                            break                           
-                        }
-                    }                    
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let res = data.response,
+                        deviceList = res.zeroconfig
+                    this.setState({
+                        deviceList: deviceList
+                    })
                 }
             }.bind(this)
-        })      
+        })         
+    }
+    _handleFilterChange = (e) => {
+        this.setState({
+            filter: e
+        })
+        this._listZeroConfig()
+    }
+    /**                          
+    *   Handle Auto Discover Modal    
+    */    
+    _showAutoDiscoverModal = () => {   
+        const { formatMessage } = this.props.intl
+        const _this = this
+        this._checkInfo().done(data => {
+            message.destroy()
+            if (data && data.status === 0) {
+                const zcScanProgress = data.response.zc_scan_progress
+                _this.setState({
+                    zcScanProgress: zcScanProgress
+                })
+                if (zcScanProgress === '1') {
+                    message.error(formatMessage({id: "LANG920"}))
+                } else {
+                    $.ajax({
+                        url: api.apiHost + 'action=getNetworkInformation',
+                        method: 'GET',
+                        type: 'json',
+                        async: true,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            if (data.status === 0) {
+                                const LIST = ["wan", "lan", "lan1", "lan2"]
+                                
+                                for (let i = 3; i >= 0; i--) {
+                                    const mode = data.response[LIST[i]]
+                                    // ZeroConfig AutoDiscover only available for lan/lan1
+                                    if (mode && mode.ip && mode.mask && LIST[i] !== 'wan' && LIST[i] !== 'lan2') {
+                                        _this._processNetRange(mode.ip, mode.mask)
+                                        break                           
+                                    }
+                                }                    
+                            }
+                        }
+                    }) 
+                }
+            }
+        })             
     }
     _processNetRange = (ipStr, maskStr) => {
         const ipArray = ipStr.split(".")
@@ -135,7 +193,7 @@ class Devices extends Component {
         }
 
         this.setState({
-            audoDiscoverVisible: true,
+            autoDiscoverVisible: true,
             modalType: "autoDiscover",
             networkInfo: {
                 LANAddr: ipStr,
@@ -163,7 +221,13 @@ class Devices extends Component {
     }
     _handleAutoDiscover = () => {
         const { formatMessage } = this.props.intl
+        const { setFieldValue } = this.props.form
+        const _this = this
         let scan_cgi = (action) => {
+            this.setState({
+                autoDiscoverVisible: false,
+                modalType: null
+            })
             $.ajax({
                 url: api.apiHost + action,
                 method: 'GET',
@@ -173,43 +237,64 @@ class Devices extends Component {
                     message.error(e.statusText)
                 },
                 success: function(data) {
-                    console.log("weiling test scan result:", data)
-                    /* if (data.status === '0') {
+                    message.destroy()
+                    if (data.status === 0) {                        
                         const res = data.response.scanDevices
-
                         if (res === "Scanning Device") {
-                            if (isBroadcastIp()) {
-                                top.dialog.dialogMessage({
-                                    type: 'success',
-                                    content: $P.lang("LANG3768")
-                                });
-
-                                UCMGUI.config.zcScanProgress = '1';
+                            if (_this.state.broadcastDiscover) {
+                                message.success(formatMessage({id: "LANG3768"}))
+                                UCMGUI.triggerCheckInfo(formatMessage)
                             } else {
-                                top.dialog.dialogMessage({
-                                    type: 'loading',
-                                    title: $P.lang("LANG3769"),
-                                    content: $P.lang("LANG905")
-                                });
-
+                                message.loading(formatMessage({id: "LANG3769"}))
+                               
                                 // check whether single ip scanning has done per second.
                                 checkInterval = setInterval(function() {
-                                    IntervalForSingleIP();
-                                }, 1000);
-                            }
+                                    IntervalForSingleIP()
+                                }, 1000)
+                            }                            
+                            _this.setState({
+                                zcScanProgress: '1'
+                            })
                         } else {
-                            var num = res.slice("ZCERROR_".length);
-
-                            top.dialog.dialogMessage({
-                                type: 'error',
-                                content: $P.lang(zeroconfigErr[num])
-                            });
+                            const num = res.slice("ZCERROR_".length)
+                            if (zeroconfigErr.hasOwnProperty(num)) {
+                                message.error(formatMessage({id: zeroconfigErr[num]}))
+                            }
                         }
                     } else {
-                        message.errMsg(formatMessage({id: "LANG909"}))
-                    } */
-                }.bind(this)
+                        message.error(formatMessage({id: "LANG909"}))
+                    }
+                }
             }) 
+        }
+
+        let IntervalForSingleIP = () => {
+            this._checkInfo().done(data => {
+                message.destroy()
+                if (data && data.status === 0) {
+                    let zcScanProgress = data.response.zc_scan_progress
+                    if (zcScanProgress === '0') {
+                        clearInterval(checkInterval)
+                        checkInterval = null
+                        _this.setState({
+                            zcScanProgress: zcScanProgress
+                        })
+                        confirm({
+                            title: '',
+                            content: formatMessage({ id: "LANG917" }, { 0: formatMessage({id: "LANG3"}) }),
+                            okText: formatMessage({id: "LANG727" }),
+                            cancelText: formatMessage({id: "LANG726" }),
+                            onOk() {
+                                _this.setState({
+                                    filter: "res"
+                                })
+                                _this._listZeroConfig()
+                            },
+                            onCancel() {}
+                        })                             
+                    }
+                }
+            })
         }
 
         this.props.form.validateFieldsAndScroll((err, values) => {
@@ -218,57 +303,221 @@ class Devices extends Component {
                 let username = cookie.load("username")
 
                 let action = `action=scanDevices&username=${username}&method=${values.method}&ip=${values.targetAddr}&interface=1`
-                console.log("weiling action:", action)
                 if (values.targetAddr === this.state.networkInfo.netSegToAddr) {
                     let confirmContent = `<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2221" })}}></span>`
                     confirm({
                         title: '',
-                        content: confirmContent,
+                        content: formatMessage({ id: "LANG2221" }),
+                        okText: formatMessage({id: "LANG727" }),
+                        cancelText: formatMessage({id: "LANG726" }),
                         onOk() {
-                            console.log("weiling ok to broadcast scan ")
+                            _this.setState({
+                                broadcastDiscover: true
+                            })
                             scan_cgi(action)
                         },
                         onCancel() {}
                     })
                 } else {
                     scan_cgi(action)
-                }                
-                // message.loading(formatMessage({ id: "LANG826" }), 0)
-                /* $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(formatMessage({ id: "LANG815" }))
-                        }
-                    }.bind(this)
-                }) */
+                }  
             }
         })
     }
     _handleCancel = () => {
         this.setState({
-            audoDiscoverVisible: false,
+            autoDiscoverVisible: false,
             modalType: null
         })
     }
+    _checkInfo = () => {
+        let username = cookie.load("username")
+
+        if (username) {
+            return $.ajax({
+                method: "post",
+                url: api.apiHost,
+                data: {
+                    action: 'checkInfo',
+                    user: username
+                },
+                async: false
+            })
+        }
+    }
+    /**
+    */
+    _edit = (record) => {
+
+    }
+    _delete = (record) => {
+        const { formatMessage } = this.props.intl
+        const action = {
+            "action": "deleteZeroConfig",
+            "mac": record.mac,
+            "original_ip": record.ip
+        }
+
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: action,
+            success: function (data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(formatMessage({id: "LANG4763"}))
+
+                    this._listZeroConfig()
+
+                    /* this.setState({
+                        selectedRowKeys: _.without(this.state.selectedRowKeys, record.extension),
+                        selectedRows: this.state.selectedRows.filter(function(item) { return item.extension !== record.extension })
+                    }) */
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _batchDelete = () => {
+        const { formatMessage } = this.props.intl
+        const selectedRowKeys = this.state.selectedRowKeys
+        const _this = this
+        if (selectedRowKeys.length === 0) {
+            message.error(formatMessage({id: "LANG848"}))
+            return
+        }            
+        const macList = selectedRowKeys.join(',')
+        confirm({
+            title: `<span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG818" }, { 0: ${macList} }) }}></span>`,
+            content: formatMessage({ id: "LANG917" }, { 0: formatMessage({id: "LANG3"}) }),
+            okText: formatMessage({id: "LANG727" }),
+            cancelText: formatMessage({id: "LANG726" }),
+            onOk() {
+                const action = {
+                    "action": "deleteZeroConfig",
+                    "mac": macList
+                }
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    success: function (data) {
+                        const bool = UCMGUI.errorHandler(data, null, formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(formatMessage({id: "LANG4763"}))
+
+                            _this._listZeroConfig()
+
+                            /* this.setState({
+                                selectedRowKeys: _.without(this.state.selectedRowKeys, record.extension),
+                                selectedRows: this.state.selectedRows.filter(function(item) { return item.extension !== record.extension })
+                            }) */
+                        }
+                    },
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            },
+            onCancel() {}
+        }) 
+    }
+    _onSelectChange = (selectedRowKeys, selectedRows) => {
+        this.setState({ selectedRowKeys, selectedRows })
+    }
     render() {
         const { formatMessage } = this.props.intl
-        const { getFieldDecorator } = this.props.form
+        const { getFieldDecorator, setFieldValue } = this.props.form
         const formItemLayout = {
             labelCol: { span: 8 },
             wrapperCol: { span: 16 }
         }
         const filter = this.state.filter
         const networkInfo = this.state.networkInfo
+
+        const columns = [
+            {
+                title: formatMessage({id: "LANG1293"}),
+                dataIndex: 'mac'
+            }, {
+                title: formatMessage({id: "LANG1291"}),
+                dataIndex: 'ip'
+            }, {
+                title: formatMessage({id: "LANG85"}),
+                dataIndex: 'members'
+            }, {
+                title: formatMessage({id: "LANG1298"}),
+                dataIndex: 'version'
+            }, {
+                title: formatMessage({id: "LANG1299"}),
+                dataIndex: 'vendor'
+            }, {
+                title: formatMessage({id: "LANG1295"}),
+                dataIndex: 'model'
+            }, {
+                title: formatMessage({id: "LANG1301"}),
+                dataIndex: 'state'
+            }, { 
+                title: formatMessage({id: "LANG74"}), 
+                dataIndex: '', 
+                key: 'x', 
+                render: (text, record, index) => (
+                    <span>
+                        <span className="sprite sprite-edit" onClick={this._edit.bind(this, record)}></span>
+                        <Popconfirm
+                            placement="left"
+                            title={ <span dangerouslySetInnerHTML=
+                                        {{ __html: formatMessage({ id: "LANG818" }, { 0: record.mac }) }}
+                                    ></span> }
+                            okText={ formatMessage({id: "LANG727"}) }
+                            cancelText={ formatMessage({id: "LANG726"}) }
+                            onConfirm={ this._delete.bind(this, record) }
+                        >
+                            <span className="sprite sprite-del"></span>
+                        </Popconfirm>
+                    </span>
+                ) 
+            }
+        ]
+        
+        const pagination = {
+            total: this.state.deviceList.length,
+            showSizeChanger: true,
+            onShowSizeChange(current, pageSize) {
+                console.log('Current: ', current, '; PageSize: ', pageSize)
+            },
+            onChange(current) {
+                console.log('Current: ', current)
+            }
+        }
+        
+        // rowSelection object indicates the need for row selection
+        /* const rowSelection = {
+            onChange(selectedRowKeys, selectedRows) {
+                this.setState({
+                    selectedRowKeys: selectedRowKeys,
+                    selectedRows: selectedRows
+                })
+                console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows)
+            },
+            onSelect(record, selected, selectedRows) {
+                console.log(record, selected, selectedRows)
+            },
+            onSelectAll(selected, selectedRows, changeRows) {
+                console.log(selected, selectedRows, changeRows)
+            }
+        } */
+        const rowSelection = {
+            onChange: this._onSelectChange,
+            selectedRowKeys: this.state.selectedRowKeys
+        }
         return (
             <div className="app-content-main" id="app-content-main">
                 <div className="content">
@@ -279,7 +528,7 @@ class Devices extends Component {
                         <Button type="primary" icon="" onClick={this._createIaxVoipTrunk} >
                             {formatMessage({id: "LANG754"})}
                         </Button>
-                        <Button type="primary" icon="" onClick={this._createIaxVoipTrunk} >
+                        <Button type="primary" icon="" onClick={this._batchDelete} >
                             {formatMessage({id: "LANG755"})}
                         </Button>
                         <Button type="primary" icon="" onClick={this._createIaxVoipTrunk} >
@@ -292,15 +541,22 @@ class Devices extends Component {
                         <Select 
                             style={{ width: 200 }}
                             onChange={this._handleFilterChange}
-                            defaultValue={filter}>
+                            value={filter}>
                             <Option value="all">{formatMessage({id: "LANG104"})}</Option>
                             <Option value="res">{formatMessage({id: "LANG1289"})}</Option>
                         </Select>
                     </div>
-                    <DevicesList filter={filter}/>
+                    <div>
+                        <Table 
+                        rowKey="mac"
+                        rowSelection={rowSelection} 
+                        columns={columns} 
+                        dataSource={this.state.deviceList} 
+                        pagination={pagination} />
+                    </div>
                     <Modal 
                         title={ formatMessage({id: "LANG757"}) }
-                        visible={this.state.audoDiscoverVisible}
+                        visible={this.state.autoDiscoverVisible}
                         onOk={this._handleAutoDiscover} 
                         onCancel={this._handleCancel}
                         okText={formatMessage({id: "LANG727"})}
@@ -374,7 +630,12 @@ class Devices extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }, { 
                                         validator: (data, value, callback) => {
-                                            Validator.ipAddress(data, value, callback, formatMessage)
+                                            // Validator.ipAddress(data, value, callback, formatMessage)
+                                            if (!value || /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/i.test(value)) {
+                                                callback()
+                                            } else {
+                                                callback(formatMessage({id: "LANG2195"}))
+                                            }
                                         }
                                     }, { 
                                         validator: (data, value, callback) => {

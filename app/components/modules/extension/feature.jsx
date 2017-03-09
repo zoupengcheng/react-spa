@@ -138,6 +138,30 @@ class Feature extends Component {
             return false
         }
     }
+    _addFWDWhiteList = () => {
+        const { form } = this.props
+        const { formatMessage } = this.props.intl
+
+        // can use data-binding to get
+        const fwdwhiteLists = form.getFieldValue('fwdwhiteLists')
+
+        if (fwdwhiteLists.length <= 8) {
+            const newFWDWhiteLists = fwdwhiteLists.concat(this._generateWhiteListID(fwdwhiteLists))
+
+            // can use data-binding to set
+            // important! notify form to detect changes
+            form.setFieldsValue({
+                fwdwhiteLists: newFWDWhiteLists
+            })
+        } else {
+            message.warning(formatMessage({id: "LANG809"}, {
+                    0: '',
+                    1: 10
+                }))
+
+            return false
+        }
+    }
     _filterCodecsSource = () => {
         const currentEditId = this.props.currentEditId
 
@@ -283,8 +307,21 @@ class Feature extends Component {
         // can use data-binding to set
         form.setFieldsValue(fieldsValue)
     }
+    _removeFWDWhiteList = (k) => {
+        let fieldsValue = {}
+        const { form } = this.props
+        // can use data-binding to get
+        const fwdwhiteLists = form.getFieldValue('fwdwhiteLists')
+
+        fieldsValue['fwdwhitelist' + k] = ''
+        fieldsValue.fwdwhiteLists = fwdwhiteLists.filter(item => item.key !== k)
+
+        // can use data-binding to set
+        form.setFieldsValue(fieldsValue)
+    }
     render() {
         let whiteListIds = []
+        let fwdwhiteListIds = []
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const settings = this.props.settings || {}
@@ -294,6 +331,7 @@ class Feature extends Component {
         const { getFieldDecorator, getFieldValue } = this.props.form
         const seamless_transfer_members = settings.seamless_transfer_members
         const dndwhitelist = settings.dndwhitelist ? settings.dndwhitelist.split(',') : []
+        const fwdwhitelist = settings.fwdwhitelist ? settings.fwdwhitelist.split(',') : []
 
         const formItemLayout = {
             labelCol: { span: 8 },
@@ -302,12 +340,12 @@ class Feature extends Component {
 
         const formItemLayoutRow = {
             labelCol: { span: 4 },
-            wrapperCol: { span: 8 }
+            wrapperCol: { span: 6 }
         }
 
         const formItemLayoutTransfer = {
             labelCol: { span: 4 },
-            wrapperCol: { span: 20 }
+            wrapperCol: { span: 8 }
         }
 
         _.map(dndwhitelist, function(value, key) {
@@ -318,7 +356,16 @@ class Feature extends Component {
             }
         })
 
+        _.map(fwdwhitelist, function(value, key) {
+            if (key > 0) {
+                fwdwhiteListIds.push({
+                    key: parseInt(key + 1)
+                })
+            }
+        })
+
         getFieldDecorator('whiteLists', { initialValue: whiteListIds })
+        getFieldDecorator('fwdwhiteLists', { initialValue: fwdwhiteListIds })
         getFieldDecorator('callbarging_monitor', { initialValue: callbarging_monitor })
         getFieldDecorator('seamless_transfer_members', { initialValue: seamless_transfer_members })
 
@@ -326,12 +373,12 @@ class Feature extends Component {
         const whiteListFormItems = whiteLists.map((item, index) => {
             return (
                 <Col
+                    span={ 24 }
                     key={ item.key }
-                    span={ 12 }
                     className={ this.state.dnd ? 'display-block' : 'hidden' }
                 >
                     <FormItem
-                        { ...formItemLayout }
+                        { ...formItemLayoutRow }
                         label={(
                             <span>
                                 <Tooltip title={ <FormattedHTMLMessage id="LANG5177" /> }>
@@ -350,6 +397,39 @@ class Feature extends Component {
                         <Icon
                             type="minus-circle-o"
                             onClick={ () => this._removeWhiteList(item.key) }
+                            className="dynamic-network-button"
+                        />
+                    </FormItem>
+                </Col>
+            )
+        })
+
+        const fwdwhiteLists = getFieldValue('fwdwhiteLists')
+        const fwdwhiteListFormItems = fwdwhiteLists.map((item, index) => {
+            return (
+                <Col
+                    span={ 24 }
+                    key={ item.key }
+                >
+                    <FormItem
+                        { ...formItemLayoutRow }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG5470" /> }>
+                                    <span>{ formatMessage({id: "LANG5469"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator(`fwdwhitelist${item.key}`, {
+                            rules: [],
+                            initialValue: item.new ? '' : fwdwhitelist[item.key - 1]
+                        })(
+                            <Input />
+                        ) }
+                        <Icon
+                            type="minus-circle-o"
+                            onClick={ () => this._removeFWDWhiteList(item.key) }
                             className="dynamic-network-button"
                         />
                     </FormItem>
@@ -572,11 +652,11 @@ class Feature extends Component {
                             </FormItem>
                         </Col>
                         <Col
-                            span={ 12 }
+                            span={ 24 }
                             className={ this.state.dnd ? 'display-block' : 'hidden' }
                         >
                             <FormItem
-                                { ...formItemLayout }
+                                { ...formItemLayoutRow }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5177" /> }>
@@ -600,6 +680,31 @@ class Feature extends Component {
                             </FormItem>
                         </Col>
                         { whiteListFormItems }
+                        <Col span={ 24 }>
+                            <FormItem
+                                { ...formItemLayoutRow }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5470" /> }>
+                                            <span>{ formatMessage({id: "LANG5469"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('fwdwhitelist1', {
+                                    rules: [],
+                                    initialValue: fwdwhitelist.length ? fwdwhitelist[0] : ''
+                                })(
+                                    <Input />
+                                ) }
+                                <Icon
+                                    type="plus-circle-o"
+                                    onClick={ this._addFWDWhiteList }
+                                    className="dynamic-network-button"
+                                />
+                            </FormItem>
+                        </Col>
+                        { fwdwhiteListFormItems }
                     </Row>
                     <Row
                         className={ extension_type === 'iax' ? 'hidden' : 'display-block' }
@@ -691,7 +796,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_max_agents ? settings.cc_max_agents : 10,
+                                    initialValue: settings.cc_max_agents ? settings.cc_max_agents + '' : '10',
                                     className: (extension_type === 'sip' && this.state.enable_cc && this.state.cc_mode === 'trunk')
                                             ? 'display-block'
                                             : 'hidden'
@@ -725,7 +830,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cc_max_monitors ? settings.cc_max_monitors : 10,
+                                    initialValue: settings.cc_max_monitors ? settings.cc_max_monitors + '' : '10',
                                     className: (extension_type === 'sip' && this.state.enable_cc && this.state.cc_mode === 'trunk')
                                             ? 'display-block'
                                             : 'hidden'
@@ -816,6 +921,26 @@ class Feature extends Component {
                                         <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
                                         <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
                                     </Select>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5472" /> }>
+                                            <span>{ formatMessage({id: "LANG5471"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('use_callee_dod_on_fwd_rb', {
+                                    rules: [],
+                                    valuePropName: 'checked',
+                                    initialValue: settings.use_callee_dod_on_fwd_rb ? (settings.use_callee_dod_on_fwd_rb === 'yes') : false
+                                })(
+                                    <Checkbox />
                                 ) }
                             </FormItem>
                         </Col>
@@ -1077,7 +1202,7 @@ class Feature extends Component {
                             span={ 24 }
                         >
                             <FormItem
-                                { ...formItemLayoutRow }
+                                { ...formItemLayoutTransfer }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5081" /> }>
@@ -1111,7 +1236,7 @@ class Feature extends Component {
                             span={ 24 }
                         >
                             <FormItem
-                                { ...formItemLayoutRow }
+                                { ...formItemLayoutTransfer }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5296" /> }>

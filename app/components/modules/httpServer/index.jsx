@@ -8,7 +8,7 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Form, Input, Tabs, message } from 'antd'
+import { Form, Input, Tabs, message, Modal } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
 import { browserHistory } from 'react-router'
@@ -39,8 +39,34 @@ class Http extends Component {
             })
         }
     }
+    _doSave() {
+        const me = this
+        $.ajax({
+            url: "../cgi?",
+            type: "POST",
+            data: {
+                'action': 'reloadHttpConf',
+                'reflash_conf': '0'
+            }, 
+            dataType: 'json',
+            error: function(jqXHR, textStatus, errorThrown) {
+                // top.dialog.dialogMessage({
+                //     type: 'error',
+                //     content: errorThrown
+                // });
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data)
+
+                if (bool) {
+                    me._jumpTo()
+                }
+            }
+        })
+    }
     _jumpTo = () => {
         const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
 
         message.loading(formatMessage({ id: "LANG806" }), 0)
 
@@ -53,63 +79,67 @@ class Http extends Component {
         setTimeout(function() {
             message.destroy()
 
-            var webHttps = $("#web_https option:selected").text(),
-                webPort = $('#web_port').val()
-
-            if (webHttps.toLowerCase() === "http") {
-                location.href = "http://" + top.location.hostname + ":" + webPort + top.location.pathname
-            } else if (webHttps.toLowerCase() === "https") {
-                location.href = "https://" + top.location.hostname + ":" + webPort + top.location.pathname
-            }
+            window.location.reload()
         }, 5000)
     }
     _handleCancel = () => {
         browserHistory.push('/system-settings/httpServer')
     }
+    _realSubmit = (values) => {
+        const { formatMessage } = this.props.intl
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
+        message.loading(formatMessage({ id: "LANG826" }), 0)
+
+        let action = _.clone(values)
+
+        action.action = 'updateHttpServer'
+
+        action.web_https = (action.web_https === 'disable' ? '0' : '1')
+        delete action.cookie_timeout
+        delete action.login_max_num
+        delete action.login_band_time
+        delete action.white_ip_addr
+
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: action,
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(formatMessage({ id: "LANG844" }))
+                    this._doSave()
+                }
+            }.bind(this)
+        })
+    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             // delete err.white_ip_addr
             if (!err) {
                 console.log('Received values of form: ', values)
-
-                message.loading(formatMessage({ id: "LANG826" }), 0)
-
-                let action = _.clone(values)
-
-                action.action = 'updateHttpServer'
-
-                action.web_https = (action.web_https === 'disable' ? '0' : '1')
-                delete action.cookie_timeout
-                delete action.login_max_num
-                delete action.login_band_time
-                delete action.white_ip_addr
-
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    async: false,
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(formatMessage({ id: "LANG815" }))
-                            this._jumpTo()
-                        }
-                    }.bind(this)
-                })
-
-                if (values.cookie_timeout !== undefined) {
+                if (this.state.activeKey === '1') {
+                    Modal.confirm({
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG807" })}}></span>,
+                        okText: formatMessage({id: "LANG727"}),
+                        cancelText: formatMessage({id: "LANG726"}),
+                        onOk: this._realSubmit.bind(this, values),
+                        onCancel: this._handleCancel
+                    })
+                } else if (this.state.activeKey === '2') { 
                     let action_log = {}
                     action_log.action = 'updateLoginParam'
-                    action_log.cookie_timeout = values.cookie_timeout
+                    action_log.cookie_timeout = values.cookie_timeout * 60
                     action_log.login_max_num = values.login_max_num
                     action_log.login_band_time = values.login_band_time * 60
                     $.ajax({
@@ -126,7 +156,7 @@ class Http extends Component {
 
                             if (bool) {
                                 message.destroy()
-                                message.success(formatMessage({ id: "LANG815" }))
+                                message.success(successMessage)
                             }
                         }.bind(this)
                     })

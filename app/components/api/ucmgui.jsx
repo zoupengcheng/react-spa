@@ -14,6 +14,7 @@ import cookie from 'react-cookie'
 const baseServerURl = api.apiHost
 
 let loginInterval = null
+let checkInterval = null    
 let UCMGUI = function() {}
 
 UCMGUI.prototype = {
@@ -707,6 +708,51 @@ UCMGUI.prototype = {
         } 
         return val
     },
+    triggerCheckInfo: function(formatMessage) {
+        const checkInfo = () => {
+            let username = cookie.load("username")
+
+            if (username) {
+                $.ajax({
+                    method: "post",
+                    url: api.apiHost,
+                    data: {
+                        action: 'checkInfo',
+                        user: username
+                    },
+                    async: false,
+                    success: function(data) {
+                        if (data && data.status === 0) {
+                            let zcScanProgress = data.response.zc_scan_progress
+                            if (zcScanProgress === '0') {
+                                clearInterval(checkInterval)
+                                checkInterval = null
+                                Modal.confirm({
+                                    title: formatMessage({id: "LANG917"}),
+                                    content: '',
+                                    okText: 'OK',
+                                    cancelText: 'Cancel',
+                                    onOk: () => {
+                                        browserHistory.push('/value-added-features/zeroConfig/showDevices/res')
+                                    },
+                                    onCancel: () => {
+                                    }
+                                })                            
+                            } else {
+
+                            }
+                        }
+                    },
+                    error: function(e) {
+                        console.log(e.statusText)
+                    }
+                })
+            }
+        }
+        checkInterval = setInterval(function() {
+                                        checkInfo()
+                                    }, 60000)
+    },
     // getPrivilegeAction: function(actionData, privilegeData, actionType) {
     //     let action = actionData["action"],
     //         obj = {};
@@ -949,6 +995,42 @@ UCMGUI.prototype = {
             }
         }
         return arr.join("&")
+    },
+    rChop: function(b, c) { // chop a string from the end of the string
+        if (b.indexOf(c) === -1 || !b.endsWith(c)) {
+            return String(b) // actually we should be doing 'return this;' but for some reason firebug is reporting the returned string as an object
+        }
+        return b.substr(0, b.length - c.length)
+    },
+    afterChar: function(j, k) {
+        if (k.length > 1) {
+            alert('String.afterChar() should be used with a single character')
+            return null
+        }
+        let v = j.indexOf(k)
+        if (v === -1) {
+            return ''
+        }
+        return j.substring(v + 1)
+    },
+    beforeChar: function(j, k) {
+        if (k.length > 1) {
+            alert('String.beforeChar() should be used with a single character')
+            return null
+        }
+        let v = j.indexOf(k)
+        if (v === -1) {
+            return ''
+        }
+        return j.substring(0, v)
+    },
+    betweenXY: function(R, X, Y) {
+        if (X.length > 1 || Y.length > 1) {
+            alert('String.betweenXY() accepts single character arguments')
+            return null
+        }
+        let t = UCMGUI.prototype.afterChar(R, X)
+        return UCMGUI.prototype.beforeChar(t, Y)
     }
 }
 

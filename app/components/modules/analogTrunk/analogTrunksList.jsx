@@ -136,7 +136,7 @@ class AnalogTrunksList extends Component {
                         </Button>
                     </div>
                     <Table 
-                        rowSelection={false} 
+                        rowSelection={undefined} 
                         columns={columns} 
                         dataSource={this.state.analogTrunk} 
                         pagination={pagination} 

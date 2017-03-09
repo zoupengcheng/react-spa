@@ -21,13 +21,33 @@ class ExportLdapPhonebook extends Component {
         this.state = {
         }
         this._handleSave = () => {
+            const { getFieldValue } = this.props.form
+
             this.props.handleOk()
+            let sPhonebookData = this._transBook().sPhonebookData 
+            window.open(baseServerURl + 'action=downloadFile&type=export_' + getFieldValue("export_type") + '_phonebooks&data=' + sPhonebookData, '_self')
         }
         this._handleCancel = () => {
             this.props.handleCancel()
         }
     }
     componentDidMount() {
+    }
+    _transBook = () => {
+        let sPhonebookList = "",
+            sPhonebookData = ""
+
+        this.props.selectedRowKeys.map(function (it) {
+            sPhonebookList += it.split(",")[0].split("=")[1] + ', '
+            sPhonebookData += "'" + it + "',"
+        })
+        sPhonebookData = sPhonebookData.slice(0, -1)
+        sPhonebookList = sPhonebookList.slice(0, -2)
+
+        return {
+            sPhonebookData: sPhonebookData,
+            sPhonebookList: sPhonebookList
+        }
     }
     render() {
         const { getFieldDecorator, getFieldValue } = this.props.form
@@ -36,6 +56,8 @@ class ExportLdapPhonebook extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
+
+        let sPhonebookList = this._transBook().sPhonebookList
 
         return (
             <div className="content">
@@ -57,7 +79,7 @@ class ExportLdapPhonebook extends Component {
                     <FormItem
                         { ...formItemLayout }
                         label={ formatMessage({id: "LANG576"}) }>
-                        <span ref="phonebook_wrap"></span>
+                        <span> { sPhonebookList || formatMessage({ id: "LANG3916" })}</span>
                     </FormItem>
                     <div className="app-ant-modal-footer">
                         <Button type="primary" onClick= { this._handleCancel }>

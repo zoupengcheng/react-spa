@@ -106,6 +106,10 @@ class Backup extends Component {
             wrapperCol: { span: 6 }
         }
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: model_info.model_name,
+                    1: formatMessage({id: "LANG62"})
+                })
 
         return (
             <div className="app-content-main" id="app-content-main">

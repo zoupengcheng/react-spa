@@ -20,7 +20,7 @@ class RecordingStorageSettings extends Component {
         super(props)
         this.state = {
             disabledStoreDevice: false,
-            autoSelectDevice: 'no',
+            autoSelectDevice: 'yes',
             storeDeviceValue: 'local',
             displayUSD: true,
             displaySD: true,
@@ -35,7 +35,7 @@ class RecordingStorageSettings extends Component {
         this._getInterfaceStatus()
         this._getRecordingLink()
         this.setState({
-            autoRefresh: setInterval(this._autoRefresh, 3000)
+            autoRefresh: setInterval(this._autoRefresh, 8000)
         })
     }
     ponentWillUnmount() {
@@ -43,8 +43,8 @@ class RecordingStorageSettings extends Component {
     }
 
     _autoRefresh = () => {
-        // this._getInterfaceStatus()
-        // this._getRecordingLink()
+        this._getInterfaceStatus()
+        this._getRecordingLink()
     }
 
     _getInterfaceStatus = () => {
@@ -66,7 +66,7 @@ class RecordingStorageSettings extends Component {
                     enablesd = res.response['interface-sdcard']
                     enableusb = res.response['interface-usbdisk']
 
-                    if (enablesd === 'true') {
+                    if (enableusb === 'true') {
                         this.setState({
                             displayUSD: true
                         })
@@ -75,7 +75,7 @@ class RecordingStorageSettings extends Component {
                             displayUSD: false
                         })
                     }
-                    if (enableusb === 'true') {
+                    if (enablesd === 'true') {
                         this.setState({
                             displaySD: true
                         })
@@ -93,7 +93,7 @@ class RecordingStorageSettings extends Component {
     }
 
     _getCheckDevice = () => {
-        let autoSelectDevice = 'no'
+        let autoSelectDevice = 'yes'
 
         $.ajax({
             url: api.apiHost,
@@ -110,9 +110,11 @@ class RecordingStorageSettings extends Component {
                     const response = res.response || {}
 
                     autoSelectDevice = response.auto_or_no
-                    this.setState({
-                        autoSelectDevice: autoSelectDevice
-                    })
+                    if (autoSelectDevice === 'no') {
+                        this.setState({
+                            autoSelectDevice: autoSelectDevice
+                        })
+                    }
                 }
             }.bind(this),
             error: function(e) {
