@@ -136,7 +136,7 @@ class ExtensionGroup extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getMiniBar()
                 }
             }.bind(this),
             error: function(e) {
@@ -170,7 +170,7 @@ class ExtensionGroup extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getMiniBarWaiter()
                 }
             }.bind(this),
             error: function(e) {
@@ -204,7 +204,7 @@ class ExtensionGroup extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getExtensionGroups()
+                    this._getMiniBarGoods()
                 }
             }.bind(this),
             error: function(e) {

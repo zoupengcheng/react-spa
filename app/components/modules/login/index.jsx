@@ -153,7 +153,11 @@ const Login = React.createClass({
 
                         this.getFeatureLimits()
 
-                        browserHistory.push('/system-status/dashboard')
+                        if (localStorage.getItem('role') === 'privilege_3') {
+                            browserHistory.push('/user-basic-information/userInformation')
+                        } else {
+                            browserHistory.push('/system-status/dashboard')
+                        }
 
                         // $(".errorInfo").css("visibility", "hidden")
                         // $P.lang(doc, true, true)

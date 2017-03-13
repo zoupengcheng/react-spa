@@ -165,6 +165,10 @@ class WaiterItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: this.state.waiterItem.waiter_id
@@ -185,6 +189,10 @@ class WaiterItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: this.state.waiterItem.secret

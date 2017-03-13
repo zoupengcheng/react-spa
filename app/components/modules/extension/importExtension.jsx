@@ -22,13 +22,13 @@ class Media extends Component {
     onChange(activeKey) {
         if (activeKey === "1") {
 
-        } else {            
-            
+        } else {
+
         }
     }
     render() {
         const {formatMessage} = this.props.intl
-        
+
         return (
             <div className="app-content-main" id="app-content-main">
                 {"Media"}

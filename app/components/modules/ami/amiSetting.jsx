@@ -20,7 +20,8 @@ class AMISetting extends Component {
             roomList: [],
             availableAccountList: [],
             roomItem: {},
-            openPort: ["22"],
+            usedPort: ["22"],
+            rangeUsedPort: [],
             hasKey: false,
             hasCert: false
         }
@@ -28,7 +29,7 @@ class AMISetting extends Component {
     componentWillMount() {
     }
     componentDidMount() {
-        this._getOpenPort()
+        this._getUsedPort()
         this._getInitData()
         this._checkFile()
     }
@@ -44,14 +45,31 @@ class AMISetting extends Component {
     _checkOpenPort = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
         const { getFieldValue } = this.props.form
-        const port = getFieldValue('port')
-        const tlsbindport = getFieldValue('tlsbindport')
+        const port = getFieldValue('port') + ''
+        const tlsbindport = getFieldValue('tlsbindport') + ''
+        let openPort = this.state.usedPort
+        openPort = _.without(openPort, this.state.amiItem.port)
+        openPort = _.without(openPort, this.state.amiItem.tlsbindport)
+
         if (port === tlsbindport) {
             callback(formatMessage({id: "LANG3869"}))
-        } else if (value && _.indexOf(this.state.openPort, value) > -1) {
+        } else if (value && _.indexOf(openPort, value) > -1) {
             callback(formatMessage({id: "LANG3869"}))
         } else {
-            callback()
+            let used = false
+            this.state.rangeUsedPort.map(function(item) {
+                let min = parseInt(item.split('-')[0])
+                let max = parseInt(item.split('-')[1])
+                let valuenum = parseInt(value)
+                if (valuenum >= min && valuenum <= max) {
+                    used = true
+                }
+            })
+            if (used) {
+                callback(formatMessage({id: "LANG3869"}))
+            } else {
+                callback()
+            }
         }
     }
     _doNothing = () => {
@@ -105,12 +123,14 @@ class AMISetting extends Component {
             hasKey: hasKey
         })
     }
-    _getOpenPort = () => {
-        let openPort = this.state.openPort
+    _getUsedPort = () => {
+        let usedPort = this.state.usedPort
+        let rangeUsedPort = this.state.rangeUsedPort
+        const me = this
         $.ajax({
             url: api.apiHost,
             method: "post",
-            data: { action: 'getNetstatInfo' },
+            data: { action: 'getUsedPortInfo' },
             type: 'json',
             async: false,
             error: function(e) {
@@ -121,58 +141,23 @@ class AMISetting extends Component {
 
                 if (bool) {
                     let response = data.response
-                    const netstat = response.netstat
+                    const usedport = response.usedport
                     
-                    netstat.map(function(item) {
-                        if ($.inArray(item.port, openPort) > -1) {
+                    usedport.map(function(item) {
+                        if ($.inArray(item.port, usedPort) > -1 || $.inArray(item.port, rangeUsedPort) > -1) {
 
+                        } else if (_.indexOf(item.port, '-') > -1) {
+                            rangeUsedPort.push(item.port)
                         } else {
-                            openPort.push(item.port)
+                            usedPort.push(item.port)
                         }
                     })
                 }
             }.bind(this)
         })
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: { action: 'getSIPTCPSettings' },
-            async: false,
-            type: "json",
-            error: function(jqXHR, textStatus, errorThrown) {
-                // top.dialog.dialogMessage({
-                //     type: 'error',
-                //     content: errorThrown
-                // });
-            },
-            success: function(data) {
-                var bool = UCMGUI.errorHandler(data)
-
-                if (bool) {
-                    let tlsbindaddr = data.response.sip_tcp_settings.tlsbindaddr
-                    let tcpbindaddr = data.response.sip_tcp_settings.tcpbindaddr
-
-                    if (tlsbindaddr) {
-                        let tlsPort = tlsbindaddr.split(":")[1]
-
-                        if (tlsPort && !($.inArray(tlsPort, openPort) > -1)) {
-                            openPort.push(tlsPort)
-                        }
-                    }
-
-                    if (tcpbindaddr) {
-                        let tcpPort = tcpbindaddr.split(":")[1]
-
-                        if (tcpPort && !($.inArray(tcpPort, openPort) > -1)) {
-                            openPort.push(tcpPort)
-                        }
-                    }
-                }
-            }
-        })
-
         this.setState({
-            openPort: openPort
+            usedPort: usedPort,
+            rangeUsedPort: rangeUsedPort
         })
     }
     _filterTransferOption = (inputValue, option) => {

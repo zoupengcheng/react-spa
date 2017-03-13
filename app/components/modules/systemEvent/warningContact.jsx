@@ -346,6 +346,9 @@ class WarningContact extends Component {
                                 <FormItem>
                                     {getFieldDecorator("super_0", {
                                         rules: [{
+                                            required: this.props.enEmail,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
                                             validator: (data, value, callback) => {
                                                 Validator.email(data, value, callback, formatMessage)
                                             }

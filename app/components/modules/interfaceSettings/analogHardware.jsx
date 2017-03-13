@@ -567,8 +567,8 @@ class AnalogHardware extends Component {
                         { ...formItemLayout }
 
                         label={(
-                            <Tooltip title={<FormattedHTMLMessage id="LANG1705" />}>
-                                <span>{formatMessage({id: "LANG1704"})}</span>
+                            <Tooltip title={<FormattedHTMLMessage id="LANG1722" />}>
+                                <span>{formatMessage({id: "LANG1723"})}</span>
                             </Tooltip>
                         )}>
                         <Col span={12}>

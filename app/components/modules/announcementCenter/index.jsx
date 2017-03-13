@@ -62,7 +62,7 @@ class Announcement extends Component {
                 title: '',
                 content: confirmContent,
                 onOk() {
-                    browserHistory.push('/value-added-features/announcementCenter')
+                    browserHistory.push('/extension-trunk/extension')
                 },
                 onCancel() {},
                 okText: formatMessage({id: "LANG727"}),

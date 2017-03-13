@@ -10,6 +10,7 @@ import Footer from './footer'
 import Container from './container'
 import { injectIntl} from 'react-intl'
 import { Icon, Spin } from 'antd'
+import menusData from './../locales/menusData.json'
 
 let Home = React.createClass({
     render() {
@@ -61,11 +62,16 @@ let App = React.createClass({
     render() {
         const { formatMessage } = this.props.intl
         const collapse = this.state.collapse
+        let subMenus = menusData.subMenus
+
+        if (localStorage.getItem('role') === 'privilege_3') {
+            subMenus = menusData.userPortalMenus
+        }
         const container = (
             <div className={ collapse ? "app-wrapper app-wrapper-collapse" : "app-wrapper" }>
                 <div className="app-container">
                     <Header />
-                    <SideBar collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
+                    <SideBar subMenus={subMenus} collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
                     <div className="app-main">
                         <Container>
                             { this.renderChild() }

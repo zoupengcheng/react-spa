@@ -75,8 +75,11 @@ class AnnouncementCenter extends Component {
     }
     _checkExtension = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
+        const centerId = this.props.params.id
 
-        if (value && _.indexOf(this.state.numberList, value) > -1) {
+        if (centerId && value && centerId === value) {
+            callback()
+        } else if (value && _.indexOf(this.state.numberList, value) > -1) {
             callback(formatMessage({id: "LANG2126"}))
         } else if (value && _.indexOf(this.state.codeNumberList, value) > -1) {
             callback(formatMessage({id: "LANG2126"}))

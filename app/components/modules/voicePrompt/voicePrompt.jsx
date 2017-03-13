@@ -428,35 +428,43 @@ class VoicePrompt extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5391" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>
 
-        message.loading(loadingMessage)
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
+            if (!err) {
 
-        let downloadAllName = form.getFieldValue("pack_name")
-
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                action: "packFile",
-                type: "ivr",
-                data: downloadAllName + '.tar'
-            },
-            type: 'json',
-            async: true,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    window.open("/cgi?action=downloadFile&type=ivr&data=" + encodeURIComponent(downloadAllName + '.tar'), '_self')
-                    message.destroy()
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
             }
+            if (err && err.hasOwnProperty('pack_name')) {
+                return
+            }
+            message.loading(loadingMessage)
+
+            let downloadAllName = form.getFieldValue("pack_name")
+            $.ajax({
+                url: api.apiHost,
+                method: 'post',
+                data: {
+                    action: "packFile",
+                    type: "ivr",
+                    data: downloadAllName + '.tar'
+                },
+                type: 'json',
+                async: true,
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        window.open("/cgi?action=downloadFile&type=ivr&data=" + encodeURIComponent(downloadAllName + '.tar'), '_self')
+                        message.destroy()
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
         })
     }
     _downloadAll = () => {
         const { formatMessage } = this.props.intl
+        const { setFieldsValue } = this.props.form
 
         const tmpDate = new Date()
         const y = tmpDate.getFullYear()
@@ -466,10 +474,12 @@ class VoicePrompt extends Component {
         const mi = addZero(tmpDate.getMinutes())
         const s = addZero(tmpDate.getSeconds())
         const initPackName = 'prompt_' + y + m + d + '_' + h + mi + s
-        this.setState({
+        /* this.setState({
             initPackName: initPackName
+        }) */
+        setFieldsValue({
+            'pack_name': initPackName
         })
-
         if (this.state.fileList.length === 0) {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG28"})})}} ></span>,

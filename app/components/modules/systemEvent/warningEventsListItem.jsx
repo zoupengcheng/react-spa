@@ -258,12 +258,12 @@ class EventListItem extends Component {
         ]
 
         const formItemLayout = {
-            labelCol: { span: 12 },
-            wrapperCol: { span: 12 }
+            labelCol: { span: 3 },
+            wrapperCol: { span: 6 }
         }
         const formItemDenyLayout = {
-            labelCol: { span: 12 },
-            wrapperCol: { span: 18 }
+            labelCol: { span: 6 },
+            wrapperCol: { span: 6 }
         }
 
         const title = formatMessage({id: "LANG2567"}, {0: formatMessage({id: events[ID - 1]})})
@@ -288,16 +288,16 @@ class EventListItem extends Component {
                 <div className="content">
                     <Form>
                         <Row className={ this.state.cycleShow ? 'display-block' : 'hidden' } >
-                            <Col span={ 6 } >
-                                <FormItem
-                                    ref="div_cycle_time"
-                                    { ...formItemLayout }
+                            <FormItem
+                                ref="div_cycle_time"
+                                { ...formItemLayout }
 
-                                    label={(
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG2569" />}>
-                                            <span>{formatMessage({id: "LANG2568"})}</span>
-                                        </Tooltip>
-                                    )}>
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG2569" />}>
+                                        <span>{formatMessage({id: "LANG2568"})}</span>
+                                    </Tooltip>
+                                )}>
+                                <Col span={ 15 } >
                                     { getFieldDecorator('cycle_time', {
                                         rules: [{
                                                 required: this.state.cycleShow,
@@ -315,12 +315,8 @@ class EventListItem extends Component {
                                     })(
                                         <Input min={ this.state.cycle_time_min } max={ this.state.cycle_time_max } />
                                     ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 3 }>
-                                <FormItem
-                                    ref="div_cycle_unit"
-                                    { ...formItemLayout }>
+                                </Col>
+                                <Col span={ 8 } offset={1}>
                                     { getFieldDecorator('cycle_unit', {
                                         rules: [],
                                         initialValue: cycle_unit
@@ -332,20 +328,20 @@ class EventListItem extends Component {
                                             <Option value="d">{ formatMessage({id: "LANG2578"}) }</Option>
                                         </Select>
                                     ) }
-                                </FormItem>
-                            </Col>
+                                </Col>
+                            </FormItem>
                         </Row>
                         <Row className={ this.state.thresholdValueShow ? 'display-block' : 'hidden' }>
-                            <Col span={ 6 }>
-                                <FormItem
-                                    ref="div_percent"
-                                    { ...formItemLayout }
+                            <FormItem
+                                ref="div_percent"
+                                { ...formItemLayout }
 
-                                    label={(
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG2571" />}>
-                                            <span>{formatMessage({id: "LANG2570"})}</span>
-                                        </Tooltip>
-                                    )}>
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG2571" />}>
+                                        <span>{formatMessage({id: "LANG2570"})}</span>
+                                    </Tooltip>
+                                )}>
+                                <Col span={ 15 }>
                                     { getFieldDecorator('percent', {
                                         rules: [{
                                             required: this.state.thresholdValueShow,
@@ -363,23 +359,23 @@ class EventListItem extends Component {
                                     })(
                                         <Input min={ 1 } max={ 100 } />
                                     ) }
-                                </FormItem>
-                            </Col>
-                            <Col>
-                                <span>%</span>
-                            </Col>
+                                </Col>
+                                <Col span={8} offset={1}>
+                                    <span>%</span>
+                                </Col>
+                            </FormItem>
                         </Row>
                         <Row className={ this.state.sendDelayShow ? 'display-block' : 'hidden' } >
-                            <Col span={ 9 }>
-                                <FormItem
-                                    ref="div_send_delay"
-                                    { ...formItemLayout }
+                            <FormItem
+                                ref="div_send_delay"
+                                { ...formItemDenyLayout }
 
-                                    label={(
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG5349" />}>
-                                            <span>{formatMessage({id: "LANG5348"})}</span>
-                                        </Tooltip>
-                                    )}>
+                                label={(
+                                    <Tooltip title={<FormattedHTMLMessage id="LANG5349" />}>
+                                        <span>{formatMessage({id: "LANG5348"})}</span>
+                                    </Tooltip>
+                                )}>
+                                    <Col span={ 15 }>
                                     { getFieldDecorator('send_delay', {
                                         rules: [{
                                                 required: this.state.sendDelayShow,
@@ -395,13 +391,13 @@ class EventListItem extends Component {
                                             }],
                                         initialValue: dataItem.send_delay
                                     })(
-                                        <Input min={ 1 } max={ 1440 } />
+                                        <Input min={ 0 } max={ 1440 } />
                                     ) }
-                                </FormItem>
-                            </Col>
-                            <Col>
-                                <span>{ formatMessage({id: "LANG2576"}) }</span>
-                            </Col>
+                                </Col>
+                                <Col span={8} offset={1}>
+                                    <span>{ formatMessage({id: "LANG2576"}) }</span>
+                                </Col>
+                            </FormItem>
                         </Row>
                     </Form>
                 </div>

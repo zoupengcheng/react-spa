@@ -234,6 +234,10 @@ class GoodsItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: goodsItem.extension
@@ -254,6 +258,10 @@ class GoodsItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: goodsItem.goods_name

@@ -1,6 +1,7 @@
 'use strict'
 
 import $ from 'jquery'
+import '../../../css/activityCall'
 import _ from 'underscore'
 import api from "../../api/api"
 import { message, Button, Row, Col, Popconfirm, Modal, Select, Checkbox, Form, Input, Tooltip } from 'antd'
@@ -25,11 +26,65 @@ class ActivityCall extends Component {
         super(props)
         this.state = {
             visible: false,
-            callList: []
+            callList: [],
+            activeCallStatus: []
         }
     }
     componentDidMount() {
-        this.props.loadBridgeChannel()
+        this._loadBridgeChannel()
+    }
+    _loadBridgeChannel = () => {
+        $.ajax({
+            type: 'json',
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                "action": 'listBridgedChannels',
+                "sidx": "callerid1",
+                "sord": "asc"
+            },
+            success: function(res) {
+                var bridgeChannel = []
+                const response = res.response || {}
+
+                if (response.channel) {
+                    bridgeChannel = response.channel
+                }
+
+                $.ajax({
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    data: {
+                        "action": 'listUnBridgedChannels',
+                        "sidx": "state",
+                        "sord": "asc"
+                    },
+                    success: function(res) {
+                        var unBridgeChannel = []
+                        const response = res.response || {}
+
+                        if (response.channel) {
+                            unBridgeChannel = response.channel
+                        }
+
+                        _.each(bridgeChannel, function(item) {
+                            unBridgeChannel.push(item)
+                        })
+
+                        this.setState({
+                            activeCallStatus: unBridgeChannel
+                        })
+                    }.bind(this),
+                    error: function(e) {
+                        console.log(e.statusText)
+                    }
+                })
+            }.bind(this),
+            error: function(e) {
+                console.log(e.statusText)
+            }
+        })
     }
     _hangUpAll = () => {
         const { formatMessage } = this.props.intl
@@ -37,7 +92,7 @@ class ActivityCall extends Component {
         let warningMessage = <span
                                 dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG129" }, { 0: formatMessage({id: "LANG3006"}) })}}>
                             </span>
-        if (this.props.activeCallStatus.length !== 0) {
+        if (this.state.activeCallStatus.length !== 0) {
             _.each(channel1Array, function(item, key) {
                 let channel1 = item,
                     channel2 = channel2Array[key]
@@ -77,7 +132,7 @@ class ActivityCall extends Component {
             })
 
             message.success(successMessage)
-            this.props.loadBridgeChannel()
+            this._loadBridgeChannel()
         } else {
             message.warning(warningMessage)
         }
@@ -119,7 +174,7 @@ class ActivityCall extends Component {
                             if (bool) {
                                 message.destroy()
                                 message.success(successMessage)
-                                self.props.loadBridgeChannel()
+                                self._loadBridgeChannel()
                             }
                         }.bind(this),
                         error: function(e) {
@@ -129,7 +184,7 @@ class ActivityCall extends Component {
                 } else {
                     message.destroy()
                     message.success(successMessage)
-                    self.props.loadBridgeChannel()
+                    self._loadBridgeChannel()
                 }
             }.bind(this),
             error: function(e) {
@@ -340,7 +395,32 @@ class ActivityCall extends Component {
             wrapperCol: { span: 12 }
         }
         const model_info = JSON.parse(localStorage.getItem('model_info'))
-        let activeCallStatus = this.props.activeCallStatus
+
+        let activeCallStatus = this.state.activeCallStatus
+
+        let socketStatus = this.props.activeCallStatus,
+            socketObj = {}
+
+        if (socketStatus.length > 0) {
+            socketObj = socketStatus[0]
+
+            if (socketObj.action === 'add') {
+                activeCallStatus.push(socketObj)
+            } else if (socketObj.action === 'delete') {
+                _.each(activeCallStatus, function(item, key) {
+                    if (item.channel === socketObj.channel) {
+                        activeCallStatus.splice(key, 1)
+                    }
+                })
+            } else if (socketObj.action === 'update') {
+                _.each(activeCallStatus, function(item, key) {
+                    if (item.channel === socketObj.channel) {
+                        activeCallStatus.splice(key, 1, item)
+                    }
+                })
+            }
+        }
+
         activeCallStatus = activeCallStatus.sort(UCMGUI.bySort("bridge_time ? alloc_time", "down"))
         activeCallStatus = this._transChannelData(activeCallStatus)
         let self = this
@@ -440,24 +520,25 @@ class ActivityCall extends Component {
                                 channel2Array.push(channel2)
 
                                 return (
-                                    <Col className="gutter-row" span={ 6 } key={ key }>
+                                    <Col className="gutter-row table-list" key={ key }>
                                         <div className="callDiv">
+                                            <div className="callTime">
+                                                <span className="sprite sprite-clock"></span>
+                                                <span className="activityTime">{ time }</span>
+                                            </div>
                                             <div className="caller">
-                                                <span className={ "callState " + callerState }></span>
+                                                <span className={ "callState sprite " + callerState }></span>
                                                 <span className="callerNum" title={ callerid1 }>{ sliceCallerid1 }</span>
                                                 <span className="callerName" title={ callerName }>{ sliceCallerName }</span>
                                             </div>
-                                            <div className="callTime">
-                                                <span className="activityTime">{ time }</span>
-                                                <span className={ "pointer connectState " + connectState }></span>
-                                            </div>
+                                            <div className={ "pointer connectState " + connectState }></div>
                                             <div className="callee">
-                                                <span className={ "callState " + calleeState }></span>
+                                                <span className={ "callState sprite " + calleeState }></span>
                                                 <span className="calleeNum">{ callerid2 }</span>
                                                 <span className="calleeName" title={ calleeName }>{ sliceCalleeName }</span>
                                             </div>
                                         </div>
-                                        <div>
+                                        <div className="bottom-btn">
                                             <Popconfirm
                                                 title={ formatMessage({id: "LANG3010"}) }
                                                 okText={ formatMessage({id: "LANG727"}) }

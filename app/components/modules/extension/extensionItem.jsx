@@ -206,13 +206,17 @@ class ExtensionItem extends Component {
                     }
 
                     if (key.indexOf('whitelist') === 0) {
-                        action.dndwhitelist.push(value)
+                        if (value) {
+                            action.dndwhitelist.push(value)
+                        }
 
                         return false
                     }
 
                     if (key.indexOf('fwdwhitelist') === 0) {
-                        action.fwdwhitelist.push(value)
+                        if (value) {
+                            action.fwdwhitelist.push(value)
+                        }
 
                         return false
                     }

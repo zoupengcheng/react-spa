@@ -70,6 +70,8 @@ class Cleanup extends Component {
         super(props)
 
         this.state = {
+            SDName: [],
+            USBDiskName: [],
             treeData: [],
             accountList: [],
             accountAryObj: {},
@@ -88,7 +90,7 @@ class Cleanup extends Component {
             })
         }, 100)
 
-        this._getAccountList()
+        this._getMediaFile()
         this._getExtensionGroups()
     }
     componentWillUnmount() {
@@ -127,28 +129,44 @@ class Cleanup extends Component {
             }
         })
     }
-    _getAccountList = () => {
+    _getMediaFile = () => {
+        let SDName = []
+        let USBDiskName = []
+        const { formatMessage } = this.props.intl
+
         $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getAccountList' },
             type: 'json',
             async: false,
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                page: 1,
+                sidx: 'd',
+                sord: 'desc',
+                type: 'media',
+                item_num: 20000,
+                action: 'listFile'
+            },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     let obj = {}
-                    let response = res.response || {}
-                    let extension = response.extension || []
+                    let media = res.response.media || []
 
-                    extension.map(function(item) {
-                        obj[item.extension] = item
+                    _.map(media, (data, index) => {
+                        let name = data.n
+
+                        if (name.indexOf('mmcblk') !== -1) {
+                            SDName.push(name)
+                        } else if (name.indexOf('sd') !== -1) {
+                            USBDiskName.push(name)
+                        }
                     })
 
                     this.setState({
-                        accountAryObj: obj,
-                        accountList: extension
+                        SDName: SDName,
+                        USBDiskName: USBDiskName
                     })
                 }
             }.bind(this),
@@ -287,7 +305,7 @@ class Cleanup extends Component {
         return (
             <div className="app-content-main" id="app-content-main">
                 <Form>
-                    {/* <Row>
+                    <Row>
                         <Col span={ 6 }>
                             <div
                                 style={{
@@ -321,7 +339,7 @@ class Cleanup extends Component {
                                 dataSource={ this.state.extensionGroups }
                             />
                         </Col>
-                    </Row> */}
+                    </Row>
                 </Form>
             </div>
         )

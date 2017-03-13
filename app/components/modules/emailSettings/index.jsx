@@ -59,7 +59,7 @@ class EmailSettings extends Component {
         })
     }
     _onChange = (e) => {
-        if (e === "1") {
+        if (e === "settings") {
             this.setState({
                 activeKey: e,
                 isDisplay: "display-block"

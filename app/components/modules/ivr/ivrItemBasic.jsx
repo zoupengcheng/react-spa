@@ -78,12 +78,15 @@ class BasicSettings extends Component {
         const { getFieldValue } = this.props.form
 
         const enable = getFieldValue('switch')
+        const enTrunk = getFieldValue('dial_trunk')
         const targetKeys = this.state.targetKeys
         const ivr_out_blackwhite_list = getFieldValue('ivr_out_blackwhite_list')
         const ivr_out_blackwhite_list_length = ivr_out_blackwhite_list.split(',')
 
         if (value && enable !== 'no' && (ivr_out_blackwhite_list.length === 0 || ivr_out_blackwhite_list === '') && targetKeys.length === 0) {
             callback(formatMessage({id: "LANG5334"}))
+        } else if (value && enable !== 'no' && enTrunk === false && targetKeys.length === 0) {
+            callback(formatMessage({id: 'LANG5334'}))
         } else {
             callback()
         }

@@ -20,17 +20,17 @@ import EditSelectedExtensions from '../components/modules/extension/editSelected
 import ImportExtension from '../components/modules/extension/importExtension'
 import ExtensionGroup from '../components/modules/extensionGroup'
 import ExtensionGroupItem from '../components/modules/extensionGroup/extensionGroupItem'
-import AnalogTrunk from '../components/modules/analogTrunk'
-import AnalogTrunkItem from '../components/modules/analogTrunk/analogTrunkItem'
-import DigitalTrunk from '../components/modules/digitalTrunk'
-import DigitalTrunkItem from '../components/modules/digitalTrunk/digitalTrunkItem'
-import DataTrunk from '../components/modules/dataTrunk'
-import EditDataTrunk from '../components/modules/dataTrunk/editDataTrunk'
-import VoIPTrunk from '../components/modules/voipTrunk'
-import CreateVoipTrunk from '../components/modules/voipTrunk/createVoipTrunk'
-import EditVoipTrunk from '../components/modules/voipTrunk/editVoipTrunk'
-import DodTrunksList from '../components/modules/voipTrunk/dodTrunksList'
-import CreateEditDodTrunk from '../components/modules/voipTrunk/createEditDodTrunk'
+import AnalogTrunk from '../components/modules/trunkAnalog'
+import AnalogTrunkItem from '../components/modules/trunkAnalog/analogTrunkItem'
+import DigitalTrunk from '../components/modules/trunkDigital'
+import DigitalTrunkItem from '../components/modules/trunkDigital/digitalTrunkItem'
+import DataTrunk from '../components/modules/trunkData'
+import EditDataTrunk from '../components/modules/trunkData/editDataTrunk'
+import VoIPTrunk from '../components/modules/trunkVoip'
+import CreateVoipTrunk from '../components/modules/trunkVoip/createVoipTrunk'
+import EditVoipTrunk from '../components/modules/trunkVoip/editVoipTrunk'
+import DodTrunksList from '../components/modules/trunkVoip/dodTrunksList'
+import CreateEditDodTrunk from '../components/modules/trunkVoip/createEditDodTrunk'
 import SLAStation from '../components/modules/slaStation'
 import SLAStationItem from '../components/modules/slaStation/slaStationItem'
 import OutboundRoute from '../components/modules/outboundRoute'
@@ -178,6 +178,23 @@ import WebRTC from '../components/modules/webrtc'
 import cookie from 'react-cookie'
 import SubscribeEvent from '../components/api/subscribeEvent'
 
+// user-basic-information
+import UserInformation from '../components/modules/userInformation'
+import UserExtension from '../components/modules/userExtension'
+
+// user-personal-data
+import UserFollowMe from '../components/modules/userFollowMe'
+import UserVoicemail from '../components/modules/userVoicemail'
+import UserRecordingFile from '../components/modules/userRecordingFile'
+import UserFaxFiles from '../components/modules/userFaxFiles'
+import UserOnlineStatus from '../components/modules/userOnlineStatus'
+
+// user-value-added-features
+import UserWebrtc from '../components/modules/userWebrtc'
+import UserAgent from '../components/modules/userAgent'
+import UserWakeupService from '../components/modules/userWakeupService'
+import UserCrmUserSettings from '../components/modules/userCrmUserSettings'
+
 const routes = (state, currentLocaleData) => {
     function subscribeEvent(data) {
         if (data && data.location && data.location.pathname) {
@@ -276,7 +293,6 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="dataTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3573"] } >
                         <IndexRoute component={ DataTrunk } />
-                        <Route path="dataTrunk" onEnter={ requireAuth } component={ DataTrunk } breadcrumbName={ currentLocaleData["LANG3573"] } />
                         <Route path="editDataTrunk" onEnter={ requireAuth } component={ EditDataTrunk } breadcrumbName={ currentLocaleData["LANG3573"] } />
                     </Route>
                     <Route path="voipTrunk" breadcrumbName={ currentLocaleData["LANG13"] }>
@@ -578,6 +594,32 @@ const routes = (state, currentLocaleData) => {
                         <Route path="editgroup/:id/:name" onEnter={ requireAuth } component={ AnnouncementGroupItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="webrtc" onEnter={ requireAuth } component={ WebRTC } breadcrumbName={ currentLocaleData["LANG4263"] } />
+                </Route>
+                {/* user-basic-information */}
+                <Route path="user-basic-information" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG7"] }>
+                    <IndexRoute component={ UserInformation } />
+                    <Route path="userInformation" onEnter={ requireAuth } component={ UserInformation } breadcrumbName={ currentLocaleData["LANG7"] } />
+                    <Route path="userExtension" onEnter={ requireAuth } component={ UserExtension } breadcrumbName={ currentLocaleData["LANG8"] } />
+                    <Route path="cdr" onEnter={ requireAuth } component={ CDR } breadcrumbName={ currentLocaleData["LANG2640"] } />
+                    <Route path="changePassword" onEnter={ requireAuth } component={ ChangePassword } breadcrumbName={ currentLocaleData["LANG3003"] } />
+                </Route>
+                {/* user-personal-data */}
+                <Route path="user-personal-data" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG7"] }>
+                    <IndexRoute component={ UserFollowMe } />
+                    <Route path="userFollowMe" onEnter={ requireAuth } component={ UserFollowMe } breadcrumbName={ currentLocaleData["LANG7"] } />
+                    <Route path="userVoicemail" onEnter={ requireAuth } component={ UserVoicemail } breadcrumbName={ currentLocaleData["LANG8"] } />
+                    <Route path="userRecordingFile" onEnter={ requireAuth } component={ UserRecordingFile } breadcrumbName={ currentLocaleData["LANG2640"] } />
+                    <Route path="userFaxFiles" onEnter={ requireAuth } component={ UserFaxFiles } breadcrumbName={ currentLocaleData["LANG3003"] } />
+                    <Route path="userOnlineStatus" onEnter={ requireAuth } component={ UserOnlineStatus } breadcrumbName={ currentLocaleData["LANG3003"] } />
+                </Route>
+                {/* user-value-added-features */}
+                <Route path="user-value-added-features" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG7"] }>
+                    <IndexRoute component={ UserWebrtc } />
+                    <Route path="userWebrtc" onEnter={ requireAuth } component={ UserWebrtc } breadcrumbName={ currentLocaleData["LANG7"] } />
+                    <Route path="faxSending" onEnter={ requireAuth } component={ FAXSending } breadcrumbName={ currentLocaleData["LANG8"] } />
+                    <Route path="userAgent" onEnter={ requireAuth } component={ UserAgent } breadcrumbName={ currentLocaleData["LANG2640"] } />
+                    <Route path="userWakeupService" onEnter={ requireAuth } component={ UserWakeupService } breadcrumbName={ currentLocaleData["LANG3003"] } />
+                    <Route path="userCrmUserSettings" onEnter={ requireAuth } component={ UserCrmUserSettings } breadcrumbName={ currentLocaleData["LANG2640"] } />
                 </Route>
             </Route>
         </div>

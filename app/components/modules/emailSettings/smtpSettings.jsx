@@ -70,7 +70,7 @@ class smtpSettings extends Component {
         })
     }
     _sendTestEmail = () => {
-        const { getFieldValue } = this.props.form
+        const { getFieldValue, resetFields } = this.props.form
         const { formatMessage } = this.props.intl
         this.props.form.validateFields({ force: true }, (err, values) => {
             if (err && err.hasOwnProperty('recipients')) {
@@ -93,6 +93,7 @@ class smtpSettings extends Component {
                        if (bool) {
                            message.destroy()
                            message.success(formatMessage({id: "LANG873"}))
+                           resetFields(['recipients'])
                        }
        
                        this._handleCancel()
@@ -321,6 +322,7 @@ class smtpSettings extends Component {
                         <Modal 
                             title={ formatMessage({id: "LANG2273"}) }
                             visible={ this.state.visible }
+                            maskClosable={false}
                             onOk={ this._sendTestEmail } 
                             onCancel={ this._handleCancel }
                             okText={ formatMessage({id: "LANG2273"}) }

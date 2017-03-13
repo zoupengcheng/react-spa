@@ -79,7 +79,14 @@ class Http extends Component {
         setTimeout(function() {
             message.destroy()
 
-            window.location.reload()
+            let webHttps = getFieldValue('web_https') === 'disable' ? 'http' : 'https'
+            let webPort = getFieldValue('web_port')
+
+            if (webHttps.toLowerCase() === "http") {
+                window.location.href = "http://" + window.location.hostname + ":" + webPort + window.location.pathname
+            } else if (webHttps.toLowerCase() === "https") {
+                window.location.href = "https://" + window.location.hostname + ":" + webPort + window.location.pathname
+            }
         }, 5000)
     }
     _handleCancel = () => {
@@ -113,7 +120,6 @@ class Http extends Component {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
-                    message.destroy()
                     message.success(formatMessage({ id: "LANG844" }))
                     this._doSave()
                 }

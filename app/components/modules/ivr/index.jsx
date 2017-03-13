@@ -181,6 +181,12 @@ class Ivr extends Component {
                             {formatMessage({id: "LANG766"})}
                         </Button>
                     </div>
+                    <div className="content">
+                        <p >
+                            <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2320"})}} >
+                            </span>
+                        </p>
+                    </div>
                     <Table
                         rowKey="extension"
                         columns={ columns }

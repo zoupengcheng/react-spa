@@ -292,7 +292,7 @@ class EditLdapPhonebook extends Component {
                     </Modal>
                     <Modal
                         className="app-content-ldapPhonebook-width700"
-                        title={ formatMessage({ id: "LANG5473" })}
+                        title={ formatMessage({ id: "LANG5581" })}
                         visible={ state.editVisible }
                         onOk={ this._handleEditOk } 
                         onCancel={ this._handleEditCancel }

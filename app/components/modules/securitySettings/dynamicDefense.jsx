@@ -231,6 +231,9 @@ class DynamicDefense extends Component {
                             )}>
                             { getFieldDecorator('timeout', {
                                 rules: [{
+                                    required: dynamicDefense.enable === 'yes',
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
                                     validator: (data, value, callback) => {
                                         Validator.range(data, value, callback, formatMessage, 1, 59)
                                     }
@@ -255,6 +258,9 @@ class DynamicDefense extends Component {
                             )}>
                             { getFieldDecorator('block_timeout', {
                                 rules: [{
+                                    required: dynamicDefense.enable === 'yes',
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
                                     validator: (data, value, callback) => {
                                         Validator.range(data, value, callback, formatMessage, 1, 86399)
                                     }
@@ -279,6 +285,9 @@ class DynamicDefense extends Component {
                             )}>
                             { getFieldDecorator('threshold', {
                                 rules: [{
+                                    required: dynamicDefense.enable === 'yes',
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
                                     validator: (data, value, callback) => {
                                         Validator.range(data, value, callback, formatMessage, 5, 1000)
                                     }

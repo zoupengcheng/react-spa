@@ -8,6 +8,7 @@ import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
 import { Row, Button, message, Modal, Tooltip, Table, Tag, Switch, Select, Col, Form, Input, BackTop } from 'antd'
+import _ from 'underscore'
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -182,17 +183,19 @@ class WarningEventList extends Component {
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
+                if (_.indexOf(this.state.selectedRowKeys, 16) > -1) {
+                    confirm({
+                        title: (formatMessage({id: "LANG543"})),
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4806"})}} ></span>,
+                        onOk() {
+                            browserHistory.push('/extension-trunk/voipTrunk')
+                        },
+                        onCancel() {},
+                        okText: formatMessage({id: "LANG727"}),
+                        cancelText: formatMessage({id: "LANG726"})
+                    })
+                }
                 this._clearSelectRows()
-                confirm({
-                    title: (formatMessage({id: "LANG543"})),
-                    content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4806"})}} ></span>,
-                    onOk() {
-                        browserHistory.push('/extension-trunk/voipTrunk')
-                    },
-                    onCancel() {},
-                    okText: formatMessage({id: "LANG727"}),
-                    cancelText: formatMessage({id: "LANG726"})
-                })
             }.bind(this)
         })
     }
@@ -380,11 +383,17 @@ class WarningEventList extends Component {
                 okText: (formatMessage({id: "LANG727"}))
             })
         } else if (this.props.has_contact === 0) {
+            const rowList = this.state.selectedRows
+            let ids = []
+            rowList.map(function(item) {
+                ids.push(item.id)
+            })
             confirm({
                 title: (formatMessage({id: "LANG543"})),
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2631"})}} ></span>,
                 onOk() {
-                    __this._gotoWarningContact(0)
+                    __this.this._clearSelectRows()
+                    __this._gotoWarningContact(ids.join(','))
                 },
                 onCancel() {},
                 okText: formatMessage({id: "LANG727"}),
@@ -492,7 +501,7 @@ class WarningEventList extends Component {
                 title: (formatMessage({id: "LANG543"})),
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2631"})}} ></span>,
                 onOk() {
-                    __this._gotoWarningContact(id)
+                    __this._gotoWarningContact(id + '')
                 },
                 onCancel() {},
                 okText: formatMessage({id: "LANG727"}),

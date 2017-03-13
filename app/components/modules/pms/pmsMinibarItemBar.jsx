@@ -20,7 +20,8 @@ class BarItem extends Component {
         this.state = {
             roomList: [],
             fileList: [],
-            minibarItem: {}
+            minibarItem: {},
+            numberList: []
         }
     }
     componentWillMount() {
@@ -42,12 +43,22 @@ class BarItem extends Component {
             }
         }
     }
+    _checkExtension = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.numberList, value) > -1) {
+            callback(formatMessage({id: "LANG2126"}))
+        } else {
+            callback()
+        }
+    }
     _getInitData = () => {
         const minibarId = this.props.params.id
         const minibarName = this.props.params.name
         const __this = this
         let fileList = []
         let minibarItem = {}
+        let numberList = []
 
         $.ajax({
             url: api.apiHost,
@@ -80,6 +91,28 @@ class BarItem extends Component {
                 message.error(e.statusText)
             }
         })
+    
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getNumberList'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    numberList = res.response.number || {}
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
 
         if (minibarId) {
             $.ajax({
@@ -105,10 +138,14 @@ class BarItem extends Component {
                 }
             })
         }
+        if (minibarId) {
+            numberList = _.without(numberList, minibarId)
+        }
 
         this.setState({
             fileList: fileList,
-            minibarItem: minibarItem
+            minibarItem: minibarItem,
+            numberList: numberList
         })
     }
     _handleCancel = () => {
@@ -224,11 +261,17 @@ class BarItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._checkExtension
                                 }],
                                 width: 100,
                                 initialValue: this.state.minibarItem.extension
                             })(
-                                <Input maxLength="128" />
+                                <Input maxLength="128" disabled={ this.props.params.id }/>
                             ) }
                         </FormItem>
                         <FormItem
@@ -245,6 +288,10 @@ class BarItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: this.state.minibarItem.minibar_name

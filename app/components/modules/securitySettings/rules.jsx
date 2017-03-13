@@ -185,7 +185,8 @@ class Rules extends Component {
         this.setState({
             rule_name: rule_name,
             nameList: nameList,
-            interfaceList: interfaceList
+            interfaceList: interfaceList,
+            netMethod: netMethod
         })
     }
     _checkName = (rule, value, callback) => {

@@ -20,8 +20,9 @@ class WarningIndex extends Component {
             activeKey: this.props.params.id ? this.props.params.id : '1',
             isDisplay: "hidden",
             has_contact: 0,
-            itemId: 0,
-            warning_general: []
+            itemId: "",
+            warning_general: [],
+            enEmail: false
         }
     }
     componentDidMount() {
@@ -74,15 +75,26 @@ class WarningIndex extends Component {
                 if (bool) {
                     const response = res.response || {}
                     const warning_general = response.body.warning_general || []
-
+                    let enEmail = false
+                    warning_general.map(function(item) {
+                        if (item.enable_email === '1') {
+                            enEmail = true
+                        }
+                    })
                     this.setState({
-                        warning_general: warning_general
+                        warning_general: warning_general,
+                        enEmail: enEmail
                     })
                 }
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
             }
+        })
+    }
+    _changeEnEmail = (value) => {
+        this.setState({
+            enEmail: value
         })
     }
     _onChange = (e) => {
@@ -157,7 +169,7 @@ class WarningIndex extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG904" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
                 console.log(values)
             }
@@ -206,25 +218,27 @@ class WarningIndex extends Component {
                                 actionEn.enable = ""
                                 actionEn.enable_email = 1 
                                 actionEn.id = itemId
-                                $.ajax({
-                                    url: api.apiHost,
-                                    method: "post",
-                                    data: actionEn,
-                                    type: 'json',
-                                    async: false,
-                                    error: function(e) {
-                                        message.error(e.statusText)
-                                    },
-                                    success: function(data) {
-                                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                                if (itemId && itemId !== '') {
+                                    $.ajax({
+                                        url: api.apiHost,
+                                        method: "post",
+                                        data: actionEn,
+                                        type: 'json',
+                                        async: false,
+                                        error: function(e) {
+                                            message.error(e.statusText)
+                                        },
+                                        success: function(data) {
+                                            const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                                        if (bool) {
-                                            message.destroy()
-                                            message.success(successMessage)
-                                            this._getWarningGeneral()
-                                        }
-                                    }.bind(this)
-                                })
+                                            if (bool) {
+                                                message.destroy()
+                                                message.success(successMessage)
+                                                this._getWarningGeneral()
+                                            }
+                                        }.bind(this)
+                                    })
+                                }
                             } else if (admin_email_list.length === 0) {
                                 this.setState({
                                     has_contact: 0
@@ -236,7 +250,7 @@ class WarningIndex extends Component {
                 this._warningStart()
             }
 
-            if (values.Pmode_send_warningemail !== undefined) {
+            if (values.Pmode_send_warningemail !== undefined && !err) {
                 let action_event = {}
                 action_event.action = 'setWarningEmailValue'
                 if (values.Pmode_send_warningemail === '0') {
@@ -310,12 +324,13 @@ class WarningIndex extends Component {
                             warning_general={ this.state.warning_general }
                             setActiveKey={ this._setActiveKey }
                             getWarningGeneral={ this._getWarningGeneral }
+                            changeEnEmail={this._changeEnEmail}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG2546"})} key="3">
                         <WarningContact
                             form={ this.props.form }
-                            itemId={ this.props.itemId }
+                            enEmail={this.state.enEmail}
                         />
                     </TabPane>
                 </Tabs>

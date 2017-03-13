@@ -36,7 +36,7 @@ class Fax extends Component {
         }
     }
     componentDidMount() {
-        this._getInitDate()
+        this._getInitData()
         this._getFaxFile()
     }
     _showTotal = (total) => {
@@ -83,7 +83,7 @@ class Fax extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getInitDate()
+                    this._getInitData()
                     this._clearSelectRows()
                 }
             }.bind(this),
@@ -130,7 +130,7 @@ class Fax extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getInitDate()
+                    this._getFax()
                     this._clearSelectRows()
                 }
             }.bind(this),
@@ -174,7 +174,16 @@ class Fax extends Component {
                     message.destroy()
                     message.success(successMessage)
 
-                    this._getFaxFile()
+                    if (this.state.file_keyword !== "") {
+                        this._searchFile({
+                                item_num: 10,
+                                sidx: "d",
+                                sord: "desc",
+                                page: 1 
+                            }, 0) 
+                    } else {
+                        this._getFaxFile()
+                    }
                     this._clearSelectRowsFile()
                 }
             }.bind(this),
@@ -214,7 +223,7 @@ class Fax extends Component {
                 }
             })
     }
-    _getInitDate = () => {
+    _getInitData = () => {
         this._getFax()
     }
     _getFax = (
@@ -459,7 +468,12 @@ class Fax extends Component {
             }
         }
         if (removeSuccess) {
-            this._getFaxFile()
+            this._searchFile({
+                item_num: 10,
+                sidx: "d",
+                sord: "desc",
+                page: 1 
+            }, 0) 
             this._clearSelectRowsFile()
         }
     }

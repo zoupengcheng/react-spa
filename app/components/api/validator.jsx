@@ -94,7 +94,7 @@ Validator.prototype = {
     },
     range: function(data, value, callback, formatMessage, min, max) {
         if (value && (value > max || value < min)) {
-            callback(formatMessage({id: "LANG2147"}, {0: min, 1: max}))
+            callback(formatMessage({id: "LANG2147"}, {0: min + '', 1: max + ''}))
         } else {
             callback()
         }

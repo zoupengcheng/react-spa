@@ -23,7 +23,8 @@ class AnnouncementGroup extends Component {
             groupItem: {},
             groupNameList: [],
             groupNumberList: [],
-            numberList: []
+            numberList: [],
+            codeNumberList: []
         }
     }
     componentWillMount() {
@@ -31,11 +32,25 @@ class AnnouncementGroup extends Component {
     componentDidMount() {
         this._getNumberList()
         this._getGroupList()
+        this._getCodeList()
         this._getInitData()
+    }
+    _beginsWith = (value, sub) => {
+        if (value && sub && value.length > sub.length) {
+            const len = sub.length
+            const tmp = value.slice(0, len)
+            if (tmp === sub) {
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
     }
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
-
+         
         if (value && _.indexOf(this.state.groupNameList, value) > -1) {
             callback(formatMessage({id: "LANG2137"}))
         } else {
@@ -44,11 +59,57 @@ class AnnouncementGroup extends Component {
     }
     _checkExtension = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
+        const ID = this.props.params.id
 
-        if (value && _.indexOf(this.state.numberList, value) > -1) {
+        if (value && ID && value === ID) {
+            callback()
+        } else if (value && _.indexOf(this.state.numberList, value) > -1) {
             callback(formatMessage({id: "LANG2126"}))
         } else if (value && _.indexOf(this.state.groupNumberList, value) > -1) {
             callback(formatMessage({id: "LANG2126"}))
+        } else {
+            callback()
+        }
+    }
+    _checkIfContainOtherCodes = (rule, value, callback) => {
+        const ID = this.props.params.id
+
+        if (value && ID && value === ID) {
+            callback()
+        } else if (value) {
+            const { formatMessage } = this.props.intl
+            const me = this
+            var contain = false,
+                codeNumberList = this.state.codeNumberList,
+                groupNumberList = this.state.groupNumberList,
+                numberList = this.state.numberList
+
+            groupNumberList.map(function(item) {
+                if (me._beginsWith(value, item)) {
+                    contain = true
+                    callback(formatMessage({id: "LANG2126"}))
+                    return
+                } else if (me._beginsWith(item, value)) {
+                    contain = true
+                    callback(formatMessage({id: "LANG2126"}))
+                    return
+                }
+            })
+            codeNumberList.map(function(item) {
+                numberList.map(function(num) {
+                    if ((item + '' + value) === num) {
+                        contain = true
+                        callback(formatMessage({id: "LANG2126"}))
+                        return
+                    }
+                })
+            })
+
+            if (contain) {
+                callback(formatMessage({id: "LANG2126"}))
+            } else {
+                callback()
+            }
         } else {
             callback()
         }
@@ -80,6 +141,37 @@ class AnnouncementGroup extends Component {
         })
         this.setState({
             numberList: numberList
+        })
+    }
+    _getCodeList = () => {
+        let codeNumberList = this.state.codeNumberList || []
+        const __this = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listCodeblueCode'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    response.codeblue_code.map(function(item) {
+                        codeNumberList.push(item.extension)
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+        this.setState({
+            codeNumberList: codeNumberList
         })
     }
     _getGroupList = () => {
@@ -369,6 +461,8 @@ class AnnouncementGroup extends Component {
                                     }
                                 }, {
                                     validator: this._checkExtension
+                                }, {
+                                    validator: this._checkIfContainOtherCodes
                                 }],
                                 width: 100,
                                 initialValue: groupItem.extension

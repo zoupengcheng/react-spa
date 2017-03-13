@@ -5,7 +5,6 @@ import React from 'react'
 import { Icon, Menu } from 'antd'
 import { injectIntl } from 'react-intl'
 import { browserHistory } from 'react-router'
-import menusData from './../locales/menusData.json'
 import api from "../components/api/api"
 import '../css/sidebar'
 
@@ -63,32 +62,28 @@ let SideBar = React.createClass({
           <aside className="app-sidebar">
                 <div className="aside-action" onClick={this.onCollapseChange} >
                     {this.props.collapse ? <div className="aside-bars"><Icon type="sprite sprite-bars-left" /></div> : <div className="aside-bars"><span className="bars-text">Menus</span><Icon type="sprite sprite-bars-right" /></div>}
+                </div> 
+                <div>
+                    <Menu theme="dark"
+                        mode="inline"
+                        openKeys={ this.state.openKeys }
+                        selectedKeys={ [this.state.current] }
+                        onClick={ this.handleClick }
+                        onOpenChange={ this.onOpenChange }>
+                        { this.props.subMenus.map(function(subMenu, subIndex) {
+                            return (
+                                <SubMenu 
+                                    key={ subMenu.name }
+                                    title={ <div><Icon type={"sprite sprite-menu " + subMenu.icon} /><span className="subMenuTitle">{ formatMessage({ id: subMenu.title }) }</span></div> }
+                                >
+                                    {subMenu.items.map(function(item) {
+                                        return <Menu.Item key= { item.path }>{ formatMessage({ id: item.name }) }</Menu.Item>
+                                    })}
+                                </SubMenu>
+                            )
+                        }) }
+                    </Menu>
                 </div>
-                {menusData.map(function(menu, index) {
-                    return (
-                        <div key={ 'menu-' + index }>
-                            <Menu theme="dark"
-                                mode="inline"
-                                openKeys={ this.state.openKeys }
-                                selectedKeys={ [this.state.current] }
-                                onClick={ this.handleClick }
-                                onOpenChange={ this.onOpenChange }>
-                                {menu.subMenus.map(function(subMenu, subIndex) {
-                                    return (
-                                        <SubMenu 
-                                            key={ subMenu.name }
-                                            title={ <div><Icon type={"sprite sprite-menu " + subMenu.icon} /><span className="subMenuTitle">{ formatMessage({ id: subMenu.title }) }</span></div> }
-                                        >
-                                            {subMenu.items.map(function(item) {
-                                                return <Menu.Item key= { item.path }>{ formatMessage({ id: item.name }) }</Menu.Item>
-                                            })}
-                                        </SubMenu>
-                                    )
-                                })}
-                            </Menu>
-                        </div>
-                    )
-                }.bind(this))}
           </aside>
       )
     }
