@@ -16,6 +16,7 @@ const baseServerURl = api.apiHost
 let loginInterval = null
 let checkInterval = null    
 let UCMGUI = function() {}
+var userAgent = window.navigator.userAgent.toLowerCase()
 
 UCMGUI.prototype = {
     initConfig: {
@@ -94,7 +95,17 @@ UCMGUI.prototype = {
             "4": "LANG915", // CGICODE_FILE_OP_TOO_LARGE
             "5": "LANG2984", // CGICODE_FILE_OP_ERR_PROCESSING
             "6": "LANG2985" // CGICODE_FILE_OP_ERR_PRE_CHECK
-        }
+        },
+        msie: /msie/.test(userAgent),
+        mozilla: /firefox/.test(userAgent),
+        webkit: /webkit/.test(userAgent),
+        opera: /opera/.test(userAgent),
+        safari: Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0,
+        ie6: (typeof document.body.style.maxHeight === "undefined"),
+        ie7: /msie 7\.0/i.test(userAgent),
+        ie8: /msie 8\.0/i.test(userAgent),
+        ie9: /msie 9\.0/i.test(userAgent),
+        ie10: /msie 10\.0/i.test(userAgent)
     },
     addZero: function(num) {
         const number = Math.floor(num)

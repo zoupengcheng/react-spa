@@ -233,6 +233,9 @@ class EventListItem extends Component {
             this._updateOrAddEventlistInfo(action)
         })
     }
+    _handleCancel = () => {
+        browserHistory.push('/call-features/eventList')
+    }
     _updateOrAddEventlistInfo = (action) => {
         const { formatMessage } = this.props.intl
 
@@ -351,7 +354,7 @@ class EventListItem extends Component {
                             { ...customFormItemLayout }
                             label={
                                 <Tooltip title={ <FormattedHTMLMessage id="LANG2481" /> }>
-                                    { formatMessage({id: "LANG2478"}) }
+                                    <span>{ formatMessage({id: "LANG2478"}) }</span>
                                 </Tooltip>
                             }>
                             { getFieldDecorator('uri', {
@@ -386,7 +389,7 @@ class EventListItem extends Component {
                             { ...customFormItemLayout }
                             label={
                                 <Tooltip title={<FormattedHTMLMessage id="LANG5464" />}>
-                                    {formatMessage({id: "LANG5463"})}
+                                    <span>{formatMessage({id: "LANG5463"})}</span>
                                 </Tooltip>
                             }>
                             { getFieldDecorator('event', {
@@ -403,7 +406,7 @@ class EventListItem extends Component {
                             { ...formItemLayout }
                             label={
                                 <Tooltip title={<FormattedHTMLMessage id="LANG2530" />}>
-                                    { formatMessage({id: "LANG2479"}) }
+                                    <span>{ formatMessage({id: "LANG2479"}) }</span>
                                 </Tooltip>
                             }>
                             <Transfer

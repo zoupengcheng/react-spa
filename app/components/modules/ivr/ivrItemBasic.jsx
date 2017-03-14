@@ -45,7 +45,8 @@ class BasicSettings extends Component {
                 'dial_fax',
                 'dial_directory'
             ],
-            dialAll: false
+            dialAll: false,
+            transferDisabled: false
         }
     }
     componentWillMount() {
@@ -81,9 +82,11 @@ class BasicSettings extends Component {
         const enTrunk = getFieldValue('dial_trunk')
         const targetKeys = this.state.targetKeys
         const ivr_out_blackwhite_list = getFieldValue('ivr_out_blackwhite_list')
-        const ivr_out_blackwhite_list_length = ivr_out_blackwhite_list.split(',')
+        const ivr_out_blackwhite_list_length = ivr_out_blackwhite_list ? ivr_out_blackwhite_list.split(',') : 0
 
         if (value && enable !== 'no' && (ivr_out_blackwhite_list.length === 0 || ivr_out_blackwhite_list === '') && targetKeys.length === 0) {
+            callback(formatMessage({id: "LANG5334"}))
+        } else if (value && enable !== 'no' && this.state.transferDisabled && ivr_out_blackwhite_list === '') {
             callback(formatMessage({id: "LANG5334"}))
         } else if (value && enable !== 'no' && enTrunk === false && targetKeys.length === 0) {
             callback(formatMessage({id: 'LANG5334'}))
@@ -121,7 +124,7 @@ class BasicSettings extends Component {
                 value: 'dial_directory'
             }]
 
-        let accountList = this.props.accountList
+        let accountList = _.clone(this.props.accountList)
         let fileList = this.props.fileList
         let numberList = this.props.numberList || []
         let ivrNameList = this.props.ivrNameList || []
@@ -136,6 +139,7 @@ class BasicSettings extends Component {
         let targetKeys = ivrItem.ivr_blackwhite_list ? ivrItem.ivr_blackwhite_list.split(',') || [] : []
         let checkedList = this.state.checkedList || []
         let dialAll = this.state.dialAll
+        let transferDisabled = this.state.transferDisabled
 
         if (ivrId && ivrItem) {
             checkedList = []
@@ -147,6 +151,11 @@ class BasicSettings extends Component {
         }
 
         dialAll = checkedList.length === plainOptions.length
+        if (_.indexOf(checkedList, 'dial_extension') > -1) {
+            transferDisabled = false
+        } else {
+            transferDisabled = true
+        }
 
         if (ivrItem.switch === 'black' || ivrItem.switch === "white") {
             ivrblackwhiteShow = true
@@ -162,6 +171,9 @@ class BasicSettings extends Component {
         } else {
             select_alertinfo = ivrItem.alertinfo
         }
+        accountList.map(function(item, index) {
+            accountList[index]['disabled'] = transferDisabled
+        })
         this.props.getSpecialState(checkedList)
         this.setState({
             languageList: languageList,
@@ -178,7 +190,8 @@ class BasicSettings extends Component {
             numberList: numberList,
             ivrNameList: ivrNameList,
             dialAll: dialAll,
-            plainOptions: plainOptions
+            plainOptions: plainOptions,
+            transferDisabled: transferDisabled
         })
     }
     _getLanguages = () => {
@@ -218,21 +231,45 @@ class BasicSettings extends Component {
     }
     _onChangeDial = (checkedList) => {
         const plainOptions = this.state.plainOptions
+        let transferDisabled = this.state.transferDisabled
+        let accountList = this.state.accountList
+        if (_.indexOf(checkedList, 'dial_extension') > -1) {
+            transferDisabled = false
+        } else {
+            transferDisabled = true
+        }
+        accountList.map(function(item, index) {
+            accountList[index]['disabled'] = transferDisabled
+        })
         this.setState({
             checkedList: checkedList,
-            dialAll: checkedList.length === plainOptions.length
+            dialAll: checkedList.length === plainOptions.length,
+            transferDisabled: transferDisabled,
+            accountList: accountList
         })
         this.props.getSpecialState(checkedList)
     }
     _onDialallChange = (e) => {
         let checkedList = []
+        let transferDisabled = this.state.transferDisabled
+        let accountList = this.state.accountList
         const plainOptions = this.state.plainOptions
         plainOptions.map(function(item) {
             checkedList.push(item.value)
         })
+        if (e.target.checked) {
+            transferDisabled = false
+        } else {
+            transferDisabled = true
+        }
+        accountList.map(function(item, index) {
+            accountList[index]['disabled'] = transferDisabled
+        })
         this.setState({
             checkedList: e.target.checked ? checkedList : [],
-            dialAll: e.target.checked
+            dialAll: e.target.checked,
+            transferDisabled: transferDisabled,
+            accountList: accountList
         })
         this.props.getSpecialState(checkedList)
     }
@@ -547,7 +584,7 @@ class BasicSettings extends Component {
                         { getFieldDecorator('ivr_out_blackwhite_list', {
                             rules: [{
                                 validator: (data, value, callback) => {
-                                    Validator.digitalAndQuote(data, value, callback, formatMessage)
+                                    this.state.ivrblackwhiteShow && this.state.isDialTrunk ? Validator.digitalAndQuote(data, value, callback, formatMessage) : callback()
                                 }
                             }],
                             initialValue: ivrItem.ivr_out_blackwhite_list
@@ -583,7 +620,7 @@ class BasicSettings extends Component {
                         )}>
                         { getFieldDecorator('alertinfo', {
                             rules: [],
-                            initialValue: this.state.select_alertinfo
+                            initialValue: this.state.select_alertinfo ? this.state.select_alertinfo : ""
                         })(
                             <Select onChange={ this._onChangeAlertInfo }>
                                 <Option value="">{ formatMessage({id: "LANG133"}) }</Option>

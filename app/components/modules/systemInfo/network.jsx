@@ -357,7 +357,7 @@ class Network extends Component {
                         </Row>
                     </div>
                     <div ref="lan2" className={this.isEmpty(lan2)}>
-                        <div className="section-title">{formatMessage({id: "LANG586"})}</div>
+                        <div className="section-title">{formatMessage({id: "LANG3060"})}</div>
                         <Row>
                             <FormItem
                                 {...formItemLayout}

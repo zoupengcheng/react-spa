@@ -22,12 +22,16 @@ class BackupRestore extends Component {
         super(props)
         this.state = {
             fileList: [],
+            fileListUSB: [],
+            fileListSD: [],
             selectedRowKeys: [],
             pagination: {
                 showTotal: this._showTotal,
                 showSizeChanger: true,
                 showQuickJumper: true
             },
+            paginationUSB: [],
+            paginationSD: [],
             loading: false,
             visible: false,
             type: "upload",
@@ -35,14 +39,20 @@ class BackupRestore extends Component {
             selectedRows: [],
             download_visible: false,
             initPackName: '',
-            isRestoreComplete: false
+            isRestoreComplete: false,
+            classShowUSB: "hidden",
+            classShowSD: "hidden"
         }
     }
     componentDidMount() {
-        this._getLocalFileList()
+        this._getInitData()
     }
     componentWillUnmount() {
 
+    }
+    _getInitData = () => {
+        this._getLocalFileList()
+        this._getMediaFileList()
     }
     _showTotal = (total) => {
         const { formatMessage } = this.props.intl
@@ -65,7 +75,8 @@ class BackupRestore extends Component {
     }
     _clearSelectRows = () => {
         this.setState({
-            selectedRowKeys: []
+            selectedRowKeys: [],
+            selectedRows: []
         })
     }
     _createNew = (record) => {
@@ -115,11 +126,209 @@ class BackupRestore extends Component {
                     const pagination = this.state.pagination
                     // Read total count from server
                     pagination.total = response.total_item
+                    fileList.map((item, index) => {
+                        fileList[index]["key"] = "local"
+                        fileList[index]["id"] = 0
+                    })
 
                     this.setState({
                         loading: false,
                         fileList: fileList,
-                        pagination
+                        pagination: pagination
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _getMediaFileList = () => {
+        const { formatMessage } = this.props.intl
+        this.setState({loading: true})
+        const me = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listFile',
+                type: 'media',
+                page: 1,
+                item_num: 20000,
+                sidx: "d",
+                sord: "desc"
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let media = res.response.media
+                    let usbDiskName = []
+                    let sdName = []
+                    let classShowUSB = me.state.classShowUSB
+                    let classShowSD = me.state.classShowSD
+
+                    _.each(media, function(item, index) {
+                        let name = item.n
+
+                        if (name && name.indexOf("mmcblk") > -1) {
+                            sdName.push(name)
+                        } else if (name && name.indexOf("sd") > -1) {
+                            usbDiskName.push(name)
+                        }
+                    })
+
+                    if (usbDiskName.length === 0) {
+                        classShowUSB = 'hidden'
+                    } else {
+                        classShowUSB = 'display-block'
+                        _.each(usbDiskName, function(item, index) {
+                            me._listUsbdiskFile(item, index)
+                        })
+                    }
+                    if (sdName.length === 0) {
+                        classShowSD = 'hidden'
+                    } else {
+                        classShowSD = 'display-block'
+                        _.each(sdName, function(item, index) {
+                            me._listSddiskFile(item, index)
+                        })
+                    }
+                    this.setState({
+                        classShowUSB: classShowUSB,
+                        classShowSD: classShowSD
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+
+    _listUsbdiskFile = (files, index,
+        params = {
+            item_num: 10,
+            sidx: 'd',
+            sord: 'asc',
+            page: 1
+        }
+    ) => {
+        const { formatMessage } = this.props.intl
+        const me = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listFile',
+                type: 'media',
+                filter: '{"list_dir":0,"list_file":1,"file_suffix":["tar"]}',
+                data: files,
+                ...params
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const fileList = response.media || []
+                    const fileListUSB = me.state.fileListUSB || []
+                    const paginationUSB = me.state.paginationUSB || []
+                    const pagination = {
+                        showTotal: me._showTotal,
+                        showSizeChanger: true,
+                        showQuickJumper: true
+                    }
+
+                    pagination.total = response.total_item
+                    fileList.map((item, i) => {
+                        fileList[i]["key"] = files
+                        fileList[i]["id"] = index
+                    })
+
+                    // Read total count from server
+                    if (fileListUSB.length > index) {
+                        fileListUSB[index] = fileList
+                        paginationUSB[index] = pagination
+                    } else {
+                        fileListUSB.push(fileList)
+                        paginationUSB.push(pagination)
+                    }
+
+                    me.setState({
+                        loading: false,
+                        fileListUSB: fileListUSB,
+                        paginationUSB: paginationUSB
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _listSddiskFile = (files, index,
+        params = {
+            item_num: 10,
+            sidx: 'd',
+            sord: 'asc',
+            page: 1
+        }
+    ) => {
+        const { formatMessage } = this.props.intl
+        const me = this
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listFile',
+                type: 'media',
+                filter: '{"list_dir":0,"list_file":1,"file_suffix":["tar"]}',
+                data: files,
+                ...params
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const fileList = response.media || []
+                    const fileListSD = me.state.fileListSD || []
+                    const paginationSD = me.state.paginationSD || []
+                    const pagination = {
+                        showTotal: me._showTotal,
+                        showSizeChanger: true,
+                        showQuickJumper: true
+                    }
+
+                    pagination.total = response.total_item
+                    fileList.map((item, i) => {
+                        fileList[i]["key"] = files
+                        fileList[i]["id"] = index
+                    })
+
+                    // Read total count from server
+                    if (fileListSD.length > index) {
+                        fileListSD[index] = fileList
+                        paginationSD[index] = pagination
+                    } else {
+                        fileListSD.push(fileList)
+                        paginationSD.push(pagination)
+                    }
+
+                    me.setState({
+                        loading: false,
+                        fileListSD: fileListSD,
+                        paginationSD: paginationSD
                     })
                 }
             }.bind(this),
@@ -132,19 +341,25 @@ class BackupRestore extends Component {
         const { formatMessage } = this.props.intl
 
         let filename = record.n
+        let type = "backup"
+        let key = record.key
+        if (key !== "local") {
+            type = "media"
+            filename = "/" + key + "/" + record.n
+        }
 
         $.ajax({
             type: "post",
             url: "../cgi",
             data: {
                 "action": "checkFile",
-                "type": "backup",
+                "type": type,
                 "data": filename // 1005-1.gsm
             },
             error: function(jqXHR, textStatus, errorThrown) {},
             success: function(data) {
                 if (data && data.hasOwnProperty("status") && (data.status === 0)) {
-                    window.open("/cgi?action=downloadFile&type=backup&data=" + encodeURIComponent(filename), '_self')
+                    window.open("/cgi?action=downloadFile&type=" + type + "&data=" + encodeURIComponent(filename), '_self')
                 } else {
                     message.error(formatMessage({ id: "LANG3868" }))
                 }
@@ -189,7 +404,12 @@ class BackupRestore extends Component {
         const { formatMessage } = this.props.intl
         let loadingMessage = ''
         let successMessage = ''
-        let filename = record.n
+        let filename = "default," + record.n
+
+        if (record.key !== "local") {
+            filename = "/media/" + record.key + "/," + record.n
+        }
+
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG855" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>
 
@@ -199,7 +419,7 @@ class BackupRestore extends Component {
             url: "../cgi",
             data: {
                 "action": "restoreUCMConfig",
-                "file-restore": "default," + filename // 1005-1.gsm
+                "file-restore": filename
             },
             error: function(jqXHR, textStatus, errorThrown) {},
             success: function(data) {
@@ -222,11 +442,17 @@ class BackupRestore extends Component {
         const { formatMessage } = this.props.intl
 
         let fileName = record.n
+        let type = "backup"
+        let key = record.key
+        if (key !== "local") {
+            type = "media"
+            fileName = "/" + key + "/" + record.n
+        }
 
         let action = {
             action: "removeFile",
-            type: "backup",
-            data: fileName // 1005-1.gsm 
+            type: type,
+            data: fileName
         }
 
         $.ajax({
@@ -241,7 +467,14 @@ class BackupRestore extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>)
-                    this._getLocalFileList()
+                    if (key === "local") {
+                        this._getLocalFileList()
+                    } else if (key.indexOf("sd") > -1) {
+                        this._listUsbdiskFile(key, record.id)
+                    } else if (key.indexOf("mmcblk") > -1) {
+                        this._listSddiskFile(key, record.id)
+                    }
+
                     // initUpload()
                 }
             }.bind(this)
@@ -257,13 +490,24 @@ class BackupRestore extends Component {
 
         message.loading(loadingMessage)
 
+        let filelist = []
+        let key = "local"
+        this.state.selectedRows.map((item, index) => {
+            key = item.key
+            if (key !== 'local') {
+                filelist.push(item.key + '/' + item.n)
+            } else {
+                filelist.push(item.n)
+            }
+        })
+
         $.ajax({
             url: api.apiHost,
             method: 'post',
             data: {
                 action: "removeFile",
-                type: "backup",
-                data: this.state.selectedRowKeys.join(',,')
+                type: "batch_backup_package",
+                data: filelist.join("\t")
             },
             type: 'json',
             async: true,
@@ -273,8 +517,13 @@ class BackupRestore extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
-
-                    this._getLocalFileList()
+                    if (key === "local") {
+                        this._getLocalFileList()
+                    } else if (key.indexOf("sd") > -1) {
+                        this._listUsbdiskFile(key, 0)
+                    } else if (key.indexOf("mmcblk") > -1) {
+                        this._listSddiskFile(key, 0)
+                    }
                     this._clearSelectRows()
                 }
             }.bind(this),
@@ -322,11 +571,47 @@ class BackupRestore extends Component {
             ...filters
         })
     }
+    _handleTableChangeUSB = (item, index, pagination, filters, sorter) => {
+        const pager = this.state.paginationUSB
+
+        pager[index].current = pagination.current
+
+        this.setState({
+            paginationUSB: pager
+        })
+
+        this._listUsbdiskFile(item, index, {
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'd',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
+        })
+    }
+    _handleTableChangeSD = (item, index, pagination, filters, sorter) => {
+        const pager = this.state.paginationSD
+
+        pager[index].current = pagination.current
+
+        this.setState({
+            paginationSD: pager
+        })
+
+        this._listSddiskFile(item, index, {
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: sorter.field ? sorter.field : 'd',
+            sord: sorter.order === "descend" ? "desc" : "asc",
+            ...filters
+        })
+    }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         console.log('selectedRowKeys changed: ', selectedRowKeys)
         // console.log('selectedRow changed: ', selectedRows)
-
-        this.setState({ selectedRowKeys })
+        this.setState({
+            selectedRowKeys: selectedRowKeys,
+            selectedRows: selectedRows
+        })
     }
     _createOptions = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -452,6 +737,14 @@ class BackupRestore extends Component {
         const me = this
 
         const columns = [{
+                key: 'key',
+                dataIndex: 'key',
+                className: 'hidden'
+            }, {
+                key: 'id',
+                dataIndex: 'id',
+                className: 'hidden'
+            }, {
                 key: 'n',
                 dataIndex: 'n',
                 title: formatMessage({id: "LANG135"}),
@@ -480,7 +773,8 @@ class BackupRestore extends Component {
 
         const rowSelection = {
                 onChange: this._onSelectChange,
-                selectedRowKeys: this.state.selectedRowKeys
+                selectedRowKeys: this.state.selectedRowKeys,
+                selectedRows: this.state.selectedRows
             }
 
         document.title = formatMessage({id: "LANG584"}, {
@@ -541,6 +835,36 @@ class BackupRestore extends Component {
             }
         }
 
+        const fileListUSB = this.state.fileListUSB
+        const tableUSB = fileListUSB.map((item, index) => {
+            return (
+                <Table
+                    rowKey="n"
+                    columns={ columns }
+                    pagination={ this.state.paginationUSB[index] }
+                    rowSelection={ rowSelection }
+                    dataSource={ item }
+                    showHeader={ !!item.length }
+                    loading={ this.state.loading}
+                    onChange={ this._handleTableChangeUSB.bind(this, item.length > 0 ? item[0].key : '', index) }
+                />
+                )
+        })
+        const fileListSD = this.state.fileListSD
+        const tableSD = fileListSD.map((item, index) => {
+            return (
+                <Table
+                    rowKey="n"
+                    columns={ columns }
+                    pagination={ this.state.paginationSD[index] }
+                    rowSelection={ rowSelection }
+                    dataSource={ item }
+                    showHeader={ !!item.length }
+                    loading={ this.state.loading}
+                    onChange={ this._handleTableChangeSD.bind(this, item.length > 0 ? item[0].key : '', index) }
+                />
+                )
+        })
         return (
             <div className="app-content-main">
                 <div className="content">
@@ -603,6 +927,46 @@ class BackupRestore extends Component {
                         loading={ this.state.loading}
                         onChange={ this._handleTableChange }
                     />
+                    <div className={ this.state.classShowUSB }>
+                        <Row>
+                            <Col span={ 24 }>
+                                <div className="section-title">
+                                    <span>{ formatMessage({id: "LANG2916"}) }</span>
+                                </div>
+                            </Col>
+                        </Row>
+                        <div className="top-button">
+                            <Button
+                                icon="delete"
+                                type="primary"
+                                size='default'
+                                onClick={ this._deleteSelect }
+                            >
+                                { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG2913"})}) }
+                            </Button>
+                        </div>
+                        { tableUSB }
+                    </div>
+                    <div className={ this.state.classShowSD }>
+                        <Row>
+                            <Col span={ 24 }>
+                                <div className="section-title">
+                                    <span>{ formatMessage({id: "LANG2920"}) }</span>
+                                </div>
+                            </Col>
+                        </Row>
+                        <div className="top-button">
+                            <Button
+                                icon="delete"
+                                type="primary"
+                                size='default'
+                                onClick={ this._deleteSelect }
+                            >
+                                { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG2913"})}) }
+                            </Button>
+                        </div>
+                        { tableSD }
+                    </div>
                     <Row>
                         <Col span={ 24 }>
                             <div className="section-title">

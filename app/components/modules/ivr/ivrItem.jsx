@@ -863,6 +863,9 @@ class IvrItem extends Component {
             this.state.checkedList.map(function(item) {
                 action[item] = "yes"
             })
+            if (action['dial_extension'] === 'no') {
+                delete action.ivr_blackwhite_list
+            }
 
             if (IvrId) {
                 action["action"] = "updateIVR"

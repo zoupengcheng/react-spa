@@ -336,7 +336,7 @@ class FaxItem extends Component {
                                     }
                                 }, {
                                     validator: (data, value, callback) => {
-                                        Validator.numeric_pound_star(data, value, callback, formatMessage)
+                                        Validator.digits(data, value, callback, formatMessage)
                                     }
                                 }, {
                                     validator: this._checkExtension

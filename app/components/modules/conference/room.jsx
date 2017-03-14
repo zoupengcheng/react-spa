@@ -19,7 +19,8 @@ class Room extends Component {
         super(props)
         this.state = {
             confoList: [],
-            visible: false
+            visible: false,
+            members: {}
         }
     }
     componentDidMount() {
@@ -104,7 +105,7 @@ class Room extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                members = res.response || []
+                members = res.response || {}
 
                 this.setState({
                     members: members
@@ -139,7 +140,7 @@ class Room extends Component {
         return currentTime
     }
     _getActivityTime = (text) => {
-        if (text === '--') {
+        if (text === '--' || text === undefined) {
             return '--'
         }
 
@@ -436,6 +437,43 @@ class Room extends Component {
                 }
             }]
 
+        var conferenceStatus = this.props.conferenceStatus || [],
+            confoList = this.state.confoList,
+            sourceMembers = this.state.members
+
+        _.each(conferenceStatus, function(item, key) {
+            let socketExtension = item.extension,
+                socketmembers = item.member
+
+            if (!_.has(sourceMembers, socketExtension)) {
+                sourceMembers[socketExtension] = socketmembers
+            } else {
+                _.each(sourceMembers, function(itemSource, key) {
+                    if (socketExtension === key) {
+                        _.each(socketmembers, function(itemSocket, key) {
+                            if (itemSocket.action === 'add') {
+                                itemSource.push(itemSocket)
+                            } else if (itemSocket.action === 'delete') {
+                                _.each(itemSource, function(itemSourceExten, key) {
+                                    if (itemSourceExten.caller_id === itemSocket.caller_id) {
+                                        itemSource.splice(key, 1)
+                                        return false
+                                    }
+                                })
+                            } else if (itemSocket.action === 'update') {
+                                _.each(itemSource, function(itemSourceExten, key) {
+                                    if (itemSourceExten.caller_id === itemSocket.caller_id) {
+                                        itemSource.splice(key, 1, itemSocket)
+                                        return false
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+
         const expandedRowRender = (e) => {
             const columns = [
                 { 
@@ -469,12 +507,14 @@ class Room extends Component {
                         return this._renderExapndOptions(record)
                     }
                 }
-            ] 
+            ]
+
+            let dataSourceMembers = sourceMembers[e.extension]
 
             return (
                 <Table
                     columns={ columns }
-                    dataSource={ this.state.members[e.extension] }
+                    dataSource={ dataSourceMembers }
                     defaultExpandAllRows = { true }
                     pagination={ false } />
             )
@@ -511,10 +551,10 @@ class Room extends Component {
                         rowKey="extension"
                         columns={ columns }
                         pagination={ false }
-                        dataSource={ this.state.confoList }
+                        dataSource={ confoList }
                         expandedRowRender = { expandedRowRender }
                         defaultExpandAllRows = { true }
-                        showHeader={ !!this.state.confoList.length }
+                        showHeader={ !!confoList.length }
                     >
                     </Table>
                     <Modal 

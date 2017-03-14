@@ -191,6 +191,7 @@ import UserOnlineStatus from '../components/modules/userOnlineStatus'
 
 // user-value-added-features
 import UserWebrtc from '../components/modules/userWebrtc'
+import UserWebrtcItem from '../components/modules/userWebrtc/userWebrtcItem'
 import UserAgent from '../components/modules/userAgent'
 import UserWakeupService from '../components/modules/userWakeupService'
 import UserCrmUserSettings from '../components/modules/userCrmUserSettings'
@@ -615,7 +616,10 @@ const routes = (state, currentLocaleData) => {
                 {/* user-value-added-features */}
                 <Route path="user-value-added-features" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG7"] }>
                     <IndexRoute component={ UserWebrtc } />
-                    <Route path="userWebrtc" onEnter={ requireAuth } component={ UserWebrtc } breadcrumbName={ currentLocaleData["LANG7"] } />
+                    <Route path="userWebrtc" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG7"] } >
+                        <IndexRoute component={ UserWebrtc } />
+                        <Route path="settings" onEnter={ requireAuth } component={ UserWebrtcItem } breadcrumbName={ currentLocaleData["LANG7"] } />
+                    </Route>
                     <Route path="faxSending" onEnter={ requireAuth } component={ FAXSending } breadcrumbName={ currentLocaleData["LANG8"] } />
                     <Route path="userAgent" onEnter={ requireAuth } component={ UserAgent } breadcrumbName={ currentLocaleData["LANG2640"] } />
                     <Route path="userWakeupService" onEnter={ requireAuth } component={ UserWakeupService } breadcrumbName={ currentLocaleData["LANG3003"] } />

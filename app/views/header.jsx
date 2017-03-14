@@ -1,8 +1,11 @@
 'use strict'
 
 import React from 'react'
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import * as Actions from '../actions/'
 import { browserHistory } from 'react-router'
-import { Icon, Menu, Dropdown, Select, Button, message, Modal } from 'antd'
+import { Icon, Menu, Dropdown, Select, Button, message, Spin, Modal } from 'antd'
 import { injectIntl } from 'react-intl'
 import SubscribeEvent from '../components/api/subscribeEvent'
 import api from "../components/api/api"
@@ -54,8 +57,7 @@ let Header = React.createClass({
     },
     _applyChanges() {
         const { formatMessage } = this.props.intl
-
-        message.loading(formatMessage({id: "LANG806"}), 60)
+        this.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG806"})})
 
         $.ajax({
             url: api.apiHost + "action=applyChanges&settings=",
@@ -64,7 +66,7 @@ let Header = React.createClass({
                 let status = data.status,
                     settings = data.response.hasOwnProperty('settings') ? data.response.settings : ''
 
-                message.destroy()
+                this.props.setSpinLoading({loading: false})
                 if (status === 0 && settings === '0') {
                     // this.setState({
                     //     visible: false
@@ -158,4 +160,12 @@ let Header = React.createClass({
     }
 })
 
-module.exports = injectIntl(Header)
+const mapStateToProps = (state) => ({
+    spinLoading: state.spinLoading
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+module.exports = connect(mapStateToProps, mapDispatchToProps)(injectIntl(Header))

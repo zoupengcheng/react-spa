@@ -711,7 +711,7 @@ class EventList extends Component {
                                             { ...formItemLayout }
                                             label={(
                                                 <Tooltip title={<FormattedHTMLMessage id="LANG2482" />}>
-                                                    {formatMessage({id: "LANG2478"})}
+                                                    <span>{formatMessage({id: "LANG2478"})}</span>
                                                 </Tooltip>
                                             )}>
                                             { getFieldDecorator('sub_eventList', {

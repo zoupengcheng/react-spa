@@ -410,12 +410,14 @@ class ActivityCall extends Component {
                 _.each(activeCallStatus, function(item, key) {
                     if (item.channel === socketObj.channel) {
                         activeCallStatus.splice(key, 1)
+                        return false
                     }
                 })
             } else if (socketObj.action === 'update') {
                 _.each(activeCallStatus, function(item, key) {
                     if (item.channel === socketObj.channel) {
-                        activeCallStatus.splice(key, 1, item)
+                        activeCallStatus.splice(key, 1, socketObj)
+                        return false
                     }
                 })
             }

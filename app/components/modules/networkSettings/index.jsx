@@ -105,6 +105,135 @@ class NetWorkSettings extends Component {
         const { form } = this.props
         const __this = this
 
+        let flag = false
+        let buf = {}
+        let defaultInterface = form.getFieldValue("default_interface")
+        let method = form.getFieldValue("method")
+
+        let lasInterface = ''
+        if (method === '2') {
+            lasInterface = interfaceObj[method][defaultInterface]
+        } else {
+            lasInterface = interfaceObj[method]
+        }
+
+        buf["action"] = "updateNetworkSettings"
+        buf["altdns"] = form.getFieldValue("altdns") || '0.0.0.0'
+        buf["mtu"] = form.getFieldValue("mtu")
+
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        if (Number(model_info.num_eth) >= 2) {
+            buf["method"] = method
+
+            if (model_info.allow_nat === "1") {
+                flag = true
+            }
+
+            if (method === "0") {
+                buf["dhcp_ipaddr"] = form.getFieldValue("dhcp_ipaddr")
+                buf["dhcp_submask"] = form.getFieldValue("dhcp_submask")
+                buf["lan2_vid"] = form.getFieldValue("lan2_vid")
+                buf["lan2_priority"] = form.getFieldValue("lan2_priority")
+            } else if (method === "2") {
+                let sval = form.getFieldValue("lan2_ip_method")
+                let s6val = form.getFieldValue("lan2_ip6_method")
+
+                buf["default_interface"] = defaultInterface
+                buf["lan2_ip_method"] = sval
+                buf["lan2_ip6_method"] = s6val
+
+                if (sval === "1") {
+                    buf["lan2_ip"] = form.getFieldValue("lan2_ip")
+                    buf["lan2_mask"] = form.getFieldValue("lan2_mask")
+                    buf["lan2_gateway"] = form.getFieldValue("lan2_gateway")
+                    buf["lan2_dns1"] = form.getFieldValue("lan2_dns1")
+                    buf["lan2_dns2"] = form.getFieldValue("lan2_dns2")
+                } else if (sval === "2") {
+                    buf["lan2_username"] = form.getFieldValue("lan2_username")
+                    buf["lan2_password"] = form.getFieldValue("lan2_password")
+                }
+
+                buf["lan2_vid"] = form.getFieldValue("lan2_vid")
+                buf["lan2_priority"] = form.getFieldValue("lan2_priority")
+
+                if (s6val === "1") {
+                    buf["lan2_ipaddr6"] = form.getFieldValue("lan2_ipaddr6")
+                    buf["lan2_ip6_dns1"] = form.getFieldValue("lan2_ip6_dns1")
+                    buf["lan2_ip6_dns2"] = form.getFieldValue("lan2_ip6_dns2")
+                    buf["lan2_ip6_prefixlen"] = form.getFieldValue("lan2_ip6_prefixlen")
+                }
+            }
+        }
+        let sval = form.getFieldValue("lan1_ip_method")
+        let s6val = form.getFieldValue("lan1_ip6_method")
+        if (sval === "0") {
+            buf["lan1_ip_method"] = "0"
+        } else if (sval === "1") {
+            buf["lan1_ip_method"] = "1"
+            buf["lan1_ipaddr"] = form.getFieldValue("lan1_ipaddr")
+            buf["lan1_submask"] = form.getFieldValue("lan1_submask")
+            buf["lan1_gateway"] = form.getFieldValue("lan1_gateway")
+            buf["lan1_dns1"] = form.getFieldValue("lan1_dns1")
+            buf["lan1_dns2"] = form.getFieldValue("lan1_dns2") || '0.0.0.0'
+        } else {
+            buf["lan1_ip_method"] = "2"
+            // buf["lan1_username"] = encodeURIComponent($("#lan1_username").val());
+            // buf["lan1_password"] = encodeURIComponent($("#lan1_password").val());
+            buf["lan1_username"] = form.getFieldValue("lan1_username")
+            buf["lan1_password"] = form.getFieldValue("lan1_password")
+        }
+
+        buf["lan1_vid"] = form.getFieldValue("lan1_vid")
+        buf["lan1_priority"] = form.getFieldValue("lan1_priority")
+
+        if (s6val === "0") {
+            buf["lan1_ip6_method"] = "0"
+        } else if (s6val === "1") {
+            buf["lan1_ip6_method"] = "1"
+            buf["lan1_ipaddr6"] = form.getFieldValue("lan1_ipaddr6")
+            buf["lan1_ip6_dns1"] = form.getFieldValue("lan1_ip6_dns1")
+            buf["lan1_ip6_dns2"] = form.getFieldValue("lan1_ip6_dns2")
+            buf["lan1_ip6_prefixlen"] = form.getFieldValue("lan1_ip6_prefixlen") || '64'
+        }
+
+        if (flag) {
+            let dhcpenable = ((form.getFieldValue("dhcp_enable") && (form.getFieldValue("method") === "0")) ? 1 : 0)
+            let dhcp6enable = ((form.getFieldValue("dhcp6_enable") && (form.getFieldValue("method") === "0")) ? form.getFieldValue("dhcp6_enable") : 0)
+
+            buf["dhcp_enable"] = dhcpenable
+            buf["dhcp6_enable"] = dhcp6enable
+
+            if (dhcpenable) {
+                buf["dhcp_ipaddr"] = form.getFieldValue("dhcp_ipaddr")
+                buf["dhcp_submask"] = form.getFieldValue("dhcp_submask")
+                buf["dhcp_dns1"] = form.getFieldValue("dhcp_dns1")
+                buf["dhcp_dns2"] = form.getFieldValue("dhcp_dns2")
+                buf["ipfrom"] = form.getFieldValue("ipfrom")
+                buf["ipto"] = form.getFieldValue("ipto")
+                buf["dhcp_gateway"] = form.getFieldValue("dhcp_gateway")
+                buf["ipleasetime"] = form.getFieldValue("ipleasetime")
+            }
+
+            if (dhcp6enable) {
+                buf["dhcp6_dns1"] = form.getFieldValue("dhcp6_dns1")
+                buf["dhcp6_dns2"] = form.getFieldValue("dhcp6_dns2")
+                buf["ip6from"] = form.getFieldValue("ip6from")
+                buf["ip6to"] = form.getFieldValue("ip6to")
+
+                let dhcp6PrefixVal = form.getFieldValue("dhcp6_prefix")
+                let dhcp6PrefixlenVal = form.getFieldValue("dhcp6_prefixlen")
+
+                buf["dhcp6_prefix"] = dhcp6PrefixVal
+                buf["dhcp6_prefixlen"] = dhcp6PrefixlenVal
+                buf["lan2_ipaddr6"] = dhcp6PrefixVal
+                buf["lan2_ip6_prefixlen"] = dhcp6PrefixlenVal
+
+                buf["ip6leasetime"] = form.getFieldValue("ip6leasetime")
+            }
+        }
+
+        /*
         // if (checkIfRejectRules(method)) {
             // let all = form.getFieldsValue(['method', 'mtu', 'default_interface', 'altdns', 
             //    'lan2_ip_method', 'lan2_ip', 'lan2_mask', 'lan2_gateway', 'lan2_dns1', 'lan2_dns2', 'lan2_username', 'lan2_password', 'lan2_vid', 'lan2_priority',
@@ -114,12 +243,7 @@ class NetWorkSettings extends Component {
 
             let buf = {}
             let methodVal = this.state.network_settings.method
-            let lasInterface = ''
-            if (methodVal === '2') {
-                lasInterface = interfaceObj[methodVal][defaultInterface]
-            } else {
-                lasInterface = interfaceObj[methodVal]
-            }
+
             buf["action"] = "updateNetworkSettings"
             _.each(all, function(num, key) {
                 if (key === 'dhcp_enable' || key === 'dhcp6_enable') {
@@ -128,9 +252,12 @@ class NetWorkSettings extends Component {
                     buf[key] = num
                 }
             })
-
+        */
             if (buf["altdns"] === '') {
                 buf["altdns"] = "0.0.0.0"
+            }
+            if (buf["lan1_dns1"] === '') {
+                buf["lan1_dns1"] = "0.0.0.0"
             }
             if (buf["lan1_dns2"] === '') {
                 buf["lan1_dns2"] = "0.0.0.0"
@@ -148,8 +275,8 @@ class NetWorkSettings extends Component {
                 buf["lan2_priority"] = ""
             }
 
-            let method = buf["method"] || "1"
-            let defaultInterface = buf["default_interface"] || "LAN2"
+            // let method = buf["method"] || "1"
+            // let defaultInterface = buf["default_interface"] || "LAN2"
 
             $.ajax({
                 type: "post",
