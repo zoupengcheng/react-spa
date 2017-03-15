@@ -10,9 +10,10 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Table, Popconfirm, Tree } from 'antd'
+import { Form, Input, Button, Row, Col, Checkbox, message, Modal, Tooltip, Select, Table, Popconfirm, Tree } from 'antd'
 
 const FormItem = Form.Item
+const confirm = Modal.confirm
 const TreeNode = Tree.TreeNode
 
 class Cleanup extends Component {
@@ -41,11 +42,12 @@ class Cleanup extends Component {
     componentWillUnmount() {
     }
     _batchDelete = () => {
+        let selectList = []
         let modalContent = ''
         let loadingMessage = ''
         let successMessage = ''
         let startWithPBX = false
-        let fileList = this.state.selectedRowKeys
+        let selectedRowKeys = this.state.selectedRowKeys
         let currentFilePath = this.state.currentFilePath
 
         const { formatMessage } = this.props.intl
@@ -54,40 +56,18 @@ class Cleanup extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG871"})}}></span>
 
-        _.map(fileList, (file, index) => {
-            if (rowName.beginsWith('PBX_')) {
-                startWithPBX = true;
-                break;
+        _.map(selectedRowKeys, (fileName, index) => {
+            selectList.push(currentFilePath + '/' + fileName)
+
+            if (fileName.indexOf('PBX_') === 0) {
+                startWithPBX = true
             }
         })
 
-        for (i; i < selectedRowsLength; i++) {
-            rowdata = backupFilesTable.jqGrid('getRowData', selected[i]);
-
-            rowName = rowdata['n'];
-
-            backupFilesList.push(rowName);
-
-            if (rowName.beginsWith('PBX_')) {
-                startWithPBX = true;
-                break;
-            }
-        }
-
         if (startWithPBX) {
-            top.dialog.dialogMessage({
-                type: 'warning',
-                content: $P.lang("LANG5183")
-            });
-            return;
-        }
+            message.warning(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5183" })}}></span>)
 
-        for (i = 0; i < selectedRowsLength; i++) {
-            confirmList.push("<font>" + backupFilesList[i] + "</font>");
-
-            if (path) {
-                backupFilesList[i] = path + '/' + backupFilesList[i];
-            }
+            return false
         }
 
         confirm({
@@ -104,7 +84,7 @@ class Cleanup extends Component {
                     data: {
                         'action': 'removeFile',
                         'type': 'clean_usb_sd_file',
-                        'data': idList.join(',')
+                        'data': selectList.join('\t')
                     },
                     success: function(res) {
                         const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -113,9 +93,12 @@ class Cleanup extends Component {
                             message.destroy()
                             message.success(successMessage)
 
-                            this._reloadTableList(this.state.selectedRowKeys.length)
+                            this._reloadTableList(selectList.length)
 
-                            this._clearSelectRows()
+                            this.setState({
+                                selectedRows: [],
+                                selectedRowKeys: []
+                            })
                         }
                     }.bind(this),
                     error: function(e) {
