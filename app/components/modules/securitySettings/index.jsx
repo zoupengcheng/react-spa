@@ -101,6 +101,7 @@ class SecuritySettings extends Component {
                 let action_fail2ban = {}
                 let action_static = {}
                 let action_dynamic = {}
+                let action_ssh = {}
                 let pass = false
 
                 if ((values.ping_enable_wan === true && values.ping_of_death_wan === true) ||
@@ -251,6 +252,30 @@ class SecuritySettings extends Component {
                             var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                             if (bool) {
+                                pass = true
+                                message.destroy()
+                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                            }
+                        }.bind(this)
+                    })
+                }
+                if (pass === true && values.access !== undefined) {
+                    action_ssh.action = 'sshControl'
+                    action_ssh.option = values.access ? 'yes' : 'no'
+                  
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action_ssh,
+                        type: 'json',
+                        async: false,
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
                                 message.destroy()
                                 message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
                             }
@@ -258,7 +283,6 @@ class SecuritySettings extends Component {
                     })
                 }
                 if (pass === true) {
-                    message.destroy()
                 }
             }
         })

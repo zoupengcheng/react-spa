@@ -25,9 +25,12 @@ class QueueItem extends Component {
             queueRange: [],
             numberList: [],
             vmPromptList: [],
+            vq_switch: false,
             destination_value: '',
+            announce_position: false,
             destination_type: 'account',
             destination_value_prompt: '',
+            destination_voice_enable: false,
             destination_type_prompt: 'account',
             mohNameList: ['default', 'ringbacktone_default'],
             destinationListDataSource: {
@@ -82,9 +85,12 @@ class QueueItem extends Component {
         let mohNameList = []
         let extgroupList = []
         let vmPromptList = []
+        let vq_switch = false
         let destination_value = ''
+        let announce_position = false
         let destination_type = 'account'
         let destination_value_prompt = ''
+        let destination_voice_enable = false
         let destination_type_prompt = 'account'
         let destinationListDataSource = {}
 
@@ -290,6 +296,10 @@ class QueueItem extends Component {
                             }
                         })
 
+                        vq_switch = (queueItem.vq_switch === 'yes')
+                        announce_position = (queueItem.announce_position === 'yes')
+                        destination_voice_enable = (queueItem.destination_voice_enable === 'yes')
+
                         destination_type = queueItem.destination_type_t
                         destination_type_prompt = queueItem.destination_type_v
 
@@ -319,18 +329,21 @@ class QueueItem extends Component {
         }
 
         this.setState({
+            vq_switch: vq_switch,
             queueItem: queueItem,
             memberList: memberList,
             queueRange: queueRange,
             numberList: numberList,
             targetKeys: targetKeys,
             vmPromptList: vmPromptList,
+            announce_position: announce_position,
             destination_value: destination_value,
             destination_value_prompt: destination_value_prompt,
+            destination_voice_enable: destination_voice_enable,
             destinationListDataSource: destinationListDataSource,
             mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default'],
-            destination_type: destination_type ? destination_type.replace(/_t/g, '') : '',
-            destination_type_prompt: destination_type_prompt ? destination_type_prompt.replace(/_t/g, '') : ''
+            destination_type: destination_type ? destination_type.replace(/_t/g, '') : 'account',
+            destination_type_prompt: destination_type_prompt ? destination_type_prompt.replace(/_t/g, '') : 'account'
         })
     }
     _handleCancel = () => {
@@ -461,6 +474,11 @@ class QueueItem extends Component {
             }
         })
     }
+    _onChangeAnnouncePosition = (e) => {
+        this.setState({
+            announce_position: e.target.checked
+        })
+    }
     _onChangeDesType = (value) => {
         this.setState({
             destination_type: value
@@ -469,6 +487,16 @@ class QueueItem extends Component {
     _onChangeDesTypePrompr = (value) => {
         this.setState({
             destination_type_prompt: value
+        })
+    }
+    _onChangeVoiceEnable = (e) => {
+        this.setState({
+            destination_voice_enable: e.target.checked
+        })
+    }
+    _onChangeVQSwitch = (e) => {
+        this.setState({
+            vq_switch: e.target.checked
         })
     }
     _removeSuffix = (filename) => {
@@ -780,7 +808,11 @@ class QueueItem extends Component {
                                                 )}
                                             >
                                                 { getFieldDecorator('queue_timeout', {
-                                                    rules: [],
+                                                    rules: [{
+                                                        validator: (data, value, callback) => {
+                                                            Validator.range(data, value, callback, formatMessage, 0, 2000)
+                                                        }
+                                                    }],
                                                     initialValue: settings.queue_timeout
                                                 })(
                                                     <Input />
@@ -882,6 +914,26 @@ class QueueItem extends Component {
                                                 { ...formItemRowLayout }
                                                 label={(
                                                     <span>
+                                                        <Tooltip title={ <FormattedHTMLMessage id="LANG274" /> }>
+                                                            <span>{ formatMessage({id: "LANG274"}) }</span>
+                                                        </Tooltip>
+                                                    </span>
+                                                )}
+                                            >
+                                                { getFieldDecorator('destination_voice_enable', {
+                                                    rules: [],
+                                                    valuePropName: 'checked',
+                                                    initialValue: this.state.destination_voice_enable
+                                                })(
+                                                    <Checkbox onChange={ this._onChangeVoiceEnable } />
+                                                ) }
+                                            </FormItem>
+                                        </Col>
+                                        <Col span={ 24 }>
+                                            <FormItem
+                                                { ...formItemRowLayout }
+                                                label={(
+                                                    <span>
                                                         <Tooltip title={ <FormattedHTMLMessage id="LANG4581" /> }>
                                                             <span>{ formatMessage({id: "LANG4580"}) }</span>
                                                         </Tooltip>
@@ -889,10 +941,14 @@ class QueueItem extends Component {
                                                 )}
                                             >
                                                 { getFieldDecorator('voice_prompt_time', {
-                                                    rules: [],
+                                                    rules: [{
+                                                        validator: (data, value, callback) => {
+                                                            Validator.range(data, value, callback, formatMessage, 20, 2000)
+                                                        }
+                                                    }],
                                                     initialValue: settings.voice_prompt_time ? settings.voice_prompt_time : 60
                                                 })(
-                                                    <Input />
+                                                    <Input disabled={ !this.state.destination_voice_enable } />
                                                 ) }
                                             </FormItem>
                                         </Col>
@@ -911,7 +967,7 @@ class QueueItem extends Component {
                                                     rules: [],
                                                     initialValue: settings.custom_prompt ? settings.custom_prompt : 'none'
                                                 })(
-                                                    <Select>
+                                                    <Select disabled={ !this.state.destination_voice_enable }>
                                                         <Option value="none">{ formatMessage({id: "LANG133"}) }</Option>
                                                         {
                                                             this.state.vmPromptList.map(function(data, index) {
@@ -943,7 +999,10 @@ class QueueItem extends Component {
                                                         rules: [],
                                                         initialValue: this.state.destination_type_prompt
                                                     })(
-                                                        <Select onChange={ this._onChangeDesTypePrompr }>
+                                                        <Select
+                                                            onChange={ this._onChangeDesTypePrompr }
+                                                            disabled={ !this.state.destination_voice_enable }
+                                                        >
                                                             <Option value='account'>{ formatMessage({id: "LANG85"}) }</Option>
                                                             <Option value='voicemail'>{ formatMessage({id: "LANG90"}) }</Option>
                                                             <Option value='queue'>{ formatMessage({id: "LANG91"}) }</Option>
@@ -964,6 +1023,7 @@ class QueueItem extends Component {
                                                 <FormItem>
                                                     { getFieldDecorator('destination_value_prompt', {
                                                         rules: [
+                                                            this.state.destination_voice_enable &&
                                                             this.state.destination_type_prompt !== 'external_number'
                                                                 ? {
                                                                         required: true,
@@ -973,7 +1033,7 @@ class QueueItem extends Component {
                                                         ],
                                                         initialValue: this.state.destination_value_prompt
                                                     })(
-                                                        <Select>
+                                                        <Select disabled={ !this.state.destination_voice_enable }>
                                                             {
                                                                 this.state.destinationListDataSource[this.state.destination_type_prompt.replace(/_t/g, '')].map(function(obj) {
                                                                         return <Option
@@ -1006,7 +1066,7 @@ class QueueItem extends Component {
                                                         ],
                                                         initialValue: settings.external_number_v
                                                     })(
-                                                        <Input />
+                                                        <Input disabled={ !this.state.destination_voice_enable } />
                                                     ) }
                                                 </FormItem>
                                             </Col>
@@ -1038,9 +1098,9 @@ class QueueItem extends Component {
                                                 { getFieldDecorator('vq_switch', {
                                                     rules: [],
                                                     valuePropName: 'checked',
-                                                    initialValue: settings.vq_switch === 'yes'
+                                                    initialValue: this.state.vq_switch
                                                 })(
-                                                    <Checkbox />
+                                                    <Checkbox onChange={ this._onChangeVQSwitch } />
                                                 ) }
                                             </FormItem>
                                         </Col>
@@ -1059,7 +1119,7 @@ class QueueItem extends Component {
                                                     rules: [],
                                                     initialValue: settings.vq_mode ? settings.vq_mode : 'periodic'
                                                 })(
-                                                    <Select>
+                                                    <Select disabled={ !this.state.vq_switch }>
                                                         <Option value="periodic">{ formatMessage({id: "LANG5317"}) }</Option>
                                                         <Option value="digit">{ formatMessage({id: "LANG5316"}) }</Option>
                                                     </Select>
@@ -1081,7 +1141,7 @@ class QueueItem extends Component {
                                                     rules: [],
                                                     initialValue: settings.vq_periodic ? settings.vq_periodic : 20
                                                 })(
-                                                    <Input />
+                                                    <Input disabled={ !this.state.vq_switch } />
                                                 ) }
                                             </FormItem>
                                         </Col>
@@ -1100,7 +1160,7 @@ class QueueItem extends Component {
                                                     rules: [],
                                                     initialValue: settings.vq_outprefix
                                                 })(
-                                                    <Input />
+                                                    <Input disabled={ !this.state.vq_switch } />
                                                 ) }
                                             </FormItem>
                                         </Col>
@@ -1122,9 +1182,10 @@ class QueueItem extends Component {
                                             >
                                                 { getFieldDecorator('announce_position', {
                                                     rules: [],
-                                                    initialValue: settings.announce_position
+                                                    valuePropName: 'checked',
+                                                    initialValue: this.state.announce_position
                                                 })(
-                                                    <Input />
+                                                    <Checkbox onChange={ this._onChangeAnnouncePosition } />
                                                 ) }
                                             </FormItem>
                                         </Col>
@@ -1140,10 +1201,14 @@ class QueueItem extends Component {
                                                 )}
                                             >
                                                 { getFieldDecorator('announce_frequency', {
-                                                    rules: [],
+                                                    rules: [{
+                                                        validator: (data, value, callback) => {
+                                                            Validator.range(data, value, callback, formatMessage, 20, 2000)
+                                                        }
+                                                    }],
                                                     initialValue: settings.announce_frequency ? settings.announce_frequency : 20
                                                 })(
-                                                    <Input />
+                                                    <Input disabled={ !this.state.announce_position } />
                                                 ) }
                                             </FormItem>
                                         </Col>

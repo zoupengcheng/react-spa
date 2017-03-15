@@ -4,19 +4,21 @@
  *
  */
 import $ from 'jquery'
-import React from 'react'
+import api from './api'
 import _ from 'underscore'
-import api from "./api"
+
+import React from 'react'
+import cookie from 'react-cookie'
 import { message, Modal } from 'antd'
 import { browserHistory } from 'react-router'
 import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
-import cookie from 'react-cookie'
+
 const baseServerURl = api.apiHost
 
 let loginInterval = null
 let checkInterval = null    
 let UCMGUI = function() {}
-var userAgent = window.navigator.userAgent.toLowerCase()
+let userAgent = window.navigator.userAgent.toLowerCase()
 
 UCMGUI.prototype = {
     initConfig: {
@@ -978,6 +980,45 @@ UCMGUI.prototype = {
             }
         }
     },
+    tranSize: function(s) {
+        let size = parseFloat(s),
+            rank = 0,
+            rankchar = 'Bytes'
+
+        while (size > 1024) {
+            size = size / 1024
+            rank++
+        }
+
+        if (rank === 1) {
+            rankchar = 'KB'
+        } else if (rank === 2) {
+            rankchar = 'MB'
+        } else if (rank === 3) {
+            rankchar = 'GB'
+        }
+
+        return size.toFixed(2) + ' ' + rankchar
+    },
+    untranSize: function(size) {
+        if (size.contains(' Bytes')) {
+            size = size.replace(' Bytes', '')
+        } else if (size.contains(' KB')) {
+            size = size.replace(' KB', '')
+            size = parseFloat(size)
+            size = size * 1024
+        } else if (size.contains(' MB')) {
+            size = size.replace(' MB', '')
+            size = parseFloat(size)
+            size = size * 1024 * 1024
+        } else if (size.contains(' GB')) {
+            size = size.replace(' GB', '')
+            size = parseFloat(size)
+            size = size * 1024 * 1024
+        }
+
+        return size
+    },
     ObjectArray: {
         find: function(item, value, ary) {
             if (!item || !value || !ary) {
@@ -1002,10 +1043,10 @@ UCMGUI.prototype = {
         let arr = []
         for (let temp in data) {
             if (data.hasOwnProperty(temp)) {
-                arr.push(temp + "=" + data[temp])
+                arr.push(temp + '=' + data[temp])
             }
         }
-        return arr.join("&")
+        return arr.join('&')
     },
     rChop: function(b, c) { // chop a string from the end of the string
         if (b.indexOf(c) === -1 || !b.endsWith(c)) {

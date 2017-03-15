@@ -10,6 +10,7 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
 import { Tooltip, Button, message, Modal, Popconfirm, Progress, Table, Tag, Form, Input, Row, Col, Upload, Icon } from 'antd'
 import cookie from 'react-cookie'
+import Validator from "../../api/validator"
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -328,11 +329,11 @@ class FaxSending extends Component {
     _createProcess = (text, record, index) => {
         const { formatMessage } = this.props.intl
         if (text === 100) {
-            return <span><Progress format={ () => formatMessage({id: "LANG4125"}) } percent={100} /></span>
+            return <span title={ formatMessage({id: "LANG4125"}) }><Progress percent={100} /></span>
         } else if (text >= 0 && text <= 99) {
             return <span><Progress percent={text} status="active" /></span>
         } else {
-            return <span><Progress format={ () => formatMessage({id: "LANG4089"}) } percent={50} status="exception" /></span>
+            return <span title={ formatMessage({id: "LANG4089"}) }><Progress percent={50} status="exception" /></span>
         }
     }
     _sendCancel = () => {
@@ -376,6 +377,9 @@ class FaxSending extends Component {
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 hasValue = true
+            } else {
+                message.error(formatMessage({id: "LANG2157"}))
+                return false
             }
         })
         if (file.type === 'application/pdf' ||
@@ -516,6 +520,10 @@ class FaxSending extends Component {
                                 rules: [{
                                         required: true,
                                         message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                     }],
                                 width: 100
                             })(

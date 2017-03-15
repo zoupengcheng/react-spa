@@ -179,10 +179,18 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 0, 65535)
+                                    }
                                 }],
                                 initialValue: PortForwarding.wan_port
                             })(
-                                <Input/>
+                                <Input maxLength="6"/>
                             ) }
                         </FormItem>
                         <FormItem
@@ -199,6 +207,10 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.ipv4Address(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 initialValue: PortForwarding.lan_ip
                             })(
@@ -219,10 +231,18 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 0, 65535)
+                                    }
                                 }],
                                 initialValue: PortForwarding.lan_port
                             })(
-                                <Input/>
+                                <Input maxLength="6"/>
                             ) }
                         </FormItem>
                         <FormItem

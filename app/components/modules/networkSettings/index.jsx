@@ -489,45 +489,49 @@ class NetWorkSettings extends Component {
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
+        const me = this
         var method = form.getFieldValue("method") 
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
+            if (!err) {
+                if (method === '0') {
+                    let aOldGateway = this.state.dhcp_settings.dhcp_gateway.split('\.')
+                    let aNewGateWay = form.getFieldValue("dhcp_gateway").split('\.')
 
-        if (method === '0') {
-            let aOldGateway = this.state.dhcp_settings.dhcp_gateway.split('\.')
-            let aNewGateWay = form.getFieldValue("dhcp_gateway").split('\.')
+                    if (aOldGateway[0] !== aNewGateWay[0] || aOldGateway[1] !== aNewGateWay[1] || aOldGateway[2] !== aNewGateWay[2]) {
+                        $.ajax({
+                            url: baseServerURl,
+                            type: "GET",
+                            data: {
+                                action: "checkIfHasMacBind"
+                            },
+                            success: function(data) {
+                                const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
-            if (aOldGateway[0] !== aNewGateWay[0] || aOldGateway[1] !== aNewGateWay[1] || aOldGateway[2] !== aNewGateWay[2]) {
-                $.ajax({
-                    url: baseServerURl,
-                    type: "GET",
-                    data: {
-                        action: "checkIfHasMacBind"
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, formatMessage)
+                                if (bool) {
+                                    let bBind = (data.response.hasbind === 'yes')
 
-                        if (bool) {
-                            let bBind = (data.response.hasbind === 'yes')
-
-                            if (bBind) {
-                                Modal.confirm({
-                                    title: 'Confirm',
-                                    content: formatMessage({id: "LANG5077"}),
-                                    okText: formatMessage({id: "LANG727"}),
-                                    cancelText: formatMessage({id: "LANG726"}),
-                                    onOk: this._deleteBatchDHCPClient.bind(this)
-                                })
-                            } else {
-                                this._saveChangeCallback()
+                                    if (bBind) {
+                                        Modal.confirm({
+                                            title: 'Confirm',
+                                            content: formatMessage({id: "LANG5077"}),
+                                            okText: formatMessage({id: "LANG727"}),
+                                            cancelText: formatMessage({id: "LANG726"}),
+                                            onOk: me._deleteBatchDHCPClient.bind(me)
+                                        })
+                                    } else {
+                                        me._saveChangeCallback()
+                                    }
+                                }
                             }
-                        }
+                        })
+                    } else {
+                        me._saveChangeCallback()
                     }
-                })
-            } else {
-                this._saveChangeCallback()
+                } else {
+                    me._saveChangeCallback()
+                }
             }
-        } else {
-            this._saveChangeCallback()
-        }
+        })
     }
     render() {
         const { getFieldDecorator } = this.props.form
@@ -561,22 +565,29 @@ class NetWorkSettings extends Component {
                             dhcp6Enable={ this._changeDHCP6Enable.bind(this) }
                         />
                     </TabPane>
-                    <TabPane tab={formatMessage({id: "LANG4586"})} key="2" disabled={ model_info.allow_nat === "0" ? true : false }>
-                        <DHCPClient
-                            dataMethod={ this.state.network_settings.method }
-                            dataDHCPEnable={ this.state.network_settings.dhcp_enable }
-                        />
-                    </TabPane>
+                    { model_info.allow_nat !== "0"
+                        ? <TabPane tab={formatMessage({id: "LANG4586"})} key="2">
+                            <DHCPClient
+                                dataMethod={ this.state.network_settings.method }
+                                dataDHCPEnable={ this.state.network_settings.dhcp_enable }
+                            />
+                        </TabPane>
+                        : ''
+                    }
                     <TabPane tab={formatMessage({id: "LANG708"})} key="3">
                         <Network8021x
                             form={ this.props.form }
                             class8021x={ this.state.method_8021_calss }
                         />
                     </TabPane>
-                    <TabPane tab={formatMessage({id: "LANG709"})} key="4" disabled={ model_info.allow_nat === "0" ? true : false }>
-                        <PortForwarding
-                        />
+                    { model_info.allow_nat !== "0"
+                        ? <TabPane tab={formatMessage({id: "LANG709"})} key="4">
+                                <PortForwarding
+                            />
                     </TabPane>
+                        : ''
+                    }
+
                 </Tabs>
                 <div>
                     <BackTop />

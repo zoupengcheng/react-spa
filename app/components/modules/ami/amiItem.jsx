@@ -379,7 +379,7 @@ class AMIItem extends Component {
                                 message: formatMessage({id: "LANG2150"})
                             }, {
                                 validator: (data, value, callback) => {
-                                    Validator.ipAddress(data, value, callback, formatMessage)
+                                    Validator.specialIpAddress(data, value, callback, formatMessage)
                                 }
                             }],
                             initialValue: netmaskList[index + 1]
@@ -498,7 +498,7 @@ class AMIItem extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }, {
                                             validator: (data, value, callback) => {
-                                                Validator.ipAddress(data, value, callback, formatMessage)
+                                                Validator.specialIpAddress(data, value, callback, formatMessage)
                                             }
                                         }],
                                         initialValue: netmaskList[0] ? netmaskList[0] : ""

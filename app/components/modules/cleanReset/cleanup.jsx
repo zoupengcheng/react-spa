@@ -15,76 +15,63 @@ import { Form, Input, Button, Row, Col, Checkbox, message, Tooltip, Select, Tabl
 const FormItem = Form.Item
 const TreeNode = Tree.TreeNode
 
-function generateTreeNodes(treeNode) {
-    const arr = []
-    const key = treeNode.props.eventKey
-
-    for (let i = 0; i < 3; i++) {
-        arr.push({ name: `leaf ${key}-${i}`, key: `${key}-${i}` })
-    }
-
-    return arr
-}
-
-function setLeaf(treeData, curKey, level) {
-    const loopLeaf = (data, lev) => {
-        const l = lev - 1
-
-        data.forEach((item) => {
-            if ((item.key.length > curKey.length) ? item.key.indexOf(curKey) !== 0 : curKey.indexOf(item.key) !== 0) {
-                return
-            }
-
-            if (item.children) {
-                loopLeaf(item.children, l)
-            } else if (l < 1) {
-                item.isLeaf = true
-            }
-        })
-    }
-
-    loopLeaf(treeData, level + 1)
-}
-
-function getNewTreeData(treeData, curKey, child, level) {
-    const loop = (data) => {
-        if (level < 1 || curKey.length - 3 > level * 2) return
-
-        data.forEach((item) => {
-            if (curKey.indexOf(item.key) === 0) {
-                if (item.children) {
-                    loop(item.children)
-                } else {
-                    item.children = child
-                }
-            }
-        })
-    }
-
-    loop(treeData)
-    setLeaf(treeData, curKey, level)
-}
-
 class Cleanup extends Component {
     constructor(props) {
         super(props)
 
         this.state = {
+            current: 1,
             treeData: [],
             fileList: [],
+            pageSize: 10,
+            loading: false,
             selectedRows: [],
             deviceNameList: [],
+            currentFilePath: '',
             selectedRowKeys: [],
-            expandedTreeKeys: [],
-            selectedTreeKeys: []
+            selectedTreeKeys: [],
+            defaultExpandedKeys: []
         }
     }
     componentDidMount() {
+    }
+    componentWillMount() {
         this._getMediaFile()
     }
     componentWillUnmount() {
     }
     _batchDelete = () => {
+    }
+    _checkFile = (action) => {
+        let result = false
+        const { formatMessage } = this.props.intl
+
+        if (action || !$.isEmptyObject(action)) {
+            $.ajax({
+                type: 'post',
+                async: false,
+                data: action,
+                url: '../cgi',
+                error: function(e) {
+                    message.destroy()
+                    message.error(e.statusText)
+                },
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        result = true
+                    }
+                }.bind(this)
+            })
+        }
+
+        if (!result) {
+            message.destroy()
+            message.error(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3868" })}}></span>)
+        }
+
+        return result
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -92,41 +79,58 @@ class Cleanup extends Component {
         const { formatMessage } = this.props.intl
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG871" })}}></span>
 
         message.loading(loadingMessage)
 
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: {
-                "action": "deleteExtensionGroup",
-                "extension_group": record.group_id
+        let currentFilePath = this.state.currentFilePath
+        
+        let action = {
+                action: 'removeFile',
+                type: 'clean_usb_sd_file',
+                data: currentFilePath + '/' + record.n
             },
-            type: 'json',
-            async: true,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    message.destroy()
-                    message.success(successMessage)
-
-                    this._getExtensionGroups()
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
+            checkAction = {
+                action: 'checkFile',
+                type: 'clean_usb_sd_file',
+                data: currentFilePath + '/' + record.n
             }
-        })
+
+        if (this._checkFile(checkAction)) {
+            $.ajax({
+                async: true,
+                type: 'json',
+                method: 'post',
+                url: api.apiHost,
+                data: action,
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        message.destroy()
+                        message.success(successMessage)
+
+                        this._reloadTableList(1)
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+        }
     }
     _getMediaFile = () => {
         let treeData = []
         let fileList = []
         let directoryList = []
         let deviceNameList = []
+        let currentFilePath = ''
         let defaultShowNode = []
         const { formatMessage } = this.props.intl
+
+        this.setState({
+            loading: true
+        })
 
         $.ajax({
             type: 'json',
@@ -202,6 +206,7 @@ class Cleanup extends Component {
                             })
                         }
 
+                        currentFilePath = deviceNameList[0]
                         defaultShowNode = [deviceNameList[0]]
                     } else {
                         treeData = [{
@@ -220,12 +225,16 @@ class Cleanup extends Component {
                     }
 
                     this.setState({
+                        loading: false,
                         treeData: treeData,
                         fileList: fileList,
                         deviceNameList: deviceNameList,
-                        expandedTreeKeys: defaultShowNode,
-                        selectedTreeKeys: defaultShowNode
+                        currentFilePath: currentFilePath,
+                        selectedTreeKeys: defaultShowNode,
+                        defaultExpandedKeys: defaultShowNode
                     })
+
+                    console.log(currentFilePath)
                 }
             }.bind(this),
             error: function(e) {
@@ -282,19 +291,62 @@ class Cleanup extends Component {
                 directoryList: directoryList
             }
     }
-    _onExpand = (expandedKeys) => {
-        console.log('expanded', expandedKeys)
+    _generateTreeNodes = (treeNode) => {
+        const arr = []
+        const key = treeNode.props.eventKey
+        const children = this._getFileList(key)
 
-        this.setState({
-            expandedTreeKeys: expandedKeys
-        })
+        for (let i = 0; i < 3; i++) {
+            arr.push({ name: `leaf ${key}-${i}`, key: `${key}-${i}` })
+        }
+
+        return arr
+    }
+    _getNewTreeData = (treeData, curKey, child, level) => {
+        const loop = (data) => {
+            // if (level < 1 || curKey.length - 3 > level * 2) return
+
+            data.forEach((item) => {
+                if (curKey.indexOf(item.key) === 0) {
+                    if (item.children) {
+                        loop(item.children)
+                    } else {
+                        item.children = child
+                    }
+                }
+            })
+        }
+
+        loop(treeData)
+
+        // this._setLeaf(treeData, curKey, level)
     }
     _onSelect = (selectedKeys) => {
         console.log('selected', selectedKeys)
 
-        this.setState({
-            selectedTreeKeys: selectedKeys
-        })
+        if (selectedKeys.length) {
+            this.setState({
+                loading: true,
+                selectedTreeKeys: selectedKeys,
+                currentFilePath: selectedKeys[0]
+            })
+
+            setTimeout(() => {
+                let list = this._getFileList(selectedKeys[0]).fileList
+
+                this.setState({
+                    current: 1,
+                    loading: false,
+                    fileList: list,
+                    selectedRows: [],
+                    selectedRowKeys: []
+                })
+            }, 300)
+        } else {
+            this.setState({
+                selectedTreeKeys: selectedKeys
+            })
+        }
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         console.log('selectedRows changed: ', selectedRows)
@@ -308,15 +360,63 @@ class Cleanup extends Component {
     _onLoadData = (treeNode) => {
         return new Promise((resolve) => {
             setTimeout(() => {
-                const treeData = [...this.state.treeData]
+                let treeData = [...this.state.treeData]
+                let children = this._getFileList(treeNode.props.eventKey).directoryList
 
-                getNewTreeData(treeData, treeNode.props.eventKey, generateTreeNodes(treeNode), 2)
+                this._getNewTreeData(treeData, treeNode.props.eventKey, children, 2)
 
                 this.setState({ treeData })
 
                 resolve()
-            }, 1000)
+            }, 300)
         })
+    }
+    _reloadTableList = (selectedRowLenth) => {
+        let total = this.state.fileList.length,
+            current = this.state.current,
+            pageSize = this.state.pageSize
+
+        pageSize = pageSize ? pageSize : this.state.pagination.defaultPageSize
+
+        let page = current,
+            surplus = total % pageSize,
+            totalPage = Math.ceil(total / pageSize),
+            lastPageNumber = surplus === 0 ? pageSize : surplus
+
+        if ((totalPage === current) && (totalPage > 1) && (lastPageNumber === selectedRowLenth)) {
+            page = current - 1
+        }
+
+        let list = this._getFileList(this.state.currentFilePath).fileList
+
+        this.setState({
+            current: page,
+            fileList: list
+        })
+    }
+    _setLeaf = (treeData, curKey, level) => {
+        const loopLeaf = (data, lev) => {
+            const l = lev - 1
+
+            data.forEach((item) => {
+                if ((item.key.length > curKey.length) ? item.key.indexOf(curKey) !== 0 : curKey.indexOf(item.key) !== 0) {
+                    return
+                }
+
+                if (item.children) {
+                    loopLeaf(item.children, l)
+                } else if (l < 1) {
+                    item.isLeaf = true
+                }
+            })
+        }
+
+        loopLeaf(treeData, level + 1)
+    }
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -405,13 +505,26 @@ class Cleanup extends Component {
             }]
 
         const pagination = {
-                total: this.state.fileList.length,
                 showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: this._showTotal,
+                current: this.state.current,
+                pageSize: this.state.pageSize,
+                total: this.state.fileList.length,
                 onShowSizeChange: (current, pageSize) => {
                     console.log('Current: ', current, '; PageSize: ', pageSize)
+
+                    this.setState({
+                        current: current,
+                        pageSize: pageSize
+                    })
                 },
                 onChange: (current) => {
                     console.log('Current: ', current)
+
+                    this.setState({
+                        current: current
+                    })
                 }
             }
 
@@ -429,17 +542,16 @@ class Cleanup extends Component {
                                 style={{
                                     'clear': 'both',
                                     'height': '514px',
-                                    'overflowY': 'auto',
+                                    'overflow': 'auto',
                                     'marginRight': '10px',
                                     'border': '1px solid #b8bdcc'
                                 }}
                             >
                                 <Tree
-                                    onExpand={ this._onExpand }
                                     onSelect={ this._onSelect }
                                     loadData={ this._onLoadData }
-                                    expandedKeys={ this.state.expandedTreeKeys }
                                     selectedKeys={ this.state.selectedTreeKeys }
+                                    defaultExpandedKeys={ this.state.defaultExpandedKeys }
                                 >
                                     { treeNodes }
                                 </Tree>
@@ -452,7 +564,7 @@ class Cleanup extends Component {
                                     type="primary"
                                     size='default'
                                     onClick={ this._batchDelete }
-                                    disabled={ !this.state.selectedRows.length }
+                                    disabled={ !this.state.selectedRowKeys.length }
                                 >
                                     { formatMessage({id: "LANG739"}) }
                                 </Button>
@@ -462,6 +574,7 @@ class Cleanup extends Component {
                                 columns={ columns }
                                 pagination={ pagination }
                                 rowSelection={ rowSelection }
+                                loading={ this.state.loading }
                                 dataSource={ this.state.fileList }
                             />
                         </Col>

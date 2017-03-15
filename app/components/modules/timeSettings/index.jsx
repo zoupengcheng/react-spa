@@ -139,7 +139,8 @@ class TimeSettings extends Component {
                 }
 
                 if (values.enable_ntpserver !== undefined) {
-                    if ((this.state.NTPStatus === 'on') === values.enable_ntpserver) {
+                    if ((this.state.NTPStatus === 'off' && values.enable_ntpserver) ||
+                        this.state.NTPStatus === 'on' && !values.enable_ntpserver) {
                         if (values.enable_ntpserver === true) {
                             action_ntpserver["action"] = "startNTPServer"
                             action_ntpserver["startNTP"] = ""

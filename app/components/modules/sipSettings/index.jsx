@@ -218,6 +218,24 @@ class SipSettings extends Component {
                 if (bool) {
                     // message.destroy()
                     // message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                    $.ajax({
+                        type: "post",
+                        url: '../cgi',
+                        async: false,
+                        data: {
+                            'action': 'updateFail2ban',
+                            'port': SIPGenSettingsAction['bindport']
+                        },
+                        error: function(ite) {
+                            message.error(ite.statusText)
+                        },
+                        success: function(res) {
+                            var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                            }
+                        }
+                    })
                 }
             }.bind(this)
         })

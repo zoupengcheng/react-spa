@@ -55,7 +55,8 @@ class BasicSettings extends Component {
             dhcp_ip6_class: {
                 fromto: 'display-block'
             },
-            method_key: []
+            method_key: [],
+            tabKey: "1"
         }
     }
     componentWillMount() {
@@ -269,7 +270,21 @@ class BasicSettings extends Component {
         })
     }
     _onChangeTab = (value) => {
+        let key = value
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
+            if (!err) {
 
+            } else {
+                if (value === "1") {
+                    key = "2"
+                } else {
+                    key = "1"
+                }
+            }
+        })
+        this.setState({
+            tabKey: key
+        })    
     }
     _onChangeIPMethod = (key, value) => {
         let method = {}
@@ -407,12 +422,18 @@ class BasicSettings extends Component {
                         )}
                     >
                         { getFieldDecorator('mtu', {
-                            rules: [
-                                { type: "integer" }
-                            ],
+                            rules: [{
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 1280, 1500)
+                                }
+                            }],
                             initialValue: network_settings.mtu
                         })(
-                            <Input min={ 1280 } max={ 1500 } />
+                            <Input/>
                         ) }
                     </FormItem>
                     <FormItem
@@ -434,7 +455,7 @@ class BasicSettings extends Component {
                              </Select>
                         ) }
                     </FormItem>
-                    <Tabs type="card" defaultActiveKey="1" onChange={ this._onChangeTab }>
+                    <Tabs type="card" defaultActiveKey='1' activeKey={ this.state.tabKey } onChange={ this._onChangeTab }>
                         <TabPane tab={formatMessage({id: "LANG5195"})} key="1">
                             <FormItem
                                 { ...formItemLayout }
@@ -444,7 +465,11 @@ class BasicSettings extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('altdns', {
-                                    rules: [],
+                                    rules: [{
+                                        validator: (data, value, callback) => {
+                                            Validator.ipv4Dns(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                     initialValue: network_settings.altdns === "0.0.0.0" ? "" : network_settings.altdns
                                 })(
                                     <Input/>
@@ -486,8 +511,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_ip', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_ip
                                         })(
@@ -503,8 +532,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_mask', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block' ? Validator.mask(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_mask
                                         })(
@@ -522,8 +555,12 @@ class BasicSettings extends Component {
                                     >
                                         { getFieldDecorator('lan2_gateway', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.default_interface_calss.lan1 === 'display-block' && this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.default_interface_calss.lan1 === 'display-block' && this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_gateway
                                         })(
@@ -538,7 +575,11 @@ class BasicSettings extends Component {
                                             </Tooltip>
                                         }>
                                         { getFieldDecorator('lan2_dns1', {
-                                            rules: [],
+                                            rules: [{
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }],
                                             initialValue: network_settings.lan2_dns1
                                         })(
                                             <Input/>
@@ -552,7 +593,11 @@ class BasicSettings extends Component {
                                             </Tooltip>
                                         }>
                                         { getFieldDecorator('lan2_dns2', {
-                                            rules: [],
+                                            rules: [{
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.static === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }],
                                             initialValue: network_settings.lan2_dns2
                                         })(
                                             <Input/>
@@ -569,8 +614,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_username', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.pppoe === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.pppoe === 'display-block' ? Validator.keyboradNoSpace(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_username
                                         })(
@@ -586,8 +635,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_password', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.pppoe === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.pppoe === 'display-block' ? Validator.pppoeSecret(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_password
                                         })(
@@ -604,12 +657,18 @@ class BasicSettings extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('lan2_vid', {
-                                        rules: [
-                                            { type: "integer" }
-                                        ],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan1 === 'display-block' ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan1 === 'display-block' ? Validator.range(data, value, callback, formatMessage, 0, 4094) : callback()
+                                            }
+                                        }],
                                         initialValue: network_settings.lan2_vid
                                     })(
-                                        <Input min={ 0 } max={ 4094 } />
+                                        <Input/>
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -621,12 +680,18 @@ class BasicSettings extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('lan2_priority', {
-                                        rules: [
-                                            { type: "integer" }
-                                        ],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan1 === 'display-block' ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan1 === 'display-block' ? Validator.range(data, value, callback, formatMessage, 0, 7) : callback()
+                                            }
+                                        }],
                                         initialValue: network_settings.lan2_priority
                                     })(
-                                        <Input min={ 0 } max={ 7 } />
+                                        <Input/>
                                     ) }
                                 </FormItem>
                             </div>
@@ -680,8 +745,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan1_ipaddr', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_ipaddr
                                         })(
@@ -697,8 +766,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan1_submask', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.mask(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_submask
                                         })(
@@ -716,8 +789,12 @@ class BasicSettings extends Component {
                                     >
                                         { getFieldDecorator('lan1_gateway', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' && this.state.default_interface_calss.lan2 === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' && this.state.default_interface_calss.lan2 === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_gateway
                                         })(
@@ -732,7 +809,11 @@ class BasicSettings extends Component {
                                             </Tooltip>
                                         }>
                                         { getFieldDecorator('lan1_dns1', {
-                                            rules: [],
+                                            rules: [{
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }],
                                             initialValue: network_settings.lan1_dns1 === "0.0.0.0" ? "" : network_settings.lan1_dns1
                                         })(
                                             <Input/>
@@ -746,7 +827,11 @@ class BasicSettings extends Component {
                                             </Tooltip>
                                         }>
                                         { getFieldDecorator('lan1_dns2', {
-                                            rules: [],
+                                            rules: [{
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }],
                                             initialValue: network_settings.lan1_dns2 === "0.0.0.0" ? "" : network_settings.lan1_dns2
                                         })(
                                             <Input/>
@@ -763,8 +848,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan1_username', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.pppoe === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.pppoe === 'display-block' ? Validator.keyboradNoSpace(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_username
                                         })(
@@ -780,8 +869,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan1_password', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.pppoe === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.pppoe === 'display-block' ? Validator.pppoeSecret(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_password
                                         })(
@@ -799,12 +892,18 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('lan1_vid', {
-                                    rules: [
-                                        { type: "integer" }
-                                    ],
+                                    rules: [{
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 0, 4094)
+                                        }
+                                    }],
                                     initialValue: network_settings.lan1_vid
                                 })(
-                                    <Input min={ 0 } max={ 4094 } />
+                                    <Input/>
                                 ) }
                             </FormItem>
                             <FormItem
@@ -816,12 +915,18 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('lan1_priority', {
-                                    rules: [
-                                        { type: "integer" }
-                                    ],
+                                    rules: [{
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 0, 7)
+                                        }
+                                    }],
                                     initialValue: network_settings.lan1_priority
                                 })(
-                                    <Input min={ 0 } max={ 7 } />
+                                    <Input/>
                                 ) }
                             </FormItem>                    
                             <div className={ this.state.method_change_calss.lan}>
@@ -841,8 +946,12 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('dhcp_ipaddr', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block',
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp_settings.dhcp_ipaddr
                                     })(
@@ -858,8 +967,12 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('dhcp_submask', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block',
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' ? Validator.mask(data, value, callback, formatMessage) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp_settings.dhcp_submask
                                     })(
@@ -889,7 +1002,11 @@ class BasicSettings extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('dhcp_dns1', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }],
                                         initialValue: dhcp_settings.dhcp_dns1
                                     })(
                                         <Input disabled={ !network_settings.dhcp_enable } />
@@ -903,7 +1020,11 @@ class BasicSettings extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('dhcp_dns2', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }],
                                         initialValue: dhcp_settings.dhcp_dns2
                                     })(
                                         <Input disabled={ !network_settings.dhcp_enable } />
@@ -918,8 +1039,12 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('ipfrom', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp_settings.ipfrom
                                     })(
@@ -935,8 +1060,12 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('ipto', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp_settings.ipto
                                     })(
@@ -952,8 +1081,12 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('dhcp_gateway', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp_settings.dhcp_gateway
                                     })(
@@ -969,12 +1102,21 @@ class BasicSettings extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('ipleasetime', {
-                                        rules: [
-                                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                                        ],
+                                        rules: [{
+                                            required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.range(data, value, callback, formatMessage, 300, 172800) : callback()
+                                            }
+                                        }],
                                         initialValue: dhcp_settings.ipleasetime
                                     })(
-                                        <Input min={ 300 } max={ 172800 } disabled={ !network_settings.dhcp_enable } />
+                                        <Input disabled={ !network_settings.dhcp_enable } />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -986,12 +1128,21 @@ class BasicSettings extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('lan2_vid', {
-                                        rules: [
-                                            { type: "integer" }
-                                        ],
+                                        rules: [{
+                                            required: this.state.method_change_calss.lan === 'display-block',
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' ? Validator.range(data, value, callback, formatMessage, 0, 4094) : callback()
+                                            }
+                                        }],
                                         initialValue: network_settings.lan2_vid
                                     })(
-                                        <Input min={ 0 } max={ 4094 } />
+                                        <Input/>
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -1003,12 +1154,18 @@ class BasicSettings extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('lan2_priority', {
-                                        rules: [
-                                            { type: "integer" }
-                                        ],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' ? Validator.range(data, value, callback, formatMessage, 0, 7) : callback()
+                                            }
+                                        }],
                                         initialValue: network_settings.lan2_priority
                                     })(
-                                        <Input min={ 0 } max={ 7 } />
+                                        <Input/>
                                     ) }
                                 </FormItem>                       
                             </div>
@@ -1049,8 +1206,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_ipaddr6', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block' ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG5130"})) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_ipaddr6
                                         })(
@@ -1066,12 +1227,20 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_ip6_prefixlen', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block' ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block' ? Validator.range(data, value, callback, formatMessage) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_ip6_prefixlen
                                         })(
-                                            <Input min={1} max={64} />
+                                            <Input/>
                                         ) }
                                     </FormItem>
                                     <FormItem
@@ -1083,8 +1252,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_ip6_dns1', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block' ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_ip6_dns1
                                         })(
@@ -1100,8 +1273,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan2_ip6_dns2', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip6_class.static === 'display-block' ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan2_ip6_dns2
                                         })(
@@ -1159,8 +1336,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan1_ipaddr6', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block' ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG5130"})) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_ipaddr6
                                         })(
@@ -1176,12 +1357,20 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('lan1_ip6_prefixlen', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block',
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block' ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block' ? Validator.range(data, value, callback, formatMessage, 1, 64) : callback()
+                                                }
                                             }],
                                             initialValue: network_settings.lan1_ip6_prefixlen
                                         })(
-                                            <Input min={ 1 } max={ 64 } />
+                                            <Input/>
                                         ) }
                                     </FormItem>
                                     <FormItem
@@ -1192,7 +1381,11 @@ class BasicSettings extends Component {
                                             </Tooltip>
                                         }>
                                         { getFieldDecorator('lan1_ip6_dns1', {
-                                            rules: [],
+                                            rules: [{
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block' ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
+                                                }
+                                            }],
                                             initialValue: network_settings.lan1_ip6_dns1
                                         })(
                                             <Input/>
@@ -1206,7 +1399,11 @@ class BasicSettings extends Component {
                                             </Tooltip>
                                         }>
                                         { getFieldDecorator('lan1_ip6_dns2', {
-                                            rules: [],
+                                            rules: [{
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip6_class.static === 'display-block' ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
+                                                }
+                                            }],
                                             initialValue: network_settings.lan1_ip6_dns2
                                         })(
                                             <Input/>
@@ -1249,7 +1446,7 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('dhcp6_prefix', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0",
                                             message: formatMessage({id: "LANG2150"})
                                         }],
                                         initialValue: dhcp6_settings.dhcp6_prefix
@@ -1266,12 +1463,20 @@ class BasicSettings extends Component {
                                     }>
                                     { getFieldDecorator('dhcp6_prefixlen', {
                                         rules: [{
-                                            required: true,
+                                            required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0",
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                               this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                               this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.range(data, value, callback, formatMessage, 1, 64) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp6_settings.dhcp6_prefixlen
                                     })(
-                                        <Input min={1} max={64} disabled={ network_settings.dhcp6_enable === "0" } />
+                                        <Input disabled={ network_settings.dhcp6_enable === "0" } />
                                     ) }
                                 </FormItem>
                                 <FormItem
@@ -1282,7 +1487,11 @@ class BasicSettings extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('dhcp6_dns1', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                               this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
+                                            }
+                                        }],
                                         initialValue: dhcp6_settings.dhcp6_dns1
                                     })(
                                         <Input disabled={ network_settings.dhcp6_enable === "0" } />
@@ -1296,7 +1505,11 @@ class BasicSettings extends Component {
                                         </Tooltip>
                                     }>
                                     { getFieldDecorator('dhcp6_dns2', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                               this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.ipv6Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
+                                            }
+                                        }],
                                         initialValue: dhcp6_settings.dhcp6_dns2
                                     })(
                                         <Input disabled={ network_settings.dhcp6_enable === "0" } />
@@ -1312,8 +1525,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('ip6from', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0",
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.ipv6Dns(data, value, callback, formatMessage, "IP") : callback()
+                                                }
                                             }],
                                             initialValue: dhcp6_settings.ip6from
                                         })(
@@ -1329,8 +1546,12 @@ class BasicSettings extends Component {
                                         }>
                                         { getFieldDecorator('ip6to', {
                                             rules: [{
-                                                required: true,
+                                                required: this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0",
                                                 message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.ipv6Dns(data, value, callback, formatMessage, "IP") : callback()
+                                                }
                                             }],
                                             initialValue: dhcp6_settings.ip6to
                                         })(
@@ -1346,12 +1567,21 @@ class BasicSettings extends Component {
                                         )}
                                     >
                                         { getFieldDecorator('ip6leasetime', {
-                                            rules: [
-                                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                                            ],
+                                            rules: [{
+                                                required: this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0",
+                                                message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                                }
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                   this.state.method_change_calss.lan === 'display-block' && this.state.dhcp_ip6_class.fromto === 'display-block' && network_settings.dhcp6_enable !== "0" ? Validator.range(data, value, callback, formatMessage, 300, 172800) : callback()
+                                                }
+                                            }],
                                             initialValue: dhcp6_settings.ip6leasetime
                                         })(
-                                            <Input min={ 300 } max={ 172800 } disabled={ network_settings.dhcp6_enable === "0" } />
+                                            <Input disabled={ network_settings.dhcp6_enable === "0" } />
                                         ) }
                                     </FormItem>
                                 </div>

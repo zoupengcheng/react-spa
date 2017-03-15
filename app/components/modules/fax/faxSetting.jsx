@@ -119,7 +119,7 @@ class FaxItem extends Component {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 

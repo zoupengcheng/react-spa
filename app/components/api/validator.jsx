@@ -176,11 +176,47 @@ Validator.prototype = {
             callback(formatMessage({id: "LANG2195"}))
         }
     },
+    ipv4Address: function(data, value, callback, formatMessage) {
+        const reg = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/
+
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG2195"}))
+        } else {
+            callback()
+        }
+    },
     ipv6: function(data, value, callback, formatMessage) {
         const reg = /^\[?([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\]$|^\[:((:[0-9a-fA-F]{1,4}){1,6}|:)\]$|^\[[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:)\]$|^\[([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:)\]$|^\[([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:)\]$|^\[([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:)\]$|^\[([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?\]$|^\[([0-9a-fA-F]{1,4}:){6}:\]?$/
 
         if (value && !reg.test(value)) {
             callback(formatMessage({id: "LANG2196"}))
+        } else {
+            callback()
+        }
+    },
+    ipv4Dns: function(data, value, callback, formatMessage) {
+        const reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG2166"}))
+        } else {
+            callback()
+        }
+    },
+    ipv6Dns: function(data, value, callback, formatMessage, msg) {
+        const reg = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^:((:[0-9a-fA-F]{1,4}){1,6}|:)$|^[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:)$|^([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:)$|^([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:)$|^([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:)$|^([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?$|^([0-9a-fA-F]{1,4}:){6}:$/
+
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG2166"}, {0: msg}))
+        } else {
+            callback()
+        }
+    },
+    mask: function(data, value, callback, formatMessage) {
+        const reg = /^(((254|252|248|240|224|192|128|0)\.0\.0\.0)|(255\.(254|252|248|240|224|192|128|0)\.0\.0)|(255\.255\.(254|252|248|240|224|192|128|0)\.0)|(255\.255\.255\.(254|252|248|240|224|192|128|0)))$/
+
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG2175"}))
         } else {
             callback()
         }
@@ -374,6 +410,13 @@ Validator.prototype = {
             callback()
         } else {
             callback(formatMessage({id: "LANG2195"}))
+        }
+    },
+    pppoeSecret: function(data, value, callback, formatMessage, param) {
+        if (value && !/^[^`|^"]*$/g.test(value)) {
+            callback(formatMessage({id: "LANG2996"}))
+        } else {
+            callback()
         }
     }
 }

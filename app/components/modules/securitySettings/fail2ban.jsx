@@ -59,6 +59,7 @@ class DynamicDefense extends Component {
                     message.success(successMessage)
 
                     this._getInitData()
+                    this._getFail2banList()
                     this._clearSelectRows()
                 }
             }.bind(this),

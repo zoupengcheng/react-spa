@@ -436,6 +436,9 @@ class VoicePrompt extends Component {
                 return
             }
             message.loading(loadingMessage)
+            this.setState({
+                download_visible: false
+            })
 
             let downloadAllName = form.getFieldValue("pack_name")
             $.ajax({
@@ -665,6 +668,25 @@ class VoicePrompt extends Component {
             this._playRecordFile()
         }
     }
+    _checkFormat = (file) => {
+        const { formatMessage } = this.props.intl
+        const tmp_fname = file.name.toLowerCase()
+        if (file.size < (5 * 1024 * 1024) &&
+            (/^[a-zA-Z0-9_\-]+(\.tar|\.tgz|\.tar\.gz)$/g.test(tmp_fname) ||
+                tmp_fname.slice(-4) === '.mp3' ||
+                tmp_fname.slice(-4) === '.wav' ||
+                tmp_fname.slice(-4) === '.gsm' ||
+                tmp_fname.slice(-5) === '.alaw' ||
+                tmp_fname.slice(-5) === '.ulaw')) {
+            return true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG5406"})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+            return false
+        }
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
@@ -753,7 +775,8 @@ class VoicePrompt extends Component {
             },
             onRemove() {
                 message.destroy()
-            }
+            },
+            beforeUpload: me._checkFormat
         }
 
         return (

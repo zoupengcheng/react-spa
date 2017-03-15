@@ -618,7 +618,7 @@ class SystemLog extends Component {
         const dynamicSwitch = this.state.dynamicSwitch
         const logSwitchList = this.state.logSwitchList
         const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
         const errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG962" })}}></span>
         message.loading(loadingMessage)
 
