@@ -41,6 +41,90 @@ class Cleanup extends Component {
     componentWillUnmount() {
     }
     _batchDelete = () => {
+        let modalContent = ''
+        let loadingMessage = ''
+        let successMessage = ''
+        let startWithPBX = false
+        let fileList = this.state.selectedRowKeys
+        let currentFilePath = this.state.currentFilePath
+
+        const { formatMessage } = this.props.intl
+
+        modalContent = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG3512"})}}></span>
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG877" })}}></span>
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG871"})}}></span>
+
+        _.map(fileList, (file, index) => {
+            if (rowName.beginsWith('PBX_')) {
+                startWithPBX = true;
+                break;
+            }
+        })
+
+        for (i; i < selectedRowsLength; i++) {
+            rowdata = backupFilesTable.jqGrid('getRowData', selected[i]);
+
+            rowName = rowdata['n'];
+
+            backupFilesList.push(rowName);
+
+            if (rowName.beginsWith('PBX_')) {
+                startWithPBX = true;
+                break;
+            }
+        }
+
+        if (startWithPBX) {
+            top.dialog.dialogMessage({
+                type: 'warning',
+                content: $P.lang("LANG5183")
+            });
+            return;
+        }
+
+        for (i = 0; i < selectedRowsLength; i++) {
+            confirmList.push("<font>" + backupFilesList[i] + "</font>");
+
+            if (path) {
+                backupFilesList[i] = path + '/' + backupFilesList[i];
+            }
+        }
+
+        confirm({
+            title: '',
+            content: modalContent,
+            onOk: () => {
+                message.loading(loadingMessage)
+
+                $.ajax({
+                    async: true,
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    data: {
+                        'action': 'removeFile',
+                        'type': 'clean_usb_sd_file',
+                        'data': idList.join(',')
+                    },
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+
+                            this._reloadTableList(this.state.selectedRowKeys.length)
+
+                            this._clearSelectRows()
+                        }
+                    }.bind(this),
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            },
+            onCancel() {}
+        })
     }
     _checkFile = (action) => {
         let result = false
