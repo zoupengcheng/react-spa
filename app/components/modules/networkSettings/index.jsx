@@ -565,7 +565,7 @@ class NetWorkSettings extends Component {
                             dhcp6Enable={ this._changeDHCP6Enable.bind(this) }
                         />
                     </TabPane>
-                    { model_info.allow_nat !== "0"
+                    { model_info.allow_nat !== "0" && this.state.network_settings.method === "0"
                         ? <TabPane tab={formatMessage({id: "LANG4586"})} key="2">
                             <DHCPClient
                                 dataMethod={ this.state.network_settings.method }

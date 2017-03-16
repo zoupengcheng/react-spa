@@ -256,45 +256,49 @@ class BackupCreate extends Component {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
-        message.loading(loadingMessage, 0)
-        form.validateFieldsAndScroll({ force: true }, (err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
-                console.log('Received values of form: ', values)
-            }
-
-            let action = values
-            action['config'] = 'no'
-            action['cdr'] = 'no'
-            action['voice_record'] = 'no'
-            action['vfax'] = 'no'
-            action['voicemail_file'] = 'no'
-            action['voice_file'] = 'no'
-            action['storage'] = 'no'
-            this.state.checkedList.map(function(item) {
-                action[item] = "yes"
-            })
-
-            action["action"] = "updateBackupSettings"
-            action["type"] = "realtime"
-
-            delete action.newbkp_name
-
-            $.ajax({
-                url: api.apiHost,
-                method: "post",
-                data: action,
-                type: 'json',
-                error: function(e) {
-                    message.error(e.statusText)
-                },
-                success: function(data) {
-                    const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                    if (bool) {
-                        me._backupUCMConfig()
+                message.loading(loadingMessage, 0)
+                form.validateFieldsAndScroll({ force: true }, (err, values) => {
+                    if (!err) {
+                        console.log('Received values of form: ', values)
                     }
-                }.bind(this)
-            })
+
+                    let action = values
+                    action['config'] = 'no'
+                    action['cdr'] = 'no'
+                    action['voice_record'] = 'no'
+                    action['vfax'] = 'no'
+                    action['voicemail_file'] = 'no'
+                    action['voice_file'] = 'no'
+                    action['storage'] = 'no'
+                    this.state.checkedList.map(function(item) {
+                        action[item] = "yes"
+                    })
+
+                    action["action"] = "updateBackupSettings"
+                    action["type"] = "realtime"
+
+                    delete action.newbkp_name
+
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action,
+                        type: 'json',
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                me._backupUCMConfig()
+                            }
+                        }.bind(this)
+                    })
+                })
+            }
         })
     }
     render() {
@@ -373,7 +377,7 @@ class BackupCreate extends Component {
                                         message: formatMessage({id: "LANG2150"})
                                     }],
                                     width: 100,
-                                    initialValue: (settings.location)
+                                    initialValue: _.indexOf(this.state.storageList, settings.location) > -1 ? settings.location : "local"
                                 })(
                                     <Select>
                                         <Option value="local">{ formatMessage({id: "LANG1072"}) }</Option>  

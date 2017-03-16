@@ -59,7 +59,7 @@ function DataObject(source, type) {
 DataObject.prototype.toString = function() {
     let name
     let item
-
+    
     // Sanity check
     if (this._arguments.length === 0) {
         return ""
@@ -81,8 +81,7 @@ DataObject.prototype.toString = function() {
             if (this._arguments[0] === "model") {
                 // Get model object                
                 let model = ZCCurConfig.modelInfo()
-
-                if (model === undefined) {
+                if (model === null || model === undefined) {
                     return ""
                 }
 
@@ -838,7 +837,7 @@ export function deepItemClone(obj, sharedScope) {
                     return true
                 }
             } else {
-                let expParser = new ExpressionParser()
+               let expParser = new ExpressionParser()
                 expParser.parse(copy.visibility, sharedScope)
 
                 copy.visibility = function () {
@@ -994,3 +993,38 @@ export function processCGIData(data) {
     }
     return continued
 }
+
+export function createGUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+    })
+}
+
+export function pad(num, size) {
+    let s = String(num)
+    if (typeof (size) !== "number") { 
+        size = 2
+    }
+
+    while (s.length < size) { s = "0" + s }
+    return s
+}
+
+export function prepareLocalizedLabel(label) {
+    let labelValue = label.toString()
+
+    if (labelValue.length > 1 && labelValue.lastIndexOf("@", 0) === 0) {
+        labelValue = labelValue.substring(1)
+    }
+    return labelValue
+}
+
+export function testVisibleCondition(item) {
+    if (typeof item.visibility === "function") {
+        return item.visibility()
+    }
+
+    return true
+}
+

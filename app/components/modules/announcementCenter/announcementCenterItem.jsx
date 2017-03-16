@@ -66,8 +66,11 @@ class AnnouncementCenter extends Component {
     }
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
+        const centerName = this.props.params.name
 
-        if (value && _.indexOf(this.state.codeNameList, value) > -1) {
+        if (centerName && value && centerName === value) {
+            callback()
+        } else if (value && _.indexOf(this.state.codeNameList, value) > -1) {
             callback(formatMessage({id: "LANG2137"}))
         } else {
             callback()
@@ -88,7 +91,11 @@ class AnnouncementCenter extends Component {
         }
     }
     _checkIfContainOtherCodes = (rule, value, callback) => {
-        if (value) {
+        const centerId = this.props.params.id
+
+        if (centerId && value && centerId === value) {
+            callback()
+        } else if (value) {
             const { formatMessage } = this.props.intl
             const me = this
             var contain = false,

@@ -210,7 +210,6 @@ class PortForwarding extends Component {
                         rowKey="id"
                         columns={ columns }
                         pagination={ pagination }
-                        rowSelection={ rowSelection }
                         dataSource={ this.state.portForwardingList }
                         showHeader={ !!this.state.portForwardingList.length }
                     />

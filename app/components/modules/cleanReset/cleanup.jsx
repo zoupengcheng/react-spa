@@ -392,14 +392,25 @@ class Cleanup extends Component {
         console.log('selected', selectedKeys)
 
         if (selectedKeys.length) {
+            let path = selectedKeys[0]
+
+            if (path === 'nosd' || path === 'nousb') {
+                this.setState({
+                    currentFilePath: path,
+                    selectedTreeKeys: selectedKeys
+                })
+
+                return
+            }
+
             this.setState({
                 loading: true,
-                selectedTreeKeys: selectedKeys,
-                currentFilePath: selectedKeys[0]
+                currentFilePath: path,
+                selectedTreeKeys: selectedKeys
             })
 
             setTimeout(() => {
-                let list = this._getFileList(selectedKeys[0]).fileList
+                let list = this._getFileList(path).fileList
 
                 this.setState({
                     current: 1,

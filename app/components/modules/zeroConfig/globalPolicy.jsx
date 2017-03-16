@@ -3,10 +3,12 @@
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
 import { Form, Input, Button, Row, Col, Checkbox, message, Popover, Select, Tabs } from 'antd'
+import Title from '../../../views/title'
 const FormItem = Form.Item
 import _ from 'underscore'
 import ZEROCONFIG from './parser/ZCDataSource'
 import { ZCCurConfig, ValueDelegationObj, PrepareSubmitConfigurations } from './parser/ZCController.jsx'
+import NaviBox from './widgets/naviBox.jsx'
 
 class GlobalPolicy extends Component {
     constructor(props) {
@@ -27,6 +29,7 @@ class GlobalPolicy extends Component {
     }
     _prepareGlobalPolicyList = () => {
         const { formatMessage } = this.props.intl
+        const self = this
         let templateId = 0
         let checkReady = () => {
             if (ZEROCONFIG.isDataReady() === 1) {
@@ -121,11 +124,20 @@ class GlobalPolicy extends Component {
     }
     render() {
         const {formatMessage} = this.props.intl
-        let sipMiscSettings = this.props.dataSource
-
+        const globalPolicy = this.state.globalPolicy
         return (
             <div className="app-content-main" id="app-content-main">
-                {"Globalpolicy"}
+                <Title 
+                    headerTitle={ formatMessage({id: "LANG3169"}) }  
+                    onSubmit={ this._handleSubmit } 
+                    onCancel={ this._handleCancel } 
+                    isDisplay='display-block'
+                />
+                <div>
+                    <NaviBox mode="all" 
+                             source={globalPolicy}
+                             deferred={null}/>
+                </div>
             </div>
         )
     }

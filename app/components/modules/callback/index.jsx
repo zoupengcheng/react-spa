@@ -87,6 +87,13 @@ class CallBack extends Component {
                 </div>
     }
 
+    _createDestination = (text, record, index) => {
+        let destType = record.destination_type
+        let displayDestination = destType.toUpperCase() + '--' + record.name
+
+        return displayDestination
+    }
+
     _getDisaList = () => {
         $.ajax({
             url: api.apiHost,
@@ -194,7 +201,10 @@ class CallBack extends Component {
             }, {
                 key: 'destination_type',
                 dataIndex: 'destination_type',
-                title: formatMessage({id: "LANG168"})
+                title: formatMessage({id: "LANG168"}),
+                render: (text, record, index) => (
+                    this._createDestination(text, record, index)
+                )
             }, {
                 key: 'options',
                 dataIndex: 'options',

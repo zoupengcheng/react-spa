@@ -27,14 +27,15 @@ class AnalogTrunkItem extends Component {
         this.state = {
             loading: true,
             visible: false,
-            firstLoad: true,
             totalChans: [],
             checkedChansList: [],
             trunkNameList: [],
             indeterminate: true,
             countrytoneOpts: [],
             faxIntelligentRouteDestinationOpts: [],
-            analogtrunk: {}
+            analogtrunk: {},
+            firstLoad: true,
+            isTrigger: true
         }
         this._onChangeBusydetect = (e) => {
             let isChecked = e.target.checked
@@ -65,10 +66,8 @@ class AnalogTrunkItem extends Component {
         this._onChangeTrunkmode = (e) => {
             const form = this.props.form 
 
-            let isChecked = form.getFieldValue("trunkmode")
-            if (e) {
-                isChecked = e.target.checked
-            }
+            let isChecked = e.target ? e.target.checked : e
+
             if (isChecked) {
                 this.setState({
                     trunkmodeVal: isChecked,
@@ -84,10 +83,8 @@ class AnalogTrunkItem extends Component {
         this._onChangePolarityswitch = (e) => {
             const form = this.props.form 
 
-            let isChecked = form.getFieldValue("polarityswitch")
-            if (e) {
-                isChecked = e.target.checked
-            }
+            let isChecked = e.target ? e.target.checked : e
+
             if (isChecked) {
                 this.setState({
                     div_polarityonanswerdelay_style: true,
@@ -103,10 +100,7 @@ class AnalogTrunkItem extends Component {
         this._onChangeEnablecurrentdisconnectthreshold = (e) => {
             const form = this.props.form 
 
-            let isChecked = form.getFieldValue("enablecurrentdisconnectthreshold")
-            if (e) {
-                isChecked = e.target.checked
-            }
+            let isChecked = e.target ? e.target.checked : e
 
             if (isChecked) {
                 this.setState({
@@ -118,13 +112,9 @@ class AnalogTrunkItem extends Component {
                 })
             }
         }
-        this._onChangeCountrytone = (value) => {
+        this._onChangeCountrytone = (val) => {
             const form = this.props.form 
 
-            let val = form.getFieldValue("countrytone")
-            if (value) {
-                val = value
-            }
             let busytone = '',
                 congestiontone = '',
                 freq_tmp = ''
@@ -166,23 +156,21 @@ class AnalogTrunkItem extends Component {
                 })
             }
         }
-        this._onClickFaxmode = () => {
+        this._onClickFaxmode = (val) => {
             const form = this.props.form 
-
-            let val = form.getFieldValue("faxmode")
 
             if (val === 'detect') {
                 this.setState({
-                    div_fax_style: true
+                    div_faxDetect_style: true
                 })
             } else {
                 this.setState({
-                    div_fax_style: false
+                    div_faxDetect_style: false
                 })
             }
         }
         this._onChangefaxIntelligentRoute = (e) => {
-            let isChecked = e.target.checked
+            let isChecked = e.target ? e.target.checked : e
 
             if (isChecked) {
                 this.setState({
@@ -194,10 +182,8 @@ class AnalogTrunkItem extends Component {
                 })
             }        
         }
-        this._onChangeDetectModel = () => {
+        this._onChangeDetectModel = (val) => {
             const form = this.props.form
-
-            let val = form.getFieldValue("detect_model")
 
             if (val === 1) {
                 this.setState({
@@ -228,7 +214,7 @@ class AnalogTrunkItem extends Component {
         this._initForm()
         
         if (mode.indexOf('edit') === 0) {
-            let showEles = ["div_out_maxchans", "div_faxmode", "div_fax"],
+            let showEles = ["div_out_maxchans", "div_faxmode"],
                 showElesObj = {}
 
             showEles.map(function(it) {
@@ -254,111 +240,32 @@ class AnalogTrunkItem extends Component {
             this._onChangeCountrytone("us")
         }
     }
-    componentWillUnmount() {
-    }
     componentDidUpdate() {
-        const form = this.props.form 
+        let state = this.state,
+            analogtrunk = state.analogtrunk
 
-        let analogtrunk = this.state.analogtrunk
-
-        if (this.state.firstLoad && !_.isEmpty(analogtrunk)) {
-            if (form.getFieldValue('fax_intelligent_route_destination') === "") {
-                form.setFieldsValue({
-                    fax_intelligent_route_destination: "no"
-                })
-            }
-
-            if (Number(form.getFieldValue("busycount")) === 0) {
-                form.setFieldsValue({
-                    busycount: 2
-                })
-            }
-
-            if (Number(form.getFieldValue("congestioncount")) === 0) {
-                form.setFieldsValue({
-                    congestioncount: 2
-                })
-            }
-
-            this._onChangeCountrytone()
-
-            if ((analogtrunk['faxdetect'] === 'no') && (analogtrunk['fax_gateway'] === 'no')) {
-                form.setFieldsValue({
-                    faxmode: 'no'
-                })
-            } else if (analogtrunk['faxdetect'] === 'incoming') {
-                form.setFieldsValue({
-                    faxmode: 'detect'
-                })
-            } else if (analogtrunk['fax_gateway'] === 'yes') {
-                form.setFieldsValue({
-                    faxmode: 'gateway'
-                })
-            }
-
-            if (analogtrunk.busydetect === "yes") {
-                this.setState({
-                    div_busycount_style: true
-                })
-            } else {
-                this.setState({
-                    div_busycount_style: false
-                })
-            }
-
-            if (analogtrunk.congestiondetect === "yes") {
-                this.setState({
-                    div_congestioncount_style: true
-                })
-            } else {
-                this.setState({
-                    div_congestioncount_style: false
-                })
-            }
-
-            if (analogtrunk.enablecurrentdisconnectthreshold === "yes") {
-                this.setState({
-                    div_currentdisconnectthreshold_style: true
-                })
-            } else {
-                this.setState({
-                    div_currentdisconnectthreshold_style: false
-                })
-                form.setFieldsValue({
-                    currentdisconnectthreshold: "200"
-                })
-            }
-
-            if (analogtrunk.polarityswitch === "yes") {
-                this.setState({
-                    polarityswitchVal: true,
-                    div_polarityonanswerdelay_style: true
-                })
-            } else {
-                this.setState({
-                    div_polarityonanswerdelay_style: false
-                })
-            }
-            this._onChangePolarityswitch()
-            this._onChangeEnablecurrentdisconnectthreshold()
-            this._onClickFaxmode()
-            this._onChangeTrunkmode()
-            this.setState({
-                faxIntelligentRouteVal: !form.getFieldValue('fax_intelligent_route'),
-                firstLoad: false,
-                loading: false
-            })
-        }
+        if (!_.isEmpty(analogtrunk) && state.isTrigger) {
+            this._onChangeCountrytone(analogtrunk.countrytone)
+            this._onChangePolarityswitch(analogtrunk.polarityswitch === "yes" ? true : false)
+            this._onChangeEnablecurrentdisconnectthreshold(analogtrunk.enablecurrentdisconnectthreshold === "no" ? false : true)
+            this._onClickFaxmode(analogtrunk["faxmode"])
+            this._onChangeTrunkmode(analogtrunk.trunkmode === "sla" ? true : false)
+            this._onChangefaxIntelligentRoute(analogtrunk.fax_intelligent_route === "yes" ? true : false)
+            state.isTrigger = false
+        }   
+    }
+    componentWillUnmount() {
     }
     _initForm = () => {
         const form = this.props.form
 
-        let hideEles = ["div_out_maxchans", "div_fax", "div_slaOptions", "div_faxmode", "div_fax"],
+        let hideEles = ["div_out_maxchans", "div_slaOptions", "div_faxmode", "div_faxDetect"],
             hideElesObj = {}
 
         hideEles.map(function(it) {
             hideElesObj[it + "_style"] = false
         })
+
         this.setState(hideElesObj)
 
         this._getNameList()
@@ -371,6 +278,7 @@ class AnalogTrunkItem extends Component {
 
         let allTrunkList = UCMGUI.isExist.getList("getTrunkList", formatMessage),
             failoverTrunkList = UCMGUI.isExist.getList("getOutrtFailoverTrunkIdList", formatMessage)
+
         this.setState({
             trunkNameList: this._transData(allTrunkList),
             failoverTrunkList: failoverTrunkList
@@ -774,10 +682,13 @@ class AnalogTrunkItem extends Component {
                                             }
 
                                             if (polarity) {
+                                                let polarityVal = polarity.toLowerCase() === "yes" ? true : false
+
                                                 form.setFieldsValue({
-                                                    polarityswitch: (polarity.toLowerCase() === "yes" ? true : false)
+                                                    polarityswitch: polarityVal
                                                 })
-                                                this._onChangePolarityswitch()
+
+                                                this._onChangePolarityswitch(polarityVal)
                                             }
 
                                             if (busytone === "yes") {
@@ -1206,6 +1117,59 @@ class AnalogTrunkItem extends Component {
                 0: formatMessage({id: "LANG105"}), 
                 1: params.trunkName
             })
+
+            if (!_.isEmpty(analogtrunk) && state.firstLoad) {
+                if (analogtrunk["fax_intelligent_route_destination"] === "") {
+                    analogtrunk["fax_intelligent_route_destination"] = "no"
+                }
+
+                if (Number(analogtrunk["busycount"]) === 0) {
+                    analogtrunk["busycount"] = 2
+                }
+
+                if (Number(analogtrunk["congestioncount"]) === 0) {
+                    analogtrunk["congestioncount"] = 2
+                }
+
+                if ((analogtrunk['faxdetect'] === 'no') && (analogtrunk['fax_gateway'] === 'no')) {
+                    analogtrunk["faxmode"] = 'no'
+                } else if (analogtrunk['faxdetect'] === 'incoming') {
+                    state.div_faxDetect_style = true
+                    analogtrunk["faxmode"] = 'detect'
+                } else if (analogtrunk['fax_gateway'] === 'yes') {
+                    analogtrunk["faxmode"] = 'gateway'
+                }
+
+                if (analogtrunk.busydetect === "yes") {
+                    state["div_busycount_style"] = true
+                } else {
+                    state["div_busycount_style"] = false
+                }
+
+                if (analogtrunk.congestiondetect === "yes") {
+                    state["div_congestioncount_style"] = true
+                } else {
+                    state["div_congestioncount_style"] = false
+                }
+
+                if (analogtrunk["enablecurrentdisconnectthreshold"] === "yes") {
+                    state["div_currentdisconnectthreshold_style"] = true
+                } else {
+                    state["div_currentdisconnectthreshold_style"] = false
+                    analogtrunk["currentdisconnectthreshold"] = "200"
+                }
+
+                if (analogtrunk["polarityswitch"] === "yes") {
+                    state["polarityswitchVal"] = true
+                    state["div_polarityonanswerdelay_style"] = true
+                } else {
+                    state["div_polarityonanswerdelay_style"] = false
+                }
+
+                state["faxIntelligentRouteVal"] = !(analogtrunk["fax_intelligent_route"] === "yes" ? true : false)
+                state["firstLoad"] = false
+                state.loading = false
+            }
         }
         return (
             <div className="app-content-main" id="app-content-main">
@@ -1215,7 +1179,7 @@ class AnalogTrunkItem extends Component {
                     onCancel={ this._handleCancel }  
                     isDisplay='display-block' 
                 />
-                <Spin spinning={ isEdit ? this.state.loading : false}>
+                <Spin spinning={ state.loading }>
                     <Form>
                         <Row>
                             <Col span={12}>
@@ -1526,7 +1490,7 @@ class AnalogTrunkItem extends Component {
                                 <Col span={12}>
                                     <FormItem
                                         ref="div_faxmode" 
-                                        className={ state.div_fax_style === false ? "hidden" : "display-block" }
+                                        className={ state.div_faxmode_style === false ? "hidden" : "display-block" }
                                         { ...formItemLayout }
                                         label={(
                                             <Tooltip title={ formatMessage({id: "LANG3555"}) }>
@@ -1546,11 +1510,11 @@ class AnalogTrunkItem extends Component {
                                     </FormItem>
                                 </Col>
                             </Row>
-                            <Row ref="div_fax" className={ state.div_fax_style === false ? "hidden" : "display-block" }>
+                            <Row ref="div_faxDetect" className={ state.div_faxDetect_style === false ? "hidden" : "display-block" }>
                                 <Col span={12}>
                                     <FormItem
                                         ref="div_fax_intelligent_route"
-                                        className={ state.div_fax_style === false ? "hidden" : "display-block" }
+                                        className={ state.div_faxDetect_style === false ? "hidden" : "display-block" }
                                         { ...formItemLayout }
                                         label={(
                                             <Tooltip title={<FormattedHTMLMessage id="LANG4380" />}>
@@ -1569,7 +1533,7 @@ class AnalogTrunkItem extends Component {
                                 <Col span={12}>
                                     <FormItem
                                         ref="div_fax_intelligent_route_destination"
-                                        className={ state.div_fax_style === false ? "hidden" : "display-block" }
+                                        className={ state.div_faxDetect_style === false ? "hidden" : "display-block" }
                                         { ...formItemLayout }
                                         label={(
                                             <Tooltip title={ formatMessage({id: "LANG4380"}) }>

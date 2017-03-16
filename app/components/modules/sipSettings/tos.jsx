@@ -226,7 +226,7 @@ const CustomizedForm = injectIntl(Form.create({
                         { getFieldDecorator('relaxdtmf', {
                             rules: [],
                             valuePropName: "checked",
-                            initialValue: sipTosSettings.relaxdtmf
+                            initialValue: sipTosSettings.relaxdtmf === "yes" ? true : false
                         })(
                             <Checkbox />
                         ) }
@@ -325,12 +325,12 @@ const CustomizedForm = injectIntl(Form.create({
                         )}>
                         { getFieldDecorator('p100rel', {
                             rules: [],
-                            initialValue: sipTosSettings.p100rel
+                            initialValue: sipTosSettings.p100rel || 'no'
                         })(
                             <Select style={{ width: 200 }}>
-                                <option value='no'>{formatMessage({id: "LANG137"})}</option>
-                                <option value='yes'>{formatMessage({id: "LANG136"})}</option>
-                                <option value='required'>{formatMessage({id: "LANG4214"})}</option>
+                                <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
+                                <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
+                                <Option value='required'>{ formatMessage({id: "LANG4214"}) }</Option>
                             </Select>
                         ) }
                     </FormItem>
@@ -342,16 +342,17 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={ <FormattedHTMLMessage id="LANG5265" /> }>
-                                    <span>{ formatMessage({id: "LANG5264"}) }</span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1819" /> }>
+                                    <span>{ formatMessage({id: "LANG1820"}) }</span>
                                 </Tooltip>
                             </span>
                         )}>
-                        { getFieldDecorator('rtpkeepalive', {
+                        { getFieldDecorator('trustrpid', {
                             rules: [],
-                            initialValue: sipTosSettings.rtpkeepalive
+                            valuePropName: "checked",
+                            initialValue: sipTosSettings.trustrpid === "yes" ? true : false
                         })(
-                            <Input maxLength="4" />
+                            <Checkbox />
                         ) }
                     </FormItem>
                 </Col>
@@ -360,58 +361,17 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={ <FormattedHTMLMessage id="LANG4216" /> }>
-                                    <span>{ formatMessage({id: "LANG4215"}) }</span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1808" /> }>
+                                    <span>{ formatMessage({id: "LANG1807"}) }</span>
                                 </Tooltip>
                             </span>
                         )}>
-                        { getFieldDecorator('p100rel', {
+                        { getFieldDecorator('sendrpid', {
                             rules: [],
-                            initialValue: sipTosSettings.p100rel
+                            valuePropName: "checked",
+                            initialValue: sipTosSettings.sendrpid === "yes" ? true : false
                         })(
-                            <Select style={{ width: 200 }}>
-                                <option value='no'>{formatMessage({id: "LANG137"})}</option>
-                                <option value='yes'>{formatMessage({id: "LANG136"})}</option>
-                                <option value='required'>{formatMessage({id: "LANG4214"})}</option>
-                            </Select>
-                        ) }
-                    </FormItem>
-                </Col>
-            </Row>
-            <Row>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                                <Tooltip title={ <FormattedHTMLMessage id="LANG5265" /> }>
-                                    <span>{ formatMessage({id: "LANG5264"}) }</span>
-                                </Tooltip>
-                        )}>
-                        { getFieldDecorator('rtpkeepalive', {
-                            rules: [],
-                            initialValue: sipTosSettings.rtpkeepalive
-                        })(
-                            <Input maxLength="4" />
-                        ) }
-                    </FormItem>
-                </Col>
-                <Col span={12}>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                                <Tooltip title={ <FormattedHTMLMessage id="LANG4216" /> }>
-                                    <span>{ formatMessage({id: "LANG4215"}) }</span>
-                                </Tooltip>
-                        )}>
-                        { getFieldDecorator('p100rel', {
-                            rules: [],
-                            initialValue: sipTosSettings.p100rel
-                        })(
-                            <Select style={{ width: 200 }}>
-                                <option value='no'>{formatMessage({id: "LANG137"})}</option>
-                                <option value='yes'>{formatMessage({id: "LANG136"})}</option>
-                                <option value='required'>{formatMessage({id: "LANG4214"})}</option>
-                            </Select>
+                            <Checkbox />
                         ) }
                     </FormItem>
                 </Col>
@@ -422,16 +382,59 @@ const CustomizedForm = injectIntl(Form.create({
                         { ...formItemLayout }
                         label={(
                             <span>
-                                <Tooltip title={ <FormattedHTMLMessage id="LANG5265" /> }>
-                                    <span>{ formatMessage({id: "LANG5264"}) }</span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1790" /> }>
+                                    <span>{ formatMessage({id: "LANG1789"}) }</span>
                                 </Tooltip>
                             </span>
                         )}>
-                        { getFieldDecorator('rtpkeepalive', {
+                        { getFieldDecorator('progressinband', {
+                            rules: [],
+                            initialValue: sipTosSettings.progressinband || "never"
+                        })(
+                            <Select style={{ width: 200 }}>
+                                <Option value='never'>{ formatMessage({id: "LANG546"}) }</Option>
+                                <Option value='no'>{ formatMessage({id: "LANG137"}) }</Option>
+                                <Option value='yes'>{ formatMessage({id: "LANG136"}) }</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                </Col>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1810" /> }>
+                                    <span>{ formatMessage({id: "LANG1809"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}>
+                        { getFieldDecorator('useragent', {
                             rules: [],
                             initialValue: sipTosSettings.rtpkeepalive
                         })(
-                            <Input maxLength="4" />
+                            <Input maxLength="120" />
+                        ) }
+                    </FormItem>
+                </Col>
+            </Row>
+            <Row>
+                <Col span={12}>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG1806" /> }>
+                                    <span>{ formatMessage({id: "LANG1805"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}>
+                        { getFieldDecorator('compactheaders', {
+                            rules: [],
+                            valuePropName: "checked",
+                            initialValue: sipTosSettings.compactheaders === "yes" ? true : false
+                        })(
+                            <Checkbox />
                         ) }
                     </FormItem>
                 </Col>
@@ -458,11 +461,11 @@ class Tos extends Component {
     }
     render() {
         const {formatMessage} = this.props.intl
-        let sipTcpSettings = this.props.dataSource
+        let sipTosSettings = this.props.dataSource
 
         return (
             <div className="app-content-main" id="app-content-main">
-                <CustomizedForm onChange={ this._handleFormChange.bind(this) } dataSource={sipTcpSettings} />
+                <CustomizedForm onChange={ this._handleFormChange.bind(this) } dataSource={sipTosSettings} />
             </div>
         )
     }

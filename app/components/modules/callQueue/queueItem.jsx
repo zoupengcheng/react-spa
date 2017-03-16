@@ -28,7 +28,7 @@ class QueueItem extends Component {
             vq_switch: false,
             destination_value: '',
             announce_position: false,
-            destination_type: 'account',
+            destination_type: 'hangup',
             destination_value_prompt: '',
             destination_voice_enable: false,
             destination_type_prompt: 'account',
@@ -88,7 +88,7 @@ class QueueItem extends Component {
         let vq_switch = false
         let destination_value = ''
         let announce_position = false
-        let destination_type = 'account'
+        let destination_type = 'hangup'
         let destination_value_prompt = ''
         let destination_voice_enable = false
         let destination_type_prompt = 'account'
@@ -342,7 +342,7 @@ class QueueItem extends Component {
             destination_voice_enable: destination_voice_enable,
             destinationListDataSource: destinationListDataSource,
             mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default'],
-            destination_type: destination_type ? destination_type.replace(/_t/g, '') : 'account',
+            destination_type: destination_type ? destination_type.replace(/_t/g, '') : 'hangup',
             destination_type_prompt: destination_type_prompt ? destination_type_prompt.replace(/_t/g, '') : 'account'
         })
     }

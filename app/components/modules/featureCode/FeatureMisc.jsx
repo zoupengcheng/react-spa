@@ -30,6 +30,35 @@ class FeatureMisc extends Component {
             mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
         })
     }
+    _resetAll = () => {
+        const { setFieldsValue } = this.props.form
+        const featureMisc = this.props.dataSource || {}
+        setFieldsValue({
+            featuredigittimeout: featureMisc.featuredigittimeout,
+            parkext: featureMisc.parkext,
+            parkpos: featureMisc.parkpos,
+            park_as_extension: featureMisc.park_as_extension === 'yes',
+            parkingtime: featureMisc.parkingtime,
+            parkedmusicclass: featureMisc.parkedmusicclass || ''
+        })
+        this.setState({
+            park_as_extension: featureMisc.park_as_extension === 'yes'
+        })
+    }
+    _resetDefault = () => {
+        const { setFieldsValue } = this.props.form
+        setFieldsValue({
+            featuredigittimeout: '1000',
+            parkext: '700',
+            parkpos: '701-720',
+            park_as_extension: false,
+            parkingtime: '300',
+            parkedmusicclass: 'default'
+        })
+        this.setState({
+            park_as_extension: false
+        })
+    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
@@ -43,8 +72,8 @@ class FeatureMisc extends Component {
         return (
             <div className="content">
                 <div className="top-button">
-                    <Button type="primary">{ formatMessage({id: "LANG751"}) }</Button>
-                    <Button type="primary">{ formatMessage({id: "LANG749"}) }</Button>
+                    <Button type="primary" onClick={ this._resetAll }>{ formatMessage({id: "LANG751"}) }</Button>
+                    <Button type="primary" onClick={ this._resetDefault }>{ formatMessage({id: "LANG749"}) }</Button>
                 </div>
                 <div className="ant-form">
                     <Row>

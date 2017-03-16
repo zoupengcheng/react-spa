@@ -34,14 +34,12 @@ class VoicePrompt extends Component {
         this.state = {
             languageList: [],
             allLanguageList: [],
-            language: 'en',
             infoVisible: false,
             loading: false
         }
     }
     componentDidMount() {
         this._getLanguage()
-        this._getLanguageSettings()
     }
     _normFile(e) {
         if (Array.isArray(e)) {
@@ -66,31 +64,6 @@ class VoicePrompt extends Component {
                     const languageList = response.languages
                     this.setState({
                         languageList: languageList
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getLanguageSettings = () => {
-        const { formatMessage } = this.props.intl
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getLanguageSettings' },
-            type: 'json',
-            // async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    let response = res.response || {}
-                    const language = response.language_settings.language
-
-                    this.setState({
-                        language: language
                     })
                 }
             }.bind(this),
@@ -146,9 +119,7 @@ class VoicePrompt extends Component {
         }
     }
     _onChangeRadio = (e) => {
-        this.setState({
-            language: e.target.value
-        })
+        
     }
     _updateLanguageSetting = (key) => {
         const { formatMessage } = this.props.intl
@@ -194,10 +165,16 @@ class VoicePrompt extends Component {
                 if (bool) {
                     message.destroy()
                     this._getLanguage()
-                    if (this.state.language === key) {
+                    const select = this.props.form.getFieldValue('language')
+                    if (select === key && this.props.language !== key) {
+                        this.props.form.setFieldsValue({
+                            'language': this.props.language
+                        })
+                    }
+                    if (this.props.language === key) {
                         this._updateLanguageSetting('en')
-                        this.setState({
-                            language: 'en'
+                        this.props.form.setFieldsValue({
+                            'language': 'en'
                         })
                     }
                 }
@@ -446,7 +423,7 @@ class VoicePrompt extends Component {
                                 <Col span={ 23 }>
                                     { getFieldDecorator('language', {
                                         rules: [],
-                                        initialValue: this.state.language
+                                        initialValue: this.props.language
                                     })(
                                     <RadioGroup onChange={ this._onChangeRadio }>
                                         <Radio style={ radioStyle } value={'en'}>English : en</Radio>

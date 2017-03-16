@@ -12,9 +12,11 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-import { Tabs, message } from 'antd'
+import { Tabs, message, Modal } from 'antd'
 const TabPane = Tabs.TabPane
 import _ from 'underscore'
+
+const confirm = Modal.confirm
 
 class SipSettings extends Component {
     constructor(props) {
@@ -25,7 +27,8 @@ class SipSettings extends Component {
             sipSessiontimerSettings: {},
             sipTcpSettings: {},
             sipNatSettings: {},
-            sipTosSettings: {}
+            sipTosSettings: {},
+            enableReboot: 0
         }
     }
     componentDidMount() {
@@ -42,8 +45,8 @@ class SipSettings extends Component {
     onChange(activeKey) {
         if (activeKey === "1") {
 
-        } else {            
-            
+        } else {
+
         }
     }
     _getSIPGenSettings = () => {
@@ -66,7 +69,7 @@ class SipSettings extends Component {
                     })
                 }
             }.bind(this)
-        })        
+        })
     }
     _getSIPMiscSettings = () => {
         $.ajax({
@@ -88,7 +91,7 @@ class SipSettings extends Component {
                     })
                 }
             }.bind(this)
-        })        
+        })
     }
     _getSIPSTimerSettings = () => {
         $.ajax({
@@ -110,7 +113,7 @@ class SipSettings extends Component {
                     })
                 }
             }.bind(this)
-        })        
+        })
     }
     _getSIPTCPSettings = () => {
         $.ajax({
@@ -132,7 +135,7 @@ class SipSettings extends Component {
                     })
                 }
             }.bind(this)
-        })        
+        })
     }
     _getSIPNATSettings = () => {
         $.ajax({
@@ -154,7 +157,7 @@ class SipSettings extends Component {
                     })
                 }
             }.bind(this)
-        })        
+        })
     }
     _getTOSSettings = () => {
         $.ajax({
@@ -176,10 +179,37 @@ class SipSettings extends Component {
                     })
                 }
             }.bind(this)
-        })        
-    }       
+        })
+    }
+    _applyChangeAndReboot = () => {
+        const { formatMessage } = this.props.intl
+
+        message.loading(formatMessage({
+            id: "LANG832"
+        }), 0)
+
+        UCMGUI.loginFunction.confirmReboot()
+    }
+    _cancelReboot = () => {
+        this._handleCancel()
+    }
+    _applyReboot = () => {
+        const { formatMessage } = this.props.intl
+
+        if (this.state.enableReboot === 6) {
+            this.state['enableReboot'] = 0
+            confirm({
+                title: formatMessage({id: "LANG543"}),
+                content: formatMessage({ id: "LANG926" }),
+                okText: formatMessage({id: "LANG727"}),
+                cancelText: formatMessage({id: "LANG726"}),
+                onOk: this._applyChangeAndReboot.bind(this),
+                onCancel: this._cancelReboot.bind(this)
+            })
+        }
+    }
     _handleCancel = () => {
-        
+
     }
     _handleSubmit = () => {
         const { formatMessage } = this.props.intl
@@ -191,9 +221,9 @@ class SipSettings extends Component {
             if (_.isObject(num)) {
                 if (typeof (num.errors) === "undefined") {
                     if (num.value === true) {
-                        SIPGenSettingsAction[key] = "yes"  
+                        SIPGenSettingsAction[key] = "yes"
                     } else if (num.value === false) {
-                        SIPGenSettingsAction[key] = "no" 
+                        SIPGenSettingsAction[key] = "no"
                     } else {
                         SIPGenSettingsAction[key] = num.value
                     }
@@ -213,7 +243,7 @@ class SipSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                var bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
                     // message.destroy()
@@ -230,12 +260,15 @@ class SipSettings extends Component {
                             message.error(ite.statusText)
                         },
                         success: function(res) {
-                            var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                            var bool = UCMGUI.errorHandler(res, null, formatMessage)
 
                             if (bool) {
+                                this._getSIPGenSettings()
                             }
                         }
                     })
+                    this.state['enableReboot'] = this.state.enableReboot + 1
+                    this._applyReboot()
                 }
             }.bind(this)
         })
@@ -247,9 +280,9 @@ class SipSettings extends Component {
             if (_.isObject(num)) {
                 if (typeof (num.errors) === "undefined") {
                     if (num.value === true) {
-                        sipMiscSettingsAction[key] = "yes"  
+                        sipMiscSettingsAction[key] = "yes"
                     } else if (num.value === false) {
-                        sipMiscSettingsAction[key] = "no" 
+                        sipMiscSettingsAction[key] = "no"
                     } else {
                         sipMiscSettingsAction[key] = num.value
                     }
@@ -269,9 +302,12 @@ class SipSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                var bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
+                    this._getSIPMiscSettings()
+                    this.state['enableReboot'] = this.state.enableReboot + 1
+                    this._applyReboot()
                     // message.destroy()
                     // message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
                 }
@@ -285,9 +321,9 @@ class SipSettings extends Component {
             if (_.isObject(num)) {
                 if (typeof (num.errors) === "undefined") {
                     if (num.value === true) {
-                        sipSessiontimerSettingsAction[key] = "yes"  
+                        sipSessiontimerSettingsAction[key] = "yes"
                    } else if (num.value === false) {
-                        sipSessiontimerSettingsAction[key] = "no" 
+                        sipSessiontimerSettingsAction[key] = "no"
                    } else {
                         sipSessiontimerSettingsAction[key] = num.value
                    }
@@ -307,11 +343,14 @@ class SipSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                var bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
+                    this._getSIPSTimerSettings()
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                    this.state['enableReboot'] = this.state.enableReboot + 1
+                    this._applyReboot()
                 }
             }.bind(this)
         })
@@ -323,12 +362,12 @@ class SipSettings extends Component {
             if (_.isObject(num)) {
                 if (typeof (num.errors) === "undefined") {
                     if (num.value === true) {
-                        sipTcpSettingsAction[key] = "yes"  
+                        sipTcpSettingsAction[key] = "yes"
                     } else if (num.value === false) {
-                        sipTcpSettingsAction[key] = "no" 
+                        sipTcpSettingsAction[key] = "no"
                     } else {
                         sipTcpSettingsAction[key] = num.value
-                    } 
+                    }
                 } else {
                     return
                 }
@@ -336,6 +375,10 @@ class SipSettings extends Component {
                 sipTcpSettingsAction[key] = num
             }
         })
+        delete sipTcpSettingsAction.tlscertfile
+        delete sipTcpSettingsAction.tlscafile
+        delete sipTcpSettingsAction.tlscadir
+        delete sipTcpSettingsAction.tlsclientmethod
         $.ajax({
             url: api.apiHost,
             method: "post",
@@ -345,15 +388,19 @@ class SipSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                var bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
+                    this._getSIPTCPSettings()
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+
+                    this.state['enableReboot'] = this.state.enableReboot + 1
+                    this._applyReboot()
                 }
             }.bind(this)
         })
-        
+
         let sipNatSettingsAction = {}
         sipNatSettingsAction["action"] = "updateSIPNATSettings"
 
@@ -361,12 +408,12 @@ class SipSettings extends Component {
             if (_.isObject(num)) {
                 if (typeof (num.errors) === "undefined") {
                     if (num.value === true) {
-                        sipNatSettingsAction[key] = "yes"  
+                        sipNatSettingsAction[key] = "yes"
                     } else if (num.value === false) {
-                        sipNatSettingsAction[key] = "no" 
+                        sipNatSettingsAction[key] = "no"
                     } else {
                         sipNatSettingsAction[key] = num.value
-                    } 
+                    }
                 } else {
                     return
                 }
@@ -383,27 +430,30 @@ class SipSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                var bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
+                    this._getSIPNATSettings()
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                    this.state['enableReboot'] = this.state.enableReboot + 1
+                    this._applyReboot()
                 }
             }.bind(this)
         })
         let sipTosSettingsAction = {}
         sipTosSettingsAction["action"] = "updateTOSSettings"
 
-        _.each(this.state.sipTcpSettings, function(num, key) {
+        _.each(this.state.sipTosSettings, function(num, key) {
             if (_.isObject(num)) {
                 if (typeof (num.errors) === "undefined") {
                     if (num.value === true) {
-                        sipTosSettingsAction[key] = "yes"  
+                        sipTosSettingsAction[key] = "yes"
                     } else if (num.value === false) {
-                        sipTosSettingsAction[key] = "no" 
+                        sipTosSettingsAction[key] = "no"
                     } else {
                         sipTosSettingsAction[key] = num.value
-                    } 
+                    }
                 } else {
                     return
                 }
@@ -420,11 +470,14 @@ class SipSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                var bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
+                    this._getTOSSettings()
                     message.destroy()
                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+                    this.state['enableReboot'] = this.state.enableReboot + 1
+                    this._applyReboot()
                 }
             }.bind(this)
         })
@@ -435,45 +488,45 @@ class SipSettings extends Component {
         document.title = formatMessage({
             id: "LANG584"
         }, {
-            0: model_info.model_name, 
+            0: model_info.model_name,
             1: formatMessage({id: "LANG39"})
         })
         return (
             <div className="app-content-main" id="app-content-main">
-                <Title 
-                    headerTitle={ formatMessage({id: "LANG39"}) }  
-                    onSubmit={ this._handleSubmit } 
-                    onCancel={ this._handleCancel } 
-                    isDisplay='display-block' 
+                <Title
+                    headerTitle={ formatMessage({id: "LANG39"}) }
+                    onSubmit={ this._handleSubmit }
+                    onCancel={ this._handleCancel }
+                    isDisplay='display-block'
                 />
                 <Tabs defaultActiveKey="1" onChange={this.onChange}>
                     <TabPane tab={formatMessage({id: "LANG3"})} key="1">
-                        <General 
-                            dataSource={this.state.SIPGenSettings} 
+                        <General
+                            dataSource={this.state.SIPGenSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG41"})} key="2">
-                        <Misc 
+                        <Misc
                             dataSource={this.state.sipMiscSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG42"})} key="3">
-                        <SessionTimer 
+                        <SessionTimer
                             dataSource={this.state.sipSessiontimerSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG43"})} key="4">
-                        <TcpTls 
+                        <TcpTls
                             dataSource={this.state.sipTcpSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG44"})} key="5">
-                        <Nat 
+                        <Nat
                             dataSource={this.state.sipNatSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG45"})} key="6">
-                        <Tos 
+                        <Tos
                             dataSource={this.state.sipTosSettings}
                         />
                     </TabPane>

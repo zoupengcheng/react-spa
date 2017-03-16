@@ -141,10 +141,10 @@ class Announcement extends Component {
         })
     }
     _edit = (record) => {
-        browserHistory.push('/value-added-features/announcementCenter/edit/' + record.extension + '/' + record.extension)
+        browserHistory.push('/value-added-features/announcementCenter/edit/' + record.extension + '/' + record.code_name)
     }
     _editgroup = (record) => {
-        browserHistory.push('/value-added-features/announcementCenter/editgroup/' + record.extension + '/' + record.extension)
+        browserHistory.push('/value-added-features/announcementCenter/editgroup/' + record.extension + '/' + record.group_name)
     }
     _getAccountList = () => {
         $.ajax({

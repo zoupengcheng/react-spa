@@ -31,6 +31,8 @@ class ExtensionItem extends Component {
         }
     }
     componentDidMount() {
+    }
+    componentWillMount() {
         this._getInitData()
     }
     componentWillUnmount() {

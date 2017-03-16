@@ -28,46 +28,49 @@ class Backup extends Component {
     _handleSubmit = () => {
         const { formatMessage } = this.props.intl
         const { form } = this.props
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
+            if (!err) {
+                let loadingMessage = ''
+                let successMessage = ''
 
-        let loadingMessage = ''
-        let successMessage = ''
+                loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG904" })}}></span>
+                successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG904" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG816" })}}></span>
+                message.loading(loadingMessage)
 
-        message.loading(loadingMessage)
+                let all = form.getFieldsValue() 
 
-        let all = form.getFieldsValue() 
-
-        let data = {
-            action: "setDataSyncValue"
-        }
-
-        _.each(all, function(num, key) {
-            if (key === 'Pen_auto_backup') {
-                data[key] = num ? "1" : "0"
-            } else if (key === 'Psync_cdr' || key === 'Psync_record' || key === 'Psync_voicemail' || key === 'Psync_vfax') {
-                data[key] = num ? "yes" : "no"
-            } else {
-                data[key] = num
-            }
-        })
-
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: data,
-            type: 'json',
-            error: function(e) {
-                // message.error(e.statusText)
-            },
-            success: function(data) {
-                const bool = UCMGUI.errorHandler(data, null, formatMessage)
-                
-                if (bool) {
-                    this._applyChanges()
+                let data = {
+                    action: "setDataSyncValue"
                 }
-            }.bind(this)
+
+                _.each(all, function(num, key) {
+                    if (key === 'Pen_auto_backup') {
+                        data[key] = num ? "1" : "0"
+                    } else if (key === 'Psync_cdr' || key === 'Psync_record' || key === 'Psync_voicemail' || key === 'Psync_vfax') {
+                        data[key] = num ? "yes" : "no"
+                    } else {
+                        data[key] = num
+                    }
+                })
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: data,
+                    type: 'json',
+                    error: function(e) {
+                        // message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, formatMessage)
+                        
+                        if (bool) {
+                            this._applyChanges()
+                        }
+                    }.bind(this)
+                })
+            }
         })
     }
     _applyChanges = () => {

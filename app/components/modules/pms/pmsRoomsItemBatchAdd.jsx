@@ -19,7 +19,9 @@ class RoomBatchAdd extends Component {
         super(props)
         this.state = {
             roomList: [],
-            availableAccountList: []
+            availableAccountList: [],
+            roomNumberList: [],
+            addressList: []
         }
     }
     componentWillMount() {
@@ -36,6 +38,24 @@ class RoomBatchAdd extends Component {
             callback()
         }
     }
+    _addressIsExist = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.addressList, value) > -1) {
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG4893"})}))
+        } else {
+            callback()
+        }
+    }
+    _roomNumberIsExist = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.roomNumberList, value) > -1) {
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG4854"})}))
+        } else {
+            callback()
+        }
+    }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
     }
@@ -46,6 +66,8 @@ class RoomBatchAdd extends Component {
         let roomList = []
         let usedList = []
         let availableAccountList = []
+        let roomNumberList = []
+        let addressList = []
 
         $.ajax({
             url: api.apiHost,
@@ -65,6 +87,10 @@ class RoomBatchAdd extends Component {
                     const response = res.response || {}
 
                     roomList = response.pms_room
+                    roomList.map(function(item) {
+                        roomNumberList.push(item.room)
+                        addressList.push(item.address)
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -113,7 +139,9 @@ class RoomBatchAdd extends Component {
 
         this.setState({
             accountList: accountList,
-            availableAccountList: availableAccountList
+            availableAccountList: availableAccountList,
+            roomNumberList: roomNumberList,
+            addressList: addressList
         })
     }
     _handleCancel = () => {
@@ -148,11 +176,31 @@ class RoomBatchAdd extends Component {
                     batchextensionList = [],
                     batchaddressList = [],
                     batchroomList = []
-
+                let isExist = false
+                let availableAccountNumberList = []
+                this.state.availableAccountList.map(function(item) {
+                    availableAccountNumberList.push(item.extension)
+                })
                 for (var i = 0; i < batchNumber; i++) {
+                    if (_.indexOf(this.state.roomNumberList, (startRoom + i + '')) > -1) {
+                        message.error(formatMessage({id: "LANG4989"}, {0: formatMessage({id: "LANG4854"})}))
+                        isExist = true
+                        return
+                    } else if (_.indexOf(this.state.addressList, (startAddress + i + '')) > -1) {
+                        message.error(formatMessage({id: "LANG4989"}, {0: formatMessage({id: "LANG4893"})}))
+                        isExist = true
+                        return
+                    } else if (_.indexOf(availableAccountNumberList, (startExtension + i + '')) === -1) {
+                        message.error(formatMessage({id: "LANG4989"}, {0: formatMessage({id: "LANG85"})}))
+                        isExist = true
+                        return
+                    }
                     batchroomList.push(startRoom + i)
                     batchaddressList.push(startAddress + i)
                     batchextensionList.push(startExtension + i)
+                }
+                if (isExist) {
+                    return
                 }
 
                 action["extension"] = batchextensionList.join(',')
@@ -222,6 +270,14 @@ class RoomBatchAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: this.state.availableAccountList.length > 0 ? this.state.availableAccountList[0].extension : ""
@@ -242,6 +298,14 @@ class RoomBatchAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: this.state.availableAccountList.length > 0 ? this.state.availableAccountList[0].extension : ""

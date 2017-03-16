@@ -766,95 +766,103 @@ UCMGUI.prototype = {
                                         checkInfo()
                                     }, 60000)
     },
-    // getPrivilegeAction: function(actionData, privilegeData, actionType) {
-    //     let action = actionData["action"],
-    //         obj = {};
+    getPrivilegeAction: function(actionData, privilegeData, actionType) {
+        let action = actionData['action'],
+            obj = {}
 
-    //     if (action) {
-    //         obj["action"] = action;
-    //         if (!actionType) {
-    //             actionType = action;
-    //         }
-    //     }
-    //     if (actionType) {
-    //         for (let attr in actionData) {
-    //             if (actionData.hasOwnProperty(attr) && attr != "action") {
-    //                 let privilegeAttrVal = privilegeData[attr],
-    //                     privilegeActionArr = UCMGUI.getPrivilegeActionArr({
-    //                         attrVal: privilegeAttrVal,
-    //                         actionType: actionType,
-    //                         id: attr,
-    //                         val: actionData[attr]
-    //                     });
+        if (action) {
+            obj['action'] = action
 
-    //                 if (privilegeActionArr[0]) {
-    //                     obj[privilegeActionArr[0]] = privilegeActionArr[1];
-    //                 }
-    //             }
-    //         }
-    //         return obj;
-    //     } else {
-    //         return actionData;
-    //     }
-    // },
-    // getPrivilegeActionArr: function(obj) {
-    //     let attrVal = obj.attrVal,
-    //         actionType = obj.actionType,
-    //         id = obj.id,
-    //         val = obj.val,
-    //         //attrVal = (attrVal != undefined) ? attrVal.toString() : "",
-    //         actionArr = [];
+            if (!actionType) {
+                actionType = action
+            }
+        }
 
-    //     if (UCMGUI.checkPrivilege(attrVal, actionType)) {
-    //         actionArr.push(id);
-    //         actionArr.push(val);
-    //     }
-    //     return actionArr;
-    // },
-    // checkPrivilege: function(privilegeVal, actionType) {
-    //     privilegeVal = (privilegeVal != undefined) ? privilegeVal.toString() : "";
+        if (actionType) {
+            for (let attr in actionData) {
+                if (actionData.hasOwnProperty(attr) && attr !== 'action') {
+                    let privilegeAttrVal = privilegeData[attr],
+                        privilegeActionArr = UCMGUI.getPrivilegeActionArr({
+                            id: attr,
+                            attrVal: privilegeAttrVal,
+                            actionType: actionType,
+                            val: actionData[attr]
+                        })
 
-    //     if (!!privilegeVal && !!actionType) {
-    //         if (privilegeVal == "-1") {
-    //             privilegeVal = 15;
-    //         }
-    //         let privInt = parseInt(privilegeVal, 10);
+                    if (privilegeActionArr[0]) {
+                        obj[privilegeActionArr[0]] = privilegeActionArr[1]
+                    }
+                }
+            }
 
-    //         if (!isNaN(privInt)) {
-    //             let privBinary = privInt.toString(2),
-    //                 arr = privBinary.split(""),
-    //                 str = "";
-    //             for (let i = 0; i < 4 - arr.length; i++) {
-    //                 str += 0;
-    //             }
-    //             privBinary = str + privBinary;
+            return obj
+        } else {
+            return actionData
+        }
+    },
+    getPrivilegeActionArr: function(obj) {
+        let attrVal = obj.attrVal,
+            actionType = obj.actionType,
+            id = obj.id,
+            val = obj.val,
+            actionArr = []
+            // attrVal = (attrVal != undefined) ? attrVal.toString() : ""
 
-    //             let matchArr = privBinary.match(/\d/g);
+        if (UCMGUI.checkPrivilege(attrVal, actionType)) {
+            actionArr.push(id)
+            actionArr.push(val)
+        }
 
-    //             if (matchArr.length != 0) {
-    //                 let add = Number(matchArr[0]),
-    //                     del = Number(matchArr[1]),
-    //                     edit = Number(matchArr[2]),
-    //                     read = Number(matchArr[3]);
-    //                 ///^add/.test(actionType);
-    //                 ///^delete/.test(actionType);
-    //                 ///^update/.test(actionType);
+        return actionArr
+    },
+    checkPrivilege: function(privilege, actionType) {
+        let privilegeVal = (privilege !== undefined) ? privilege.toString() : ''
 
-    //                 if ((actionType.indexOf("add") != -1 && add == 1) ||
-    //                     (actionType.indexOf("delete") != -1 && del == 1) ||
-    //                     (actionType.indexOf("delete") != -1 && del == 1) ||
-    //                     (read == 1)) {
-    //                     return true;
-    //                 } else {
-    //                     return false;
-    //                 }
-    //             }
-    //         }
-    //     } else {
-    //         return true;
-    //     }
-    // },
-     transUploadcode: function(rescode) {
+        if (!!privilegeVal && !!actionType) {
+            if (privilegeVal === "-1") {
+                privilegeVal = 15
+            }
+
+            let privInt = parseInt(privilegeVal, 10)
+
+            if (!isNaN(privInt)) {
+                let privBinary = privInt.toString(2),
+                    arr = privBinary.split(''),
+                    str = ''
+
+                for (let i = 0; i < 4 - arr.length; i++) {
+                    str += 0
+                }
+
+                privBinary = str + privBinary
+
+                let matchArr = privBinary.match(/\d/g)
+
+                if (matchArr.length !== 0) {
+                    let add = Number(matchArr[0]),
+                        del = Number(matchArr[1]),
+                        edit = Number(matchArr[2]),
+                        read = Number(matchArr[3])
+
+                    // /^add/.test(actionType)
+                    // /^delete/.test(actionType)
+                    // /^update/.test(actionType)
+
+                    if ((actionType.indexOf("add") !== -1 && add === 1) ||
+                        (actionType.indexOf("delete") !== -1 && del === 1) ||
+                        (actionType.indexOf("delete") !== -1 && del === 1) ||
+                        (read === 1)) {
+                        return true
+                    } else {
+                        return false
+                    }
+                }
+            }
+        } else {
+            return true
+        }
+    },
+    transUploadcode: function(rescode) {
         if (!isNaN(rescode)) {
             let rescode = parseInt(rescode)
 

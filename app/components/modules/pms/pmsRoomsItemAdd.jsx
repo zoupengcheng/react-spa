@@ -20,7 +20,9 @@ class RoomAdd extends Component {
         this.state = {
             roomList: [],
             availableAccountList: [],
-            roomItem: {}
+            roomItem: {},
+            addressList: [],
+            roomNumberList: []
         }
     }
     componentWillMount() {
@@ -37,6 +39,32 @@ class RoomAdd extends Component {
             callback()
         }
     }
+    _checkFormat = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        if (value.match(/['"`]/)) {
+            callback(formatMessage({id: "LANG4465"}))
+        } else {
+            callback()
+        }
+    }
+    _addressIsExist = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.addressList, value) > -1) {
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG4893"})}))
+        } else {
+            callback()
+        }
+    }
+    _roomNumberIsExist = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.roomNumberList, value) > -1) {
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG4854"})}))
+        } else {
+            callback()
+        }
+    }
     _filterTransferOption = (inputValue, option) => {
         return (option.title.indexOf(inputValue) > -1)
     }
@@ -48,6 +76,8 @@ class RoomAdd extends Component {
         let usedList = []
         let availableAccountList = []
         let roomItem = {}
+        let roomNumberList = []
+        let addressList = []
 
         $.ajax({
             url: api.apiHost,
@@ -67,6 +97,10 @@ class RoomAdd extends Component {
                     const response = res.response || {}
 
                     roomList = response.pms_room
+                    roomList.map(function(item) {
+                        roomNumberList.push(item.room)
+                        addressList.push(item.address)
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -136,12 +170,16 @@ class RoomAdd extends Component {
                     message.error(e.statusText)
                 }
             })
+            roomNumberList = _.without(roomNumberList, roomItem.room)
+            addressList = _.without(addressList, roomItem.address)
         }
 
         this.setState({
             accountList: accountList,
             roomItem: roomItem,
-            availableAccountList: availableAccountList
+            availableAccountList: availableAccountList,
+            roomNumberList: roomNumberList,
+            addressList: addressList
         })
     }
     _handleCancel = () => {
@@ -254,9 +292,19 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._addressIsExist
                                 }],
                                 width: 100,
-                                initialValue: roomItem.address ? roomItem.address : ""
+                                initialValue: roomItem.address ? roomItem.address : (this.state.availableAccountList.length > 0 ? this.state.availableAccountList[0].extension : "")
                             })(
                                 <Input maxLength="128" disabled={ this.props.params.id ? true : false } />
                             ) }
@@ -274,9 +322,13 @@ class RoomAdd extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkFormat
+                                }, {
+                                    validator: this._roomNumberIsExist
                                 }],
                                 width: 100,
-                                initialValue: roomItem.room
+                                initialValue: roomItem.room ? roomItem.room : (this.state.availableAccountList.length > 0 ? this.state.availableAccountList[0].extension : "")
                             })(
                                 <Input maxLength="128" />
                             ) }

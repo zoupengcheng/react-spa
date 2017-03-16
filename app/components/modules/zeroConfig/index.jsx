@@ -1,7 +1,14 @@
 'use strict'
 
+import $ from 'jquery'
+import _ from 'underscore'
 import React, { Component, PropTypes } from 'react'
 import {injectIntl} from 'react-intl'
+import Title from '../../../views/title'
+import { Tabs, message } from 'antd'
+import { browserHistory } from 'react-router'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
 import ZEROCONFIG from './parser/ZCDataSource'
 import Devices from './devices'
 import GlobalPolicy from './globalPolicy'
@@ -9,14 +16,8 @@ import GlobalTemplates from './globalTemplates'
 import ModelTemplates from './modelTemplates'
 import TemplateManagement from './templateManagement'
 import ZeroConfigSettings from './zeroConfigSettings'
-import $ from 'jquery'
-import api from "../../api/api"
-import UCMGUI from "../../api/ucmgui"
-import Title from '../../../views/title'
-import { Tabs, message } from 'antd'
-import { browserHistory } from 'react-router'
+
 const TabPane = Tabs.TabPane
-import _ from 'underscore'
 
 class ZeroConfig extends Component {
     constructor(props) {

@@ -11,7 +11,6 @@ import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 
 import Feature from './feature'
-import FollowMe from './followMe'
 import SpecificTime from './specificTime'
 import BasicSettings from './basicSettings'
 
@@ -24,119 +23,139 @@ class UserExtension extends Component {
 
         this.state = {
             settings: {},
+            languages: [],
             userSettings: {},
-            currentEditId: this.props.params.id,
-            extension_type: this.props.params.type ? this.props.params.type : 'sip'
+            currentEditId: '',
+            extension_type: '',
+            settingsPrivilege: {},
+            userSettingsPrivilege: {}
         }
     }
     componentDidMount() {
+        this._getOtherData()
+    }
+    componentWillMount() {
         this._getInitData()
     }
     componentWillUnmount() {
     }
     _getInitData = () => {
+        let extensionId = ''
+        let extensionType = ''
         let settings = {}
         let userSettings = {}
-        const { formatMessage } = this.props.intl
-        const extensionId = this.props.params.id
-        const extensionType = this.props.params.type
-        const disabled = formatMessage({id: "LANG273"})
-        const extensionRange = UCMGUI.isExist.getRange('extension', formatMessage)
-        const existNumberList = UCMGUI.isExist.getList('getNumberList', formatMessage)
-        const extensionTypeUpperCase = extensionType ? extensionType.toUpperCase() : ''
+        let settingsPrivilege = {}
+        let userSettingsPrivilege = {}
+        let extensionTypeUpperCase = ''
 
-        this.setState({
-            extensionRange: extensionRange,
-            existNumberList: existNumberList
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            type: 'json',
+            async: false,
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'listAccount',
+                options: 'extension,account_type'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const account = response.account || []
+
+                    extensionId = account[0] ? account[0].extension : ''
+                    extensionTypeUpperCase = account[0] ? account[0].account_type.slice(0, 3) : ''
+                    extensionType = extensionTypeUpperCase.toLowerCase()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
         })
 
-        if (extensionId) {
-            $.ajax({
-                type: 'json',
-                async: false,
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    extension: extensionId,
-                    action: `get${extensionTypeUpperCase}Account`
-                },
-                success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+        $.ajax({
+            type: 'json',
+            async: false,
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                extension: extensionId,
+                action: `get${extensionTypeUpperCase}Account`
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                    if (bool) {
-                        const response = res.response || {}
-                        settings = response.extension || {}
+                if (bool) {
+                    const response = res.response || {}
 
-                        _.map(settings, (value, key) => {
-                            if (value === null) {
-                                settings[key] = ''
-                            } else {
-                                settings[key] = value
-                            }
-                        })
+                    settings = response.extension || {}
+                    settingsPrivilege = response.privilege_info || {}
 
-                        this.setState({
-                            settings: settings
-                        })
-                    }
-                }.bind(this),
-                error: function(e) {
-                    message.error(e.statusText)
+                    _.map(settings, (value, key) => {
+                        if (value === null) {
+                            settings[key] = ''
+                        } else {
+                            settings[key] = value
+                        }
+                    })
                 }
-            })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
 
-            $.ajax({
-                type: 'json',
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    action: 'getUser',
-                    user_name: extensionId
-                },
-                success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+        $.ajax({
+            type: 'json',
+            async: false,
+            method: 'post',
+            url: api.apiHost,
+            data: {
+                action: 'getUser',
+                user_name: extensionId
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                    if (bool) {
-                        let importantValues = ''
-                        const response = res.response || {}
+                if (bool) {
+                    const response = res.response || {}
 
-                        userSettings = response.user_name || {}
-                        importantValues = settings.secret + settings.authid +
-                                userSettings.email + userSettings.phone_number +
-                                userSettings.first_name + userSettings.last_name + userSettings.user_password
-
-                        this.setState({
-                            userSettings: userSettings,
-                            importantValues: importantValues
-                        })
-                    }
-                }.bind(this),
-                error: function(e) {
-                    message.error(e.statusText)
+                    userSettings = response.user_name || {}
+                    userSettingsPrivilege = response.privilege_info || {}
                 }
-            })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
 
-            $.ajax({
-                type: 'json',
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    action: 'getExtenPrefSettings'
-                },
-                error: function(jqXHR, textStatus, errorThrown) {},
-                success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+        this.setState({
+            settings: settings,
+            userSettings: userSettings,
+            currentEditId: extensionId,
+            extension_type: extensionType,
+            settingsPrivilege: settingsPrivilege,
+            userSettingsPrivilege: userSettingsPrivilege
+        })
+    }
+    _getOtherData = () => {
+        const { formatMessage } = this.props.intl
+        const disabled = formatMessage({id: "LANG273"})
 
-                    if (bool) {
-                        let autoEmail = res.response.extension_pref_settings.auto_email_to_user
+        const languages = UCMGUI.isExist.getList('getLanguage', formatMessage)
+        const extensionRange = UCMGUI.isExist.getRange('extension', formatMessage)
+        // const officeTimeList = UCMGUI.isExist.getList('listTimeConditionOfficeTime', formatMessage)
+        // const holidayList = UCMGUI.isExist.getList('listTimeConditionHoliday', formatMessage)
 
-                        this.setState({
-                            autoEmailToUser: autoEmail ? autoEmail : 'no'
-                        })
-                    }
-                }.bind(this)
-            })
-        }
+        this.setState({
+            languages: languages,
+            // holidayList: holidayList,
+            // officeTimeList: officeTimeList,
+            extensionRange: extensionRange
+        })
     }
     _getImportantValues = () => {
         let fieldsValue = ''
@@ -147,7 +166,7 @@ class UserExtension extends Component {
         return fieldsValue
     }
     _handleCancel = (e) => {
-        browserHistory.push('/extension-trunk/extension')
+        browserHistory.push('/user-basic-information/userExtension')
     }
     _handleSubmit = (e) => {
         // e.preventDefault()
@@ -164,33 +183,13 @@ class UserExtension extends Component {
                     fax = values.faxmode ? values.faxmode : '',
                     type = values.extension_type ? values.extension_type : ''
 
-                if (this.state.currentEditId) {
-                    action.action = `update${this.state.extension_type.toUpperCase()}Account`
-                } else {
-                    action.action = `add${this.state.extension_type.toUpperCase()}AccountAndUser`
-
-                    action.first_name = values.first_name ? values.first_name : ''
-                    action.last_name = values.last_name ? values.last_name : ''
-                    action.email = values.email ? values.email : ''
-                    action.language = (values.language && values.language !== 'default') ? values.language : ''
-                    action.user_password = values.user_password ? values.user_password : ''
-                    action.phone_number = values.phone_number ? values.phone_number : ''
-
-                    if (action.first_name && action.last_name) {
-                        action.fullname = action.first_name + ' ' + action.last_name
-                    } else if (action.first_name) {
-                        action.fullname = action.first_name
-                    } else if (action.last_name) {
-                        action.fullname = action.last_name
-                    } else {
-                        action.fullname = ''
-                    }
-                }
+                action.action = `update${this.state.extension_type.toUpperCase()}Account`
 
                 _.map(values, function(value, key) {
                     let fieldInstance = getFieldInstance(key)
 
-                    if (key === 'mode' || key === 'out_limitime' || key === 'maximumTime' || key === 'enable_cc' ||
+                    if (key === 'enable_cc' || key === 'callbarging_monitor' || key === 'use_callee_dod_on_fwd_rb' ||
+                        key === 'mode' || key === 'out_limitime' || key === 'maximumTime' ||
                         key === 'whiteLists' || key === 'fwdwhiteLists' || key === 'localNetworks' ||
                         key === 'presence_dst_account_voicemail' || key === 'presence_dst_external_number' ||
                         key === 'room' || key === 'faxmode' || key === 'cc_mode' || key === 'batch_number' ||
@@ -274,11 +273,11 @@ class UserExtension extends Component {
                     delete action.allow
                 } else {
                     // SIP/ IAX
-                    for (var i = 1; i <= MAXLOCALNETWORK; i++) {
-                        if (!action.hasOwnProperty('local_network' + i)) {
-                            action['local_network' + i] = ''
-                        }
-                    }
+                    // for (var i = 1; i <= MAXLOCALNETWORK; i++) {
+                    //     if (!action.hasOwnProperty('local_network' + i)) {
+                    //         action['local_network' + i] = ''
+                    //     }
+                    // }
 
                     if (type === 'sip') {
                         if (values.enable_cc) {
@@ -322,148 +321,70 @@ class UserExtension extends Component {
                             action['room'] = action['extension']
                         }
 
-                        if (values.presence_dst_type === '1' || values.presence_dst_type === '3') {
-                            action['presence_dst_account'] = values.presence_dst_account_voicemail
-                        } else if (values.presence_dst_type === '2') {
-                            action['presence_dst_account'] = values.presence_dst_external_number
-                        }
+                        // if (values.presence_dst_type === '1' || values.presence_dst_type === '3') {
+                        //     action['presence_dst_account'] = values.presence_dst_account_voicemail
+                        // } else if (values.presence_dst_type === '2') {
+                        //     action['presence_dst_account'] = values.presence_dst_external_number
+                        // }
                     }
                 }
 
-                if (values.maximumTime) {
-                    action['limitime'] = parseInt(values.maximumTime) * 1000
-                } else {
-                    action['limitime'] = ''
+                // if (values.maximumTime) {
+                //     action['limitime'] = parseInt(values.maximumTime) * 1000
+                // } else {
+                //     action['limitime'] = ''
+                // }
+
+                message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                if (!$.isEmptyObject(this.state.privilegeInfo)) {
+                    action = UCMGUI.getPrivilegeAction(action, this.state.privilegeInfo)
                 }
 
-                // console.log('Received values of form: ', action)
-                // console.log('Received values of form: ', values)
+                $.ajax({
+                    data: action,
+                    type: 'json',
+                    method: "post",
+                    url: api.apiHost,
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                // if (values.batch_number) {
-                //     let batchAddExtList = []
-                //     let newusersLists = []
-                //     let addNumber = values.batch_number
-
-                //     batchAddExtList = this._getBatchUsers()
-                    
-                //     if (askExtensionRange($("#batch_extension").val(), extensionRange[0], extensionRange[1], extensionRange[2], batchAddExtList[batchAddExtList.length - 1])) {
-                //         newusersLists.push("<font>" + batchAddExtList[0] + "</font>");
-
-                //         for (var i = 1; i < addNumber; i++) {
-                //             var newusersItem = batchAddExtList[i],
-                //                 prevItem = batchAddExtList[i - 1],
-                //                 prev = bigNumDelete(newusersItem);
-
-                //             if ((typeof prevItem == 'string' ? prevItem.replace(/0*(\d+)/, "$1") : prevItem) == prev) {
-                //                 newusersItem = "<font>" + newusersItem + "</font>";
-                //             } else {
-                //                 newusersItem = "<font color='green'>" + newusersItem + "</font>";
-                //             }
-
-                //             newusersLists.push(newusersItem);
-                //         }
-
-                //         action['extension'] = batchAddExtList.toString();
-                //     }
-                // } else {
-                    message.loading(formatMessage({ id: "LANG826" }), 0)
-
-                    $.ajax({
-                        data: action,
-                        type: 'json',
-                        method: "post",
-                        url: api.apiHost,
-                        error: function(e) {
-                            message.error(e.statusText)
-                        },
-                        success: function(data) {
-                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                            if (bool) {
-                                if (this.state.currentEditId) {
-                                    let fieldsValue = this._getImportantValues()
-
-                                    let newImportantValues = fieldsValue.secret + fieldsValue.authid +
-                                            fieldsValue.email + fieldsValue.phone_number +
-                                            fieldsValue.first_name + fieldsValue.last_name + fieldsValue.user_password
-
-                                    let userAction = {
-                                            'action': 'updateUser',
-                                            'email': values.email ? values.email : '',
-                                            'user_id': this.state.userSettings.user_id,
-                                            'last_name': values.last_name ? values.last_name : '',
-                                            'first_name': values.first_name ? values.first_name : '',
-                                            'phone_number': values.phone_number ? values.phone_number : '',
-                                            'user_password': values.user_password ? values.user_password : '',
-                                            'language': (values.language && values.language !== 'default') ? values.language : ''
-                                        }
-
-                                    if (userAction.user_password === '******') {
-                                        delete userAction.user_password
-                                    }
-
-                                    if (this.state.importantValues !== newImportantValues) {
-                                        userAction.email_to_user = 'no'
-                                    }
-
-                                    $.ajax({
-                                        type: 'json',
-                                        method: "post",
-                                        url: api.apiHost,
-                                        data: userAction,
-                                        error: function(e) {
-                                            message.error(e.statusText)
-                                        },
-                                        success: function(data) {
-                                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                                            if (bool) {
-                                                if ((this.state.importantValues !== newImportantValues) &&
-                                                    (this.state.autoEmailToUser === 'yes') && userAction['email']) {
-                                                    $.ajax({
-                                                        type: "post",
-                                                        async: false,
-                                                        url: api.apiHost,
-                                                        data: {
-                                                            'action': 'sendAccount2User',
-                                                            'extension': action['extension']
-                                                        },
-                                                        error: function(jqXHR, textStatus, errorThrown) {},
-                                                        success: function(data) {}
-                                                    })
-                                                }
-
-                                                message.destroy()
-                                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
-
-                                                this._handleCancel()
-                                            }
-                                        }.bind(this)
-                                    })
-                                } else {
-                                    if ((this.state.autoEmailToUser === 'yes') && action['email']) {
-                                        $.ajax({
-                                            type: "post",
-                                            async: false,
-                                            url: api.apiHost,
-                                            data: {
-                                                'action': 'sendAccount2User',
-                                                'extension': action['extension']
-                                            },
-                                            error: function(jqXHR, textStatus, errorThrown) {},
-                                            success: function(data) {}
-                                        })
-                                    }
-
-                                    message.destroy()
-                                    message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
-
-                                    this._handleCancel()
+                        if (bool) {
+                            let userAction = {
+                                    'action': 'updateUser',
+                                    'user_id': this.state.userSettings.user_id,
+                                    'last_name': this.state.userSettings.last_name,
+                                    'first_name': this.state.userSettings.first_name,
+                                    'language': (values.language && values.language !== 'default') ? values.language : ''
                                 }
+
+                            if (!$.isEmptyObject(this.state.userPrivilegeInfo)) {
+                                userAction = UCMGUI.getPrivilegeAction(userAction, this.state.userPrivilegeInfo)
                             }
-                        }.bind(this)
-                    })
-                // }
+
+                            $.ajax({
+                                type: 'json',
+                                method: "post",
+                                url: api.apiHost,
+                                data: userAction,
+                                error: function(e) {
+                                    message.error(e.statusText)
+                                },
+                                success: function(data) {
+                                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                    if (bool) {
+                                        message.destroy()
+                                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
+                                    }
+                                }.bind(this)
+                            })
+                        }
+                    }.bind(this)
+                })
             }
         })
     }
@@ -473,11 +394,6 @@ class UserExtension extends Component {
         //         return false
         //     }
         // })
-    }
-    _onExtensionTypeChange = (value) => {
-        this.setState({
-            extension_type: value
-        })
     }
     render() {
         const form = this.props.form
@@ -505,12 +421,13 @@ class UserExtension extends Component {
                             <BasicSettings
                                 form={ form }
                                 settings={ this.state.settings }
+                                languages={ this.state.languages }
                                 userSettings={ this.state.userSettings }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 extensionRange={ this.state.extensionRange }
-                                existNumberList={ this.state.existNumberList }
-                                onExtensionTypeChange={ this._onExtensionTypeChange }
+                                settingsPrivilege={ this.state.settingsPrivilege }
+                                userSettingsPrivilege={ this.state.userSettingsPrivilege }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG106"}) } key="3">
@@ -519,7 +436,7 @@ class UserExtension extends Component {
                                 settings={ this.state.settings }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
-                                onExtensionTypeChange={ this._onExtensionTypeChange }
+                                settingsPrivilege={ this.state.settingsPrivilege }
                             />
                         </TabPane>
                         {/* <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
@@ -530,7 +447,7 @@ class UserExtension extends Component {
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
-                        </TabPane> */}
+                        </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG568"}) } key="5">
                             <FollowMe
                                 form={ form }
@@ -539,7 +456,7 @@ class UserExtension extends Component {
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
-                        </TabPane>
+                        </TabPane> */}
                     </Tabs>
                 </Form>
             </div>

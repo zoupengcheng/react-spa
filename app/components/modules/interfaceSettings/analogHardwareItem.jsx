@@ -177,24 +177,18 @@ class AnalogItem extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var bool = UCMGUI.errorHandler(data, function() {
-                    /* top.dialog.container.show();
-                    top.dialog.shadeDiv.show(); */
-                })
+                const bool = UCMGUI.errorHandler(data, null, __this.props.intl.formatMessage)
+
                 if (bool) {
                     let result = data.response.result
                     let totalState = data.response.total_state
                     let totalErr = data.response.total_err
                     let errorData = ""
-                    // if (parseInt(totalErr, 10) == 0) {
+
                     if (totalState !== "done") {
                         setTimeout(__this._reflesh_status, 5000)
                         message.loading(loadingMessage, 5)
                     } else {
-                        /* top.dialog.clearDialog("", function() {
-                            top.dialog.container.show();
-                            top.dialog.shadeDiv.show();
-                        }) */
                         let needModalError = false
                         $.each(result, function(index, val) {
                             var eleId = val.chan
@@ -239,6 +233,7 @@ class AnalogItem extends Component {
             acim_option: getFieldValue('acim_option')
         }
         message.loading(loadingMessage, 5)
+
         $.ajax({
             type: "POST",
             url: api.apiHost,
@@ -251,14 +246,8 @@ class AnalogItem extends Component {
             },
             success: function(data) {
                 message.loading(loadingMessage, 5)
-                /* top.dialog.dialogMessage({
-                    type: 'loading',
-                    content: formatMessage({id: "LANG2337"})
-                }) */
-                var bool = UCMGUI.errorHandler(data, function() {
-                    /* top.dialog.container.show();
-                    top.dialog.shadeDiv.show(); */
-                })
+                const bool = UCMGUI.errorHandler(data, null, __this.props.intl.formatMessage)
+
                 if (bool) {
                     setTimeout(__this._reflesh_status, 5000)
                 }

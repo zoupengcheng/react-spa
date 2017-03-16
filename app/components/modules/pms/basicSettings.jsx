@@ -336,6 +336,10 @@ class Basic extends Component {
                             rules: [{
                                 required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile",
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile" ? Validator.letterDigitUndHyphen(data, value, callback, formatMessage) : callback()
+                                }
                             }],
                             initialValue: basicSettings.site
                         })(

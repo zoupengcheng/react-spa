@@ -720,6 +720,14 @@ class BasicSettings extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 1, 60)
+                                }
                             }],
                             width: 10,
                             initialValue: (ivrItem.digit_timeout ? ivrItem.digit_timeout : 3)
@@ -740,6 +748,14 @@ class BasicSettings extends Component {
                             rules: [{
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.digits(data, value, callback, formatMessage)
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.range(data, value, callback, formatMessage, 1, 180)
+                                }
                             }],
                             width: 10,
                             initialValue: (ivrItem.response_timeout ? ivrItem.response_timeout : 10)

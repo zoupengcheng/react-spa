@@ -11,13 +11,6 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip } from 'antd'
 
-let secret
-let vmsecret
-let newExtension
-let user_password
-let firstGetSettings = false
-let hasGeneratePassword = false
-
 const FormItem = Form.Item
 const Option = Select.Option
 
@@ -26,103 +19,38 @@ class BasicSettings extends Component {
         super(props)
 
         this.state = {
-            languages: [],
-            batch_number: '5',
-            add_method: 'single',
-            enable_qualify: false
+            hasvoicemail: this.props.settings.hasvoicemail === 'yes' ? true : false,
+            enable_qualify: this.props.settings.enable_qualify === 'yes' ? true : false
         }
     }
     componentDidMount() {
     }
     componentWillMount() {
-        this._getLanguages()
     }
-    componentWillReceiveProps(nextProps) {
-        if (!_.isEmpty(nextProps.settings) && !firstGetSettings) {
-            const enable_qualify = nextProps.settings.enable_qualify === 'yes' ? true : false
+    _checkPrivilege = (params) => {
+        let result = false
+        let settingsPrivilege = this.props.settingsPrivilege
+        // let userSettingsPrivilege = this.props.userSettingsPrivilege
 
-            firstGetSettings = true
-
-            this.setState({
-                enable_qualify: enable_qualify
-            })
+        if (!params) {
+            return false
         }
+
+        if (settingsPrivilege.hasOwnProperty(params) &&
+            (settingsPrivilege[params] === 3 || settingsPrivilege[params] === 15)) {
+            result = true
+        }
+
+        // if (userSettingsPrivilege.hasOwnProperty(params) &&
+        //     (userSettingsPrivilege[params] === 3 || userSettingsPrivilege[params] === 15)) {
+        //     result = true
+        // }
+
+        return result
     }
-    _getLanguages = () => {
-        const { formatMessage } = this.props.intl
-
-        let languages = UCMGUI.isExist.getList('getLanguage', formatMessage)
-
+    _onChangeHasVoicemail = (e) => {
         this.setState({
-            languages: languages
-        })
-    }
-    _generateNewExtension = (extensionRange, existNumberList) => {
-        let startExt = extensionRange[0]
-        let endExt = extensionRange[1]
-        let i = startExt
-
-        for (i; i <= endExt; i++) {
-            if (i < 10) {
-                i = "0" + i
-            }
-
-            if (!_.contains(existNumberList, i.toString())) {
-                return i.toString()
-            }
-        }
-    }
-    _generatePassword(extensionRange, existNumberList, type, length) {
-        if (extensionRange[3].toLowerCase() === "yes") { // Strong Password
-            let pw = ''
-            let chars = ''
-            let strLength = (length ? length : Math.floor((Math.random() * 3) + 6))
-
-            switch (type) {
-                case 'number':
-                    chars += '3745890162'
-                    break
-                case 'char':
-                    chars += 'ZmnopqrMDEFGabcdefgABCXYRSstuvwxyzhijklHIJKLTUVWNOPQ'
-                    break
-                case 'special':
-                    chars += '~!@#$%^*'
-                    break
-                default:
-                    chars += '^*VW01234XYZabcdefghijklmnoABCNOHIJKLMp$%PQRSTz56qrstuvwxy9~!@#78UDEFG'
-                    break
-            }
-
-            chars = chars.split('')
-
-            for (let i = 0; i < strLength; i++) {
-                pw += chars[Math.floor(Math.random() * chars.length)]
-            }
-
-            // Pengcheng Zou Added. Check if has number.
-            if (!/\d/g.test(pw)) {
-                pw = pw.substr(1) // length - 1
-                pw += this._generatePassword(extensionRange, existNumberList, 'number', 1)
-            }
-
-            return pw
-        } else {
-            return ''
-            // return this._generateNewExtension(extensionRange, existNumberList)
-        }
-    }
-    _onChangeExtensionType = (value) => {
-        if (value === 'fxs') {
-            this.setState({
-                add_method: 'single'
-            })
-        }
-
-        this.props.onExtensionTypeChange(value)
-    }
-    _onChangeAddMethod = (value) => {
-        this.setState({
-            add_method: value
+            hasvoicemail: e.target.checked
         })
     }
     _onChangeQualify = (e) => {
@@ -140,12 +68,11 @@ class BasicSettings extends Component {
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const settings = this.props.settings || {}
         const { getFieldDecorator } = this.props.form
+
+        const settings = this.props.settings || {}
         const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
-        const extensionRange = this.props.extensionRange
-        const existNumberList = this.props.existNumberList
         const userSettings = this.props.userSettings || {}
 
         const formItemLayout = {
@@ -158,111 +85,9 @@ class BasicSettings extends Component {
             wrapperCol: { span: 6 }
         }
 
-        if (!currentEditId && !hasGeneratePassword &&
-            extensionRange && extensionRange.length &&
-            existNumberList && existNumberList.length) {
-            newExtension = this._generateNewExtension(extensionRange, existNumberList)
-
-            secret = this._generatePassword(extensionRange, existNumberList) || newExtension
-            user_password = this._generatePassword(extensionRange, existNumberList) || newExtension
-            vmsecret = this._generatePassword(extensionRange, existNumberList, 'number') || newExtension
-
-            hasGeneratePassword = true
-        }
-
         return (
             <div className="content">
                 <div className="ant-form">
-                    <Row
-                        className={ !currentEditId ? 'display-block' : 'hidden' }
-                    >
-                        <Col span={ 24 }>
-                            <FormItem
-                                { ...formItemLayoutRow }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5417" /> }>
-                                            <span>{ formatMessage({id: "LANG5417"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('extension_type', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: extension_type,
-                                    className: (!currentEditId ? 'display-block' : 'hidden')
-                                })(
-                                    <Select onChange={ this._onChangeExtensionType }>
-                                        <Option value='sip'>{ formatMessage({id: "LANG2927"}) }</Option>
-                                        <Option value='iax'>{ formatMessage({id: "LANG2929"}) }</Option>
-                                        <Option value='fxs'>{ formatMessage({id: "LANG2928"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5418" /> }>
-                                            <span>{ formatMessage({id: "LANG5418"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                <Select
-                                    value={ this.state.add_method }
-                                    onChange={ this._onChangeAddMethod }
-                                >
-                                    <Option value='single'>{ formatMessage({id: "LANG5420"}) }</Option>
-                                    <Option
-                                        value='batch'
-                                        disabled={ extension_type === 'fxs' }
-                                    >
-                                        { formatMessage({id: "LANG5419"}) }
-                                    </Option>
-                                </Select>
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                className={ (!currentEditId && this.state.add_method === 'batch')
-                                                    ? 'display-block'
-                                                    : 'hidden'
-                                                }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1158" /> }>
-                                            <span>{ formatMessage({id: "LANG1157"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('batch_number', {
-                                    rules: [
-                                        {
-                                            // type: 'integer',
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: this.state.batch_number,
-                                    className: (!currentEditId && this.state.add_method === 'batch')
-                                                    ? 'display-block'
-                                                    : 'hidden'
-                                })(
-                                    <Input min={ 1 } max={ 100 } />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
                     <Row>
                         <Col span={ 24 }>
                             <div className="section-title">
@@ -289,7 +114,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.extension ? settings.extension : newExtension
+                                    initialValue: settings.extension
                                 })(
                                     <Input disabled={ !!currentEditId } />
                                 ) }
@@ -297,7 +122,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'fxs' ? 'display-block' : 'hidden' }
+                            className={ this._checkPrivilege('dahdi') && extension_type === 'fxs' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -317,7 +142,7 @@ class BasicSettings extends Component {
                                         }
                                     ],
                                     initialValue: settings.dahdi ? settings.dahdi + '' : '1',
-                                    className: extension_type === 'fxs' ? 'display-block' : 'hidden'
+                                    className: this._checkPrivilege('dahdi') && extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='1'>{ 'FXS 1' }</Option>
@@ -326,7 +151,10 @@ class BasicSettings extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('cidnumber') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -339,13 +167,17 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('cidnumber', {
                                     rules: [],
-                                    initialValue: settings.cidnumber
+                                    initialValue: settings.cidnumber,
+                                    className: this._checkPrivilege('cidnumber') ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('permission') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -363,7 +195,8 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.permission ? settings.permission : 'internal'
+                                    initialValue: settings.permission ? settings.permission : 'internal',
+                                    className: this._checkPrivilege('permission') ? 'display-block' : 'hidden'
                                 })(
                                     <Select>
                                         <Option value='internal'>{ formatMessage({id: 'LANG1071'}) }</Option>
@@ -376,7 +209,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'fxs' ? 'hidden' : 'display-block' }
+                            className={ this._checkPrivilege('secret') && extension_type !== 'fxs' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -395,8 +228,8 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.secret ? settings.secret : secret,
-                                    className: extension_type === 'fxs' ? 'hidden' : 'display-block'
+                                    initialValue: settings.secret,
+                                    className: this._checkPrivilege('secret') && extension_type !== 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
@@ -404,7 +237,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ this._checkPrivilege('authid') && extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -419,13 +252,16 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('authid', {
                                     rules: [],
                                     initialValue: settings.authid,
-                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
+                                    className: this._checkPrivilege('authid') && extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('hasvoicemail') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -439,13 +275,17 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('hasvoicemail', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.hasvoicemail ? (settings.hasvoicemail === 'yes') : true
+                                    initialValue: this.state.hasvoicemail,
+                                    className: this._checkPrivilege('hasvoicemail') ? 'display-block' : 'hidden'
                                 })(
-                                    <Checkbox />
+                                    <Checkbox onChange={ this._onChangeHasVoicemail } />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('vmsecret') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -463,13 +303,17 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.vmsecret ? settings.vmsecret : vmsecret
+                                    initialValue: settings.vmsecret,
+                                    className: this._checkPrivilege('vmsecret') ? 'display-block' : 'hidden'
                                 })(
-                                    <Input />
+                                    <Input disabled={ !this.state.hasvoicemail } />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('skip_vmsecret') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -483,15 +327,16 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('skip_vmsecret', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.skip_vmsecret === 'yes'
+                                    initialValue: settings.skip_vmsecret === 'yes',
+                                    className: this._checkPrivilege('skip_vmsecret') ? 'display-block' : 'hidden'
                                 })(
-                                    <Checkbox />
+                                    <Checkbox disabled={ !this.state.hasvoicemail } />
                                 ) }
                             </FormItem>
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ this._checkPrivilege('enable_qualify') && extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -506,8 +351,8 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('enable_qualify', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_qualify === 'yes',
-                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
+                                    initialValue: this.state.enable_qualify,
+                                    className: this._checkPrivilege('enable_qualify') && extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox onChange={ this._onChangeQualify } />
                                 ) }
@@ -515,7 +360,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ this._checkPrivilege('qualifyfreq') && extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -536,13 +381,15 @@ class BasicSettings extends Component {
                                         }
                                     ],
                                     initialValue: settings.qualifyfreq ? settings.qualifyfreq + '' : '60',
-                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
+                                    className: this._checkPrivilege('qualifyfreq') && extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Input disabled={ !this.state.enable_qualify } />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -562,16 +409,10 @@ class BasicSettings extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 24 }>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG2712"}) }</span>
-                            </div>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('first_name') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -584,13 +425,17 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('first_name', {
                                     rules: [],
-                                    initialValue: userSettings.first_name
+                                    initialValue: userSettings.first_name,
+                                    className: this._checkPrivilege('first_name') ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('last_name') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -603,13 +448,17 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('last_name', {
                                     rules: [],
-                                    initialValue: userSettings.last_name
+                                    initialValue: userSettings.last_name,
+                                    className: this._checkPrivilege('last_name') ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('email') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -622,13 +471,17 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('email', {
                                     rules: [],
-                                    initialValue: userSettings.email
+                                    initialValue: userSettings.email,
+                                    className: this._checkPrivilege('email') ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('user_password') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -646,13 +499,16 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: userSettings.user_password ? userSettings.user_password : user_password
+                                    initialValue: userSettings.user_password,
+                                    className: this._checkPrivilege('user_password') ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -675,7 +531,7 @@ class BasicSettings extends Component {
                                     <Select>
                                         <Option value='default'>{ formatMessage({id: "LANG257"}) }</Option>
                                         {
-                                            this.state.languages.map(function(item) {
+                                            this.props.languages.map(function(item) {
                                                 return <Option
                                                             key={ item.language_id }
                                                             value={ item.language_id }
@@ -690,7 +546,7 @@ class BasicSettings extends Component {
                         </Col>
                         <Col
                             span={ 12 }
-                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
+                            className={ this._checkPrivilege('max_contacts') && extension_type === 'sip' ? 'display-block' : 'hidden' }
                         >
                             <FormItem
                                 { ...formItemLayout }
@@ -711,13 +567,16 @@ class BasicSettings extends Component {
                                         }
                                     ],
                                     initialValue: settings.max_contacts ? settings.max_contacts + '' : '1',
-                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
+                                    className: this._checkPrivilege('max_contacts') && extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col
+                            span={ 12 }
+                            className={ this._checkPrivilege('phone_number') ? 'display-block' : 'hidden' }
+                        >
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -730,7 +589,8 @@ class BasicSettings extends Component {
                             >
                                 { getFieldDecorator('phone_number', {
                                     rules: [],
-                                    initialValue: userSettings.phone_number
+                                    initialValue: userSettings.phone_number,
+                                    className: this._checkPrivilege('phone_number') ? 'display-block' : 'hidden'
                                 })(
                                     <Input />
                                 ) }

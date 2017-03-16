@@ -48,7 +48,7 @@ class LoginSetting extends Component {
         const { formatMessage } = this.props.intl
 
         if (value && _.indexOf(this.state.whiteAddrNameList, value) > -1) {
-            callback(formatMessage({id: "LANG2137"}))
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG155"})}))
         } else {
             callback()
         }
@@ -261,8 +261,12 @@ class LoginSetting extends Component {
         })
     }
     _onCancel = () => {
+        const { setFieldsValue } = this.props.form
         this.setState({
             visible: false
+        })
+        setFieldsValue({
+            'white_ip_addr': ''
         })
     }
     _onBtnAdd = () => {
@@ -272,7 +276,7 @@ class LoginSetting extends Component {
     }
     _addWhiteAddr = (record) => {
         const { formatMessage } = this.props.intl
-        const { getFieldValue } = this.props.form
+        const { getFieldValue, setFieldsValue } = this.props.form
         const white_ip_addr = getFieldValue('white_ip_addr')
         if (white_ip_addr && white_ip_addr !== '') {
             let doAjax = true
@@ -305,7 +309,10 @@ class LoginSetting extends Component {
                              this.setState({
                                 visible: false
                             })
-                             this._listLoginWhiteAddr()
+                            setFieldsValue({
+                                'white_ip_addr': ''
+                            })
+                            this._listLoginWhiteAddr()
                         }
                     }.bind(this)
                 })

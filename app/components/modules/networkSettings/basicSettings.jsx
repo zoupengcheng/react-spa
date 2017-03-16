@@ -270,6 +270,7 @@ class BasicSettings extends Component {
         })
     }
     _onChangeTab = (value) => {
+        /*
         let key = value
         this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
@@ -284,7 +285,7 @@ class BasicSettings extends Component {
         })
         this.setState({
             tabKey: key
-        })    
+        }) */
     }
     _onChangeIPMethod = (key, value) => {
         let method = {}
@@ -455,7 +456,7 @@ class BasicSettings extends Component {
                              </Select>
                         ) }
                     </FormItem>
-                    <Tabs type="card" defaultActiveKey='1' activeKey={ this.state.tabKey } onChange={ this._onChangeTab }>
+                    <Tabs type="card" defaultActiveKey='1' /* activeKey={ this.state.tabKey } */ onChange={ this._onChangeTab }>
                         <TabPane tab={formatMessage({id: "LANG5195"})} key="1">
                             <FormItem
                                 { ...formItemLayout }
@@ -467,7 +468,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('altdns', {
                                     rules: [{
                                         validator: (data, value, callback) => {
-                                            Validator.ipv4Dns(data, value, callback, formatMessage)
+                                            Validator.ipv4Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"}))
                                         }
                                     }],
                                     initialValue: network_settings.altdns === "0.0.0.0" ? "" : network_settings.altdns
@@ -811,7 +812,7 @@ class BasicSettings extends Component {
                                         { getFieldDecorator('lan1_dns1', {
                                             rules: [{
                                                 validator: (data, value, callback) => {
-                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
                                                 }
                                             }],
                                             initialValue: network_settings.lan1_dns1 === "0.0.0.0" ? "" : network_settings.lan1_dns1
@@ -829,7 +830,7 @@ class BasicSettings extends Component {
                                         { getFieldDecorator('lan1_dns2', {
                                             rules: [{
                                                 validator: (data, value, callback) => {
-                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.static === 'display-block' ? Validator.ipv4Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
                                                 }
                                             }],
                                             initialValue: network_settings.lan1_dns2 === "0.0.0.0" ? "" : network_settings.lan1_dns2
@@ -1004,7 +1005,7 @@ class BasicSettings extends Component {
                                     { getFieldDecorator('dhcp_dns1', {
                                         rules: [{
                                             validator: (data, value, callback) => {
-                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
                                             }
                                         }],
                                         initialValue: dhcp_settings.dhcp_dns1
@@ -1022,7 +1023,7 @@ class BasicSettings extends Component {
                                     { getFieldDecorator('dhcp_dns2', {
                                         rules: [{
                                             validator: (data, value, callback) => {
-                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Dns(data, value, callback, formatMessage) : callback()
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Dns(data, value, callback, formatMessage, formatMessage({id: "LANG579"})) : callback()
                                             }
                                         }],
                                         initialValue: dhcp_settings.dhcp_dns2

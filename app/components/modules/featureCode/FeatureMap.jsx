@@ -29,6 +29,47 @@ class FeatureMap extends Component {
             enable_fcode_seamless_transfer: e.target.checked
         })
     }
+    _resetAll = () => {
+        const { setFieldsValue } = this.props.form
+        const featureMaps = this.props.dataSource || {}
+        setFieldsValue({
+            blindxfer: featureMaps.blindxfer,
+            blindxfer_allow: featureMaps.blindxfer_allow || '',
+            atxfer: featureMaps.atxfer,
+            atxfer_allow: featureMaps.atxfer_allow || '',
+            fcode_seamless_transfer: featureMaps.fcode_seamless_transfer,
+            enable_fcode_seamless_transfer: featureMaps.enable_fcode_seamless_transfer === 'yes',
+            disconnect: featureMaps.disconnect,
+            disconnect_allow: featureMaps.disconnect_allow || '',
+            parkcall: featureMaps.parkcall,
+            parkcall_allow: featureMaps.parkcall_allow || '',
+            automixmon: featureMaps.automixmon,
+            automixmon_allow: featureMaps.automixmon_allow || ''
+        })
+        this.setState({
+            enable_fcode_seamless_transfer: featureMaps.enable_fcode_seamless_transfer === 'yes'
+        })
+    }
+    _resetDefault = () => {
+        const { setFieldsValue } = this.props.form
+        setFieldsValue({
+            blindxfer: "#1",
+            blindxfer_allow: '',
+            atxfer: "*2",
+            atxfer_allow: '',
+            fcode_seamless_transfer: "*44",
+            enable_fcode_seamless_transfer: false,
+            disconnect: "*0",
+            disconnect_allow: '',
+            parkcall: "#72",
+            parkcall_allow: '',
+            automixmon: "*3",
+            automixmon_allow: ''
+        })
+        this.setState({
+            enable_fcode_seamless_transfer: false
+        })
+    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
@@ -42,8 +83,8 @@ class FeatureMap extends Component {
         return (
             <div className="content">
                 <div className="top-button">
-                    <Button type="primary">{ formatMessage({id: "LANG751"}) }</Button>
-                    <Button type="primary">{ formatMessage({id: "LANG749"}) }</Button>
+                    <Button type="primary" onClick={ this._resetAll }>{ formatMessage({id: "LANG751"}) }</Button>
+                    <Button type="primary" onClick={ this._resetDefault }>{ formatMessage({id: "LANG749"}) }</Button>
                 </div>
                 <div className="ant-form">
                     <Row>

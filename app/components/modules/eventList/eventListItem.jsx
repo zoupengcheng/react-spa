@@ -230,6 +230,9 @@ class EventListItem extends Component {
             if (members.length !== 0) {
                 action["members"] = JSON.stringify(members)
             }
+            if (isEdit) {
+                delete action.event
+            }
             this._updateOrAddEventlistInfo(action)
         })
     }

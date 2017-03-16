@@ -19,7 +19,6 @@ class Feature extends Component {
         super(props)
 
         const cc_mode = this.props.settings.cc_mode
-        const strategy_ipacl = this.props.settings.strategy_ipacl
         const presence_status = this.props.settings.presence_status
         const dnd = this.props.settings.dnd === 'yes' ? true : false
         const presence_dst_type = this.props.settings.presence_dst_type
@@ -41,7 +40,6 @@ class Feature extends Component {
             out_limitime: out_limitime,
             bypass_outrt_auth: bypass_outrt_auth,
             mohNameList: ['default', 'ringbacktone_default'],
-            strategy_ipacl: strategy_ipacl ? strategy_ipacl + '' : '0',
             presence_status: presence_status ? presence_status : 'not_set',
             presence_dst_type: presence_dst_type ? presence_dst_type : '0',
             targetKeysCallbarging: callbarging_monitor ? callbarging_monitor.split(',') : [],
@@ -88,7 +86,7 @@ class Feature extends Component {
             }
         })
 
-        $.ajax({
+        /* $.ajax({
             type: 'json',
             method: 'post',
             url: api.apiHost,
@@ -110,7 +108,7 @@ class Feature extends Component {
             error: function(e) {
                 message.error(e.statusText)
             }
-        })
+        }) */
     }
     componentDidMount() {
     }
@@ -161,6 +159,27 @@ class Feature extends Component {
 
             return false
         }
+    }
+    _checkPrivilege = (params) => {
+        let result = false
+        let settingsPrivilege = this.props.settingsPrivilege
+        // let userSettingsPrivilege = this.props.userSettingsPrivilege
+
+        if (!params) {
+            return false
+        }
+
+        if (settingsPrivilege.hasOwnProperty(params) &&
+            (settingsPrivilege[params] === 3 || settingsPrivilege[params] === 15)) {
+            result = true
+        }
+
+        // if (userSettingsPrivilege.hasOwnProperty(params) &&
+        //     (userSettingsPrivilege[params] === 3 || userSettingsPrivilege[params] === 15)) {
+        //     result = true
+        // }
+
+        return result
     }
     _filterCodecsSource = () => {
         const currentEditId = this.props.currentEditId
@@ -264,11 +283,6 @@ class Feature extends Component {
     _onChangeRingBoth = (e) => {
         this.setState({
             en_ringboth: e.target.checked
-        })
-    }
-    _onChangeStrategy = (value) => {
-        this.setState({
-            strategy_ipacl: value
         })
     }
     _onChangeTrunkAuth = (value) => {
@@ -706,7 +720,7 @@ class Feature extends Component {
                         </Col>
                         { fwdwhiteListFormItems }
                     </Row>
-                    <Row
+                    {/* <Row
                         className={ extension_type === 'iax' ? 'hidden' : 'display-block' }
                     >
                         <Col span={ 24 }>
@@ -839,7 +853,7 @@ class Feature extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                    </Row>
+                    </Row> */}
                     <Row>
                         <Col span={ 24 }>
                             <div className="section-title">
@@ -1019,7 +1033,7 @@ class Feature extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.hotline_type ? settings.hotline_type : '1',
+                                    initialValue: settings.hotline_type ? settings.hotline_type + '' : '1',
                                     className: extension_type === 'fxs' ? 'display-block' : 'hidden'
                                 })(
                                     <Select disabled={ !this.state.en_hotline }>
@@ -1030,7 +1044,7 @@ class Feature extends Component {
                             </FormItem>
                         </Col>
                     </Row>
-                    <Row
+                    {/* <Row
                         className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
                     >
                         <Col span={ 24 }>
@@ -1191,8 +1205,8 @@ class Feature extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                    </Row>
-                    <Row>
+                    </Row> */}
+                    {/* <Row>
                         <Col span={ 24 }>
                             <div className="section-title">
                                 <span>{ formatMessage({id: "LANG5079"}) }</span>
@@ -1225,7 +1239,7 @@ class Feature extends Component {
                                 />
                             </FormItem>
                         </Col>
-                    </Row>
+                    </Row> */}
                     <Row>
                         <Col span={ 24 }>
                             <div className="section-title">
@@ -1333,7 +1347,7 @@ class Feature extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        {/* <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -1353,7 +1367,7 @@ class Feature extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                        {/* <Col span={ 12 }>
+                        <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
                                 label={(
@@ -1372,7 +1386,7 @@ class Feature extends Component {
                                     <Checkbox />
                                 ) }
                             </FormItem>
-                        </Col> */}
+                        </Col>
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
@@ -1649,7 +1663,7 @@ class Feature extends Component {
                                     <Checkbox />
                                 ) }
                             </FormItem>
-                        </Col>
+                        </Col> */}
                     </Row>
                 </div>
             </div>

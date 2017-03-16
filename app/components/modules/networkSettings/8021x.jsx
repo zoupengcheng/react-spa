@@ -218,9 +218,14 @@ class Network8021x extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('identity', {
-                                    rules: [
-                                        { required: true, message: formatMessage({id: "LANG2150"}) }
-                                    ],
+                                    rules: [{
+                                        required: class8021x.lan1 && this.state.lan1_mode_class.identity === 'display-block',
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            class8021x.lan1 && this.state.lan1_mode_class.identity === 'display-block' ? Validator.keyboradNoSpace(data, value, callback, formatMessage) : callback()
+                                        }
+                                    }],
                                     initialValue: network_pro_settings.identity
                                 })(
                                     <Input maxLength="15" />
@@ -234,9 +239,10 @@ class Network8021x extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('md5_secret', {
-                                    rules: [
-                                        { required: true, message: formatMessage({id: "LANG2150"}) }
-                                    ],
+                                    rules: [{
+                                        required: class8021x.lan1 && this.state.lan1_mode_class.identity === 'display-block',
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     initialValue: network_pro_settings.md5_secret
                                 })(
                                     <Input maxLength="15" />
@@ -331,9 +337,14 @@ class Network8021x extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('lan2.802.1x.identity', {
-                                    rules: [
-                                        { required: true, message: formatMessage({id: "LANG2150"}) }
-                                    ],
+                                    rules: [{
+                                        required: class8021x.lan2 && this.state.lan2_mode_class.identity === 'display-block',
+                                        message: formatMessage({id: "LANG2150"})
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            class8021x.lan2 && this.state.lan2_mode_class.identity === 'display-block' ? Validator.keyboradNoSpace(data, value, callback, formatMessage) : callback()
+                                        }
+                                    }],
                                     initialValue: network_pro_settings['lan2.802.1x.identity']
                                 })(
                                     <Input maxLength="15" />
@@ -363,9 +374,10 @@ class Network8021x extends Component {
                                     </Tooltip>
                                 }>
                                 { getFieldDecorator('lan2.802.1x.password', {
-                                    rules: [
-                                        { required: true, message: formatMessage({id: "LANG2150"}) }
-                                    ],
+                                    rules: [{
+                                        required: class8021x.lan2 && this.state.lan2_mode_class.identity === 'display-block',
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     initialValue: network_pro_settings['lan2.802.1x.password']
                                 })(
                                     <Input maxLength="15" />

@@ -148,7 +148,7 @@ class ChangePassword extends Component {
 
         const title = formatMessage({id: "LANG5468"}, {
                     0: formatMessage({id: "LANG55"}),
-                    1: formatMessage({id: "LANG4203"})
+                    1: formatMessage({id: "LANG2032"})
                 })
 
         document.title = formatMessage({id: "LANG584"}, {

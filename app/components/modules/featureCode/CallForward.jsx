@@ -38,6 +38,69 @@ class CallForward extends Component {
             [e.target.id]: e.target.checked
         })
     }
+    _resetAll = () => {
+        const { setFieldsValue } = this.props.form
+        const callForward = this.props.dataSource || {}
+        setFieldsValue({
+            fcode_dnd_on: callForward.fcode_dnd_on,
+            enable_fcode_dnd_on: callForward.enable_fcode_dnd_on === 'yes',
+            fcode_dnd_off: callForward.fcode_dnd_off,
+            enable_fcode_dnd_off: callForward.enable_fcode_dnd_off === 'yes',
+            fcode_cfb_on: callForward.fcode_cfb_on,
+            enable_fcode_cfb_on: callForward.enable_fcode_cfb_on === 'yes',
+            fcode_cfb_off: callForward.fcode_cfb_off,
+            enable_fcode_cfb_off: callForward.enable_fcode_cfb_off === 'yes',
+            fcode_cfn_on: callForward.fcode_cfn_on,
+            enable_fcode_cfn_on: callForward.enable_fcode_cfn_on === 'yes',
+            fcode_cfn_off: callForward.fcode_cfn_off,
+            enable_fcode_cfn_off: callForward.enable_fcode_cfn_off === 'yes',
+            fcode_cfu_on: callForward.fcode_cfu_on,
+            enable_fcode_cfu_on: callForward.enable_fcode_cfu_on === 'yes',
+            fcode_cfu_off: callForward.fcode_cfu_off,
+            enable_fcode_cfu_off: callForward.enable_fcode_cfu_off === 'yes'
+        })
+        this.setState({
+            enable_fcode_dnd_on: callForward.enable_fcode_dnd_on === 'yes',
+            enable_fcode_dnd_off: callForward.enable_fcode_dnd_off === 'yes',
+            enable_fcode_cfb_on: callForward.enable_fcode_cfb_on === 'yes',
+            enable_fcode_cfb_off: callForward.enable_fcode_cfb_off === 'yes',
+            enable_fcode_cfn_on: callForward.enable_fcode_cfn_on === 'yes',
+            enable_fcode_cfn_off: callForward.enable_fcode_cfn_off === 'yes',
+            enable_fcode_cfu_on: callForward.enable_fcode_cfu_on === 'yes',
+            enable_fcode_cfu_off: callForward.enable_fcode_cfu_off === 'yes'
+        })
+    }
+    _resetDefault = () => {
+        const { setFieldsValue } = this.props.form
+        setFieldsValue({
+            fcode_dnd_on: "*77",
+            enable_fcode_dnd_on: true,
+            fcode_dnd_off: "*78",
+            enable_fcode_dnd_off: true,
+            fcode_cfb_on: "*90",
+            enable_fcode_cfb_on: true,
+            fcode_cfb_off: "*91",
+            enable_fcode_cfb_off: true,
+            fcode_cfn_on: "*92",
+            enable_fcode_cfn_on: true,
+            fcode_cfn_off: "*93",
+            enable_fcode_cfn_off: true,
+            fcode_cfu_on: "*72",
+            enable_fcode_cfu_on: true,
+            fcode_cfu_off: "*73",
+            enable_fcode_cfu_off: true
+        })
+        this.setState({
+            enable_fcode_dnd_on: true,
+            enable_fcode_dnd_off: true,
+            enable_fcode_cfb_on: true,
+            enable_fcode_cfb_off: true,
+            enable_fcode_cfn_on: true,
+            enable_fcode_cfn_off: true,
+            enable_fcode_cfu_on: true,
+            enable_fcode_cfu_off: true
+        })
+    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
@@ -51,8 +114,8 @@ class CallForward extends Component {
         return (
             <div className="content">
                 <div className="top-button">
-                    <Button type="primary">{ formatMessage({id: "LANG751"}) }</Button>
-                    <Button type="primary">{ formatMessage({id: "LANG749"}) }</Button>
+                    <Button type="primary" onClick={ this._resetAll }>{ formatMessage({id: "LANG751"}) }</Button>
+                    <Button type="primary" onClick={ this._resetDefault }>{ formatMessage({id: "LANG749"}) }</Button>
                 </div>
                 <div className="ant-form">
                     <Row>

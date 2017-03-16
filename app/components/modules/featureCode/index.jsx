@@ -89,62 +89,81 @@ class FeatureCode extends Component {
 
                 message.loading(loadingMessage)
 
-                let action = {}
+                let action = {},
+                    inbound_mode = values.inbound_mode
 
                 action.action = 'updateFeatureCodes'
 
                 _.map(values, function(value, key) {
-                    if (key.match(/enable/)) {
+                    if (key === 'inbound_mode') {
+                        return true
+                    }
+
+                    if (key.match(/enable/) || key === 'park_as_extension') {
                         value = value ? 'yes' : 'no'
                     }
+
                     action[key] = value ? value : ''
                 })
 
-                if (action.inbound_mode) {
-                    delete action.inbound_mode
-                }
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                if (!action.enable_inboud_multi_mode) {
-                    $.ajax({
-                        url: api.apiHost,
-                        method: "post",
-                        data: {
-                            action: 'updateInboundMode',
-                            inbound_mode: 0
-                        },
-                        type: 'json',
-                        error: function(e) {
-                            message.error(e.statusText)
-                        },
-                        success: function(data) {
-                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                        if (bool) {
+                            if (!action.enable_inboud_multi_mode) {
+                                $.ajax({
+                                    url: api.apiHost,
+                                    method: "post",
+                                    data: {
+                                        action: 'updateInboundMode',
+                                        inbound_mode: 0
+                                    },
+                                    type: 'json',
+                                    error: function(e) {
+                                        message.error(e.statusText)
+                                    },
+                                    success: function(data) {
+                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
-                            if (bool) {
-                                this._handleSaveFeatures(action, successMessage)
+                                        if (bool) {
+                                            message.destroy()
+                                            message.success(successMessage)
+                                        }
+                                    }.bind(this)
+                                })
+                            } else {
+                                $.ajax({
+                                    url: api.apiHost,
+                                    method: "post",
+                                    data: {
+                                        action: 'updateInboundMode',
+                                        inbound_mode: inbound_mode
+                                    },
+                                    type: 'json',
+                                    error: function(e) {
+                                        message.error(e.statusText)
+                                    },
+                                    success: function(data) {
+                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                        if (bool) {
+                                            message.destroy()
+                                            message.success(successMessage)
+                                        }
+                                    }.bind(this)
+                                })
                             }
-                        }.bind(this)
-                    })
-                } else {
-                    $.ajax({
-                        url: api.apiHost,
-                        method: "post",
-                        data: {
-                            action: 'updateInboundMode',
-                            inbound_mode: action.inbound_mode
-                        },
-                        type: 'json',
-                        error: function(e) {
-                            message.error(e.statusText)
-                        },
-                        success: function(data) {
-                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                            if (bool) {
-                                this._handleSaveFeatures(action, successMessage)
-                            }
-                        }.bind(this)
-                    })
-                }
+                        }
+                    }.bind(this)
+                })
             }
         })
     }
@@ -171,27 +190,23 @@ class FeatureCode extends Component {
                         <TabPane tab={formatMessage({id: "LANG612"})} key="1">
                             <FeatureMap
                                 dataSource={ this.state.featureMaps }
-                                form={ form }
-                            />
+                                form={ form }/>
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG611"})} key="2">
                             <CallForward
                                 dataSource={ this.state.featureCodes }
-                                form={ form }
-                            />
+                                form={ form }/>
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG613"})} key="3">
                             <FeatureMisc
                                 dataSource={ this.state.featureSettings }
-                                form={ form }
-                            />
+                                form={ form }/>
                         </TabPane>
                         <TabPane tab={formatMessage({id: "LANG610"})} key="4">
                             <FeatureCodes
                                 dataSource={ this.state.featureCodes }
                                 featureSettings={ this.state.featureSettings }
-                                form={ form }
-                            />
+                                form={ form }/>
                         </TabPane>
                     </Tabs>
                 </Form>

@@ -17,7 +17,8 @@ class Prompt extends Component {
         super(props)
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
-            isDisplay: this.props.params.id === '2' ? 'hidden' : 'display-block'
+            isDisplay: this.props.params.id === '2' ? 'hidden' : 'display-block',
+            language: 'en'
         }
     }
     componentDidMount() {
@@ -38,7 +39,31 @@ class Prompt extends Component {
             })
         }
     }
+    _getLanguageSettings = () => {
+        const { formatMessage } = this.props.intl
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: { action: 'getLanguageSettings' },
+            type: 'json',
+            // async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
+                if (bool) {
+                    let response = res.response || {}
+                    const language = response.language_settings.language
+
+                    this.setState({
+                        language: language
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
 
@@ -66,6 +91,9 @@ class Prompt extends Component {
                     if (bool) {
                         message.destroy()
                         message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>)
+                        this.setState({
+                            language: values.language
+                        })
                     }
                 }.bind(this),
                 error: function(e) {
@@ -98,6 +126,7 @@ class Prompt extends Component {
                     <TabPane tab={formatMessage({id: "LANG689"})} key="1">
                         <Language 
                             form={ this.props.form }
+                            language={ this.state.language }
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG28"})} key="2">

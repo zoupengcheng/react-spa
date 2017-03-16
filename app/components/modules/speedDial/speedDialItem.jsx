@@ -34,7 +34,7 @@ class SpeedDialItem extends Component {
             fax: [],
             disa: [],
             directory: [],
-            external_number: [],
+            external_number: '',
             external_numberShow: false
         }
     }
@@ -222,13 +222,10 @@ class SpeedDialItem extends Component {
                         keypress = speedDialItem.destination_type
                         keypressevent = speedDialItem.destination_num
 
-                        if (speedDialItem.destination_type === 'member_external_number') {
+                        if (speedDialItem.destination_type === 'external_number') {
                             memberselectShow = false
                             external_numberShow = true
                             external_number = speedDialItem.destination_num
-                        } else if (speedDialItem.destination_type === "member_hangup") {
-                            memberselectShow = false
-                            external_numberShow = false
                         } else {
                             memberselectShow = true
                             external_numberShow = false
@@ -258,7 +255,8 @@ class SpeedDialItem extends Component {
             fax: keyFaxList,
             disa: keyDisaList,
             directory: keyDirectoryList,
-            speedDialItem: speedDialItem
+            speedDialItem: speedDialItem,
+            external_number: external_number
         })
     }
     _handleKeypressChange = (e) => {
@@ -407,12 +405,12 @@ class SpeedDialItem extends Component {
 
         let keyList = this.state[this.state.keypress],
             keyOption
-        if (keyList.length === 0) {
-            keyOption = <Option value=''>{ formatMessage({id: "LANG133"}) }</Option>
-        } else {
-            keyOption = this.state[this.state.keypress].map(function(value, index) {
+        if (keyList.length !== 0 && this.state.keypress !== "external_number") {
+            keyOption = keyList.map(function(value, index) {
                             return <Option value={ value.val } key={ value.val }>{ value.text }</Option>
                         })
+        } else {
+            keyOption = <Option value=''>{ formatMessage({id: "LANG133"}) }</Option>
         }
 
         const title = (this.props.params.id
@@ -441,9 +439,9 @@ class SpeedDialItem extends Component {
                                 <FormItem
                                     { ...formItemLayout }
                                     label={(
-                                        <span>
-                                            <span>{ formatMessage({id: "LANG2990"}) }</span>
-                                        </span>
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2990" />}>
+                                            <span>{formatMessage({id: "LANG2990"})}</span>
+                                        </Tooltip>
                                     )}>
                                     { getFieldDecorator('enable_destination', {
                                         rules: [],
@@ -460,9 +458,9 @@ class SpeedDialItem extends Component {
                                 <FormItem
                                     { ...formItemLayout }
                                     label={(
-                                        <span>
-                                            <span>{ formatMessage({id: "LANG5108"}) }</span>
-                                        </span>
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG5108" />}>
+                                            <span>{formatMessage({id: "LANG5108"})}</span>
+                                        </Tooltip>
                                     )}
                                 >
                                     { getFieldDecorator('speed_dial', {
@@ -490,9 +488,9 @@ class SpeedDialItem extends Component {
                                 <FormItem
                                     { ...formItemTransferLayout }
                                     label={(
-                                        <span>
-                                            <span>{ formatMessage({id: "LANG1558"}) }</span>
-                                        </span>
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG1558" />}>
+                                            <span>{formatMessage({id: "LANG1558"})}</span>
+                                        </Tooltip>
                                     )}
                                 >
                                     { getFieldDecorator('keypress', {

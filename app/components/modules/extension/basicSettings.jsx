@@ -15,7 +15,6 @@ let secret
 let vmsecret
 let newExtension
 let user_password
-let firstGetSettings = false
 let hasGeneratePassword = false
 
 const FormItem = Form.Item
@@ -25,28 +24,22 @@ class BasicSettings extends Component {
     constructor(props) {
         super(props)
 
+        let hasvoicemail = this.props.settings.hasvoicemail
+                        ? (this.props.settings.hasvoicemail === 'yes' ? true : false)
+                        : true
+
         this.state = {
             languages: [],
             batch_number: '5',
             add_method: 'single',
-            enable_qualify: false
+            hasvoicemail: hasvoicemail,
+            enable_qualify: this.props.settings.enable_qualify === 'yes' ? true : false
         }
     }
     componentDidMount() {
     }
     componentWillMount() {
         this._getLanguages()
-    }
-    componentWillReceiveProps(nextProps) {
-        if (!_.isEmpty(nextProps.settings) && !firstGetSettings) {
-            const enable_qualify = nextProps.settings.enable_qualify === 'yes' ? true : false
-
-            firstGetSettings = true
-
-            this.setState({
-                enable_qualify: enable_qualify
-            })
-        }
     }
     _getLanguages = () => {
         const { formatMessage } = this.props.intl
@@ -123,6 +116,11 @@ class BasicSettings extends Component {
     _onChangeAddMethod = (value) => {
         this.setState({
             add_method: value
+        })
+    }
+    _onChangeHasVoicemail = (e) => {
+        this.setState({
+            hasvoicemail: e.target.checked
         })
     }
     _onChangeQualify = (e) => {
@@ -439,9 +437,9 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('hasvoicemail', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.hasvoicemail ? (settings.hasvoicemail === 'yes') : true
+                                    initialValue: this.state.hasvoicemail
                                 })(
-                                    <Checkbox />
+                                    <Checkbox onChange={ this._onChangeHasVoicemail } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -465,7 +463,7 @@ class BasicSettings extends Component {
                                     ],
                                     initialValue: settings.vmsecret ? settings.vmsecret : vmsecret
                                 })(
-                                    <Input />
+                                    <Input disabled={ !this.state.hasvoicemail } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -485,7 +483,7 @@ class BasicSettings extends Component {
                                     valuePropName: 'checked',
                                     initialValue: settings.skip_vmsecret === 'yes'
                                 })(
-                                    <Checkbox />
+                                    <Checkbox disabled={ !this.state.hasvoicemail } />
                                 ) }
                             </FormItem>
                         </Col>
@@ -506,7 +504,7 @@ class BasicSettings extends Component {
                                 { getFieldDecorator('enable_qualify', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_qualify === 'yes',
+                                    initialValue: this.state.enable_qualify,
                                     className: extension_type === 'sip' ? 'display-block' : 'hidden'
                                 })(
                                     <Checkbox onChange={ this._onChangeQualify } />
