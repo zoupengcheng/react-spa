@@ -165,7 +165,7 @@ const startSocket = () => {
     // make sure socket.js is supported
     if (Socketjs.isSupported()) {
         // connect to the server
-        const socket = Socketjs.connect("192.168.124.116:7681")
+        const socket = Socketjs.connect("192.168.124.232:7681")
         // const socket = Socketjs.connect(`${location.hostname}:7681`)
         window.socket = socket
         let LEAVEPAGE = "login",

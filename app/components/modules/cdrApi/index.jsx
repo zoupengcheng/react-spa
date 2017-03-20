@@ -69,6 +69,10 @@ class CdrApi extends Component {
                     netmaskList.push(permit.split('\/')[1])
                 })
 
+                if (ipList.length > 0) {
+                    uuid = ipList.length - 1
+                }
+
                 this.setState({
                     cdrAccounts: response,
                     ipList: ipList,
@@ -109,6 +113,7 @@ class CdrApi extends Component {
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
         const extensionId = this.props.params.id
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
@@ -127,7 +132,19 @@ class CdrApi extends Component {
                 actionSettings.tlsenable = actionSettings.enabled = (values.enabled ? 'yes' : 'no')
                 actionSettings.tlsbindaddr = values.tlsbindaddr
 
+                let ipList = []
+
+                ipList.push(values.permitIP0 + '/' + values.permitNetmask0)
+                const keys = getFieldValue('keys')
+                keys.map((k, index) => {
+                    let ip = `permitIP${k}`
+                    let netmask = `permitNetmask${k}`
+                    ipList.push(values[ip] + '/' + values[netmask])
+                })
+                actionAccounts.permit = ipList.join(';')
                 actionAccounts.action = 'updateCDRAPIAccount'
+                actionAccounts.username = values.username
+                actionAccounts.secret = values.secret
 
                 $.ajax({
                     url: api.apiHost,
@@ -259,7 +276,7 @@ class CdrApi extends Component {
 
         const formIPItems = keys.map((k, index) => {
             return (
-            <FormItem
+            <FormItem key={ k }
                 { ...formItemIPWithoutLabelLayout }
             >
                 <Col span="8">
@@ -269,7 +286,7 @@ class CdrApi extends Component {
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
                             }],
-                            initialValue: ipList[index + 1]
+                            initialValue: ipList[k]
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG1915"}) } />
                         )}
@@ -285,7 +302,7 @@ class CdrApi extends Component {
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
                             }],
-                            initialValue: netmaskList[index + 1]
+                            initialValue: netmaskList[k]
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG1902"}) } />
                         )}
@@ -387,7 +404,7 @@ class CdrApi extends Component {
                             )}
                         >
                             { getFieldDecorator('username', {
-                                initialValue: cdrAccounts.username
+                                initialValue: cdrAccounts.username || 'cdrapi'
                             })(
                                 <Input />
                             ) }
@@ -401,7 +418,7 @@ class CdrApi extends Component {
                             )}
                         >
                             { getFieldDecorator('secret', {
-                                initialValue: cdrAccounts.secret
+                                initialValue: cdrAccounts.secret || '12345'
                             })(
                                 <Input />
                             ) }

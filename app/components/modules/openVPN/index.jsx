@@ -181,9 +181,9 @@ class OpenVPN extends Component {
 
                 let action = values
 
-                action.action = 'setUpgradeValue'
-
-                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
+                action.action = 'updateOpenVPNSettings'
+                action.comp = action.comp ? 'yes' : 'no'
+                action.enable = action.enable ? 'yes' : 'no'
 
                 $.ajax({
                     url: api.apiHost,
@@ -238,170 +238,169 @@ class OpenVPN extends Component {
         return (
             <div className="app-content-main">
                 <Title headerTitle={ formatMessage({id: "LANG3990"}) } onSubmit={ this._handleSubmit } onCancel={ this._handleCancel } isDisplay='display-block' />
-                <Form>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG274"}) } content={ formatMessage({id: "LANG3991"}) }><span>{ formatMessage({id: "LANG274"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('enable', {
-                            valuePropName: 'checked',
-                            initialValue: this.state.enabled
-                        })(
-                            <Checkbox onChange={ this._onEnableChange } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG1426"}) } content={ formatMessage({id: "LANG3992"}) }><span>{ formatMessage({id: "LANG1426"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('remote', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBLen }
-                            ],
-                            initialValue: remote
-                        })(
-                            <Input />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG3993"}) } content={ formatMessage({id: "LANG3994"}) }><span>{ formatMessage({id: "LANG3993"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('proto', {
-                            initialValue: proto
-                        })(
-                            <Select>
-                                <Option value="udp">UDP</Option>
-                                <Option value="tcp">TCP</Option>
-                            </Select>
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG3995"}) } content={ formatMessage({id: "LANG3996"}) }><span>{ formatMessage({id: "LANG3995"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('dev', {
-                            initialValue: dev
-                        })(
-                            <Select>
-                                <Option value="tun">Dev TUN</Option>
-                                <Option value="tap">Dev TAP</Option>
-                            </Select>
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG3997"}) } content={ formatMessage({id: "LANG3998"}) }><span>{ formatMessage({id: "LANG3997"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('comp', {
-                            valuePropName: 'checked',
-                            initialValue: comp
-                        })(
-                            <Checkbox />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4007"}) } content={ formatMessage({id: "LANG4008"}) }><span>{ formatMessage({id: "LANG4007"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('cipher', {
-                            initialValue: cipher
-                        })(
-                            <Select>
-                                {
-                                    this.state.cipherOptions.map(function(item) {
-                                        return <Option key={ item.value } value={ item.value }>
-                                                { item.text }
-                                            </Option>
-                                        }
-                                    ) 
-                                }
-                            </Select>
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG3999"}) } content={ formatMessage({id: "LANG4000"}) }><span>{ formatMessage({id: "LANG3999"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('openvpn_ca_crt', {
-                            valuePropName: 'fileList',
-                            normalize: this._normFile
-                        })(
-                            <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
-                                <Button type="ghost">
-                                    <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
-                                </Button>
-                            </Upload>
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4001"}) } content={ formatMessage({id: "LANG4002"}) }><span>{ formatMessage({id: "LANG4001"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('openvpn_client_crt', {
-                            valuePropName: 'fileList',
-                            normalize: this._normFile
-                        })(
-                            <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
-                                <Button type="ghost">
-                                    <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
-                                </Button>
-                            </Upload>
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4003"}) } content={ formatMessage({id: "LANG4004"}) }><span>{ formatMessage({id: "LANG4003"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('openvpn_client_key', {
-                            valuePropName: 'fileList',
-                            normalize: this._normFile
-                        })(
-                            <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
-                                <Button type="ghost">
-                                    <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
-                                </Button>
-                            </Upload>
-                        ) }
-                    </FormItem>
-                </Form>
+                <div className="content">
+                    <Form>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG274"}) } content={ formatMessage({id: "LANG3991"}) }><span>{ formatMessage({id: "LANG274"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('enable', {
+                                valuePropName: 'checked',
+                                initialValue: this.state.enabled
+                            })(
+                                <Checkbox onChange={ this._onEnableChange } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG1426"}) } content={ formatMessage({id: "LANG3992"}) }><span>{ formatMessage({id: "LANG1426"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('remote', {
+                                rules: [],
+                                initialValue: remote
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG3993"}) } content={ formatMessage({id: "LANG3994"}) }><span>{ formatMessage({id: "LANG3993"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('proto', {
+                                initialValue: proto
+                            })(
+                                <Select>
+                                    <Option value="udp">UDP</Option>
+                                    <Option value="tcp">TCP</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG3995"}) } content={ formatMessage({id: "LANG3996"}) }><span>{ formatMessage({id: "LANG3995"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('dev', {
+                                initialValue: dev
+                            })(
+                                <Select>
+                                    <Option value="tun">Dev TUN</Option>
+                                    <Option value="tap">Dev TAP</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG3997"}) } content={ formatMessage({id: "LANG3998"}) }><span>{ formatMessage({id: "LANG3997"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('comp', {
+                                valuePropName: 'checked',
+                                initialValue: comp
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4007"}) } content={ formatMessage({id: "LANG4008"}) }><span>{ formatMessage({id: "LANG4007"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('cipher', {
+                                initialValue: cipher
+                            })(
+                                <Select>
+                                    {
+                                        this.state.cipherOptions.map(function(item) {
+                                            return <Option key={ item.value } value={ item.value }>
+                                                    { item.text }
+                                                </Option>
+                                            }
+                                        ) 
+                                    }
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG3999"}) } content={ formatMessage({id: "LANG4000"}) }><span>{ formatMessage({id: "LANG3999"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('openvpn_ca_crt', {
+                                valuePropName: 'fileList',
+                                normalize: this._normFile
+                            })(
+                                <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
+                                    <Button type="ghost">
+                                        <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
+                                    </Button>
+                                </Upload>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4001"}) } content={ formatMessage({id: "LANG4002"}) }><span>{ formatMessage({id: "LANG4001"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('openvpn_client_crt', {
+                                valuePropName: 'fileList',
+                                normalize: this._normFile
+                            })(
+                                <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
+                                    <Button type="ghost">
+                                        <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
+                                    </Button>
+                                </Upload>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4003"}) } content={ formatMessage({id: "LANG4004"}) }><span>{ formatMessage({id: "LANG4003"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('openvpn_client_key', {
+                                valuePropName: 'fileList',
+                                normalize: this._normFile
+                            })(
+                                <Upload name="logo" action="/upload.do" listType="picture" onChange={ this.handleUpload }>
+                                    <Button type="ghost">
+                                        <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
+                                    </Button>
+                                </Upload>
+                            ) }
+                        </FormItem>
+                    </Form>
+                </div>
             </div>
         )
     }

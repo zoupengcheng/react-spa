@@ -48,7 +48,7 @@ class WakeupService extends Component {
                 title: '',
                 content: confirmContent,
                 onOk() {
-                    browserHistory.push('/value-added-features/wakeupService')
+                    browserHistory.push('/extension-trunk/extension')
                 },
                 onCancel() {},
                 okText: formatMessage({id: "LANG727"}),

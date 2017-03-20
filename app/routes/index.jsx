@@ -45,6 +45,7 @@ import InboundSettings from '../components/modules/inboundRoute/inboundSettings'
 import Conference from '../components/modules/conference'
 import ConferenceItem from '../components/modules/conference/conferenceItem'
 import ConferenceSettings from '../components/modules/conference/conferenceSettings'
+import ScheduleIndex from '../components/modules/conference/scheduleIndex'
 import ScheduleSettings from '../components/modules/conference/scheduleSettings'
 import CleanSettings from '../components/modules/conference/cleanSettings'
 import CalendarSettings from '../components/modules/conference/calendarSettings'
@@ -194,6 +195,7 @@ import UserWebrtc from '../components/modules/userWebrtc'
 import UserWebrtcItem from '../components/modules/userWebrtc/userWebrtcItem'
 import UserAgent from '../components/modules/userAgent'
 import UserWakeupService from '../components/modules/userWakeupService'
+import UserWakeupServiceItem from '../components/modules/userWakeupService/wakeupServiceItem'
 import UserCrmUserSettings from '../components/modules/userCrmUserSettings'
 
 const routes = (state, currentLocaleData) => {
@@ -332,8 +334,8 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ ConferenceItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id" onEnter={ requireAuth } component={ ConferenceItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="conferenceSettings" onEnter={ requireAuth } component={ ConferenceSettings } breadcrumbName={ currentLocaleData["LANG5097"] } />
-                        <Route path="scheduleSettings" onEnter={ requireAuth } component={ ScheduleSettings } breadcrumbName={ currentLocaleData["LANG3776"] } />
-                        <Route path="editSchedule/:id" onEnter={ requireAuth } component={ ScheduleSettings } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="scheduleIndex" onEnter={ requireAuth } component={ ScheduleIndex } breadcrumbName={ currentLocaleData["LANG3776"] } />
+                        <Route path="editSchedule/:id" onEnter={ requireAuth } component={ ScheduleIndex } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="cleanSettings" onEnter={ requireAuth } component={ CleanSettings } breadcrumbName={ currentLocaleData["LANG4277"] } />
                         <Route path="calendarSettings" onEnter={ requireAuth } component={ CalendarSettings } breadcrumbName={ currentLocaleData["LANG3516"] } />
                     </Route>
@@ -622,7 +624,11 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="faxSending" onEnter={ requireAuth } component={ FAXSending } breadcrumbName={ currentLocaleData["LANG8"] } />
                     <Route path="userAgent" onEnter={ requireAuth } component={ UserAgent } breadcrumbName={ currentLocaleData["LANG2640"] } />
-                    <Route path="userWakeupService" onEnter={ requireAuth } component={ UserWakeupService } breadcrumbName={ currentLocaleData["LANG3003"] } />
+                    <Route path="userWakeupService" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3003"] } >
+                        <IndexRoute component={ UserWakeupService } />
+                        <Route path="add" onEnter={ requireAuth } component={ UserWakeupServiceItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ UserWakeupServiceItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
                     <Route path="userCrmUserSettings" onEnter={ requireAuth } component={ UserCrmUserSettings } breadcrumbName={ currentLocaleData["LANG2640"] } />
                 </Route>
             </Route>

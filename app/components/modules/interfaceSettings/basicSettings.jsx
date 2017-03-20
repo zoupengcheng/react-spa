@@ -20,8 +20,6 @@ class BasicSettings extends Component {
 
         this.state = {
             div_mfcr2ForcedRelease_style: "hidden",
-            mfcr2SkipCategoryChecked: false,
-            mfcr2GetAniFirstChecked: false,
             framingOpts: [],
             hardhdlcOpts: [],
             codingOpts: [],
@@ -44,7 +42,8 @@ class BasicSettings extends Component {
             div_hardhdlc_style: "display-block",
             firstSpanTypeLoad: true,
             firstSignallingLoad: true,
-            firstMfcr2VariantLoad: true
+            firstMfcr2VariantLoad: true,
+            mfcr2GeAniFirstValue: false
         }
     }
     componentWillMount() { 
@@ -82,8 +81,19 @@ class BasicSettings extends Component {
             form.setFieldsValue({
                 mfcr2_variant: mfcr2Variant
             })
-            
+            let mfcr2GeAniFirstValue = false
+
+            if (priSettingsInfo.mfcr2_get_ani_first === "yes") {
+                mfcr2GeAniFirstValue = true 
+                this.props.getSonState({
+                    mfcr2GetAniFirstChecked: true
+                })
+            }
+            if (priSettingsInfo.mfcr2_skip_category === "yes") {
+                this.props.parentState.mfcr2SkipCategoryChecked = true
+            }            
             me.setState({
+                mfcr2GeAniFirstValue: mfcr2GeAniFirstValue,
                 firstMfcr2VariantLoad: false
             })
         } 
@@ -104,20 +114,24 @@ class BasicSettings extends Component {
         }
     }
     _onChangeMfcr2GetAniFirst = (e) => {
-        this.setState({
+        this.props.getSonState({
             mfcr2GetAniFirstChecked: e.target.checked
+        })
+        this.setState({
+            mfcr2GeAniFirstValue: e.target.checked
         })
     }
     _onChangeSignalling = (value) => {
         const form = this.props.form
         const { formatMessage } = this.props.intl
 
-        let hardhdlcEle = this.refs.hardhdlc,
+        let parentState = this.props.parentState,
+            hardhdlcEle = this.refs.hardhdlc,
             // opts = hardhdlcEle.children(),
             // noneOpt = hardhdlcEle.children().filter("[value=0]"),
             flag = true,
-            oldCoding = global.oldCoding,
-            oldSingnaling = global.oldSingnaling
+            oldCoding = parentState.oldCoding,
+            oldSingnaling = parentState.oldSingnaling
 
         if (value === "ss7") {
             let totleChans = this.props.getTotalChans(),
@@ -138,7 +152,7 @@ class BasicSettings extends Component {
             //     index.disabled = false
             // }
 
-            let ss7Settings = global.ss7Settings[0]
+            let ss7Settings = parentState.ss7Settings[0]
             if (ss7Settings) {
                 form.setFieldsValue({
                     ss7_called_nai: ss7Settings["ss7_called_nai"],
@@ -318,7 +332,7 @@ class BasicSettings extends Component {
         oldSingnaling = value
     }
     _onChangeFraming = (val) => {
-        global.oldFraming = val
+        this.props.parentState.oldFraming = val
     }
     _onChangeMfcr2Variant = (val) => {
         const form = this.props.form
@@ -345,7 +359,7 @@ class BasicSettings extends Component {
                 div_mfcr2ForcedRelease__style: "hidden"
             })
         }
-        let mfcR2Settings = global.mfcR2Settings[0]
+        let mfcR2Settings = this.props.parentState.mfcR2Settings[0]
 
         if (val === "ve") {
             form.setFieldsValue({
@@ -359,7 +373,6 @@ class BasicSettings extends Component {
                     mfcr2AllowCollectCallsVal = (mfcR2Settings.mfcr2_allow_collect_calls === "yes") ? true : false,
                     mfcr2DoubleAnswerVal = (mfcR2Settings.mfcr2_double_answer === "yes") ? true : false,
                     mfcr2AcceptOnOfferVal = (mfcR2Settings.mfcr2_accept_on_offer === "yes") ? true : false,
-                    mfcr2SkipCategoryVal = (mfcR2Settings.mfcr2_skip_category === "yes") ? true : false,
                     mfcr2ChargeCallsVal = (mfcR2Settings.mfcr2_charge_calls === "yes") ? true : false,
                     mfAdvancedSettingsVal = (mfcR2Settings.mf_advanced_settings === "yes") ? true : false
 
@@ -369,11 +382,13 @@ class BasicSettings extends Component {
                     mfcr2_allow_collect_calls: mfcr2AllowCollectCallsVal,
                     mfcr2_double_answer: mfcr2DoubleAnswerVal,
                     mfcr2_accept_on_offer: mfcr2AcceptOnOfferVal,
-                    mfcr2_skip_category: mfcr2SkipCategoryVal,
                     mfcr2_charge_calls: mfcr2ChargeCallsVal,
                     mfcr2_mfback_timeout: mfcR2Settings.mfcr2_mfback_timeout,
                     mfcr2_metering_pulse_timeout: mfcR2Settings.mfcr2_metering_pulse_timeout,
                     mf_advanced_settings: mfAdvancedSettingsVal
+                })
+                this.props.getSonState({
+                    mfcr2_skip_category: (mfcR2Settings.mfcr2_skip_category === "yes") ? true : false
                 })
             } else {
                 form.setFieldsValue({
@@ -387,11 +402,12 @@ class BasicSettings extends Component {
         const form = this.props.form
         const { formatMessage } = this.props.intl
 
-        let oldSingnaling = global.oldSingnaling,
-            oldCoding = global.oldCoding,
-            bchanTotalChans = global.bchanTotalChans,
-            oldHardhdlc = global.oldHardhdlc,
-            oldFraming = global.oldFraming
+        let parentState = this.props.parentState,
+            oldSingnaling = parentState.oldSingnaling,
+            oldCoding = parentState.oldCoding,
+            bchanTotalChans = parentState.bchanTotalChans,
+            oldHardhdlc = parentState.oldHardhdlc,
+            oldFraming = parentState.oldFraming
 
         let hardhdlcEle = this.refs.div_hardhdlc,
             signalling = form.getFieldValue('signalling'),
@@ -653,20 +669,17 @@ class BasicSettings extends Component {
         //     })
         // }
     }
-    _onChangeMfcr2SkipCategory = (e) => {
-        this.setState({
-            mfcr2SkipCategoryChecked: e.target.checked
-        })
-    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
 
         let hardhdlcOpts = this.props.hardhdlcOpts,
-            parentState = this.props.parentState
+            parentState = this.props.parentState,
+            state = this.state,
+            priSettingsInfo = this.props.priSettingsInfo
 
-        if (this.state.hardhdlcOpts.length !== 0) {
+        if (state.hardhdlcOpts.length !== 0) {
             hardhdlcOpts = this.state.hardhdlcOpts
         }
 
@@ -674,641 +687,558 @@ class BasicSettings extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-        
-        let priSettingsInfo = this.props.priSettingsInfo,
-            mfcr2GeAniFirstValue = false,
-            mfcr2SkipCategoryVal = false
-
-        if (priSettingsInfo.mfcr2_get_ani_first === "yes") {
-            mfcr2GeAniFirstValue = true 
-        } else if (this.state.mfcr2SkipCategoryChecked) {
-            mfcr2GeAniFirstValue = false
-        }
-
-        if (priSettingsInfo.mfcr2_skip_category === "yes") {
-            mfcr2SkipCategoryVal = true 
-        } else if (this.state.mfcr2GetAniFirstChecked) {
-            mfcr2SkipCategoryVal = false
-        }
-
+    
         return (
             <div className="content">
                 <div className="ant-form">
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3130" />}>
-                                        <span>{formatMessage({id: "LANG3129"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('span_type', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.span_type ? priSettingsInfo.span_type : "E1"
-                                })(
-                                    <Select onChange={ this._onChangeSpanType } >
-                                        <Option value="E1">E1</Option>
-                                        <Option value="T1">T1</Option>
-                                        <Option value="J1">J1</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3126" />}>
-                                        <span>{formatMessage({id: "LANG3125"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('clock', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.clock ? String(priSettingsInfo.clock) : "0"
-                                })(
-                                    <Select>
-                                        <Option value="0">{ formatMessage({ id: "LANG3127"}) }</Option>
-                                        <Option value="1">{ formatMessage({ id: "LANG3128"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_signalling"
-                                className={ parentState.div_signalling_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3108" />}>
-                                        <span>{formatMessage({id: "LANG3107"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('signalling', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.signalling ? priSettingsInfo.signalling : "pri_net"
-                                })(
-                                    <Select onChange= { this._onChangeSignalling }>
-                                    {
-                                        this.state.signallingOpts.map(function(it) {
-                                            const text = it.text
-                                            const value = String(it.val)
+                    <FormItem
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3130" />}>
+                                <span>{formatMessage({id: "LANG3129"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('span_type', {
+                            rules: [],
+                            initialValue: priSettingsInfo.span_type ? priSettingsInfo.span_type : "E1"
+                        })(
+                            <Select onChange={ this._onChangeSpanType } >
+                                <Option value="E1">E1</Option>
+                                <Option value="T1">T1</Option>
+                                <Option value="J1">J1</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3126" />}>
+                                <span>{formatMessage({id: "LANG3125"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('clock', {
+                            rules: [],
+                            initialValue: priSettingsInfo.clock ? String(priSettingsInfo.clock) : "0"
+                        })(
+                            <Select>
+                                <Option value="0">{ formatMessage({ id: "LANG3127"}) }</Option>
+                                <Option value="1">{ formatMessage({ id: "LANG3128"}) }</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_signalling"
+                        className={ parentState.div_signalling_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3108" />}>
+                                <span>{formatMessage({id: "LANG3107"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('signalling', {
+                            rules: [],
+                            initialValue: priSettingsInfo.signalling ? priSettingsInfo.signalling : "pri_net"
+                        })(
+                            <Select onChange= { this._onChangeSignalling }>
+                            {
+                                this.state.signallingOpts.map(function(it) {
+                                    const text = it.text
+                                    const value = String(it.val)
 
-                                            return <Option key={ value } value={ value }>
-                                                   { text ? text : value }
-                                                </Option>
-                                        })
-                                    }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_hardhdlc"
-                                className={ this.state.div_hardhdlc_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3134" />}>
-                                        <span>{formatMessage({id: "LANG3133"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('hardhdlc', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.hardhdlc
-                                })(
-                                    <Select>
-                                    {
-                                        hardhdlcOpts.map(function(it) {
-                                            const text = it.text
-                                            const value = String(it.val)
+                                    return <Option key={ value } value={ value }>
+                                           { text ? text : value }
+                                        </Option>
+                                })
+                            }
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_hardhdlc"
+                        className={ this.state.div_hardhdlc_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3134" />}>
+                                <span>{formatMessage({id: "LANG3133"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('hardhdlc', {
+                            rules: [],
+                            initialValue: priSettingsInfo.hardhdlc
+                        })(
+                            <Select>
+                            {
+                                hardhdlcOpts.map(function(it) {
+                                    const text = it.text
+                                    const value = String(it.val)
 
-                                            return <Option key={ value } value={ value }>
-                                                   { text ? text : value }
-                                                </Option>
-                                        })
-                                    }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
+                                    return <Option key={ value } value={ value }>
+                                           { text ? text : value }
+                                        </Option>
+                                })
+                            }
+                            </Select>
+                        ) }
+                    </FormItem>
                     <div ref="div_ss7Options" className={ parentState.div_ss7Options_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3256" />}>
-                                            <span>{formatMessage({id: "LANG3255"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('ss7type', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.ss7type ? priSettingsInfo.ss7type : "itu"
-                                    })(
-                                        <Select onChange={ this._onChangeSs7type } >
-                                            <Option value="itu">ITU</Option>
-                                            <Option value="ansi">ANSI</Option>
-                                            <Option value="china">CHINA</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3258" />}>
-                                            <span>{formatMessage({id: "LANG3257"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('pointcode', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.pointcode ? priSettingsInfo.pointcode : ""
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3260" />}>
-                                            <span>{formatMessage({id: "LANG3259"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('defaultdpc', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.defaultdpc ? priSettingsInfo.pointcode : ""
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG4088" />}>
-                                            <span>{formatMessage({id: "LANG4070"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('cicbeginswith', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.cicbeginswith ? priSettingsInfo.cicbeginswith : ""
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG4111" />}>
-                                            <span>{formatMessage({id: "LANG4110"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('sigchan_assign_cic', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.sigchan_assign_cic ? String(priSettingsInfo.sigchan_assign_cic) : "0"
-                                    })(
-                                        <Select>
-                                            <Option value="0">{ formatMessage({ id: "LANG137"}) }</Option>
-                                            <Option value="1">{ formatMessage({ id: "LANG136"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3316" />}>
-                                            <span>{formatMessage({id: "LANG3315"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_skip_category', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: mfcr2SkipCategoryVal
-                                    })(
-                                        <Checkbox onChange={ this._onChangeMfcr2SkipCategory } disabled={ this.state.mfcr2GetAniFirstChecked } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3256" />}>
+                                    <span>{formatMessage({id: "LANG3255"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('ss7type', {
+                                rules: [],
+                                initialValue: priSettingsInfo.ss7type ? priSettingsInfo.ss7type : "itu"
+                            })(
+                                <Select onChange={ this._onChangeSs7type } >
+                                    <Option value="itu">ITU</Option>
+                                    <Option value="ansi">ANSI</Option>
+                                    <Option value="china">CHINA</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3258" />}>
+                                    <span>{formatMessage({id: "LANG3257"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('pointcode', {
+                                rules: [],
+                                initialValue: priSettingsInfo.pointcode ? priSettingsInfo.pointcode : ""
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3260" />}>
+                                    <span>{formatMessage({id: "LANG3259"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('defaultdpc', {
+                                rules: [],
+                                initialValue: priSettingsInfo.defaultdpc ? priSettingsInfo.pointcode : ""
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG4088" />}>
+                                    <span>{formatMessage({id: "LANG4070"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('cicbeginswith', {
+                                rules: [],
+                                initialValue: priSettingsInfo.cicbeginswith ? priSettingsInfo.cicbeginswith : ""
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG4111" />}>
+                                    <span>{formatMessage({id: "LANG4110"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('sigchan_assign_cic', {
+                                rules: [],
+                                initialValue: priSettingsInfo.sigchan_assign_cic ? String(priSettingsInfo.sigchan_assign_cic) : "0"
+                            })(
+                                <Select>
+                                    <Option value="0">{ formatMessage({ id: "LANG137"}) }</Option>
+                                    <Option value="1">{ formatMessage({ id: "LANG136"}) }</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3262" /> }>
+                                    <span>{ formatMessage({id: "LANG3261"}) }</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('networkindicator', {
+                                rules: [],
+                                initialValue: priSettingsInfo.networkindicator ? priSettingsInfo.networkindicator : "national"
+                            })(
+                                <Select>
+                                    <Option value="national">National</Option>
+                                    <Option value="national_spare">National Spare</Option>
+                                    <Option value="international">International</Option>
+                                    <Option value="international_spare">International Spare</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
                     </div>
                     <div ref="div_mfcR2" className={ parentState.div_mfcR2_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3291" /> }>
-                                            <span>{formatMessage({id: "LANG3290"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_variant', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.mfcr2_variant ? priSettingsInfo.mfcr2_variant : "ar"
-                                    })(
-                                        <Select onChange={ this._onChangeMfcr2Variant }>
-                                            <Option value="ar">{ formatMessage({ id: "LANG284"}) }</Option>
-                                            <Option value="br">{ formatMessage({ id: "LANG307"}) }</Option>
-                                            <Option value="cn">{ formatMessage({ id: "LANG324"}) }</Option>
-                                            <Option value="cz">{ formatMessage({ id: "LANG332"}) }</Option>
-                                            <Option value="co">{ formatMessage({ id: "LANG325"}) }</Option>
-                                            <Option value="ec">{ formatMessage({ id: "LANG341"}) }</Option>
-                                            <Option value="id">{ formatMessage({ id: "LANG379"}) }</Option>
-                                            <Option value="itu">ITU</Option>
-                                            <Option value="mx">{ formatMessage({ id: "LANG437"}) }</Option>
-                                            <Option value="ph">{ formatMessage({ id: "LANG458"}) }</Option>
-                                            <Option value="ve">{ formatMessage({ id: "LANG528"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    ref="div_mfcr2ForcedRelease"
-                                    className={ this.state.div_mfcr2ForcedRelease_style }
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3318" />}>
-                                            <span>{formatMessage({id: "LANG3317"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_forced_release', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mfcr2_forced_release === "yes" ? true : false
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3299" />}>
-                                            <span>{formatMessage({id: "LANG3298"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_category', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.mfcr2_category ? priSettingsInfo.mfcr2_category : "national_subscriber"
-                                    })(
-                                        <Select>
-                                            <Option value="national_subscriber">{ formatMessage({ id: "LANG3300"}) }</Option>
-                                            <Option value="national_priority_subscriber">{ formatMessage({ id: "LANG3301"}) }</Option>
-                                            <Option value="international_subscriber">{ formatMessage({ id: "LANG3302"}) }</Option>
-                                            <Option value="international_priority_subscriber">{ formatMessage({ id: "LANG3303"}) }</Option>
-                                            <Option value="collect_call" disabled={ this.state.collectCall}>{ formatMessage({ id: "LANG3304"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3293" /> }>
-                                            <span>{ formatMessage({id: "LANG3292"}) }</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_get_ani_first', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: mfcr2GeAniFirstValue
-                                    })(
-                                        <Checkbox onChange= { this._onChangeMfcr2GetAniFirst } disabled={ this.state.mfcr2SkipCategoryChecked } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3291" /> }>
+                                    <span>{formatMessage({id: "LANG3290"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_variant', {
+                                rules: [],
+                                initialValue: priSettingsInfo.mfcr2_variant ? priSettingsInfo.mfcr2_variant : "ar"
+                            })(
+                                <Select onChange={ this._onChangeMfcr2Variant }>
+                                    <Option value="ar">{ formatMessage({ id: "LANG284"}) }</Option>
+                                    <Option value="br">{ formatMessage({ id: "LANG307"}) }</Option>
+                                    <Option value="cn">{ formatMessage({ id: "LANG324"}) }</Option>
+                                    <Option value="cz">{ formatMessage({ id: "LANG332"}) }</Option>
+                                    <Option value="co">{ formatMessage({ id: "LANG325"}) }</Option>
+                                    <Option value="ec">{ formatMessage({ id: "LANG341"}) }</Option>
+                                    <Option value="id">{ formatMessage({ id: "LANG379"}) }</Option>
+                                    <Option value="itu">ITU</Option>
+                                    <Option value="mx">{ formatMessage({ id: "LANG437"}) }</Option>
+                                    <Option value="ph">{ formatMessage({ id: "LANG458"}) }</Option>
+                                    <Option value="ve">{ formatMessage({ id: "LANG528"}) }</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            ref="div_mfcr2ForcedRelease"
+                            className={ this.state.div_mfcr2ForcedRelease_style }
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3318" />}>
+                                    <span>{formatMessage({id: "LANG3317"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_forced_release', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.mfcr2_forced_release === "yes" ? true : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3299" />}>
+                                    <span>{formatMessage({id: "LANG3298"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_category', {
+                                rules: [],
+                                initialValue: priSettingsInfo.mfcr2_category ? priSettingsInfo.mfcr2_category : "national_subscriber"
+                            })(
+                                <Select>
+                                    <Option value="national_subscriber">{ formatMessage({ id: "LANG3300"}) }</Option>
+                                    <Option value="national_priority_subscriber">{ formatMessage({ id: "LANG3301"}) }</Option>
+                                    <Option value="international_subscriber">{ formatMessage({ id: "LANG3302"}) }</Option>
+                                    <Option value="international_priority_subscriber">{ formatMessage({ id: "LANG3303"}) }</Option>
+                                    <Option value="collect_call" disabled={ this.state.collectCall}>{ formatMessage({ id: "LANG3304"}) }</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            ref="mfcr2_get_ani_first"
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3293" /> }>
+                                    <span>{ formatMessage({id: "LANG3292"}) }</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_get_ani_first', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: state.mfcr2GeAniFirstValue
+                            })(
+                                <Checkbox onChange= { this._onChangeMfcr2GetAniFirst } disabled={ this.props.parentState.mfcr2SkipCategoryChecked } />
+                            ) }
+                        </FormItem>
                     </div>
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_lbo"
-                                className={ parentState.div_lbo_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3104" />}>
-                                        <span>{formatMessage({id: "LANG3103"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('lbo', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.lbo ? String(priSettingsInfo.lbo) : "0"
-                                })(
-                                    <Select>
-                                        <Option value="0" >{ formatMessage({ id: "LANG3154"}) }</Option>
-                                        <Option value="1" >{ formatMessage({ id: "LANG3155"}) }</Option>
-                                        <Option value="2" >{ formatMessage({ id: "LANG3156"}) }</Option>
-                                        <Option value="3" >{ formatMessage({ id: "LANG3157"}) }</Option>
-                                        <Option value="4" >{ formatMessage({ id: "LANG3158"}) }</Option>
-                                        <Option value="5" >{ formatMessage({ id: "LANG3159"}) }</Option>
-                                        <Option value="6" >{ formatMessage({ id: "LANG3160"}) }</Option>
-                                        <Option value="7" >{ formatMessage({ id: "LANG3161"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3100" />}>
-                                        <span>{formatMessage({id: "LANG3099"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('coding', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.coding
-                                })(
-                                    <Select>
-                                    {   
-                                        this.state.codingOpts.map(function(it) {
-                                            const text = it.text
-                                            const value = String(it.val)
+                    <FormItem
+                        ref="div_lbo"
+                        className={ parentState.div_lbo_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3104" />}>
+                                <span>{formatMessage({id: "LANG3103"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('lbo', {
+                            rules: [],
+                            initialValue: priSettingsInfo.lbo ? String(priSettingsInfo.lbo) : "0"
+                        })(
+                            <Select>
+                                <Option value="0" >{ formatMessage({ id: "LANG3154"}) }</Option>
+                                <Option value="1" >{ formatMessage({ id: "LANG3155"}) }</Option>
+                                <Option value="2" >{ formatMessage({ id: "LANG3156"}) }</Option>
+                                <Option value="3" >{ formatMessage({ id: "LANG3157"}) }</Option>
+                                <Option value="4" >{ formatMessage({ id: "LANG3158"}) }</Option>
+                                <Option value="5" >{ formatMessage({ id: "LANG3159"}) }</Option>
+                                <Option value="6" >{ formatMessage({ id: "LANG3160"}) }</Option>
+                                <Option value="7" >{ formatMessage({ id: "LANG3161"}) }</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3100" />}>
+                                <span>{formatMessage({id: "LANG3099"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('coding', {
+                            rules: [],
+                            initialValue: priSettingsInfo.coding
+                        })(
+                            <Select>
+                            {   
+                                this.state.codingOpts.map(function(it) {
+                                    const text = it.text
+                                    const value = String(it.val)
 
-                                            return <Option key={ value } value={ value }>
-                                                   { text ? text : value }
-                                                </Option>
-                                        })
-                                    }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
+                                    return <Option key={ value } value={ value }>
+                                           { text ? text : value }
+                                        </Option>
+                                })
+                            }
+                            </Select>
+                        ) }
+                    </FormItem>
                     <div ref="div_rtx" className={ parentState.div_rtx_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3163" />}>
-                                            <span>{formatMessage({id: "LANG1113"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('rxgain', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.rxgain ? String(priSettingsInfo.rxgain) : "12"
-                                    })(
-                                        <Select>
-                                            <Option value="12" >12</Option>
-                                            <Option value="11" >11</Option>
-                                            <Option value="10" >10</Option>
-                                            <Option value="9" >9</Option>
-                                            <Option value="8" >8</Option>
-                                            <Option value="7" >7</Option>
-                                            <Option value="6" >6</Option>
-                                            <Option value="5" >5</Option>
-                                            <Option value="4" >4</Option>
-                                            <Option value="3" >3</Option>
-                                            <Option value="2" >2</Option>
-                                            <Option value="1" >1</Option>
-                                            <Option value="0" >0</Option>
-                                            <Option value="-1" >-1</Option>
-                                            <Option value="-2" >-2</Option>
-                                            <Option value="-3" >-3</Option>
-                                            <Option value="-4" >-4</Option>
-                                            <Option value="-5" >-5</Option>
-                                            <Option value="-6">-6</Option>
-                                            <Option value="-7" >-7</Option>
-                                            <Option value="-8" >-8</Option>
-                                            <Option value="-9" >-9</Option>
-                                            <Option value="-10" >-10</Option>
-                                            <Option value="-11" >-11</Option>
-                                            <Option value="-12" >-12</Option>
-                                            <Option value="-13" >-13</Option>
-                                            <Option value="-14" >-14</Option>
-                                            <Option value="-15" >-15</Option>
-                                            <Option value="-16" >-16</Option>
-                                            <Option value="-17" >-17</Option>
-                                            <Option value="-18" >-18</Option>
-                                            <Option value="-19" >-19</Option>
-                                            <Option value="-20" >-20</Option>
-                                            <Option value="-21" >-21</Option>
-                                            <Option value="-22" >-22</Option>
-                                            <Option value="-23" >-23</Option>
-                                            <Option value="-24" >-24</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3164" />}>
-                                            <span>{formatMessage({id: "LANG1115"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('txgain', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.txgain ? String(priSettingsInfo.txgain) : "12"
-                                    })(
-                                        <Select>
-                                            <Option value="12" >12</Option>
-                                            <Option value="11" >11</Option>
-                                            <Option value="10" >10</Option>
-                                            <Option value="9" >9</Option>
-                                            <Option value="8" >8</Option>
-                                            <Option value="7" >7</Option>
-                                            <Option value="6" >6</Option>
-                                            <Option value="5" >5</Option>
-                                            <Option value="4" >4</Option>
-                                            <Option value="3" >3</Option>
-                                            <Option value="2" >2</Option>
-                                            <Option value="1" >1</Option>
-                                            <Option value="0" >0</Option>
-                                            <Option value="-1" >-1</Option>
-                                            <Option value="-2" >-2</Option>
-                                            <Option value="-3" >-3</Option>
-                                            <Option value="-4" >-4</Option>
-                                            <Option value="-5" >-5</Option>
-                                            <Option value="-6" >-6</Option>
-                                            <Option value="-7" >-7</Option>
-                                            <Option value="-8" >-8</Option>
-                                            <Option value="-9" >-9</Option>
-                                            <Option value="-10" >-10</Option>
-                                            <Option value="-11" >-11</Option>
-                                            <Option value="-12" >-12</Option>
-                                            <Option value="-13" >-13</Option>
-                                            <Option value="-14" >-14</Option>
-                                            <Option value="-15" >-15</Option>
-                                            <Option value="-16" >-16</Option>
-                                            <Option value="-17" >-17</Option>
-                                            <Option value="-18" >-18</Option>
-                                            <Option value="-19" >-19</Option>
-                                            <Option value="-20" >-20</Option>
-                                            <Option value="-21" >-21</Option>
-                                            <Option value="-22" >-22</Option>
-                                            <Option value="-23" >-23</Option>
-                                            <Option value="-24" >-24</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3163" />}>
+                                    <span>{formatMessage({id: "LANG1113"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('rxgain', {
+                                rules: [],
+                                initialValue: priSettingsInfo.rxgain ? String(priSettingsInfo.rxgain) : "12"
+                            })(
+                                <Select>
+                                    <Option value="12" >12</Option>
+                                    <Option value="11" >11</Option>
+                                    <Option value="10" >10</Option>
+                                    <Option value="9" >9</Option>
+                                    <Option value="8" >8</Option>
+                                    <Option value="7" >7</Option>
+                                    <Option value="6" >6</Option>
+                                    <Option value="5" >5</Option>
+                                    <Option value="4" >4</Option>
+                                    <Option value="3" >3</Option>
+                                    <Option value="2" >2</Option>
+                                    <Option value="1" >1</Option>
+                                    <Option value="0" >0</Option>
+                                    <Option value="-1" >-1</Option>
+                                    <Option value="-2" >-2</Option>
+                                    <Option value="-3" >-3</Option>
+                                    <Option value="-4" >-4</Option>
+                                    <Option value="-5" >-5</Option>
+                                    <Option value="-6">-6</Option>
+                                    <Option value="-7" >-7</Option>
+                                    <Option value="-8" >-8</Option>
+                                    <Option value="-9" >-9</Option>
+                                    <Option value="-10" >-10</Option>
+                                    <Option value="-11" >-11</Option>
+                                    <Option value="-12" >-12</Option>
+                                    <Option value="-13" >-13</Option>
+                                    <Option value="-14" >-14</Option>
+                                    <Option value="-15" >-15</Option>
+                                    <Option value="-16" >-16</Option>
+                                    <Option value="-17" >-17</Option>
+                                    <Option value="-18" >-18</Option>
+                                    <Option value="-19" >-19</Option>
+                                    <Option value="-20" >-20</Option>
+                                    <Option value="-21" >-21</Option>
+                                    <Option value="-22" >-22</Option>
+                                    <Option value="-23" >-23</Option>
+                                    <Option value="-24" >-24</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3164" />}>
+                                    <span>{formatMessage({id: "LANG1115"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('txgain', {
+                                rules: [],
+                                initialValue: priSettingsInfo.txgain ? String(priSettingsInfo.txgain) : "12"
+                            })(
+                                <Select>
+                                    <Option value="12" >12</Option>
+                                    <Option value="11" >11</Option>
+                                    <Option value="10" >10</Option>
+                                    <Option value="9" >9</Option>
+                                    <Option value="8" >8</Option>
+                                    <Option value="7" >7</Option>
+                                    <Option value="6" >6</Option>
+                                    <Option value="5" >5</Option>
+                                    <Option value="4" >4</Option>
+                                    <Option value="3" >3</Option>
+                                    <Option value="2" >2</Option>
+                                    <Option value="1" >1</Option>
+                                    <Option value="0" >0</Option>
+                                    <Option value="-1" >-1</Option>
+                                    <Option value="-2" >-2</Option>
+                                    <Option value="-3" >-3</Option>
+                                    <Option value="-4" >-4</Option>
+                                    <Option value="-5" >-5</Option>
+                                    <Option value="-6" >-6</Option>
+                                    <Option value="-7" >-7</Option>
+                                    <Option value="-8" >-8</Option>
+                                    <Option value="-9" >-9</Option>
+                                    <Option value="-10" >-10</Option>
+                                    <Option value="-11" >-11</Option>
+                                    <Option value="-12" >-12</Option>
+                                    <Option value="-13" >-13</Option>
+                                    <Option value="-14" >-14</Option>
+                                    <Option value="-15" >-15</Option>
+                                    <Option value="-16" >-16</Option>
+                                    <Option value="-17" >-17</Option>
+                                    <Option value="-18" >-18</Option>
+                                    <Option value="-19" >-19</Option>
+                                    <Option value="-20" >-20</Option>
+                                    <Option value="-21" >-21</Option>
+                                    <Option value="-22" >-22</Option>
+                                    <Option value="-23" >-23</Option>
+                                    <Option value="-24" >-24</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
                     </div>
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_codec"
-                                className={ parentState.div_codec_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3106" />}>
-                                        <span>{ formatMessage({id: "LANG3105"}) }</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('codec', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.codec ? priSettingsInfo.codec : "default"
-                                })(
-                                    <Select>
-                                        <Option value="default">{ formatMessage({id: "LANG257"}) }</Option>
-                                        <Option value="alaw">alaw</Option>
-                                        <Option value="ulaw">ulaw</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_priPlayLocalRbt"
-                                className={ parentState.div_priPlayLocalRbt_style }
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3492" /> }>
-                                            <span>{ formatMessage({id: "LANG3491"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}>
-                                { getFieldDecorator('priplaylocalrbt', {
-                                    valuePropName: 'checked',
-                                    initialValue: priSettingsInfo.priplaylocalrbt === "yes" ? true : false
-                                })(
-                                    <Checkbox />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_mfcr2PlayLocaRbt"
-                                className={ parentState.div_mfcr2PlayLocaRbt_style }
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3492" /> }>
-                                            <span>{ formatMessage({id: "LANG3491"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}>
-                                { getFieldDecorator('mfcr2_play_local_rbt', {
-                                    valuePropName: 'checked',
-                                    initialValue: priSettingsInfo.mfcr2_play_local_rbt === "yes" ? true : false
-                                })(
-                                    <Checkbox />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                className="hidden"
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3132" /> }>
-                                            <span>{ formatMessage({id: "LANG3131"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}>
-                                <span ref="bchan">{ priSettingsInfo.bchan }</span>
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_priPlayLocalRbt"
-                                className={ this.state.priPlayLocalRbtDiv_style }
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3098" /> }>
-                                            <span>{ formatMessage({id: "LANG3097"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}>
-                                { getFieldDecorator('framing', {
-                                    initialValue: priSettingsInfo.framing
-                                })(
-                                    <Select onChange={ this._onChangeFraming }>
-                                    {
-                                        this.state.framingOpts.map(function(it) {
-                                            const text = it.text
-                                            const value = String(it.val)
+                    <FormItem
+                        ref="div_codec"
+                        className={ parentState.div_codec_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3106" />}>
+                                <span>{ formatMessage({id: "LANG3105"}) }</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('codec', {
+                            rules: [],
+                            initialValue: priSettingsInfo.codec ? priSettingsInfo.codec : "default"
+                        })(
+                            <Select>
+                                <Option value="default">{ formatMessage({id: "LANG257"}) }</Option>
+                                <Option value="alaw">alaw</Option>
+                                <Option value="ulaw">ulaw</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_priPlayLocalRbt"
+                        className={ parentState.div_priPlayLocalRbt_style }
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3492" /> }>
+                                    <span>{ formatMessage({id: "LANG3491"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}>
+                        { getFieldDecorator('priplaylocalrbt', {
+                            valuePropName: 'checked',
+                            initialValue: priSettingsInfo.priplaylocalrbt === "yes" ? true : false
+                        })(
+                            <Checkbox />
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_mfcr2PlayLocaRbt"
+                        className={ parentState.div_mfcr2PlayLocaRbt_style }
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3492" /> }>
+                                    <span>{ formatMessage({id: "LANG3491"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}>
+                        { getFieldDecorator('mfcr2_play_local_rbt', {
+                            valuePropName: 'checked',
+                            initialValue: priSettingsInfo.mfcr2_play_local_rbt === "yes" ? true : false
+                        })(
+                            <Checkbox />
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        className="hidden"
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3132" /> }>
+                                    <span>{ formatMessage({id: "LANG3131"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}>
+                        <span ref="bchan">{ priSettingsInfo.bchan }</span>
+                    </FormItem>
+                    <FormItem
+                        ref="div_priPlayLocalRbt"
+                        className={ this.state.priPlayLocalRbtDiv_style }
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3098" /> }>
+                                    <span>{ formatMessage({id: "LANG3097"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}>
+                        { getFieldDecorator('framing', {
+                            initialValue: priSettingsInfo.framing
+                        })(
+                            <Select onChange={ this._onChangeFraming }>
+                            {
+                                this.state.framingOpts.map(function(it) {
+                                    const text = it.text
+                                    const value = String(it.val)
 
-                                            return <Option key={ value } value={ value }>
-                                                   { text ? text : value }
-                                                </Option>
-                                        })
-                                    }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_crc"
-                                className={ parentState.div_crc_style }
-                                className={ this.state.div_crc_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3102" />}>
-                                        <span>{formatMessage({id: "LANG3101"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('crc', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.crc
-                                })(
-                                    <Select>
-                                    {   
-                                        this.state.crcOpts.map(function(it) {
-                                            const text = it.text
-                                            const value = String(it.val)
+                                    return <Option key={ value } value={ value }>
+                                           { text ? text : value }
+                                        </Option>
+                                })
+                            }
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_crc"
+                        className={ parentState.div_crc_style }
+                        className={ this.state.div_crc_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3102" />}>
+                                <span>{formatMessage({id: "LANG3101"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('crc', {
+                            rules: [],
+                            initialValue: priSettingsInfo.crc
+                        })(
+                            <Select>
+                            {   
+                                this.state.crcOpts.map(function(it) {
+                                    const text = it.text
+                                    const value = String(it.val)
 
-                                            return <Option key={ value } value={ value }>
-                                                   { text ? text : value }
-                                                </Option>
-                                        })
-                                    }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>   
+                                    return <Option key={ value } value={ value }>
+                                           { text ? text : value }
+                                        </Option>
+                                })
+                            }
+                            </Select>
+                        ) }
+                    </FormItem> 
                 </div>
             </div>
         )

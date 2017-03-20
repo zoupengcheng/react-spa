@@ -1,72 +1,256 @@
 'use strict'
 
 import $ from 'jquery'
+import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, injectIntl } from 'react-intl'
-import { Badge, Button, Card, Col, Dropdown, Icon, Menu, message, Modal, Row, Table, Tag } from 'antd'
+import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Badge, Button, Card, Col, Dropdown, Form, Icon, Input, Menu, message, Modal, Popover, Row, Select, Table, Tag, Tooltip } from 'antd'
 
+const FormItem = Form.Item
+const Option = Select.Option
 const confirm = Modal.confirm
+
+const formItemLayout = {
+    labelCol: { span: 8 },
+    wrapperCol: { span: 12 }
+}
+
+const InsertModal = Form.create()(
+    (props) => {
+        const { record, visible, onCancel, onCreate, form, intl } = props
+
+        const { formatMessage } = intl
+        const { getFieldDecorator } = form
+
+        return (
+            <Modal
+                width={ 650 }
+                onOk={ onCreate }
+                visible={ visible }
+                onCancel={ onCancel }
+                title={ formatMessage({ id: "LANG5586" }) }
+                okText={ formatMessage({ id: 'LANG728' }) }
+                cancelText={ formatMessage({ id: 'LANG726' }) }
+            >
+                <Form>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG85" /> }>
+                                    <span>{ formatMessage({id: "LANG85"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('barge-exten', {
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }]
+                        })(
+                            <Input />
+                        ) }
+                    </FormItem>
+                </Form>
+            </Modal>
+        )
+    }
+)
+
+const BargingModal = Form.create()(
+    (props) => {
+        const { record, visible, onCancel, onCreate, form, intl } = props
+
+        const { formatMessage } = intl
+        const { getFieldDecorator } = form
+
+        return (
+            <Modal
+                width={ 650 }
+                onOk={ onCreate }
+                visible={ visible }
+                onCancel={ onCancel }
+                title={ formatMessage({ id: "LANG3008" }) }
+                okText={ formatMessage({ id: 'LANG728' }) }
+                cancelText={ formatMessage({ id: 'LANG726' }) }
+            >
+                <Form>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3820" /> }>
+                                    <span>{ formatMessage({id: "LANG3820"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('exten', {
+                            rules: [],
+                            initialValue: record.callerchannel + ',' + record.callerid
+                        })(
+                            <Select>
+                                <Option value={ record.callerchannel + ',' + record.callerid }>{ record.callerid }</Option>
+                                <Option value={ record.calleechannel + ',' + record.calleeid }>{ record.calleeid }</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG3820" /> }>
+                                    <span>{ formatMessage({id: "LANG3820"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('barge-exten', {
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }]
+                        })(
+                            <Input />
+                        ) }
+                    </FormItem>
+                </Form>
+            </Modal>
+        )
+    }
+)
+
+const TransferModal = Form.create()(
+    (props) => {
+        const { record, visible, onCancel, onCreate, form, intl } = props
+
+        const { formatMessage } = intl
+        const { getFieldDecorator } = form
+
+        return (
+            <Modal
+                width={ 650 }
+                onOk={ onCreate }
+                visible={ visible }
+                onCancel={ onCancel }
+                title={ formatMessage({ id: "LANG3887" }) }
+                okText={ formatMessage({ id: 'LANG728' }) }
+                cancelText={ formatMessage({ id: 'LANG726' }) }
+            >
+                <Form>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG5587" /> }>
+                                    <span>{ formatMessage({id: "LANG5587"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('channel', {
+                            rules: [],
+                            initialValue: record.callerchannel
+                        })(
+                            <Select>
+                                <Option value={ record.callerchannel }>{ record.callerid }</Option>
+                                <Option value={ record.calleechannel }>{ record.calleeid }</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        { ...formItemLayout }
+                        label={(
+                            <span>
+                                <Tooltip title={ <FormattedHTMLMessage id="LANG5588" /> }>
+                                    <span>{ formatMessage({id: "LANG5588"}) }</span>
+                                </Tooltip>
+                            </span>
+                        )}
+                    >
+                        { getFieldDecorator('extension', {
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }]
+                        })(
+                            <Input />
+                        ) }
+                    </FormItem>
+                </Form>
+            </Modal>
+        )
+    }
+)
 
 class SwitchBoardItem extends Component {
     constructor(props) {
         super(props)
-        this.state = {}
+
+        this.state = {
+            record: {},
+            visibleInsert: false,
+            visibleBarging: false,
+            visibleTransfer: false
+        }
     }
     componentDidMount() {
     }
     _createAgentOptions = (text, record, index) => {
+        let option
+        let membership = record.membership
+        let enableAgentLogin = this.props.queueDetail.enable_agent_login
+
+        const { formatMessage } = this.props.intl
+
+        if (membership === 'login') {
+            option = <span
+                        title={ formatMessage({ id: "LANG259" }) }
+                        className="sprite sprite-callcenter-logout"
+                        onClick={ this._handleLogout.bind(this, record) }
+                    ></span>
+        } else {
+            option = <span
+                        title={ formatMessage({ id: "LANG269" }) }
+                        className="sprite sprite-callcenter-loggin"
+                        onClick={ this._handleLoggin.bind(this, record) }
+                    ></span>
+        }
+
+        return option
+    }
+    _createAnswerOptions = (text, record, index) => {
         let status
         const { formatMessage } = this.props.intl
         const enableAgentLogin = this.props.queueDetail.enable_agent_login
 
-        // console.log(text)
-        // console.log(enableAgentLogin)
-
-        if (enableAgentLogin === 'yes') {
-            if (text && text === 'loggin') {
-                const menu = (
-                        <Menu onClick={ this._handleMenuClick(record) }>
-                            <Menu.Item key="loggin" disabled>{ formatMessage({ id: "LANG269" }) }</Menu.Item>
-                            <Menu.Item key="logoff">{ formatMessage({ id: "LANG259" }) }</Menu.Item>
+        const menu = <Menu onClick={ this._handleAnwserMenuClick.bind(this, record) }>
+                            <Menu.Item key="hangup">
+                                <span className="sprite sprite-callcenter-hangup"></span>{ formatMessage({ id: "LANG3007" }) }
+                            </Menu.Item>
+                            <Menu.Item key="insert">
+                                <span className="sprite sprite-callcenter-insert"></span>{ formatMessage({ id: "LANG5586" }) }
+                            </Menu.Item>
+                            <Menu.Item key="barging">
+                                <span className="sprite sprite-callcenter-barging"></span>{ formatMessage({ id: "LANG3008" }) }
+                            </Menu.Item>
+                            <Menu.Item key="transfer">
+                                <span className="sprite sprite-callcenter-transfer"></span>{ formatMessage({ id: "LANG3887" }) }
+                            </Menu.Item>
                         </Menu>
-                    )
 
-                status = <Dropdown.Button
-                            type="ghost"
-                            overlay={ menu }
-                            onClick={ this._handleButtonClick(record) } 
-                        >
-                            { formatMessage({ id: "LANG5186" }) }
-                        </Dropdown.Button>
-            } else if (text && text === 'logoff') {
-                const menu = (
-                        <Menu onClick={ this._handleMenuClick(record) }>
-                            <Menu.Item key="loggin">{ formatMessage({ id: "LANG269" }) }</Menu.Item>
-                            <Menu.Item key="logoff" disabled>{ formatMessage({ id: "LANG259" }) }</Menu.Item>
-                        </Menu>
-                    )
-
-                status = <Dropdown.Button
-                            type="ghost"
-                            overlay={ menu }
-                            onClick={ this._handleButtonClick(record) } 
-                        >
-                            { formatMessage({ id: "LANG5187" }) }
-                        </Dropdown.Button>
-            }
-        } else {
-            if (text && text === 'dynamic') {
-                status = 'Dynamic'
-            } else if (text && text === 'static') {
-                status = 'Static'
-            }
-        }
-
-        return status
+        return <Dropdown overlay={ menu } placement="bottomCenter">
+                    <span
+                        title={ formatMessage({ id: "LANG74" }) }
+                        className="sprite sprite-callcenter-options"
+                    ></span>
+                </Dropdown>
     }
     _createMemberShip = (text, record, index) => {
         let status
@@ -77,7 +261,7 @@ class SwitchBoardItem extends Component {
         // console.log(enableAgentLogin)
 
         if (enableAgentLogin === 'yes') {
-            if (text && text === 'loggin') {
+            if (text && text === 'login') {
                 status = formatMessage({ id: "LANG5186" })
             } else if (text && text === 'logoff') {
                 status = formatMessage({ id: "LANG5187" })
@@ -94,71 +278,366 @@ class SwitchBoardItem extends Component {
     }
     _createStatus = (text, record, index) => {
         let status
+        let membership = record.membership
+        let enableAgentLogin = this.props.queueDetail.enable_agent_login
+
         const { formatMessage } = this.props.intl
 
         if (!text || text === 'Unavailable') {
             status = <div className="status-container unavailable">
-                        <span
+                        {/* <span
                             className="sprite sprite-status-unavailable"
                             title={ formatMessage({ id: "LANG113" }) }
-                        ></span>
+                        ></span> */}
                         <Tag>{ formatMessage({ id: "LANG113" }) }</Tag>
                     </div>
         } else if (text === 'Idle') {
             status = <div className="status-container idle">
-                        <span
+                        {/* <span
                             className="sprite sprite-status-idle"
                             title={ formatMessage({ id: "LANG2232" }) }
-                        ></span>
+                        ></span> */}
                         <Tag>{ formatMessage({ id: "LANG2232" }) }</Tag>
                     </div>
         } else if (text === 'InUse') {
             status = <div className="status-container inuse">
-                        <span
+                        {/* <span
                             className="sprite sprite-status-inuse"
                             title={ formatMessage({ id: "LANG2242" }) }
-                        ></span>
+                        ></span> */}
                         <Tag>{ formatMessage({ id: "LANG2242" }) }</Tag>
                     </div>
         } else if (text === 'Ringing') {
             status = <div className="status-container ringing">
-                        <span
+                        {/* <span
                             className="sprite sprite-status-ringing"
                             title={ formatMessage({ id: "LANG111" }) }
-                        ></span>
+                        ></span> */}
                         <Tag>{ formatMessage({ id: "LANG111" }) }</Tag>
                     </div>
         } else if (text === 'Busy') {
             status = <div className="status-container busy">
-                        <span
+                        {/* <span
                             className="sprite sprite-status-busy"
                             title={ formatMessage({ id: "LANG2237" }) }
-                        ></span>
+                        ></span> */}
                         <Tag>{ formatMessage({ id: "LANG2237" }) }</Tag>
+                    </div>
+        }
+
+        if (enableAgentLogin === 'yes' && membership === 'logoff') {
+            status = <div className="status-container unavailable">
+                        {/* <span
+                            className="sprite sprite-status-unavailable"
+                            title={ formatMessage({ id: "LANG113" }) }
+                        ></span> */}
+                        <Tag>{ formatMessage({ id: "LANG113" }) }</Tag>
                     </div>
         }
 
         return status
     }
-    _handleButtonClick = (text, record, index) => {
-        console.log(text)
-        console.log(record)
-    }
-    _handleMenuClick = (text, record, index) => {
-        console.log(text)
-        console.log(record)
-    }
-    _pagination = (dataSource) => {
-        return {
-                total: dataSource.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
-                },
-                onChange: (current) => {
-                    console.log('Current: ', current)
+    _handleLoggin = (record, event) => {
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4737" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5186" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'operatetype': 'login',
+                'action': 'loginLogoffQueueAgent',
+                'interface': record.member_extension,
+                'extension': this.props.queueDetail.extension
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
                 }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
             }
+        })
+    }
+    _handleLogout = (record, event) => {
+        const { formatMessage } = this.props.intl
+        const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4737" })}}></span>
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG5187" })}}></span>
+
+        message.loading(loadingMessage)
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'operatetype': 'logoff',
+                'action': 'loginLogoffQueueAgent',
+                'interface': record.member_extension,
+                'extension': this.props.queueDetail.extension
+            },
+            type: 'json',
+            async: true,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _handleAnwserMenuClick = (record, event) => {
+        if (event.key === 'hangup') {
+            this._showHangupModal(record.callerchannel, record)
+        } else if (event.key === 'insert') {
+            this._showInserModal(record)
+        } else if (event.key === 'barging') {
+            this._showBargingModal(record)
+        } else if (event.key === 'transfer') {
+            this._showTransferModal(record)
+        }
+    }
+    _handleInsertCancel = () => {
+        const form = this.insertForm
+
+        form.resetFields()
+
+        this.setState({ visibleInsert: false })
+    }
+    _handleInsertCreate = () => {
+        const form = this.insertForm
+        const { formatMessage } = this.props.intl
+
+        form.validateFields((err, values) => {
+            if (err) {
+                return
+            }
+
+            console.log('Received values of form: ', values)
+
+            const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4737" })}}></span>
+            const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG873" })}}></span>
+
+            message.loading(loadingMessage, 0)
+
+            let record = this.state.record
+
+            $.ajax({
+                type: 'get',
+                url: api.apiHost + 'action=callbarge&mode=B&channel=' + record.callerchannel + '&exten=' + record.callerid + '&barge-exten=' + values['barge-exten'],
+                // async: false,
+                // data: {
+                //     'mode': 'B',
+                //     'action': 'callbarge',
+                //     'exten': record.callerid,
+                //     'channel': record.callerchannel,
+                //     'barge-exten': values['barge-exten']
+                // },
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        message.destroy()
+                        message.success(successMessage)
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+
+            form.resetFields()
+
+            this.setState({ visibleInsert: false })
+        })
+    }
+    _handleBargingCancel = () => {
+        const form = this.bargingForm
+
+        form.resetFields()
+
+        this.setState({ visibleBarging: false })
+    }
+    _handleBargingCreate = () => {
+        const form = this.bargingForm
+        const { formatMessage } = this.props.intl
+
+        form.validateFields((err, values) => {
+            if (err) {
+                return
+            }
+
+            console.log('Received values of form: ', values)
+
+            const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4737" })}}></span>
+            const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4751" })}}></span>
+
+            message.loading(loadingMessage, 0)
+
+            let exten = values.exten.split(',')
+
+            $.ajax({
+                type: 'get',
+                url: api.apiHost + 'action=callbarge&mode=&channel=' + exten[0] + '&exten=' + exten[1] + '&barge-exten=' + values['barge-exten'],
+                // async: false,
+                // data: {
+                //     'mode': '',
+                //     'exten': exten[1],
+                //     'channel': exten[0],
+                //     'action': 'callbarge',
+                //     'barge-exten': values['barge-exten']
+                // },
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        message.destroy()
+                        message.success(successMessage)
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+
+            form.resetFields()
+
+            this.setState({ visibleBarging: false })
+        })
+    }
+    _handleTransferCancel = () => {
+        const form = this.transferForm
+
+        form.resetFields()
+
+        this.setState({ visibleTransfer: false })
+    }
+    _handleTransferCreate = () => {
+        const form = this.transferForm
+        const { formatMessage } = this.props.intl
+
+        form.validateFields((err, values) => {
+            if (err) {
+                return
+            }
+
+            console.log('Received values of form: ', values)
+
+            const loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4737" })}}></span>
+            const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG873" })}}></span>
+
+            message.loading(loadingMessage, 0)
+
+            $.ajax({
+                type: 'get',
+                url: api.apiHost + 'action=callTransfer&channel=' + values.channel + '&extension=' + values.extension,
+                // async: false,
+                // data: {
+                //     'action': 'callTransfer',
+                //     'channel': values.channel,
+                //     'extension': values.extension
+                // },
+                success: function(res) {
+                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                    if (bool) {
+                        message.destroy()
+                        message.success(successMessage)
+                    }
+                }.bind(this),
+                error: function(e) {
+                    message.error(e.statusText)
+                }
+            })
+
+            form.resetFields()
+
+            this.setState({ visibleTransfer: false })
+        })
+    }
+    _saveInsertFormRef = (form) => {
+        this.insertForm = form
+    }
+    _saveBargingFormRef = (form) => {
+        this.bargingForm = form
+    }
+    _saveTransferFormRef = (form) => {
+        this.transferForm = form
+    }
+    _showHangupModal = (callerchannel, record) => {
+        console.log(record)
+        console.log(callerchannel)
+
+        const { formatMessage } = this.props.intl
+        const successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3011" })}}></span>
+        const confirmMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3010" })}}></span>
+
+        confirm({
+            title: '',
+            onCancel: () => {},
+            content: confirmMessage,
+            okText: formatMessage({ id: 'LANG728' }),
+            cancelText: formatMessage({ id: 'LANG726' }),
+            onOk: () => {
+                $.ajax({
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    data: {
+                        'action': 'hangup',
+                        'channel': callerchannel
+                    },
+                    success: function(res) {
+                        const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(successMessage)
+                        }
+                    }.bind(this),
+                    error: function(e) {
+                        message.error(e.statusText)
+                    }
+                })
+            }
+        })
+    }
+    _showInserModal = (record) => {
+        console.log(record)
+
+        this.setState({
+            record: record,
+            visibleInsert: true
+        })
+    }
+    _showBargingModal = (record) => {
+        console.log(record)
+
+        this.setState({
+            record: record,
+            visibleBarging: true
+        })
+    }
+    _showTransferModal = (record) => {
+        console.log(record)
+
+        this.setState({
+            record: record,
+            visibleTransfer: true
+        })
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -175,9 +654,7 @@ class SwitchBoardItem extends Component {
                 dataIndex: 'option',
                 title: formatMessage({id: "LANG74"}),
                 render: (text, record, index) => {
-                    return <span
-                                className="sprite sprite-callcenter-loggin"
-                            ></span>
+                    return this._createAgentOptions(text, record, index)
                 }
             }
 
@@ -185,9 +662,9 @@ class SwitchBoardItem extends Component {
                 key: 'status',
                 dataIndex: 'status',
                 title: formatMessage({id: "LANG5214"}),
-                render: (text, record, index) => (
-                    this._createStatus(text, record, index)
-                )
+                render: (text, record, index) => {
+                    return this._createStatus(text, record, index)
+                }
             }, {
                 key: 'member_extension',
                 dataIndex: 'member_extension',
@@ -208,9 +685,9 @@ class SwitchBoardItem extends Component {
                 key: 'membership',
                 dataIndex: 'membership',
                 title: formatMessage({id: "LANG5439"}),
-                render: (text, record, index) => (
-                    this._createMemberShip(text, record, index)
-                )
+                render: (text, record, index) => {
+                    return this._createMemberShip(text, record, index)
+                }
             }]
 
         if (enableAgentLogin === 'yes') {
@@ -229,12 +706,12 @@ class SwitchBoardItem extends Component {
                             ></span>
                 }
             }, {
-                key: 'callerchannel',
-                dataIndex: 'callerchannel',
+                key: 'callerid',
+                dataIndex: 'callerid',
                 title: formatMessage({id: "LANG2646"})
             }, {
-                key: 'calleechannel',
-                dataIndex: 'calleechannel',
+                key: 'calleeid',
+                dataIndex: 'calleeid',
                 title: formatMessage({id: "LANG2647"})
             }, {
                 key: 'bridge_time',
@@ -245,10 +722,7 @@ class SwitchBoardItem extends Component {
                 dataIndex: 'option',
                 title: formatMessage({id: "LANG74"}),
                 render: (text, record, index) => {
-                    return <span
-                                title={ formatMessage({ id: "LANG74" }) }
-                                className="sprite sprite-callcenter-options"
-                            ></span>
+                    return this._createAnswerOptions(text, record, index)
                 }
             }]
 
@@ -263,8 +737,8 @@ class SwitchBoardItem extends Component {
                             ></span>
                 }
             }, {
-                key: 'callerchannel',
-                dataIndex: 'callerchannel',
+                key: 'callerid',
+                dataIndex: 'callerid',
                 title: formatMessage({id: "LANG2646"})
             }, {
                 key: 'extension',
@@ -273,6 +747,11 @@ class SwitchBoardItem extends Component {
                 render: (text, record, index) => {
                     return this.props.queueDetail.extension
                 }
+            }, {
+                key: 'position',
+                dataIndex: 'position',
+                title: formatMessage({id: "LANG4663"}),
+                sorter: (a, b) => a.position - b.position
             }, {
                 key: 'starttime',
                 dataIndex: 'starttime',
@@ -285,6 +764,7 @@ class SwitchBoardItem extends Component {
                     return <span
                                 title={ formatMessage({ id: "LANG3007" }) }
                                 className="sprite sprite-callcenter-hangup"
+                                onClick={ this._showHangupModal.bind(this, record.callerchannel, record) }
                             ></span>
                 }
             }]
@@ -303,8 +783,8 @@ class SwitchBoardItem extends Component {
                                     rowKey="position"
                                     pagination={ false }
                                     columns={ waitingColumns }
-                                    style={{ height: '240px' }}
-                                    dataSource={ this.props.waitingCallings }
+                                    style={{ height: '300px', overflow: 'auto' }}
+                                    dataSource={ _.sortBy(this.props.waitingCallings, (call) => { return call.position }) }
                                 />
                             </Card>
                         </Col>
@@ -312,14 +792,14 @@ class SwitchBoardItem extends Component {
                             <Card
                                 style={{ 'marginTop': '10px' }}
                                 className={ 'ant-card-custom-head' }
-                                title={ formatMessage({id: "LANG4287"}) }
+                                title={ formatMessage({id: "LANG5585"}) }
                             >
                                 <Table
-                                    rowKey="channel1"
+                                    rowKey="key"
                                     pagination={ false }
                                     columns={ answerColumns }
-                                    style={{ height: '240px' }}
                                     dataSource={ this.props.answerCallings }
+                                    style={{ height: '300px', overflow: 'auto' }}
                                 />
                             </Card>
                         </Col>
@@ -329,13 +809,37 @@ class SwitchBoardItem extends Component {
                         title={ formatMessage({id: "LANG143"}) }
                     >
                         <Table
+                            pagination={ false }
                             rowKey="member_extension"
                             columns={ generalColumns }
                             dataSource={ this.props.queueMembers }
-                            showHeader={ !!this.props.queueMembers.length }
-                            pagination={ this._pagination(this.props.queueMembers) }
+                            style={{ height: '406px', overflow: 'auto' }}
                         />
                     </Card>
+                    <InsertModal
+                        intl={ this.props.intl }
+                        ref={ this._saveInsertFormRef }
+                        record={ this.state.record }
+                        visible={ this.state.visibleInsert }
+                        onCancel={ this._handleInsertCancel }
+                        onCreate={ this._handleInsertCreate }
+                    />
+                    <BargingModal
+                        intl={ this.props.intl }
+                        ref={ this._saveBargingFormRef }
+                        record={ this.state.record }
+                        visible={ this.state.visibleBarging }
+                        onCancel={ this._handleBargingCancel }
+                        onCreate={ this._handleBargingCreate }
+                    />
+                    <TransferModal
+                        intl={ this.props.intl }
+                        ref={ this._saveTransferFormRef }
+                        record={ this.state.record }
+                        visible={ this.state.visibleTransfer }
+                        onCancel={ this._handleTransferCancel }
+                        onCreate={ this._handleTransferCreate }
+                    />
                 </div>
             </div>
         )

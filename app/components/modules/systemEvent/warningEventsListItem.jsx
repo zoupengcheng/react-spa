@@ -382,7 +382,7 @@ class EventListItem extends Component {
                                                 message: formatMessage({id: "LANG2150"})
                                             }, {
                                                 validator: (data, value, callback) => {
-                                                    this.state.sendDelayShow ? Validator.range(data, value, callback, formatMessage, 1, 1440) : callback()
+                                                    this.state.sendDelayShow ? Validator.range(data, value, callback, formatMessage, 0, 1440) : callback()
                                                 }
                                             }, {
                                                 validator: (data, value, callback) => {

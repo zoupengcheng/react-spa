@@ -18,7 +18,10 @@ class UserItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            userItem: {}
+            userItem: {},
+            privilegeList: [],
+            userNameList: [],
+            privilege_select: true
         }
     }
     componentWillMount() {
@@ -26,10 +29,76 @@ class UserItem extends Component {
     componentDidMount() {
         this._getInitData()
     }
+    _checkName = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && _.indexOf(this.state.userNameList, value) > -1) {
+            callback(formatMessage({id: "LANG3467"}))
+        } else {
+            callback()
+        }
+    }
     _getInitData = () => {
         const userId = this.props.params.id
         const userName = this.props.params.name
         let userItem = {}
+        let privilege_select = this.state.privilege_select
+        let privilegeList = this.state.privilegeList
+        let userNameList = this.state.userNameList
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listUser',
+                sidx: 'privilege',
+                sord: 'asc'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    const user_id = response.user_id || {}
+                    user_id.map(function(item) {
+                        userNameList.push(item.user_name)
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getPrivilege'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    const privilege = response.privilege || {}
+                    privilege.map(function(item) {
+                        if (item.level === 2 && item.privilege_id !== 1) {
+                            privilegeList.push(item)
+                        }
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
 
         if (userName) {
             $.ajax({
@@ -48,16 +117,26 @@ class UserItem extends Component {
                         const response = res.response || {}
 
                         userItem = res.response.user_name || {}
+                        if (userItem.privilege === 0 ||
+                            userItem.privilege === 2 ||
+                            userItem.privilege === 3) {
+                            privilege_select = false
+                            privilegeList = []
+                        }
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
+            userNameList = _.without(userNameList, userName)
         }
 
         this.setState({
-            userItem: userItem
+            userItem: userItem,
+            privilege_select: privilege_select,
+            privilegeList: privilegeList,
+            userNameList: userNameList
         })
     }
     _gotoChangePwd = () => {
@@ -95,9 +174,11 @@ class UserItem extends Component {
                     action.action = 'updateUser'
                     action.user_id = userId
                     action.user_name = userName
-                    delete action.user_password
-                    delete action.privilege
-                    delete action.email
+                    if (userName === 'admin' && (values.privilege + '') === '0') {
+                        delete action.user_password
+                        delete action.privilege
+                        delete action.email
+                    }
                 } else {
                     action.action = 'addUser'
                 }
@@ -130,9 +211,10 @@ class UserItem extends Component {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const userName = this.props.params.name
         const manager = <span>{ formatMessage({id: "LANG1047"}) }</span>
+        const me = this
 
         const formItemLayout = {
-            labelCol: { span: 12 },
+            labelCol: { span: 8 },
             wrapperCol: { span: 12 }
         }
 
@@ -159,243 +241,259 @@ class UserItem extends Component {
                     isDisplay='display-block'
                 />
                 <div className="content">
-                    <Row>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_user_name"
-                                { ...formItemLayout }
+                    <Form>
+                        <Row>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_user_name"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2844" />}>
-                                        <span>{formatMessage({id: "LANG2809"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('user_name', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }],
-                                    width: 100,
-                                    initialValue: (userName ? userName : "")
-                                })(
-                                    <Input maxLength='32' disabled={ userName ? true : false } />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_user_password"
-                                className={ userItem.privilege === 0 ? 'hidden' : 'display-block'}
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2844" />}>
+                                            <span>{formatMessage({id: "LANG2809"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('user_name', {
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: this._checkName
+                                        }],
+                                        width: 100,
+                                        initialValue: (userName ? userName : "")
+                                    })(
+                                        <Input maxLength='32' disabled={ userName ? true : false } />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_user_password"
+                                    className={ userItem.privilege === 0 ? 'hidden' : 'display-block'}
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2845" />}>
-                                        <span>{formatMessage({id: "LANG2810"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('user_password', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }],
-                                    width: 100,
-                                    initialValue: userItem.user_password ? userItem.user_password : ""
-                                })(
-                                    <Input maxLength='127' disabled={ userItem.privilege === 0 } />
-                                ) }
-                            </FormItem>
-                            <FormItem
-                                ref="div_user_password"
-                                { ...formItemLayout }
-                                className={ userItem.privilege === 0 ? 'display-block' : 'hidden'}
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2845" />}>
+                                            <span>{formatMessage({id: "LANG2810"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('user_password', {
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }],
+                                        width: 100,
+                                        initialValue: userItem.user_password ? userItem.user_password : ""
+                                    })(
+                                        <Input maxLength='127' disabled={ userItem.privilege === 0 } />
+                                    ) }
+                                </FormItem>
+                                <FormItem
+                                    ref="div_user_password"
+                                    { ...formItemLayout }
+                                    className={ userItem.privilege === 0 ? 'display-block' : 'hidden'}
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2845" />}>
-                                        <span>{formatMessage({id: "LANG2810"})}</span>
-                                    </Tooltip>
-                                )}>
-                                    <a className="prompt_setting" onClick={ this._gotoChangePwd } >{ formatMessage({id: "LANG55"}) }</a>
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_privilege"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2845" />}>
+                                            <span>{formatMessage({id: "LANG2810"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                        <a className="prompt_setting" onClick={ this._gotoChangePwd } >{ formatMessage({id: "LANG55"}) }</a>
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_privilege"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2846" />}>
-                                        <span>{formatMessage({id: "LANG2811"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('privilege', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.privilege || userItem.privilege === 0 ? userItem.privilege + '' : "1"
-                                })(
-                                    <Select disabled={ userName ? true : false }>
-                                        <Option key="0" value="0" className="hidden" >{<span>{formatMessage({id: "LANG3860"})}</span>}</Option>
-                                        <Option key="1" value="1">{<span>{formatMessage({id: "LANG1047"})}</span>}</Option>
-                                        <Option key="2" value="2" className="hidden" >{<span>{formatMessage({id: "LANG5173"})}</span>}</Option>
-                                        <Option key="3" value="3" className="hidden" >{<span>{formatMessage({id: "LANG2863"})}</span>}</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_department"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2846" />}>
+                                            <span>{formatMessage({id: "LANG2811"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('privilege', {
+                                        rules: [],
+                                        initialValue: userItem.privilege || userItem.privilege === 0 ? userItem.privilege + '' : "1"
+                                    })(
+                                        <Select disabled={ userName && this.state.privilege_select === false }>
+                                            <Option key="0" value="0" className="hidden" >{<span>{formatMessage({id: "LANG3860"})}</span>}</Option>
+                                            <Option key="1" value="1">{<span>{formatMessage({id: "LANG1047"})}</span>}</Option>
+                                            <Option key="2" value="2" className="hidden" >{<span>{formatMessage({id: "LANG5173"})}</span>}</Option>
+                                            <Option key="3" value="3" className="hidden" >{<span>{formatMessage({id: "LANG2863"})}</span>}</Option>
+                                            {
+                                                this.state.privilegeList.map(function(item) {
+                                                    return <Option
+                                                        key={ item.privilege_id + '' }
+                                                        value={ item.privilege_id + '' }>
+                                                        { formatMessage({id: "LANG5167"}) + ':' + item.privilege_name }
+                                                    </Option>  
+                                                })
+                                            }
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_department"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2847" />}>
-                                        <span>{formatMessage({id: "LANG2812"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('department', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.department ? userItem.department : ""
-                                })(
-                                    <Input maxLength='64' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_fax"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2847" />}>
+                                            <span>{formatMessage({id: "LANG2812"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('department', {
+                                        rules: [],
+                                        width: 100,
+                                        initialValue: userItem.department ? userItem.department : ""
+                                    })(
+                                        <Input maxLength='64' />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_fax"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2852" />}>
-                                        <span>{formatMessage({id: "LANG95"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('fax', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.fax ? userItem.fax : ""
-                                })(
-                                    <Input maxLength='32' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_email"
-                                { ...formItemLayout }
-                                className={ userItem.privilege === 0 ? 'hidden' : 'display-block'}
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2852" />}>
+                                            <span>{formatMessage({id: "LANG95"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('fax', {
+                                        rules: [],
+                                        width: 100,
+                                        initialValue: userItem.fax ? userItem.fax : ""
+                                    })(
+                                        <Input maxLength='32' />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_email"
+                                    { ...formItemLayout }
+                                    className={ userItem.privilege === 0 ? 'hidden' : 'display-block'}
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG1082" />}>
-                                        <span>{formatMessage({id: "LANG1081"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('email', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.email ? userItem.email : ""
-                                })(
-                                    <Input maxLength='255' disabled={ userItem.privilege === 0 } />
-                                ) }
-                            </FormItem>
-                            <FormItem
-                                ref="div_email"
-                                { ...formItemLayout }
-                                className={ userItem.privilege === 0 ? 'display-block' : 'hidden'}
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG1082" />}>
+                                            <span>{formatMessage({id: "LANG1081"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('email', {
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.email(data, value, callback, formatMessage)
+                                            }
+                                        }],
+                                        width: 100,
+                                        initialValue: userItem.email ? userItem.email : ""
+                                    })(
+                                        <Input maxLength='255' disabled={ userItem.privilege === 0 } />
+                                    ) }
+                                </FormItem>
+                                <FormItem
+                                    ref="div_email"
+                                    { ...formItemLayout }
+                                    className={ userItem.privilege === 0 ? 'display-block' : 'hidden'}
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG1082" />}>
-                                        <span>{formatMessage({id: "LANG1081"})}</span>
-                                    </Tooltip>
-                                )}>
-                                    <a className="prompt_setting" onClick={ this._gotoChangePwd } >{ formatMessage({id: "LANG4203"}) }</a>
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_first_name"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG1082" />}>
+                                            <span>{formatMessage({id: "LANG1081"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                        <a className="prompt_setting" onClick={ this._gotoChangePwd } >{ userItem.email ? userItem.email : formatMessage({id: "LANG4203"}) }</a>
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_first_name"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2848" />}>
-                                        <span>{formatMessage({id: "LANG2817"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('first_name', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.first_name ? userItem.first_name : ""
-                                })(
-                                    <Input maxLength='32' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_last_name"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2848" />}>
+                                            <span>{formatMessage({id: "LANG2817"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('first_name', {
+                                        rules: [],
+                                        width: 100,
+                                        initialValue: userItem.first_name ? userItem.first_name : ""
+                                    })(
+                                        <Input maxLength='32' />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_last_name"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2849" />}>
-                                        <span>{formatMessage({id: "LANG2813"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('last_name', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.last_name ? userItem.last_name : ""
-                                })(
-                                    <Input maxLength='32' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_family_number"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2849" />}>
+                                            <span>{formatMessage({id: "LANG2813"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('last_name', {
+                                        rules: [],
+                                        width: 100,
+                                        initialValue: userItem.last_name ? userItem.last_name : ""
+                                    })(
+                                        <Input maxLength='32' />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_family_number"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2850" />}>
-                                        <span>{formatMessage({id: "LANG2814"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('family_number', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.family_number ? userItem.family_number : ""
-                                })(
-                                    <Input maxLength='32' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 6 } style={{ marginRight: 20 }}>
-                            <FormItem
-                                ref="div_phone_number"
-                                { ...formItemLayout }
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2850" />}>
+                                            <span>{formatMessage({id: "LANG2814"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('family_number', {
+                                        rules: [],
+                                        width: 100,
+                                        initialValue: userItem.family_number ? userItem.family_number : ""
+                                    })(
+                                        <Input maxLength='32' />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 9 } style={{ marginRight: 20 }}>
+                                <FormItem
+                                    ref="div_phone_number"
+                                    { ...formItemLayout }
 
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG2851" />}>
-                                        <span>{formatMessage({id: "LANG2815"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('phone_number', {
-                                    rules: [],
-                                    width: 100,
-                                    initialValue: userItem.phone_number ? userItem.phone_number : ""
-                                })(
-                                    <Input maxLength='32' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
+                                    label={(
+                                        <Tooltip title={<FormattedHTMLMessage id="LANG2851" />}>
+                                            <span>{formatMessage({id: "LANG2815"})}</span>
+                                        </Tooltip>
+                                    )}>
+                                    { getFieldDecorator('phone_number', {
+                                        rules: [],
+                                        width: 100,
+                                        initialValue: userItem.phone_number ? userItem.phone_number : ""
+                                    })(
+                                        <Input maxLength='32' />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
+                    </Form>
                 </div>
             </div>
         )

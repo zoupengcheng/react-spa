@@ -177,43 +177,50 @@ class DynamicDefense extends Component {
             fail2ban: fail2ban
         })
     }
-    _removeIP = (num) => {
+    _removeIP = (k) => {
+        const { form } = this.props
+        // can use data-binding to get
+        const keys = form.getFieldValue('keys')
         let fail2ban = this.state.fail2ban
-        fail2ban[`ignoreip${num}`] = null
-        let tmp_numList = _.without(this.state.numList, num)
-        tmp_numList.push(num)
+        fail2ban[`ignoreip${k}`] = null
         this.setState({
-            fail2ban: fail2ban,
-            numList: tmp_numList
+            fail2ban: fail2ban
+        })
+        form.setFieldsValue({
+            keys: keys.filter(key => key !== k)
         })
     }
     _addIP = () => {
         const { formatMessage } = this.props.intl
-        let fail2ban = this.state.fail2ban
-        let numList = this.state.numList
+        const form = this.props.form
         if (this.state.fail2ban_enable === '1') {
-            let n_index = 0
-            numList.map(function(item, index) {
-                if (fail2ban[`ignoreip${item}`] !== null) {
-                    n_index = index + 1
-                }
-            })
-            if (n_index === 4) {
+            const keys = form.getFieldValue('keys')
+
+            if (keys.length === 4) {
                 Modal.warning({
                     content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2623"})}} ></span>,
                     okText: (formatMessage({id: "LANG727"}))
                 })
             } else {
-                fail2ban[`ignoreip${numList[n_index]}`] = ''
-                this.setState({
-                    fail2ban: fail2ban
+                const tmpNumList = [2, 3, 4, 5]
+                let nextk = null
+                tmpNumList.map(function(item) {
+                    if (_.indexOf(keys, item) === -1 && nextk === null) {
+                        nextk = item
+                    }
+                })
+                const nextKeys = keys.concat(nextk)
+                // can use data-binding to set
+                // important! notify form to detect changes
+                form.setFieldsValue({
+                    keys: nextKeys
                 })
             }
         }
     }
     render() {
         const { formatMessage } = this.props.intl
-        const { getFieldDecorator } = this.props.form
+        const { getFieldDecorator, getFieldValue } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const dynamicDefense = this.state.dynamicDefense
         const numList = this.state.numList
@@ -279,6 +286,44 @@ class DynamicDefense extends Component {
         const fail2ban = this.state.fail2ban
         const allDisable = this.state.fail2ban_enable === '0'
         const asteriskDisable = allDisable === true || fail2ban.enabled === 'no'
+
+        let keyList = []
+        for (let k = 0; k < this.state.ignoreip_list.length; k++) {
+            keyList.push(k + 2)
+        }
+        getFieldDecorator('keys', { initialValue: keyList })
+        const keys = getFieldValue('keys')
+        const formIPItem = keys.map((k, index) => {
+            return (
+                <FormItem key={k}
+                    { ...formItemWithoutLabelLayout }
+                >
+                    <Col span={ 16 }>
+                        { getFieldDecorator(`ignoreip${k}`, {
+                            rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.ipv4withcidr(data, value, callback, formatMessage)
+                                    }
+                                }],
+                            initialValue: fail2ban[`ignoreip${k}`] ? fail2ban[`ignoreip${k}`] : ''
+                        })(
+                            <Input disabled={ allDisable } />
+                        ) }
+                    </Col>
+                    <Col span={ 1 } offset={ 1 }>
+                        <Icon
+                            className="dynamic-delete-button"
+                            type="minus-circle-o"
+                            onClick={ this._removeIP.bind(this, parseInt(k)) }
+                        />
+                    </Col>
+                </FormItem>
+                )
+        })
+
         return (
             <div className="app-content-main">
                 <div className="content">
@@ -415,114 +460,7 @@ class DynamicDefense extends Component {
                                 />
                             </Col>
                         </FormItem>
-                        <FormItem
-                            { ...formItemWithoutLabelLayout }
-                            className= { fail2ban[`ignoreip${numList[0]}`] !== undefined && fail2ban[`ignoreip${numList[0]}`] !== null ? 'display-block' : 'hidden'}
-                        >
-                            <Col span={ 16 }>
-                                { getFieldDecorator(`ignoreip${numList[0]}`, {
-                                    rules: [{
-                                            required: fail2ban[`ignoreip${numList[0]}`] !== undefined && fail2ban[`ignoreip${numList[0]}`] !== null,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }, {
-                                            validator: (data, value, callback) => {
-                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
-                                            }
-                                        }],
-                                    initialValue: fail2ban[`ignoreip${numList[0]}`] ? fail2ban[`ignoreip${numList[0]}`] : ''
-                                })(
-                                    <Input disabled={ allDisable } />
-                                ) }
-                            </Col>
-                            <Col span={ 1 } offset={ 1 }>
-                                <Icon
-                                    className="dynamic-delete-button"
-                                    type="minus-circle-o"
-                                    onClick={ this._removeIP.bind(this, parseInt(numList[0])) }
-                                />
-                            </Col>
-                        </FormItem>
-                        <FormItem
-                            { ...formItemWithoutLabelLayout }
-                            className= { fail2ban[`ignoreip${numList[1]}`] !== undefined && fail2ban[`ignoreip${numList[1]}`] !== null ? 'display-block' : 'hidden'}
-                        >
-                            <Col span={ 16 }>
-                                { getFieldDecorator(`ignoreip${numList[1]}`, {
-                                    rules: [{
-                                            required: fail2ban[`ignoreip${numList[1]}`] !== undefined && fail2ban[`ignoreip${numList[1]}`] !== null,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }, {
-                                            validator: (data, value, callback) => {
-                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
-                                            }
-                                        }],
-                                    initialValue: fail2ban[`ignoreip${numList[1]}`] ? fail2ban[`ignoreip${numList[1]}`] : ''
-                                })(
-                                    <Input disabled={ allDisable } />
-                                ) }
-                            </Col>
-                            <Col span={ 1 } offset={ 1 }>
-                                <Icon
-                                    className="dynamic-delete-button"
-                                    type="minus-circle-o"
-                                    onClick={ this._removeIP.bind(this, parseInt(numList[1])) }
-                                />
-                            </Col>
-                        </FormItem>
-                        <FormItem
-                            { ...formItemWithoutLabelLayout }
-                            className= { fail2ban[`ignoreip${numList[2]}`] !== undefined && fail2ban[`ignoreip${numList[2]}`] !== null ? 'display-block' : 'hidden'}
-                        >
-                            <Col span={ 16 }>
-                                { getFieldDecorator(`ignoreip${numList[2]}`, {
-                                    rules: [{
-                                            required: fail2ban[`ignoreip${numList[2]}`] !== undefined && fail2ban[`ignoreip${numList[2]}`] !== null,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }, {
-                                            validator: (data, value, callback) => {
-                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
-                                            }
-                                        }],
-                                    initialValue: fail2ban[`ignoreip${numList[2]}`] ? fail2ban[`ignoreip${numList[2]}`] : ''
-                                })(
-                                    <Input disabled={ allDisable } />
-                                ) }
-                            </Col>
-                            <Col span={ 1 } offset={ 1 }>
-                                <Icon
-                                    className="dynamic-delete-button"
-                                    type="minus-circle-o"
-                                    onClick={ this._removeIP.bind(this, parseInt(numList[2])) }
-                                />
-                            </Col>
-                        </FormItem>
-                        <FormItem
-                            { ...formItemWithoutLabelLayout }
-                            className= { fail2ban[`ignoreip${numList[3]}`] !== undefined && fail2ban[`ignoreip${numList[3]}`] !== null ? 'display-block' : 'hidden'}
-                        >
-                            <Col span={ 16 }>
-                                { getFieldDecorator(`ignoreip${numList[3]}`, {
-                                    rules: [{
-                                            required: fail2ban[`ignoreip${numList[3]}`] !== undefined && fail2ban[`ignoreip${numList[3]}`] !== null,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }, {
-                                            validator: (data, value, callback) => {
-                                                Validator.ipv4withcidr(data, value, callback, formatMessage)
-                                            }
-                                        }],
-                                    initialValue: fail2ban[`ignoreip${numList[3]}`] ? fail2ban[`ignoreip${numList[3]}`] : ''
-                                })(
-                                    <Input disabled={ allDisable } />
-                                ) }
-                            </Col>
-                            <Col span={ 1 } offset={ 1 }>
-                                <Icon
-                                    className="dynamic-delete-button"
-                                    type="minus-circle-o"
-                                    onClick={ this._removeIP.bind(this, parseInt(numList[3])) }
-                                />
-                            </Col>
-                        </FormItem>
+                        { formIPItem }
                     </Form>
                     <div className='section-title section-title-specail'>
                         <span>

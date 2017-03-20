@@ -587,19 +587,24 @@ class MusicOnHoldList extends Component {
                                         </Tooltip>
                                     </span>
                                 )}>
-                                <Select ref="newvmenu_ext" defaultValue={ this.props.extensionList[0] ? this.props.extensionList[0].val : ""} >
-                                    {
-                                       this.props.extensionList.map(function(it) {
-                                        const val = it.val
-                                        const text = it.text
-                                        const disabled = it.disabled
+                                { getFieldDecorator('newvmenu_ext', {
+                                    rules: [],
+                                    initialValue: this.props.extensionList[0] ? this.props.extensionList[0].val : ""
+                                })(
+                                    <Select>
+                                        {
+                                           this.props.extensionList.map(function(it) {
+                                            const val = it.val
+                                            const text = it.text
+                                            const disabled = it.disabled
 
-                                        return <Option key={ val } value={ val } disabled={ disabled }>
-                                               { text ? text : val }
-                                            </Option>
-                                        })
-                                   }
-                                </Select>
+                                            return <Option key={ val } value={ val } disabled={ disabled }>
+                                                   { text ? text : val }
+                                                </Option>
+                                            })
+                                       }
+                                    </Select>
+                                ) }
                             </FormItem>
                         </div>
                         <div ref="playFile_content" className={ this._renderClass() }>

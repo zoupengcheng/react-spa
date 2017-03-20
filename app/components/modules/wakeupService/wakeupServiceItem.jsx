@@ -40,6 +40,7 @@ class WakeupServiceItem extends Component {
     componentWillMount() {
     }
     componentDidMount() {
+        this._getWakeupName()
         this._getInitData()
     }
     _checkName = (rule, value, callback) => {
@@ -47,6 +48,15 @@ class WakeupServiceItem extends Component {
 
         if (value && _.indexOf(this.state.wakeupNameList, value) > -1) {
             callback(formatMessage({id: "LANG2137"}))
+        } else {
+            callback()
+        }
+    }
+    _checkWeek = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+
+        if (value && this.state.weekList.length <= 0) {
+            callback(formatMessage({id: "LANG3531"}, {0: 1, 1: formatMessage({id: "LANG243"})}))
         } else {
             callback()
         }
@@ -544,7 +554,9 @@ class WakeupServiceItem extends Component {
                                 </Tooltip>
                             )}>
                             { getFieldDecorator('custom', {
-                                rules: [],
+                                rules: [{
+                                    validator: this._checkWeek
+                                }],
                                 valuePropName: 'checked',
                                 initialValue: this.state.customDateCheck
                             })(

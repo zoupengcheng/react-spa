@@ -152,7 +152,7 @@ class AnalogRecord extends Component {
             type: "post",
             data: {
                 'action': 'checkFile',
-                'type': 'analog_signal_auto_trace'
+                'type': 'analog_signaling_trace'
             },
             async: false,
             error: function(e) {
@@ -369,7 +369,7 @@ class AnalogRecord extends Component {
                                             onChange={ this._fxoChange } />
                                     )}
                                 </FormItem>
-                            </Col> 
+                            </Col>
                         </Row>
                         <Row>
                             <Col span={ 12 }>
@@ -391,7 +391,7 @@ class AnalogRecord extends Component {
                                             onChange={ this._fxsChange } />
                                     )}
                                 </FormItem>
-                            </Col> 
+                            </Col>
                         </Row>
                         <Row>
                             <Col span={ 12 }>

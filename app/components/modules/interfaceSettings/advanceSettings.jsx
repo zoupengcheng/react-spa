@@ -23,12 +23,17 @@ class AdvanceSettings extends Component {
             div_mfcr2DoubleSnswerTimeout_style: "hidden",
             advancedSettingsChecked: false 
         }
+        this._onChangeMfcr2SkipCategory = (e) => {
+            this.props.getSonState({
+                mfcr2SkipCategoryChecked: e.target.checked
+            })
+        }
     }
     componentWillMount() {
     }
     componentDidMount() {
         this.props.getRefs(this.refs)
-        this._resetAdvanceDefault()
+        // this._resetAdvanceDefault()
         this._initVal()
     }
     _initVal = () => {
@@ -64,6 +69,9 @@ class AdvanceSettings extends Component {
         }      
     }
     _onChangeMfAdvancedSettings = (e) => {
+        let priSettingsInfo = this.props.priSettingsInfo
+
+        priSettingsInfo.mf_advanced_settings = e.target.checked ? "yes" : "no"
         this.setState({
             advancedSettingsChecked: e.target.checked
         })
@@ -106,7 +114,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -150,7 +158,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "400",
@@ -194,7 +202,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "8",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -238,7 +246,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -282,7 +290,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -326,7 +334,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -370,7 +378,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -414,7 +422,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -458,7 +466,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -502,7 +510,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -546,7 +554,7 @@ class AdvanceSettings extends Component {
                 "mf_g2_tones__collect_call": "X",
                 "timers__mf_back_cycle": "5000",
                 "timers__mf_back_resume_cycle": "150",
-                "timers__mf_fwd_safety": "30000",
+                "timers__mf_fwd_safety": "10000",
                 "timers__r2_seize": "8000",
                 "timers__r2_answer": "80000",
                 "timers__r2_metering_pulse": "0",
@@ -577,6 +585,17 @@ class AdvanceSettings extends Component {
             customOptions_style = "display-block"
         }
 
+        let mfcr2SkipCategoryVal = false
+
+        if (priSettingsInfo.mfcr2_skip_category === "yes" || this.props.parentState.mfcr2_skip_category) {
+            mfcr2SkipCategoryVal = true 
+        } else if (parentState.mfcr2GetAniFirstChecked) {
+            mfcr2SkipCategoryVal = false
+        }
+
+        if (priSettingsInfo.mf_advanced_settings === "yes") {
+            this.state.advancedSettingsChecked = true
+        }
         return (
             <div className="content">
                 <div className="top-button">
@@ -589,571 +608,459 @@ class AdvanceSettings extends Component {
                     </Button>
                 </div>
                 <div className="ant-form">
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_switchtype"
-                                className={ parentState.div_switchtype_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG3110" />}>
-                                        <span>{formatMessage({id: "LANG3109"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('switchtype', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.switchtype ? priSettingsInfo.switchtype : "euroisdn"
-                                })(
-                                    <Select>
-                                        <Option value="euroisdn">EuroISDN</Option>
-                                        <Option value="national">NI2</Option>
-                                        <Option value="dms100">DMS100</Option>
-                                        <Option value="4ess">4ESS</Option>
-                                        <Option value="5ess">5ESS</Option>
-                                        <Option value="ni1">NI1</Option>
-                                        <Option value="qsig">Q.SIG</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_em_w_outgoing"
-                                className={ parentState.div_em_w_outgoing_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG4139" />}>
-                                        <span>{formatMessage({id: "LANG4138"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('emoutbandcalldialdelay', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.emoutbandcalldialdelay ? priSettingsInfo.emoutbandcalldialdelay : "200"
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                ref="div_em_immediate"
-                                className={ parentState.div_em_immediate_style }
-                                { ...formItemLayout }
-                                label={                            
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG4132" />}>
-                                        <span>{formatMessage({id: "LANG4131"})}</span>
-                                    </Tooltip>
-                                }>
-                                { getFieldDecorator('em_rxwink', {
-                                    rules: [],
-                                    initialValue: priSettingsInfo.em_rxwink ? priSettingsInfo.em_rxwink : "300"
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col span={ 12 }>
-
-                        </Col>
-                        <Col span={ 12 }>
-                        </Col>
-                    </Row>
+                    <FormItem
+                        ref="div_switchtype"
+                        className={ parentState.div_switchtype_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG3110" />}>
+                                <span>{formatMessage({id: "LANG3109"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('switchtype', {
+                            rules: [],
+                            initialValue: priSettingsInfo.switchtype ? priSettingsInfo.switchtype : "euroisdn"
+                        })(
+                            <Select>
+                                <Option value="euroisdn">EuroISDN</Option>
+                                <Option value="national">NI2</Option>
+                                <Option value="dms100">DMS100</Option>
+                                <Option value="4ess">4ESS</Option>
+                                <Option value="5ess">5ESS</Option>
+                                <Option value="ni1">NI1</Option>
+                                <Option value="qsig">Q.SIG</Option>
+                            </Select>
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_em_w_outgoing"
+                        className={ parentState.div_em_w_outgoing_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG4139" />}>
+                                <span>{formatMessage({id: "LANG4138"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('emoutbandcalldialdelay', {
+                            rules: [],
+                            initialValue: priSettingsInfo.emoutbandcalldialdelay ? priSettingsInfo.emoutbandcalldialdelay : "200"
+                        })(
+                            <Input />
+                        ) }
+                    </FormItem>
+                    <FormItem
+                        ref="div_em_immediate"
+                        className={ parentState.div_em_immediate_style }
+                        { ...formItemLayout }
+                        label={                            
+                            <Tooltip title={<FormattedHTMLMessage id="LANG4132" />}>
+                                <span>{formatMessage({id: "LANG4131"})}</span>
+                            </Tooltip>
+                        }>
+                        { getFieldDecorator('em_rxwink', {
+                            rules: [],
+                            initialValue: priSettingsInfo.em_rxwink ? priSettingsInfo.em_rxwink : "300"
+                        })(
+                            <Input />
+                        ) }
+                    </FormItem>
                     <div ref="div_pridialplan" className={ parentState.div_pridialplan_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                 <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3441" />}>
-                                            <span>{formatMessage({id: "LANG3440"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('pridialplan', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.pridialplan ? priSettingsInfo.pridialplan : "unknown"
-                                    })(
-                                        <Select>
-                                            <Option value="unknown">Unknown</Option>
-                                            <Option value="private">Private</Option>
-                                            <Option value="local">Local</Option>
-                                            <Option value="national">National</Option>
-                                            <Option value="international">International</Option>
-                                            <Option value="dynamic">Dynamic</Option>
-                                            <Option value="redundant">Redundant</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3443" />}>
-                                            <span>{formatMessage({id: "LANG3442"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('prilocaldialplan', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.prilocaldialplan ? priSettingsInfo.prilocaldialplan : "unknown"
-                                    })(
-                                        <Select>
-                                            <Option value="unknown">Unknown</Option>
-                                            <Option value="private">Private</Option>
-                                            <Option value="local">Local</Option>
-                                            <Option value="national">National</Option>
-                                            <Option value="international">International</Option>
-                                            <Option value="dynamic">Dynamic</Option>
-                                            <Option value="redundant">Redundant</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
+                         <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3441" />}>
+                                    <span>{formatMessage({id: "LANG3440"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('pridialplan', {
+                                rules: [],
+                                initialValue: priSettingsInfo.pridialplan ? priSettingsInfo.pridialplan : "unknown"
+                            })(
+                                <Select>
+                                    <Option value="unknown">Unknown</Option>
+                                    <Option value="private">Private</Option>
+                                    <Option value="local">Local</Option>
+                                    <Option value="national">National</Option>
+                                    <Option value="international">International</Option>
+                                    <Option value="dynamic">Dynamic</Option>
+                                    <Option value="redundant">Redundant</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3443" />}>
+                                    <span>{formatMessage({id: "LANG3442"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('prilocaldialplan', {
+                                rules: [],
+                                initialValue: priSettingsInfo.prilocaldialplan ? priSettingsInfo.prilocaldialplan : "unknown"
+                            })(
+                                <Select>
+                                    <Option value="unknown">Unknown</Option>
+                                    <Option value="private">Private</Option>
+                                    <Option value="local">Local</Option>
+                                    <Option value="national">National</Option>
+                                    <Option value="international">International</Option>
+                                    <Option value="dynamic">Dynamic</Option>
+                                    <Option value="redundant">Redundant</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
                     </div>
                     <div ref="div_SS7dialplan" className={ parentState.div_SS7dialplan_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                 <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3112" />}>
-                                            <span>{formatMessage({id: "LANG3111"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('ss7_called_nai', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.ss7_called_nai ? priSettingsInfo.ss7_called_nai : "unknown"
-                                    })(
-                                        <Select>
-                                            <Option value="unknown">Unknown</Option>
-                                            <Option value="subscriber">Subscriber</Option>
-                                            <Option value="national">National</Option>
-                                            <Option value="international">International</Option>
-                                            <Option value="dynamic">Dynamic</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3114" />}>
-                                            <span>{formatMessage({id: "LANG3113"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('ss7_calling_nai', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.ss7_calling_nai ? priSettingsInfo.ss7_calling_nai : "unknown"
-                                    })(
-                                        <Select>
-                                            <Option value="unknown">Unknown</Option>
-                                            <Option value="subscriber">Subscriber</Option>
-                                            <Option value="national">National</Option>
-                                            <Option value="international">International</Option>
-                                            <Option value="dynamic">Dynamic</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
+                         <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3112" />}>
+                                    <span>{formatMessage({id: "LANG3111"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('ss7_called_nai', {
+                                rules: [],
+                                initialValue: priSettingsInfo.ss7_called_nai ? priSettingsInfo.ss7_called_nai : "unknown"
+                            })(
+                                <Select>
+                                    <Option value="unknown">Unknown</Option>
+                                    <Option value="subscriber">Subscriber</Option>
+                                    <Option value="national">National</Option>
+                                    <Option value="international">International</Option>
+                                    <Option value="dynamic">Dynamic</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3114" />}>
+                                    <span>{formatMessage({id: "LANG3113"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('ss7_calling_nai', {
+                                rules: [],
+                                initialValue: priSettingsInfo.ss7_calling_nai ? priSettingsInfo.ss7_calling_nai : "unknown"
+                            })(
+                                <Select>
+                                    <Option value="unknown">Unknown</Option>
+                                    <Option value="subscriber">Subscriber</Option>
+                                    <Option value="national">National</Option>
+                                    <Option value="international">International</Option>
+                                    <Option value="dynamic">Dynamic</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
                     </div>
-                    <Row>
-                        <Col span={ 12 }>
-                        </Col>
-                        <Col span={ 12 }>
-                        </Col>
-                    </Row>
                     <div ref="div_callerIdPrefix" className={ parentState.div_callerIdPrefix_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                 <FormItem
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3191"}) }>
-                                    { getFieldDecorator('internationalprefix', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.internationalprefix ? priSettingsInfo.internationalprefix : ""
-                                    })(
-                                        <Input maxLength="10" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3192"}) }>
-                                    { getFieldDecorator('nationalprefix', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.nationalprefi
-                                    })(
-                                        <Input maxLength="10" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                 <FormItem
-                                    ref="div_subscriberprefix"
-                                    className={ parentState.div_subscriberprefix_style }
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3380"}) }>
-                                    { getFieldDecorator('subscriberprefix', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.subscriberprefix ? priSettingsInfo.subscriberprefix : ""
-                                    })(
-                                        <Input maxLength="20" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    ref="div_localprefix"
-                                    className={ parentState.div_localprefix_style }
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3193"}) }>
-                                    { getFieldDecorator('localprefix', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.localprefix ? priSettingsInfo.localprefix : ""
-                                    })(
-                                        <Input maxLength="20" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                 <FormItem
-                                    ref="div_privateprefix"
-                                    className={ parentState.div_privateprefix_style }
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3194"}) }>
-                                    { getFieldDecorator('privateprefix', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.privateprefix ? priSettingsInfo.privateprefix : ""
-                                    })(
-                                        <Input maxLength="20" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3195"}) }>
-                                    { getFieldDecorator('unknownprefix', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.unknownprefix ? priSettingsInfo.unknownprefix : ""
-                                    })(
-                                        <Input maxLength="20" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                 <FormItem
-                                    ref="div_priT310"
-                                    className={ parentState.div_priT310_style }
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG4368"}) }>
-                                    { getFieldDecorator('pri_timer_t310', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.pri_timer_t310 ? priSettingsInfo.pri_timer_t310 : "10"
-                                    })(
-                                        <Input maxLength="10" />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                            </Col>
-                        </Row>
+                         <FormItem
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3191"}) }>
+                            { getFieldDecorator('internationalprefix', {
+                                rules: [],
+                                initialValue: priSettingsInfo.internationalprefix ? priSettingsInfo.internationalprefix : ""
+                            })(
+                                <Input maxLength="10" />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3192"}) }>
+                            { getFieldDecorator('nationalprefix', {
+                                rules: [],
+                                initialValue: priSettingsInfo.nationalprefi
+                            })(
+                                <Input maxLength="10" />
+                            ) }
+                        </FormItem>
+                         <FormItem
+                            ref="div_subscriberprefix"
+                            className={ parentState.div_subscriberprefix_style }
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3380"}) }>
+                            { getFieldDecorator('subscriberprefix', {
+                                rules: [],
+                                initialValue: priSettingsInfo.subscriberprefix ? priSettingsInfo.subscriberprefix : ""
+                            })(
+                                <Input maxLength="20" />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            ref="div_localprefix"
+                            className={ parentState.div_localprefix_style }
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3193"}) }>
+                            { getFieldDecorator('localprefix', {
+                                rules: [],
+                                initialValue: priSettingsInfo.localprefix ? priSettingsInfo.localprefix : ""
+                            })(
+                                <Input maxLength="20" />
+                            ) }
+                        </FormItem>
+                         <FormItem
+                            ref="div_privateprefix"
+                            className={ parentState.div_privateprefix_style }
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3194"}) }>
+                            { getFieldDecorator('privateprefix', {
+                                rules: [],
+                                initialValue: priSettingsInfo.privateprefix ? priSettingsInfo.privateprefix : ""
+                            })(
+                                <Input maxLength="20" />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3195"}) }>
+                            { getFieldDecorator('unknownprefix', {
+                                rules: [],
+                                initialValue: priSettingsInfo.unknownprefix ? priSettingsInfo.unknownprefix : ""
+                            })(
+                                <Input maxLength="20" />
+                            ) }
+                        </FormItem>
+                         <FormItem
+                            ref="div_priT310"
+                            className={ parentState.div_priT310_style }
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG4368"}) }>
+                            { getFieldDecorator('pri_timer_t310', {
+                                rules: [],
+                                initialValue: priSettingsInfo.pri_timer_t310 ? priSettingsInfo.pri_timer_t310 : "10"
+                            })(
+                                <Input maxLength="10" />
+                            ) }
+                        </FormItem>
                     </div>
                     <div ref="div_special" className={ parentState.div_special_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3116" />}>
-                                            <span>{formatMessage({id: "LANG3115"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('priindication', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.priindication ? priSettingsInfo.priindication : "inband"
-                                    })(
-                                        <Select>
-                                            <Option value="inband">inband</Option>
-                                            <Option value="outofband">outofband</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG2785" />}>
-                                            <span>{formatMessage({id: "LANG2841"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('resetinterval', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.resetinterval ? String(priSettingsInfo.resetinterval) : "never"
-                                    })(
-                                        <Select>    
-                                            <Option value="never" locale="LANG546">Never</Option>
-                                            <Option value="300">300</Option>
-                                            <Option value="1800">1800</Option>
-                                            <Option value="3600">3600</Option>
-                                            <Option value="7200">7200</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                               <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3118" />}>
-                                            <span>{formatMessage({id: "LANG3117"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('priexclusive', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.priexclusive === "yes" ? true : false
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                               <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3122" />}>
-                                            <span>{formatMessage({id: "LANG3121"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('facilityenable', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.facilityenable === "yes" ? true : false
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3120" />}>
-                                            <span>{formatMessage({id: "LANG3119"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('overlapdial', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.overlapdial ? priSettingsInfo.overlapdial : "no"
-                                    })(
-                                        <Select>
-                                            <Option value="no">No</Option>
-                                            <Option value="incoming">Incoming</Option>
-                                            <Option value="outgoing">Outgoing</Option>
-                                            <Option value="both">Both</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3124" />}>
-                                            <span>{formatMessage({id: "LANG3123"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('nsf', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.nsf ? priSettingsInfo.nsf : "none"
-                                    })(
-                                        <Select>    
-                                            <Option value="none">none</Option>
-                                            <Option value="sdn">sdn</Option>
-                                            <Option value="megacom">megacom</Option>
-                                            <Option value="tollfreemegacom">tollfreemegacom</Option>
-                                            <Option value="accunet">accunet</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3116" />}>
+                                    <span>{formatMessage({id: "LANG3115"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('priindication', {
+                                rules: [],
+                                initialValue: priSettingsInfo.priindication ? priSettingsInfo.priindication : "inband"
+                            })(
+                                <Select>
+                                    <Option value="inband">inband</Option>
+                                    <Option value="outofband">outofband</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG2785" />}>
+                                    <span>{formatMessage({id: "LANG2841"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('resetinterval', {
+                                rules: [],
+                                initialValue: priSettingsInfo.resetinterval ? String(priSettingsInfo.resetinterval) : "never"
+                            })(
+                                <Select>    
+                                    <Option value="never" locale="LANG546">Never</Option>
+                                    <Option value="300">300</Option>
+                                    <Option value="1800">1800</Option>
+                                    <Option value="3600">3600</Option>
+                                    <Option value="7200">7200</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                       <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3118" />}>
+                                    <span>{formatMessage({id: "LANG3117"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('priexclusive', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.priexclusive === "yes" ? true : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                       <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3122" />}>
+                                    <span>{formatMessage({id: "LANG3121"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('facilityenable', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.facilityenable === "yes" ? true : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3120" />}>
+                                    <span>{formatMessage({id: "LANG3119"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('overlapdial', {
+                                rules: [],
+                                initialValue: priSettingsInfo.overlapdial ? priSettingsInfo.overlapdial : "no"
+                            })(
+                                <Select>
+                                    <Option value="no">No</Option>
+                                    <Option value="incoming">Incoming</Option>
+                                    <Option value="outgoing">Outgoing</Option>
+                                    <Option value="both">Both</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3124" />}>
+                                    <span>{formatMessage({id: "LANG3123"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('nsf', {
+                                rules: [],
+                                initialValue: priSettingsInfo.nsf ? priSettingsInfo.nsf : "none"
+                            })(
+                                <Select>    
+                                    <Option value="none">none</Option>
+                                    <Option value="sdn">sdn</Option>
+                                    <Option value="megacom">megacom</Option>
+                                    <Option value="tollfreemegacom">tollfreemegacom</Option>
+                                    <Option value="accunet">accunet</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
                     </div>
                     <div ref="div_R2Advanced" className={ parentState.div_R2Advanced_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3308" />}>
-                                            <span>{formatMessage({id: "LANG3307"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_mfback_timeout', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.mfcr2_mfback_timeout ? priSettingsInfo.mfcr2_mfback_timeout : "-1"
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3310" />}>
-                                            <span>{formatMessage({id: "LANG3309"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_metering_pulse_timeout', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.mfcr2_metering_pulse_timeout ? priSettingsInfo.mfcr2_metering_pulse_timeout : "-1"
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3306" />}>
-                                            <span>{formatMessage({id: "LANG3305"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_allow_collect_calls', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mfcr2_metering_pulse_timeout === "yes" ? true : false
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3322" />}>
-                                            <span>{formatMessage({id: "LANG3321"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_double_answer', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mfcr2_double_answer === "yes" ? true : false
-                                    })(
-                                        <Checkbox onChange={ this._onChangeMfcr2DoubleAnswer } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    ref="div_mfcr2DoubleSnswerTimeout"
-                                    className={ this.state.div_mfcr2DoubleSnswerTimeout_style }
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3369" />}>
-                                            <span>{formatMessage({id: "LANG3368"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_double_answer_timeout', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.mfcr2_double_answer_timeout ? priSettingsInfo.mfcr2_double_answer_timeout : "-1"
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3314" />}>
-                                            <span>{formatMessage({id: "LANG3313"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_accept_on_offer', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mfcr2_accept_on_offer !== "no" ? true : false
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3262" /> }>
-                                            <span>{ formatMessage({id: "LANG3261"}) }</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('networkindicator', {
-                                        rules: [],
-                                        initialValue: priSettingsInfo.networkindicator ? priSettingsInfo.networkindicator : "national"
-                                    })(
-                                        <Select>
-                                            <Option value="national">National</Option>
-                                            <Option value="national_spare">National Spare</Option>
-                                            <Option value="international">International</Option>
-                                            <Option value="international_spare">International Spare</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={                            
-                                        <Tooltip title={<FormattedHTMLMessage id="LANG3320" />}>
-                                            <span>{formatMessage({id: "LANG3319"})}</span>
-                                        </Tooltip>
-                                    }>
-                                    { getFieldDecorator('mfcr2_charge_calls', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mfcr2_charge_calls !== "no" ? true : false
-                                    })(
-                                        <Checkbox />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                            </Col>
-                        </Row>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3308" />}>
+                                    <span>{formatMessage({id: "LANG3307"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_mfback_timeout', {
+                                rules: [],
+                                initialValue: priSettingsInfo.mfcr2_mfback_timeout ? priSettingsInfo.mfcr2_mfback_timeout : "-1"
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3310" />}>
+                                    <span>{formatMessage({id: "LANG3309"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_metering_pulse_timeout', {
+                                rules: [],
+                                initialValue: priSettingsInfo.mfcr2_metering_pulse_timeout ? priSettingsInfo.mfcr2_metering_pulse_timeout : "-1"
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3306" />}>
+                                    <span>{formatMessage({id: "LANG3305"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_allow_collect_calls', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.mfcr2_metering_pulse_timeout === "yes" ? true : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3322" />}>
+                                    <span>{formatMessage({id: "LANG3321"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_double_answer', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.mfcr2_double_answer === "yes" ? true : false
+                            })(
+                                <Checkbox onChange={ this._onChangeMfcr2DoubleAnswer } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            ref="div_mfcr2DoubleSnswerTimeout"
+                            className={ this.state.div_mfcr2DoubleSnswerTimeout_style }
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3369" />}>
+                                    <span>{formatMessage({id: "LANG3368"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_double_answer_timeout', {
+                                rules: [],
+                                initialValue: priSettingsInfo.mfcr2_double_answer_timeout ? priSettingsInfo.mfcr2_double_answer_timeout : "-1"
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3314" />}>
+                                    <span>{formatMessage({id: "LANG3313"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_accept_on_offer', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.mfcr2_accept_on_offer !== "no" ? true : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            ref="mfcr2_skip_category"
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3316" />}>
+                                    <span>{formatMessage({id: "LANG3315"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_skip_category', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: mfcr2SkipCategoryVal
+                            })(
+                                <Checkbox onChange={ this._onChangeMfcr2SkipCategory } disabled={ parentState.mfcr2GetAniFirstChecked } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={                            
+                                <Tooltip title={<FormattedHTMLMessage id="LANG3320" />}>
+                                    <span>{formatMessage({id: "LANG3319"})}</span>
+                                </Tooltip>
+                            }>
+                            { getFieldDecorator('mfcr2_charge_calls', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.mfcr2_charge_calls !== "no" ? true : false
+                            })(
+                                <Checkbox />
+                            ) }
+                        </FormItem>
                     </div>
                     <div ref="div_otherR2Advanced" className={ customOptions_style }>
                         <Row>

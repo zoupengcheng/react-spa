@@ -521,20 +521,20 @@ class Feature extends Component {
                                 { ...formItemLayout }
                                 label={(
                                     <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3374" /> }>
-                                            <span>{ formatMessage({id: "LANG3371"}) }</span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3375" /> }>
+                                            <span>{ formatMessage({id: "LANG3372"}) }</span>
                                         </Tooltip>
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('cfu_timetype', {
+                                { getFieldDecorator('cfn_timetype', {
                                     rules: [
                                         {
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0'
+                                    initialValue: settings.cfn_timetype ? settings.cfn_timetype + '' : '0'
                                 })(
                                     <Select>
                                         <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>

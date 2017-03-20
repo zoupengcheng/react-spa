@@ -224,6 +224,17 @@ class AMISetting extends Component {
                 action.timestampevents = values.timestampevents ? 'yes' : 'no'
                 action.action = "updateAmiSettings"
 
+                let amiItem = this.state.amiItem
+                let reboot = true
+                if (amiItem.port + '' === action.port + '' &&
+                    amiItem.tlsenable === action.tlsenable &&
+                    amiItem.timestampevents === action.timestampevents &&
+                    amiItem.tlsbindport + '' === action.tlsbindport + '' &&
+                    amiItem.tlsbindaddr + '' === action.tlsbindaddr + '' &&
+                    amiItem.writetimeout + '' === action.writetimeout + '') {
+                    reboot = false
+                }
+
                 $.ajax({
                     url: api.apiHost,
                     method: "post",
@@ -238,12 +249,14 @@ class AMISetting extends Component {
                         if (bool) {
                             message.destroy()
                             message.success(successMessage)
-                            Modal.confirm({
-                                content: <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG833" })}}></span>,
-                                okText: formatMessage({id: "LANG727"}),
-                                cancelText: formatMessage({id: "LANG726"}),
-                                onOk: this._reBoot.bind(this)
-                            })
+                            if (reboot) {
+                                Modal.confirm({
+                                    content: <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG833" })}}></span>,
+                                    okText: formatMessage({id: "LANG727"}),
+                                    cancelText: formatMessage({id: "LANG726"}),
+                                    onOk: this._reBoot.bind(this)
+                                })
+                            }
                     }
 
                         this._handleCancel()

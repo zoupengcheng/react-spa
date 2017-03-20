@@ -25,6 +25,17 @@ class WarningContact extends Component {
     componentDidMount() {
         this._getInitDate()
     }
+    _checkRequire = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const enEmail = this.props.enEmail
+        const manager_0 = getFieldValue('manager_0')
+        if (enEmail && manager_0 === "") {
+            callback(formatMessage({id: "LANG2150"}))
+        } else {
+            callback()
+        }
+    }
     _getInitDate = () => {
         let superList = this.state.superList
         let managerList = this.state.managerList
@@ -271,7 +282,7 @@ class WarningContact extends Component {
 
             } else {
                 return (
-                <FormItem
+                <FormItem key={k.key}
                     { ...formItemWithoutLabelLayout }
                 >
                     <Col span="8">
@@ -280,6 +291,10 @@ class WarningContact extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.email(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 initialValue: k.value
                                 })(
@@ -303,7 +318,7 @@ class WarningContact extends Component {
 
             } else {
                 return (
-                <FormItem
+                <FormItem key={k.key}
                     { ...formItemWithoutLabelLayout }
                 >
                     <Col span="8">
@@ -312,6 +327,10 @@ class WarningContact extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.email(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 initialValue: k.value
                                 })(
@@ -346,8 +365,7 @@ class WarningContact extends Component {
                                 <FormItem>
                                     {getFieldDecorator("super_0", {
                                         rules: [{
-                                            required: this.props.enEmail,
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._checkRequire
                                         }, {
                                             validator: (data, value, callback) => {
                                                 Validator.email(data, value, callback, formatMessage)

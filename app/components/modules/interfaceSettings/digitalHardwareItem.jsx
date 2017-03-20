@@ -17,28 +17,26 @@ const TabPane = Tabs.TabPane
 import Validator from "../../api/validator"
 const baseServerURl = api.apiHost
 
-global.groupInfo = {}
-global.originSpanType = ''
-global.bchanTotalChans = ""
-global.oldDigitalGroupName = ""
-global.oldGroupName = ""
-global.oldSingnaling = ""
-global.oldFraming = ""
-global.oldCoding = ""
-global.digitalHardwareSettingsAction = {}
-global.groupIndex = ""
-global.oldHardhdlc = ""
-global.otherArr = []
-global.lastOtherArr = []
-global.allGroupArr = []
-
 class DigitalHardwareItem extends Component {
+
     constructor(props) {
         super(props)
         this.state = {
             priSettingsInfo: {},
             refs: {},
-            hardhdlcOpts: []
+            hardhdlcOpts: [],
+            originSpanType: '',
+            oldDigitalGroupName: '',
+            oldSingnaling: '',
+            oldFraming: '',
+            oldCoding: '',
+            oldHardhdlc: '',
+            bchanTotalChans: '',
+            mfcR2Settings: this.props.location.state ? this.props.location.state.mfcR2Settings : [],
+            ss7Settings: this.props.location.state ? this.props.location.state.ss7Settings : [],
+            mfcr2SkipCategoryChecked: false,
+            mfcr2SkipCategoryVal: false,
+            mfcr2GetAniFirstChecked: false
         }
     }
     componentDidMount() {
@@ -57,6 +55,9 @@ class DigitalHardwareItem extends Component {
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
         const form = this.props.form
+        let locationState = this.props.location.state,
+            ss7Settings = locationState.ss7Settings,
+            mfcR2Settings = locationState.mfcR2Settings
 
         // form.validateFieldsAndScroll((err, values) => {
         //     let me = this
@@ -105,13 +106,13 @@ class DigitalHardwareItem extends Component {
             hardhdlcVal = form.getFieldValue("hardhdlc") || this.state.priSettingsInfo.hardhdlc
 
         if (signallingVal === "ss7") {
-            if (global.ss7Settings[0]) {
+            if (ss7Settings[0]) {
                 this._updateDigitalHardwareSettings()
             } else {
                 this._addDigitalHardwareSS7Settings()
             }
         } else if (signallingVal === "mfcr2") {
-            if (global.mfcR2Settings[0]) {
+            if (mfcR2Settings[0]) {
                 this._updateDigitalHardwareSettings()
             } else {
                 this._addDigitalHardwareR2Settings()
@@ -163,7 +164,12 @@ class DigitalHardwareItem extends Component {
         let spanTypeVal = form.getFieldValue("span_type"),
             action = {},
             digitalHardwareSettingsAction = {},
-            signallingVal = form.getFieldValue("signalling")
+            signallingVal = form.getFieldValue("signalling"),
+            state = this.state
+
+        let mfcR2Settings = state.mfcR2Settings[0],
+            priSettingsInfo = state.priSettingsInfo,
+            ss7Settings = state.ss7Settings[0]
 
         if (!this._isChangeSignallingForDataTrunk()) {
             message.error(formatMessage({ id: "LANG3978"}, { 0: form.getFieldValue("hardhdlc") }))
@@ -176,14 +182,15 @@ class DigitalHardwareItem extends Component {
             usedChannelArr = [],
             arr = [],
             actionObj = {},
-            originSpanType = global.originSpanType
+            originSpanType = this.state.originSpanType,
+            locationState = this.props.location.state
 
         if (originSpanType === "E1") {
-            digitalGroupInfo = global.digitalGroupE1
+            digitalGroupInfo = locationState.digitalGroupE1
         } else if (originSpanType === "T1") {
-            digitalGroupInfo = global.digitalGroupT1
+            digitalGroupInfo = locationState.digitalGroupT1
         } else if (originSpanType === "J1") {
-            digitalGroupInfo = global.digitalGroupJ1
+            digitalGroupInfo = locationState.digitalGroupJ1
         }
 
         let totalChannelArr = this._getTotalChannelArr(spanTypeVal, hardhdlc)
@@ -260,6 +267,14 @@ class DigitalHardwareItem extends Component {
                 action[index] = "yes"
             } else if (action[index] === false) {
                 action[index] = "no"
+            } else if (typeof action[index] === "undefined") {
+                if (mfcR2Settings[index]) {
+                    action[index] = mfcR2Settings[index]
+                } else if (priSettingsInfo[index]) {
+                    action[index] = priSettingsInfo[index]
+                } else if (ss7Settings[index]) {
+                    action[index] = ss7Settings[index]
+                }
             }
         })
 
@@ -349,7 +364,7 @@ class DigitalHardwareItem extends Component {
 
         actions['framing'] = form.getFieldValue("framing")
 
-        actions["bchan"] = this._getBchan(global.bchanTotalChans)
+        actions["bchan"] = this._getBchan(this.state.bchanTotalChans)
         actions["action"] = "updateDigitalHardwareSettings"
 
         for (let i = 0, length = params.length; i < length; i++) {
@@ -374,11 +389,24 @@ class DigitalHardwareItem extends Component {
     _updateDigitalHardware = (digitalHardwareSettingsAction, actionObj) => {
         const { formatMessage } = this.props.intl
 
+        let state = this.state
+        let mfcR2Settings = state.mfcR2Settings[0],
+            priSettingsInfo = state.priSettingsInfo,
+            ss7Settings = state.ss7Settings[0]
+
         _.map(digitalHardwareSettingsAction, function(item, index) {
             if (digitalHardwareSettingsAction[index] === true) {
                 digitalHardwareSettingsAction[index] = "yes"
             } else if (digitalHardwareSettingsAction[index] === false) {
                 digitalHardwareSettingsAction[index] = "no"
+            } else if (typeof digitalHardwareSettingsAction[index] === "undefined") {
+                if (mfcR2Settings[index]) {
+                    digitalHardwareSettingsAction[index] = mfcR2Settings[index]
+                } else if (priSettingsInfo[index]) {
+                    digitalHardwareSettingsAction[index] = priSettingsInfo[index]
+                } else if (ss7Settings[index]) {
+                    digitalHardwareSettingsAction[index] = ss7Settings[index]
+                }
             }
         })
         $.ajax({
@@ -402,7 +430,12 @@ class DigitalHardwareItem extends Component {
         const { formatMessage } = this.props.intl
 
         let fieldsObj = form.getFieldValue(),
+            state = this.state,
             actions = {}
+
+        let mfcR2Settings = state.mfcR2Settings[0],
+            priSettingsInfo = state.priSettingsInfo,
+            ss7Settings = state.ss7Settings[0]
 
         actions["mfcr2_variant"] = form.getFieldValue("mfcr2_variant")
         actions["mfcr2_get_ani_first"] = form.getFieldValue("mfcr2_get_ani_first")
@@ -410,7 +443,7 @@ class DigitalHardwareItem extends Component {
         actions["mfcr2_play_local_rbt"] = form.getFieldValue("mfcr2_play_local_rbt")
 
         let R2AdvancedParams = ["mfcr2_mfback_timeout", "mfcr2_metering_pulse_timeout", "mfcr2_allow_collect_calls", 
-                                "mfcr2_double_answer", "mfcr2_double_answer_timeout", "mfcr2_accept_on_offer", "networkindicator", 
+                                "mfcr2_double_answer", "mfcr2_double_answer_timeout", "mfcr2_accept_on_offer", "mfcr2_skip_category", 
                                 "mfcr2_charge_calls"]
         actions = _.extend(actions, form.getFieldsValue(R2AdvancedParams))
 
@@ -438,10 +471,10 @@ class DigitalHardwareItem extends Component {
         actions["mfcr2_max_ani"] = 32
         actions["mfcr2_max_dnis"] = 32
 
-        if (this.state.refs.mfcr2_get_ani_first && this.state.refs.mfcr2_get_ani_first.props.disabled) {
+        if (this.state.mfcr2SkipCategoryChecked) {
             actions["mfcr2_get_ani_first"] = "no"
         }
-        if (this.state.refs.mfcr2_skip_category && this.state.refs.mfcr2_skip_category.props.disabled) {
+        if (this.state.mfcr2GetAniFirstChecked) {
             actions["mfcr2_skip_category"] = "no"
         }
 
@@ -470,8 +503,16 @@ class DigitalHardwareItem extends Component {
         _.map(actions, function(item, index) {
             if (actions[index] === true) {
                 actions[index] = "yes"
-            } else if (action[index] === false) {
+            } else if (actions[index] === false) {
                 actions[index] = "no"
+            } else if (typeof actions[index] === "undefined") {
+                if (mfcR2Settings[index]) {
+                    actions[index] = mfcR2Settings[index]
+                } else if (priSettingsInfo[index]) {
+                    actions[index] = priSettingsInfo[index]
+                } else if (ss7Settings[index]) {
+                    actions[index] = ss7Settings[index]
+                }
             }
         })
 
@@ -508,10 +549,11 @@ class DigitalHardwareItem extends Component {
         const form = this.props.form
 
         let fieldsObj = form.getFieldsValue(),
-            dataTrunkChannelList = global.dataTrunkChannelList
-
+            locationState = this.props.location.state,
+            dataTrunkChannelList = locationState.dataTrunkChannelList
+            
         let signallingVal = fieldsObj.signalling,
-            hardhdlc = fieldsObj.hardhdlc || global.priSettings.hardhdlc,
+            hardhdlc = fieldsObj.hardhdlc || locationState.priSettings.hardhdlc,
             dataTrunkChannelListArr = dataTrunkChannelList.toString().split(","),
             totalArr = this._getTotalArr(dataTrunkChannelListArr)
 
@@ -524,9 +566,10 @@ class DigitalHardwareItem extends Component {
     _isModifyGroupChanneOfDataTrunk = (type) => {
         const form = this.props.form
 
-        let digitalGroup = global.digitalGroup,
+        let locationState = this.props.location.state, 
+            digitalGroup = locationState.digitalGroup,
             flag = false,
-            dataTrunkChannelObj = global.dataTrunkChannelObj,
+            dataTrunkChannelObj = locationState.dataTrunkChannelObj,
             groupInfo = this.props.params.span,
             groupInfoGroupIndex = "",
             groupInfoSpan = "",
@@ -583,9 +626,10 @@ class DigitalHardwareItem extends Component {
         const { formatMessage } = this.props.intl
         const form = this.props.form
 
-        let priSettings = global.priSettings,
-            ss7Settings = global.ss7Settings[0],
-            mfcR2Settings = global.mfcR2Settings[0],
+        let locationState = this.props.location.state,
+            priSettings = locationState.priSettings,
+            ss7Settings = locationState.ss7Settings[0],
+            mfcR2Settings = locationState.mfcR2Settings[0],
             priSettingsInfo = {}
 
         for (let i = 0; i < priSettings.length; i++) {
@@ -598,12 +642,12 @@ class DigitalHardwareItem extends Component {
                 //    span_type: priSettingsInfo.span_type
                 // })
 
-                global.originSpanType = priSettingsInfo.span_type
-                global.oldDigitalGroupName = priSettingsInfo.digital_group_name
-                global.oldSingnaling = priSettingsInfo.signalling
-                global.oldFraming = priSettingsInfo.framing
-                global.oldCoding = priSettingsInfo.coding
-                global.oldHardhdlc = priSettingsInfo.hardhdlc
+                this.state.originSpanType = priSettingsInfo.span_type
+                this.state.oldDigitalGroupName = priSettingsInfo.digital_group_name
+                this.state.oldSingnaling = priSettingsInfo.signalling
+                this.state.oldFraming = priSettingsInfo.framing
+                this.state.oldCoding = priSettingsInfo.coding
+                this.state.oldHardhdlc = priSettingsInfo.hardhdlc
             }
         }
 
@@ -761,7 +805,8 @@ class DigitalHardwareItem extends Component {
         return endTotalArr
     }
     _getDataTrunkChansArr = () => {
-        let dataTrunkChannelObj = global.dataTrunkChannelObj,
+        let locationState = this.props.location.state,
+            dataTrunkChannelObj = global.dataTrunkChannelObj,
             allChansRangeStr = ""
 
         for (let prop in dataTrunkChannelObj) {
@@ -774,7 +819,8 @@ class DigitalHardwareItem extends Component {
     }
     _getTotalChans = () => {
         let totleChans = 31,
-            priSettingsInfo = global.priSettings
+            locationState = this.props.location.state,
+            priSettingsInfo = locationState.priSettings
 
         for (let i = 0; i < priSettingsInfo.length; i++) {
             let priSettingsInfoIndex = priSettingsInfo[i],

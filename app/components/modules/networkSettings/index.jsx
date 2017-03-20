@@ -485,6 +485,8 @@ class NetWorkSettings extends Component {
     }
     _handleCancel = () => {
         browserHistory.push('/system-settings/networkSettings')
+        this._getInitNetwork()
+        this.props.form.resetFields()
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl

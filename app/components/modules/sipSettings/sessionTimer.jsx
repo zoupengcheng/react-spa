@@ -121,8 +121,7 @@ class SessionTimer extends Component {
             }            
         } else {
             _.extend(this.props.dataSource, changedFields)  
-        }
-        this.forceUpdate()  
+        }  
     }
     render() {
         const {formatMessage} = this.props.intl

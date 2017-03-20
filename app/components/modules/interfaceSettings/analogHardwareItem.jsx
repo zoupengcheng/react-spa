@@ -152,7 +152,7 @@ class AnalogItem extends Component {
     }
     _reflesh_status = () => {
         const { formatMessage } = this.props.intl
-        const { getFieldValue } = this.props.form
+        const { getFieldValue, setFieldsValue } = this.props.form
         const __this = this
         let portList = []
         const fxoChansNum = Number(JSON.parse(localStorage.getItem('model_info')).num_fxo)
@@ -199,7 +199,10 @@ class AnalogItem extends Component {
                                 errorData += formatMessage({id: "LANG101"}) + eleId + "   " + formatMessage({id: mappingErrCode[errCode]}) + "<br>"
                                 needModalError = true
                             } else {
-                                getFieldValue(`chan${eleId}`).val(eleVal).attr("echocefs", echocefs)
+                                let obj = {}
+
+                                obj[`acim${eleId}`] = eleVal + ''
+                                setFieldsValue(obj)
                             }
                         })
                         if (needModalError) {
@@ -209,7 +212,6 @@ class AnalogItem extends Component {
                                 okText: formatMessage({id: "LANG727"})
                             })
                         }
-                        __this._handleCancel()
                     }
                 }
             }
@@ -263,7 +265,7 @@ class AnalogItem extends Component {
         const fxs_settings = this.state.fxs_settings
         const fxo_settings = this.state.fxo_settings
 
-        const title = (this.props.params.type ? formatMessage({id: "LANG780"}) : formatMessage({id: "LANG2343"}))
+        const title = (this.props.params.type === 'fxs' ? formatMessage({id: "LANG780"}) : formatMessage({id: "LANG2343"}))
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -294,22 +296,22 @@ class AnalogItem extends Component {
                         initialValue: fxo_settings[index] ? fxo_settings[index].acim + '' : '0'
                     })(
                         <Select>
-                            <Option value="0">600 &Omega;</Option>
-                            <Option value="1">900 &Omega;</Option>
-                            <Option value="2">600 &Omega; + 1 μF</Option>
-                            <Option value="3">900 &Omega; + 2.16 μF</Option>
-                            <Option value="4">270 &Omega; + (750 &Omega; || 150 nF)</Option>
-                            <Option value="5">220 &Omega; + (820 &Omega; || 120 nF)</Option>
-                            <Option value="6">220 &Omega; + (820 &Omega; || 115 nF)</Option>
-                            <Option value="7">200 &Omega; + (680 &Omega; || 100 nF)</Option>
-                            <Option value="8">370 &Omega; + (620 &Omega; || 310 nF)</Option>
-                            <Option value="9">120 &Omega; + (820 &Omega; || 110 nF)</Option>
-                            <Option value="10">350 &Omega; + (1000 &Omega; || 210 nF)</Option>
-                            <Option value="11">275 &Omega; + (780 &Omega; || 115 nF)</Option>
-                            <Option value="12">320 &Omega; + (1050 &Omega; || 230 nF)</Option>
-                            <Option value="13">370 &Omega; + (820 &Omega; || 110 nF)</Option>
-                            <Option value="14">600 &Omega; + 2.16μF</Option>
-                            <Option value="15">900 &Omega; + 1μF</Option>
+                            <Option value="0">600 Ω</Option>
+                            <Option value="1">900 Ω</Option>
+                            <Option value="2">270 Ω + (750 Ω || 150 nF) and 275 Ω + (780 Ω || 150 nF)</Option>
+                            <Option value="3">220 Ω + (820 Ω || 120 nF) and 220 Ω + (820 Ω || 115 nF)</Option>
+                            <Option value="4">370 Ω + (620 Ω || 310 nF)</Option>
+                            <Option value="5">320 Ω + (1050 Ω || 230 nF)</Option>
+                            <Option value="6">370 Ω + (820 Ω || 110 nF)</Option>
+                            <Option value="7">275 Ω + (780 Ω || 115 nF)</Option>
+                            <Option value="8">120 Ω + (820 Ω || 110 nF)</Option>
+                            <Option value="9">350 Ω + (1000 Ω || 210 nF)</Option>
+                            <Option value="10">200 Ω + (680 Ω || 100 nF)</Option>
+                            <Option value="11">600 Ω + 2.16 μF</Option>
+                            <Option value="12">900 Ω + 1 μF</Option>
+                            <Option value="13">900 Ω + 2.16 μF</Option>
+                            <Option value="14">600 Ω + 1 μF</Option>
+                            <Option value="15">{ formatMessage({id: "LANG1730"}) }</Option>
                         </Select>
                     ) }
                 </FormItem>
@@ -322,7 +324,8 @@ class AnalogItem extends Component {
                     headerTitle={ title }
                     onCancel={ this._handleCancel }
                     onSubmit={ this._handleSubmit.bind(this) }
-                    okText={ formatMessage({id: "LANG770"}) }
+                    saveTxt={ formatMessage({id: "LANG770"}) }
+                    cancelTxt={ formatMessage({id: "LANG726"}) }
                     isDisplay='display-block'
                 />
                 <Form className={this.props.params.type === 'fxs' ? 'display-block' : 'hidden'}>

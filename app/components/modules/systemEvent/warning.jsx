@@ -284,7 +284,7 @@ class WarningLog extends Component {
         const { formatMessage } = this.props.intl
         const __this = this
 
-        if (this.state.selectedRowKeys.length === 0) {
+        if (this.state.pagination.total === 0) {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG2547"})})}} ></span>,
                 okText: (formatMessage({id: "LANG727"}))

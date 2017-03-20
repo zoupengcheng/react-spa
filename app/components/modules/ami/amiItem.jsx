@@ -144,6 +144,9 @@ class AMIItem extends Component {
                             ipList.push(tmpList[0])
                             netmaskList.push(tmpList[1])
                         }
+                        if (ipallList.length >= 2) {
+                            uuid = uuid + (ipallList.length - 1)
+                        }
                         priList = userItem.pri.split(',')
                     }
                 }.bind(this),
@@ -205,10 +208,8 @@ class AMIItem extends Component {
             priAll: e.target.checked
         })
     }
-    _reBoot = () => {
-        UCMGUI.loginFunction.confirmReboot()
-    }
     _handleCancel = () => {
+        uuid = 1
         browserHistory.push('/value-added-features/ami')
     }
     _handleSubmit = () => {
@@ -284,12 +285,6 @@ class AMIItem extends Component {
                             if (bool) {
                                 message.destroy()
                                 message.success(successMessage)
-                                Modal.confirm({
-                                    content: <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG833" })}}></span>,
-                                    okText: formatMessage({id: "LANG727"}),
-                                    cancelText: formatMessage({id: "LANG726"}),
-                                    onOk: this._reBoot.bind(this)
-                                })
                             }
 
                             this._handleCancel()
@@ -348,7 +343,7 @@ class AMIItem extends Component {
         const keys = getFieldValue('keys')
         const formIPItems = keys.map((k, index) => {
             return (
-            <FormItem
+            <FormItem key={k}
                 { ...formItemIPWithoutLabelLayout }
             >
                 <Col span="8">
@@ -362,7 +357,7 @@ class AMIItem extends Component {
                                     Validator.ipAddress(data, value, callback, formatMessage)
                                 }
                             }],
-                            initialValue: ipList[index + 1]
+                            initialValue: ipList[k]
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG1915"}) } />
                         )}
@@ -382,7 +377,7 @@ class AMIItem extends Component {
                                     Validator.specialIpAddress(data, value, callback, formatMessage)
                                 }
                             }],
-                            initialValue: netmaskList[index + 1]
+                            initialValue: netmaskList[k]
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG1902"}) } />
                         )}

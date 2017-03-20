@@ -258,28 +258,45 @@ class BackupCreate extends Component {
 
         this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
-                message.loading(loadingMessage, 0)
-                form.validateFieldsAndScroll({ force: true }, (err, values) => {
-                    if (!err) {
-                        console.log('Received values of form: ', values)
+                let action = values
+                action['config'] = 'no'
+                action['cdr'] = 'no'
+                action['voice_record'] = 'no'
+                action['vfax'] = 'no'
+                action['voicemail_file'] = 'no'
+                action['voice_file'] = 'no'
+                action['storage'] = 'no'
+                this.state.checkedList.map(function(item) {
+                    action[item] = "yes"
+                })
+
+                action["action"] = "updateBackupSettings"
+                action["type"] = "realtime"
+
+                let sBackName = action['newbkp_name'] + '.tar'
+                let backupDir = action["location"]
+                let warnMsg = ''
+
+                if (this.state.checkedList.length === 0) {
+                    warnMsg = "LANG852"
+                } else if (backupDir === 'local') {
+                    if (action['config'] === 'no' || this.state.checkedList.length > 1) {
+                        warnMsg = 'LANG4114'
                     }
+                } else {
+                    if (action["config"] === 'no' && (action["vfax"] === 'yes' || action["voice_file"] === 'yes' || action["storage"] === 'yes')) {
+                        warnMsg = 'LANG5267'
+                    }
+                }
 
-                    let action = values
-                    action['config'] = 'no'
-                    action['cdr'] = 'no'
-                    action['voice_record'] = 'no'
-                    action['vfax'] = 'no'
-                    action['voicemail_file'] = 'no'
-                    action['voice_file'] = 'no'
-                    action['storage'] = 'no'
-                    this.state.checkedList.map(function(item) {
-                        action[item] = "yes"
+                if (warnMsg !== "") {
+                    Modal.warning({
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: warnMsg})}} ></span>,
+                        okText: (formatMessage({id: "LANG727"}))
                     })
-
-                    action["action"] = "updateBackupSettings"
-                    action["type"] = "realtime"
-
+                } else {
                     delete action.newbkp_name
+                    message.loading(loadingMessage, 0)
 
                     $.ajax({
                         url: api.apiHost,
@@ -297,7 +314,7 @@ class BackupCreate extends Component {
                             }
                         }.bind(this)
                     })
-                })
+                }
             }
         })
     }

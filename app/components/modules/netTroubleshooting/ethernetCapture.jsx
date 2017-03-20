@@ -226,7 +226,7 @@ class EnternetCapture extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                if (data !== undefined && data.status !== undefined && data.status === "0" && data.response.result === "0") {
+                if (data !== undefined && data.status !== undefined && data.status === 0 && data.response.result === 0) {
                     this.setState({
                         downloadDisable: false,
                         msg: formatMessage({id: "LANG1581"})

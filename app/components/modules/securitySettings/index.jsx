@@ -140,6 +140,12 @@ class SecuritySettings extends Component {
                             action_fail2ban[`ignoreip${index + 2}`] = values[`${item}`]
                         })
                     }
+                    if (ignoreip_list.length < 4) {
+                        const len = ignoreip_list.length
+                        for (let i = len; i < 4; i++) {
+                            action_fail2ban[`ignoreip${len + 2}`] = ''
+                        }
+                    }
                     $.ajax({
                         url: api.apiHost,
                         method: "post",

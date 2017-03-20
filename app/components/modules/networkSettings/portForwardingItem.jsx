@@ -9,7 +9,7 @@ import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage, formatMessage } from 'react-intl'
-import { Col, Form, Input, message, Transfer, Tooltip, Checkbox, Select, TimePicker } from 'antd'
+import { Col, Form, Input, message, Modal, Transfer, Tooltip, Checkbox, Select, TimePicker } from 'antd'
 import moment from "moment"
 
 const FormItem = Form.Item
@@ -22,13 +22,16 @@ class PortForwardingItem extends Component {
         this.state = {
             portForwarding: {
                 protocol: "0"
-            }
+            },
+            usedPort: ["22"],
+            rangeUsedPort: []
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
         this._getInitData()
+        this._getUsedPort()
     }
 
     _filterTransferOption = (inputValue, option) => {
@@ -71,61 +74,163 @@ class PortForwardingItem extends Component {
     _handleCancel = () => {
         browserHistory.push('/system-settings/networkSettings/4')
     }
-    _handleSubmit = () => {
-        // e.preventDefault()
-
+    _savePortForwarding = () => {
         let errorMessage = ''
         let loadingMessage = ''
         let successMessage = ''
         const { formatMessage } = this.props.intl
+        const { form } = this.props
         const id = this.props.params.id
+        let values = form.getFieldsValue()
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
         errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
+        message.loading(loadingMessage)
+
+        let action = {}
+        action["id"] = values.id
+        action["wan_port"] = values.wan_port
+        action["lan_ip"] = values.lan_ip
+        action["lan_port"] = values.lan_port
+        action["protocol"] = Number(values.protocol)
+
+        if (id) {
+            action.action = 'updatePortForwarding'
+            action.id = id
+        } else {
+            action.action = 'addPortForwarding'
+        }
+
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: action,
+            type: 'json',
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+                    message.success(successMessage)
+                }
+
+                this._handleCancel()
+            }.bind(this)
+        })
+    }
+    _handleSubmit = () => {
+        // e.preventDefault()
+
+        const { formatMessage } = this.props.intl
+        const id = this.props.params.id
+        const { getFieldValue } = this.props.form
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
-                message.loading(loadingMessage)
+                let wan_port = getFieldValue('wan_port')
+                let ports = this.state.usedPort
+                let aConflict = []
 
-                let action = {}
-                action["id"] = values.id
-                action["wan_port"] = values.wan_port
-                action["lan_ip"] = values.lan_ip
-                action["lan_port"] = values.lan_port
-                action["protocol"] = Number(values.protocol)
-
-                if (id) {
-                    action.action = 'updatePortForwarding'
-                    action.id = id
+                if (wan_port === this.state.portForwarding["wan_port"]) {
+                } else if (wan_port && _.indexOf(wan_port, "-") === -1) {
+                    if (_.indexOf(ports, wan_port) > -1 && _.indexOf(aConflict, wan_port) === -1) {
+                        aConflict.push(wan_port)
+                    } else {
+                        let used = false
+                        this.state.rangeUsedPort.map(function(item) {
+                            let min = parseInt(item.split('-')[0])
+                            let max = parseInt(item.split('-')[1])
+                            let valuenum = parseInt(wan_port)
+                            if (valuenum >= min && valuenum <= max) {
+                                used = true
+                            }
+                        })
+                        if (used) {
+                            aConflict.push(wan_port)
+                        }
+                    }
                 } else {
-                    action.action = 'addPortForwarding'
+                    let aRange = wan_port.split("-")
+                    let nStart = parseInt(aRange[0])
+                    let nStop = parseInt(aRange[1])
+
+                    for (var j = nStart; j <= nStop; j++) {
+                        if (_.indexOf(ports, j) > -1 && _.indexOf(aConflict, j) === -1) {
+                            aConflict.push(j)
+                        } else {
+                            let used = false
+                            this.state.rangeUsedPort.map(function(item) {
+                                let min = parseInt(item.split('-')[0])
+                                let max = parseInt(item.split('-')[1])
+                                let valuenum = parseInt(j)
+                                if (valuenum >= min && valuenum <= max) {
+                                    used = true
+                                }
+                            })
+                            if (used) {
+                                aConflict.push(j)
+                            }
+                        }
+                    }
                 }
 
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(successMessage)
-                        }
-
-                        this._handleCancel()
-                    }.bind(this)
-                })
+                if (aConflict.length !== 0) {
+                    Modal.confirm({
+                        title: 'Confirm',
+                        content: formatMessage({id: "LANG4134"}, {0: aConflict.join(",")}),
+                        okText: formatMessage({id: "LANG727"}),
+                        cancelText: formatMessage({id: "LANG726"}),
+                        onOk: this._savePortForwarding.bind(this)
+                    })
+                } else {
+                    this._savePortForwarding()
+                }
             }
+        })
+    }
+    _getUsedPort = () => {
+        let usedPort = this.state.usedPort
+        let rangeUsedPort = this.state.rangeUsedPort
+        const me = this
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getUsedPortInfo' },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let response = data.response
+                    const usedport = response.usedport
+
+                    usedport.map(function(item) {
+                        if ($.inArray(item.port, usedPort) > -1 || $.inArray(item.port, rangeUsedPort) > -1) {
+
+                        } else if (_.indexOf(item.port, '-') > -1) {
+                            rangeUsedPort.push(item.port)
+                        } else {
+                            usedPort.push(item.port)
+                        }
+                    })
+                }
+            }.bind(this)
+        })
+        this.setState({
+            usedPort: usedPort,
+            rangeUsedPort: rangeUsedPort
         })
     }
     render() {
@@ -179,14 +284,6 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
-                                }, {
-                                    validator: (data, value, callback) => {
-                                        Validator.digits(data, value, callback, formatMessage)
-                                    }
-                                }, {
-                                    validator: (data, value, callback) => {
-                                        Validator.range(data, value, callback, formatMessage, 0, 65535)
-                                    }
                                 }],
                                 initialValue: PortForwarding.wan_port
                             })(
@@ -231,14 +328,6 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
-                                }, {
-                                    validator: (data, value, callback) => {
-                                        Validator.digits(data, value, callback, formatMessage)
-                                    }
-                                }, {
-                                    validator: (data, value, callback) => {
-                                        Validator.range(data, value, callback, formatMessage, 0, 65535)
-                                    }
                                 }],
                                 initialValue: PortForwarding.lan_port
                             })(

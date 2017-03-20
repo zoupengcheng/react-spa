@@ -13,28 +13,6 @@ const FormItem = Form.Item
 const Option = Select.Option
 const baseServerURl = api.apiHost
 
-global.ss7Settings = []
-global.mfcR2Settings = []
-global.priSettings = []
-global.digitalGroup = []    
-global.digitalGroupE1 = []
-global.digitalGroupT1 = []
-global.digitalGroupJ1 = []
-global.globalSettings = {}
-global.oldAlawoverride = ""
-global.digitalTrunkGroupIndexList = []
-global.dataTrunkGroupIndexList = []
-global.digitalTrunkChannelList = []
-global.dataTrunkChannelList = []
-global.otherTrunkChannelList = []
-global.digitalTrunkChannelObj = {}
-global.dataTrunkChannelObj = {}
-global.otherChannelObj = {}
-global.groupSpan = 0
-global.groupSpanType = ""
-global.groupHardhdlc = -1
-global.groupIndex = ""
-
 class DigitalHardware extends Component {
     constructor(props) {
         super(props)
@@ -48,7 +26,28 @@ class DigitalHardware extends Component {
             optVal: 0,
             digitalHardwareList: [],
             oldGroupName: "",
-            expandedRowKeys: [""]
+            expandedRowKeys: [""],
+            ss7Settings: [],
+            digitalGroupE1: [],
+            digitalGroupT1: [],
+            digitalGroupJ1: [],
+            globalSettings: {},
+            oldAlawoverride: "",
+            digitalTrunkGroupIndexList: [],
+            dataTrunkGroupIndexList: [],
+            digitalTrunkChannelList: [],
+            dataTrunkChannelList: [],
+            otherTrunkChannelList: [],
+            digitalTrunkChannelObj: {},
+            dataTrunkChannelObj: {},
+            otherChannelObj: {},
+            groupSpan: 0,
+            groupSpanType: "",
+            groupHardhdlc: -1,
+            groupIndex: "",
+            digitalGroup: {},
+            mfcR2Settings: {},
+            priSettings: {}
         }
     }
     componentDidMount() {
@@ -58,7 +57,6 @@ class DigitalHardware extends Component {
         this._generateGroupIndex()
     }
     componentWillUnmount() {
-
     }
     _initTable = () => {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -79,7 +77,8 @@ class DigitalHardware extends Component {
             },
             success: function(data) {
                 if (data.status === 0) {
-                    global.priSettings = data.response.digital_driver_settings
+                    let priSettings = data.response.digital_driver_settings
+                    this.state["priSettings"] = priSettings
 
                     this._listDigitalGroup()
                     this._renderPRITable()
@@ -98,9 +97,10 @@ class DigitalHardware extends Component {
             },
             success: function(data) {
                 if (data.status === 0) {
-                    global.ss7Settings = data.response.ss7_settings
+                    let ss7Settings = data.response.ss7_settings
+                    this.state["ss7Settings"] = ss7Settings
                 }
-            }
+            }.bind(this)
         })
     }
     _getDigitalHardwareR2Settings = () => {
@@ -114,9 +114,10 @@ class DigitalHardware extends Component {
             },
             success: function(data) {
                 if (data.status === 0) {
-                    global.mfcR2Settings = data.response.mfc_r2_settings
+                    let mfcR2Settings = data.response.mfc_r2_settings
+                    this.state["mfcR2Settings"] = mfcR2Settings
                 }
-            }
+            }.bind(this)
         })
     }
     _listDigitalGroup = () => {
@@ -134,9 +135,10 @@ class DigitalHardware extends Component {
                 const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
-                    global.digitalGroup = data.response.digital_group
+                    let digitalGroup = data.response.digital_group
+                    this.state["digitalGroup"] = digitalGroup
                 }
-            }
+            }.bind(this)
         })
     }
     _listDataTrunk = () => {
@@ -155,10 +157,10 @@ class DigitalHardware extends Component {
                     for (let i = 0; i < netHDLCSettings.length; i++) {
                         let netHDLCSettingsIndex = netHDLCSettings[i]
 
-                        global.dataTrunkGroupIndexList.push(String(netHDLCSettingsIndex.group_index))
+                        this.state.dataTrunkGroupIndexList.push(String(netHDLCSettingsIndex.group_index))
                     }
                 }
-            }
+            }.bind(this)
         })
     }
 
@@ -181,28 +183,8 @@ class DigitalHardware extends Component {
                     for (let i = 0; i < digitalTrunks.length; i++) {
                         let digitalTrunksIndex = digitalTrunks[i]
 
-                        global.digitalTrunkGroupIndexList.push(String(digitalTrunksIndex.group_index))
+                        this.state.digitalTrunkGroupIndexList.push(String(digitalTrunksIndex.group_index))
                     }
-                }
-            }
-        })
-    }
-    _listDigitalGroup = () => {
-        const { formatMessage } = this.props.intl
-
-        $.ajax({
-            url: baseServerURl,
-            type: "POST",
-            dataType: "json",
-            async: false,
-            data: {
-                action: "listDigitalGroup"
-            },
-            success: function(data) {
-                const bool = UCMGUI.errorHandler(data, null, formatMessage)
-
-                if (bool) {
-                    global.digitalGroup = data.response.digital_group
                 }
             }.bind(this)
         })
@@ -224,14 +206,14 @@ class DigitalHardware extends Component {
                 const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
-                    global.groupIndex = data.response.group_index
+                    this.state.groupIndex = data.response.group_index
                 }
-            }
+            }.bind(this)
         })
     }
     _renderPRITable = () => {
         let digitalHardwareList = [],
-            priSettings = global.priSettings
+            priSettings = this.state.priSettings
 
         for (let i = 0; i < priSettings.length; i++) {
             let priSettingsIndex = priSettings[i]
@@ -279,19 +261,19 @@ class DigitalHardware extends Component {
         })
         let spanId = spanInfo.span,
             spanType = spanInfo.spanType.toLowerCase(),
-            digitalGroup = global.digitalGroup,
-            digitalTrunkGroupIndexList = global.digitalTrunkGroupIndexList,
-            dataTrunkGroupIndexList = global.dataTrunkGroupIndexList
+            digitalGroup = this.state.digitalGroup,
+            digitalTrunkGroupIndexList = this.state.digitalTrunkGroupIndexList,
+            dataTrunkGroupIndexList = this.state.dataTrunkGroupIndexList
 
-        global.digitalGroupE1.length = 0
-        global.digitalGroupT1.length = 0
-        global.digitalGroupJ1.length = 0
-        global.digitalTrunkChannelObj = {}
-        global.dataTrunkChannelObj = {}
-        global.otherChannelObj = {}
-        global.digitalTrunkChannelList.length = 0
-        global.dataTrunkChannelList.length = 0
-        global.otherTrunkChannelList.length = 0
+        this.state.digitalGroupE1.length = 0
+        this.state.digitalGroupT1.length = 0
+        this.state.digitalGroupJ1.length = 0
+        this.state.digitalTrunkChannelObj = {}
+        this.state.dataTrunkChannelObj = {}
+        this.state.otherChannelObj = {}
+        this.state.digitalTrunkChannelList.length = 0
+        this.state.dataTrunkChannelList.length = 0
+        this.state.otherTrunkChannelList.length = 0
 
         for (let i = 0; i < digitalGroup.length; i++) {
             let digitalGroupIndex = digitalGroup[i]
@@ -305,37 +287,37 @@ class DigitalHardware extends Component {
                     groupIndex = String(digitalGroupIndex.group_index)
 
                 if (digitalTrunkGroupIndexList.indexOf(groupIndex) !== -1) {
-                    global.digitalTrunkChannelObj[channel] = {
+                    this.state.digitalTrunkChannelObj[channel] = {
                         "group_name": groupName,
                         "group_index": groupIndex,
                         "channel": channel
                     }
-                    global.digitalTrunkChannelList.push(channel)
+                    this.state.digitalTrunkChannelList.push(channel)
                 } else if (dataTrunkGroupIndexList.indexOf(groupIndex) !== -1) {
-                    global.dataTrunkChannelObj[channel] = {
+                    this.state.dataTrunkChannelObj[channel] = {
                         "group_name": groupName,
                         "group_index": groupIndex,
                         "channel": channel
                     }
-                    global.dataTrunkChannelList.push(channel)
+                    this.state.dataTrunkChannelList.push(channel)
                 } else {
-                    global.otherChannelObj[channel] = {
+                    this.state.otherChannelObj[channel] = {
                         "group_name": groupName,
                         "group_index": groupIndex,
                         "channel": channel
                     }
-                    global.otherTrunkChannelList.push(channel)
+                    this.state.otherTrunkChannelList.push(channel)
                 }
                 digitalGroupIndex.totleChans = totleChans
                 digitalGroupIndex.hardhdlc = hardhdlc
                 digitalGroupIndex.spanType = spanType
 
                 if (spanType === "e1") {
-                    global.digitalGroupE1.push(digitalGroupIndex)
+                    this.state.digitalGroupE1.push(digitalGroupIndex)
                 } else if (spanType === "t1") {
-                    global.digitalGroupT1.push(digitalGroupIndex)
+                    this.state.digitalGroupT1.push(digitalGroupIndex)
                 } else if (spanType === "j1") {
-                    global.digitalGroupJ1.push(digitalGroupIndex)
+                    this.state.digitalGroupJ1.push(digitalGroupIndex)
                 }
 
                 if (groupName.indexOf('DefaultGroup') > -1) {
@@ -359,9 +341,23 @@ class DigitalHardware extends Component {
     }
     _edit = (record) => {
         let type = "PRI",
-            span = record.span
+            span = record.span,
+            state = this.state
 
-        browserHistory.push('/pbx-settings/interfaceSettings/digitalHardwareItem/' + type + "/" + span)
+        browserHistory.push({
+            pathname: '/pbx-settings/interfaceSettings/digitalHardwareItem/' + type + "/" + span,
+            state: {
+                ss7Settings: state.ss7Settings,
+                mfcR2Settings: state.mfcR2Settings,
+                priSettings: state.priSettings,
+                digitalGroupE1: state.digitalGroupE1,
+                digitalGroupT1: state.digitalGroupT1,
+                digitalGroupJ1: state.digitalGroupJ1,
+                dataTrunkChannelList: state.dataTrunkChannelList,
+                digitalGroup: state.digitalGroup,
+                dataTrunkChannelObj: state.dataTrunkChannelObj
+            }
+        })
         // var lang = "LANG780",
         //     type = $(this).attr("id")
 
@@ -388,7 +384,7 @@ class DigitalHardware extends Component {
         if (!_.isEmpty(spanInfo)) {
             let hardhdlc = Number(spanInfo.hardhdlc),
                 digitalGroupArr = [],
-                digitalGroup = global.digitalGroup
+                digitalGroup = this.state.digitalGroup
 
             for (let i = 0; i < digitalGroup.length; i++) {
                 let digitalGroupIndex = digitalGroup[i]
@@ -441,7 +437,7 @@ class DigitalHardware extends Component {
                 usedchannelArr = [],
                 channel = groupInfo.port,
                 spanType = groupInfo.spanType,
-                digitalGroup = global.digitalGroup,
+                digitalGroup = this.state.digitalGroup,
                 digitalChannelVal = Number(form.getFieldValue("digital_channel"))
 
             for (let k = 0; k < digitalGroup.length; k++) {
@@ -475,7 +471,7 @@ class DigitalHardware extends Component {
             let groupInfoChannel = groupInfo.port
 
             let hardhdlc = Number(groupInfo.hardhdlc),
-                digitalGroup = global.digitalGroup,
+                digitalGroup = this.state.digitalGroup,
                 digitalGroupStr = "",
                 otherOigitalGroupStr = ""
 
@@ -532,7 +528,7 @@ class DigitalHardware extends Component {
                 usedchannelArr = [],
                 channel = groupInfo.port,
                 spanType = groupInfo.spanType,
-                digitalGroup = global.digitalGroup,
+                digitalGroup = this.state.digitalGroup,
                 channelVal = Number(form.getFieldValue("channel"))
 
             for (let k = 0; k < digitalGroup.length; k++) {
@@ -569,16 +565,16 @@ class DigitalHardware extends Component {
             arr = [],
             actionObj = {}
 
-        global.groupSpan = record.span
-        global.groupSpanType = spanType
-        global.groupHardhdlc = hardhdlc
+        this.state.groupSpan = record.span
+        this.state.groupSpanType = spanType
+        this.state.groupHardhdlc = hardhdlc
 
         if (spanType === "e1") {
-            digitalGroupInfo = global.digitalGroupE1
+            digitalGroupInfo = this.state.digitalGroupE1
         } else if (spanType === "t1") {
-            digitalGroupInfo = global.digitalGroupT1
+            digitalGroupInfo = this.state.digitalGroupT1
         } else if (spanType === "j1") {
-            digitalGroupInfo = global.digitalGroupJ1
+            digitalGroupInfo = this.state.digitalGroupJ1
         }
 
         let totalChannelArr = this._getTotalChannelArr(spanType, hardhdlc)
@@ -613,7 +609,7 @@ class DigitalHardware extends Component {
         }
 
         actionObj["group"] = arr
-        global.digitalGroup = digitalGroupArr
+        this.state.digitalGroup = digitalGroupArr
 
         $.ajax({
             type: "post",
@@ -659,11 +655,11 @@ class DigitalHardware extends Component {
     }
     _isModifyGroupChanneOfDataTrunk() {
         let flag = false,
-            spanType = global.groupSpanType,
-            hardhdlc = Number(global.groupHardhdlc),
-            groupInfoSpan = Number(global.groupSpan),
-            digitalGroup = global.digitalGroup,
-            dataTrunkChannelObj = global.dataTrunkChannelObj
+            spanType = this.state.groupSpanType,
+            hardhdlc = Number(this.state.groupHardhdlc),
+            groupInfoSpan = Number(this.state.groupSpan),
+            digitalGroup = this.state.digitalGroup,
+            dataTrunkChannelObj = this.state.dataTrunkChannelObj
 
         let totalChannelArr = this._getTotalChannelArr(spanType, hardhdlc)
 
@@ -837,7 +833,7 @@ class DigitalHardware extends Component {
     }
     _getTotalChans = () => {
         let totleChans = 31,
-            priSettingsInfo = global.priSettings
+            priSettingsInfo = this.state.priSettings
 
         for (let i = 0; i < priSettingsInfo.length; i++) {
             let priSettingsInfoIndex = priSettingsInfo[i],
@@ -904,6 +900,7 @@ class DigitalHardware extends Component {
         }
     }
     _handleOk = () => {
+        const { resetFields } = this.props.form
         this.setState({
             visible: false
         })
@@ -912,6 +909,14 @@ class DigitalHardware extends Component {
         } else if (this.state.type === "addGroup") {
             this._updateGroup()
         }
+        resetFields()
+    }
+    _handleCancel = () => {
+        const { resetFields } = this.props.form
+        this.setState({
+            visible: false
+        })
+        resetFields()
     }
     _updateGroup = () => {
         const { form } = this.props
@@ -922,7 +927,7 @@ class DigitalHardware extends Component {
 
         action["span"] = spanInfo.span
         action["group_name"] = form.getFieldValue("digital_group_name")
-        action["group_index"] = global.groupIndex
+        action["group_index"] = this.state.groupIndex
         action["channel"] = this.state.useredChannel
         action["action"] = "addDigitalGroup"
 
@@ -950,7 +955,7 @@ class DigitalHardware extends Component {
 
         let action = {},
             groupInfo = this.state.editGroupData,
-            digitalGroup = global.digitalGroup,
+            digitalGroup = this.state.digitalGroup,
             arr = [],
             actionObj = {},
             spanType = groupInfo.spantypes,
@@ -1011,11 +1016,6 @@ class DigitalHardware extends Component {
                     }
                 }
             }.bind(this)
-        })
-    }
-    _handleCancel = () => {
-        this.setState({
-            visible: false
         })
     }
     _renderModalOkText = () => {

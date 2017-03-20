@@ -22,6 +22,7 @@ class Prompt extends Component {
         }
     }
     componentDidMount() {
+        this._getLanguageSettings()
     }
     componentWillUnmount() {
 

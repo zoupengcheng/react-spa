@@ -12,6 +12,7 @@ import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
+import Validator from "../../api/validator"
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -26,26 +27,6 @@ class Upgrade extends Component {
     }
     componentDidMount() {
         this._getUpgradeValue()
-    }
-    _checkJBLen = (rule, value, callback) => {
-        const form = this.props.form
-
-        if (value) {
-            form.validateFields(['gs_jbmax'], { force: true })
-        }
-
-        callback()
-    }
-    _checkJBMax = (rule, value, callback) => {
-        const form = this.props.form
-        const { formatMessage } = this.props.intl
-        const len = form.getFieldValue('gs_jblen')
-
-        if (value && len && value < len) {
-            callback(formatMessage({id: "LANG2142"}, { 0: formatMessage({id: "LANG1655"}), 1: formatMessage({id: "LANG2460"}) }))
-        } else {
-            callback()
-        }
     }
     _getUpgradeValue = () => {
         $.ajax({
@@ -75,6 +56,7 @@ class Upgrade extends Component {
 
         const { formatMessage } = this.props.intl
 
+        console.log('Received values of form: ')
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
@@ -84,8 +66,6 @@ class Upgrade extends Component {
                 let action = values
 
                 action.action = 'setUpgradeValue'
-
-                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
 
                 $.ajax({
                     url: api.apiHost,
@@ -203,12 +183,12 @@ class Upgrade extends Component {
                                     me.setState({
                                         visible: false
                                     })
-                                    UCMGUI.loginFunction.confirmReboot() 
+                                    UCMGUI.loginFunction.confirmReboot()
                                 },
                                 onCancel: () => {
                                     me.setState({
                                         visible: false
-                                    }) 
+                                    })
                                 }
                             })
                         } else if (data.status === 4) {
@@ -257,10 +237,11 @@ class Upgrade extends Component {
                         </span>
                     )}>
                     { getFieldDecorator('firmware-server-path', {
-                        rules: [
-                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                            { validator: this._checkJBLen }
-                        ],
+                        rules: [{
+                            validator: (data, value, callback) => {
+                                value === '' ? callback() : Validator.urlWithoutProtocol(data, value, callback, formatMessage, "LANG1271")
+                            }
+                        }],
                         initialValue: path
                     })(
                         <Input />
@@ -274,10 +255,11 @@ class Upgrade extends Component {
                         </span>
                     )}>
                     { getFieldDecorator('firmware-file-prefix', {
-                        rules: [
-                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                            { validator: this._checkJBMax }
-                        ],
+                        rules: [{
+                            validator: (data, value, callback) => {
+                                value === '' ? callback() : Validator.specialStr(data, value, callback, formatMessage)
+                            }
+                        }],
                         initialValue: prefix
                     })(
                         <Input />
@@ -291,10 +273,11 @@ class Upgrade extends Component {
                         </span>
                     )}>
                     { getFieldDecorator('firmware-file-suffix', {
-                        rules: [
-                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                            { validator: this._checkJBMax }
-                        ],
+                        rules: [{
+                            validator: (data, value, callback) => {
+                                value === '' ? callback() : Validator.specialStr(data, value, callback, formatMessage)
+                            }
+                        }],
                         initialValue: suffix
                     })(
                         <Input />
@@ -308,10 +291,7 @@ class Upgrade extends Component {
                         </span>
                     )}>
                     { getFieldDecorator('username', {
-                        rules: [
-                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                            { validator: this._checkJBMax }
-                        ],
+                        rules: [],
                         initialValue: username
                     })(
                         <Input />
@@ -325,13 +305,10 @@ class Upgrade extends Component {
                         </span>
                     )}>
                     { getFieldDecorator('password', {
-                        rules: [
-                            { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                            { validator: this._checkJBMax }
-                        ],
+                        rules: [],
                         initialValue: password
                     })(
-                        <Input />
+                        <Input type="password"/>
                     ) }
                 </FormItem>
                 <FormItem
@@ -371,4 +348,4 @@ function mapDispatchToProps(dispatch) {
   return bindActionCreators(Actions, dispatch)
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Form.create()(injectIntl(Upgrade))) 
+export default connect(mapStateToProps, mapDispatchToProps)(Form.create()(injectIntl(Upgrade)))

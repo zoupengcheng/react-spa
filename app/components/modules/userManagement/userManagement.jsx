@@ -22,10 +22,12 @@ class UserList extends Component {
                 showSizeChanger: true,
                 showQuickJumper: true
             },
-            loading: false
+            loading: false,
+            privilegeObj: {}
         }
     }
     componentDidMount() {
+        this._getPrivilege()
         this._getUserList()
     }
     _showTotal = (total) => {
@@ -77,6 +79,38 @@ class UserList extends Component {
     }
     _edit = (record) => {
         browserHistory.push('/maintenance/userManage/edit/' + record.user_id + "/" + record.user_name)
+    }
+    _getPrivilege = () => {
+        let privilegeObj = this.state.privilegeObj
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'getPrivilege'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+
+                    const privilege = response.privilege || {}
+                    privilege.map(function(item) {
+                        if (item.level === 2 && item.privilege_id !== 1) {
+                            privilegeObj[item.privilege_id] = item.privilege_name
+                        }
+                    })
+                    this.setState({
+                        privilegeObj: privilegeObj
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _getUserList = (
             params = {                
@@ -166,7 +200,7 @@ class UserList extends Component {
                     } else if (text === 3) {
                         return <span>{ formatMessage({id: "LANG2863"}) }</span>
                     } else {
-                        return <span>{ }</span>
+                        return <span>{ formatMessage({id: "LANG5167"}) + ':' + this.state.privilegeObj[text] }</span>
                     }
                 },
                 sorter: (a, b) => a.privilege.length - b.privilege.length

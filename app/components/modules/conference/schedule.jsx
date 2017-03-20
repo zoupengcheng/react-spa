@@ -45,7 +45,7 @@ class Schedule extends Component {
         browserHistory.push('/call-features/conference/cleanSettings/')
     }
     _scheduleSettings = () => {
-        browserHistory.push('/call-features/conference/scheduleSettings')
+        browserHistory.push('/call-features/conference/scheduleIndex')
     }
     _edit = (record) => {
         browserHistory.push('/call-features/conference/editSchedule/' + record.bookid)

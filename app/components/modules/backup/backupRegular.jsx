@@ -202,7 +202,7 @@ class BackupRegular extends Component {
         let loadingMessage = ''
         let successMessage = ''
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG854" })}}></span>
+        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG904" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>
         errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
@@ -211,59 +211,66 @@ class BackupRegular extends Component {
         message.loading(loadingMessage, 0)
         form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
-                console.log('Received values of form: ', values)
+                let action = values
+                action['config'] = 'no'
+                action['cdr'] = 'no'
+                action['voice_record'] = 'no'
+                action['vfax'] = 'no'
+                action['voicemail_file'] = 'no'
+                action['voice_file'] = 'no'
+                action['storage'] = 'no'
+                this.state.checkedList.map(function(item) {
+                    action[item] = "yes"
+                })
+
+                action["action"] = "updateBackupSettings"
+                action["type"] = "regular"
+                if (action["enable_regular"] === true) {
+                    action["enable_regular"] = "yes"
+                } else {
+                    action["enable_regular"] = "no"
+                }
+
+                delete action.newbkp_name
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            let actionEn = {}
+                            actionEn.action = "reloadCrontabs"
+                            actionEn.crontabjobs = ""
+                            $.ajax({
+                                url: api.apiHost,
+                                method: "get",
+                                data: actionEn,
+                                type: 'json',
+                                async: false,
+                                error: function(e) {
+                                    message.error(e.statusText)
+                                },
+                                success: function(data) {
+                                    const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                    if (bool) {
+                                        message.destroy()
+                                        this._handleCancel()
+                                        message.success(successMessage)
+                                    }
+                                }.bind(this)
+                            })
+                        }
+                    }.bind(this)
+                })
             }
-
-            let action = values
-            action['config'] = 'no'
-            action['cdr'] = 'no'
-            action['voice_record'] = 'no'
-            action['vfax'] = 'no'
-            action['voicemail_file'] = 'no'
-            action['voice_file'] = 'no'
-            action['storage'] = 'no'
-            this.state.checkedList.map(function(item) {
-                action[item] = "yes"
-            })
-
-            action["action"] = "updateBackupSettings"
-            action["type"] = "regular"
-            if (action["enable_regular"] === true) {
-                action["enable_regular"] = "yes"
-            } else {
-                action["enable_regular"] = "no"
-            }
-
-            delete action.newbkp_name
-
-            $.ajax({
-                url: api.apiHost,
-                method: "post",
-                data: action,
-                type: 'json',
-                error: function(e) {
-                    message.error(e.statusText)
-                },
-                success: function(data) {
-                    const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                    if (bool) {
-                        $.ajax({
-                            type: 'GET',
-                            url: '../cgi?action=reloadCrontabs&crontabjobs=',
-                            success: function(data) {
-                                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                                if (bool) {
-                                    message.success(successMessage)
-                                }
-                            }
-                        })
-                    }
-                    message.destroy()
-                    this._handleCancel()
-                }.bind(this)
-            })
         })
     }
     _onChangeEnable = (e) => {

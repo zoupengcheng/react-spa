@@ -392,7 +392,7 @@ class WarningEventList extends Component {
                 title: (formatMessage({id: "LANG543"})),
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2631"})}} ></span>,
                 onOk() {
-                    __this.this._clearSelectRows()
+                    __this._clearSelectRows()
                     __this._gotoWarningContact(ids.join(','))
                 },
                 onCancel() {},

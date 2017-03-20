@@ -260,8 +260,12 @@ export const getCallQueuesMessage = (chairman) => (dispatch) => {
         url: api.apiHost,
         success: function(res) {
             const response = res.response || {}
-            const callQueueList = response.CallQueuesMessage || []
-            const activeTabKey = callQueueList.length ? callQueueList[0].extension : ''
+
+            let callQueueList = response.CallQueuesMessage || []
+
+            callQueueList = _.sortBy(callQueueList, function(item) { return item.extension })
+
+            let activeTabKey = callQueueList.length ? callQueueList[0].extension : ''
 
             dispatch({type: 'SET_CURRENTQUEUE', currentQueue: activeTabKey})
             dispatch({type: 'GET_QUEUEBYCHAIRMAN', callQueueList: callQueueList})
