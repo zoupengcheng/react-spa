@@ -6,21 +6,28 @@ import api from "../../api/api"
 import '../../../css/extension'
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
-// import * as Actions from './actions/'
-// import { connect } from 'react-redux'
-// import { bindActionCreators } from 'redux'
-import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import Validator from "../../api/validator"
+
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
-import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Table, Tag, Tooltip } from 'antd'
+import { FormattedHTMLMessage, injectIntl } from 'react-intl'
+import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Select, Table, Tag, Tooltip, Upload } from 'antd'
 
 const FormItem = Form.Item
 const confirm = Modal.confirm
 
+const formItemLayout = {
+    labelCol: { span: 8 },
+    wrapperCol: { span: 12 }
+}
+
 class Extension extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
             postData: {},
             loading: false,
@@ -28,12 +35,14 @@ class Extension extends Component {
             selectedRows: [],
             autoRefresh: null,
             extensionList: [],
+            importType: 'skip',
             selectedRowKeys: [],
             zeroConfigSettings: {},
             selectedRebootRows: [],
             selectedRebootRowKeys: [],
             rebootModalVisible: false,
             sendEmailModalVisible: false,
+            importExtensionVisible: false,
             batchDeleteModalVisible: false,
             pagination: {
                 showSizeChanger: true,
@@ -484,6 +493,9 @@ class Extension extends Component {
             }
         })
     }
+    _handleImportExtensionCancel = () => {
+        this.setState({ importExtensionVisible: false })
+    }
     _handleRebootCancel = () => {
         this.setState({ rebootModalVisible: false })
     }
@@ -634,7 +646,19 @@ class Extension extends Component {
         this._clearSelectRows()
     }
     _import = () => {
-        // browserHistory.push('/extension-trunk/extension/batchEdit/' + this.state.selectedRowKeys.join(','))
+        this.setState({ importExtensionVisible: true })
+    }
+    _normFile(e) {
+        if (Array.isArray(e)) {
+            return e
+        }
+
+        return e && e.fileList
+    }
+    _onChangeImportType = (value) => {
+        this.setState({
+            importType: value
+        })
     }
     _onSelectChange = (selectedRowKeys, selectedRows) => {
         // console.log('selectedRowKeys changed: ', selectedRowKeys)
@@ -802,6 +826,78 @@ class Extension extends Component {
                 </Menu>
             )
 
+        const importExtensionProps = {
+            name: 'file',
+            headers: { authorization: 'authorization-text' },
+            action: api.apiHost + `action=uploadfile&type=import_${this.state.importType}_extensions`,
+            onChange: (info) => {
+                // message.loading(formatMessage({ id: "LANG979" }), 0)
+                console.log(info.file.status)
+
+                if (info.file.status !== 'uploading') {
+                    console.log(info.file, info.fileList)
+                }
+
+                // if (this.state.upgradeLoading) {
+                //     this.props.setSpinLoading({ loading: true, tip: formatMessage({id: "LANG979"}) })
+
+                //     this.setState({ upgradeLoading: false })
+                // }
+
+                if (info.file.status === 'removed') {
+                    return
+                }
+
+                if (info.file.status === 'done') {
+                    // message.success(`${info.file.name} file uploaded successfully`)
+                    let data = info.file.response
+
+                    if (data) {
+                        let status = data.status,
+                            response = data.response
+
+                        this.props.setSpinLoading({ loading: false })
+
+                        if (data.status === 0 && response && response.result === 0) {
+                            Modal.confirm({
+                                content: '',
+                                okText: 'OK',
+                                cancelText: 'Cancel',
+                                title: formatMessage({id: "LANG924"}),
+                                onOk: () => {
+                                    this.setState({
+                                        visible: false
+                                    })
+
+                                    UCMGUI.loginFunction.confirmReboot()
+                                },
+                                onCancel: () => {
+                                    this.setState({
+                                        visible: false
+                                    })
+                                }
+                            })
+                        } else if (data.status === 4) {
+                            message.error(formatMessage({id: "LANG915"}))
+                        } else if (!_.isEmpty(response)) {
+                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
+                        } else {
+                            message.error(formatMessage({id: "LANG916"}))
+                        }
+                    } else {
+                        message.error(formatMessage({id: "LANG916"}))
+                    }
+                } else if (info.file.status === 'error') {
+                    message.error(`${info.file.name} file upload failed.`)
+                }
+            },
+            onRemove: () => {
+                this.props.setSpinLoading({ loading: false })
+
+                message.destroy()
+            }
+        }
+
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: formatMessage({id: "LANG622"})
@@ -874,18 +970,6 @@ class Extension extends Component {
                         >
                             { formatMessage({id: "LANG739"}) }
                         </Button>
-                        <Modal
-                            onOk={ this._handleBatchDeleteOk }
-                            onCancel={ this._handleBatchDeleteCancel }
-                            title={ formatMessage({id: "LANG735"}) }
-                            okText={ formatMessage({id: "LANG727"}) }
-                            cancelText={ formatMessage({id: "LANG726"}) }
-                            visible={ this.state.batchDeleteModalVisible }
-                        >
-                            <span dangerouslySetInnerHTML=
-                                {{ __html: formatMessage({ id: "LANG824" }, { 0: this.state.selectedRowKeys.join('  ') }) }}
-                            ></span>
-                        </Modal>
                         <Button
                             icon="upload"
                             type="primary"
@@ -893,7 +977,6 @@ class Extension extends Component {
                         >
                             { formatMessage({id: "LANG2733"}) }
                         </Button>
-                        
                         <Dropdown
                             overlay={ this.state.extensionList.length ? exportMenu : '' }
                         >
@@ -914,6 +997,72 @@ class Extension extends Component {
                         >
                             { formatMessage({id: "LANG3495"}) }
                         </Button>
+                        <Modal
+                            onOk={ this._handleBatchDeleteOk }
+                            onCancel={ this._handleBatchDeleteCancel }
+                            title={ formatMessage({id: "LANG735"}) }
+                            okText={ formatMessage({id: "LANG727"}) }
+                            cancelText={ formatMessage({id: "LANG726"}) }
+                            visible={ this.state.batchDeleteModalVisible }
+                        >
+                            <span dangerouslySetInnerHTML=
+                                {{ __html: formatMessage({ id: "LANG824" }, { 0: this.state.selectedRowKeys.join('  ') }) }}
+                            ></span>
+                        </Modal>
+                        <Modal
+                            footer={ null }
+                            title={ formatMessage({id: "LANG2733"}) }
+                            visible={ this.state.importExtensionVisible }
+                            onCancel={ this._handleImportExtensionCancel }
+                        >
+                            <Form className="app-content-main">
+                                <div className="function-description">
+                                    <span>{ formatMessage({id: "LANG4421"}) }</span>
+                                </div>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3202" /> }>
+                                                <span>{ formatMessage({id: "LANG2737"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('type', {
+                                        rules: [],
+                                        initialValue: this.state.importType
+                                    })(
+                                        <Select onChange={ this._onChangeImportType }>
+                                            <Option value="skip">{ formatMessage({id: "LANG2738"}) }</Option>
+                                            <Option value="delete">{ formatMessage({id: "LANG2739"}) }</Option>
+                                            <Option value="update">{ formatMessage({id: "LANG4468"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG2736" /> }>
+                                                <span>{ formatMessage({id: "LANG2736"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('upload', {
+                                        valuePropName: 'fileList',
+                                        normalize: this._normFile
+                                    })(
+                                        <Upload {...importExtensionProps}>
+                                            <Button type="ghost">
+                                                <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
+                                            </Button>
+                                        </Upload>
+                                    ) }
+                                </FormItem>
+                            </Form>
+                        </Modal>
                         <Modal
                             onOk={ this._handleSendEmailOk }
                             onCancel={ this._handleSendEmailCancel }
@@ -978,4 +1127,12 @@ Extension.defaultProps = {
     }
 }
 
-export default Form.create()(injectIntl(Extension))
+const mapStateToProps = (state) => ({
+    spinLoading: state.spinLoading
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Form.create()(injectIntl(Extension)))

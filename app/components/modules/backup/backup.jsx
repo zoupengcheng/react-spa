@@ -145,7 +145,7 @@ class BackupRestore extends Component {
     }
     _getMediaFileList = () => {
         const { formatMessage } = this.props.intl
-        this.setState({loading: true})
+        // this.setState({loading: true})
         const me = this
 
         $.ajax({

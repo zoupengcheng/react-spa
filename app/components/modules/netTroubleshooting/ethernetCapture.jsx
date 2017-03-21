@@ -37,6 +37,7 @@ class EnternetCapture extends Component {
         this._processNetHDLCInterface()
         this._checkDevice()
         this._getTroubleShooting()
+        this._getSFTPPort()
     }
     _getTroubleShooting = () => {
         const { formatMessage } = this.props.intl

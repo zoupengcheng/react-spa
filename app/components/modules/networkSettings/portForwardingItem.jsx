@@ -24,7 +24,8 @@ class PortForwardingItem extends Component {
                 protocol: "0"
             },
             usedPort: ["22"],
-            rangeUsedPort: []
+            rangeUsedPort: [],
+            existWanPort: []
         }
     }
     componentWillMount() {
@@ -39,9 +40,60 @@ class PortForwardingItem extends Component {
     }
     _getInitData = () => {
         const id = this.props.params.id
+        const oldWANPort = this.props.params.name
         let portForwarding = this.state.portForwarding || {}
+        let existWanPort = this.state.existWanPort || []
 
-        if (id) {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                action: 'listPortForwarding',
+                sidx: 'id',
+                sord: 'asc'
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                if (bool) {
+                    const response = res.response || {}
+                    const portForwardingList = response.id || []
+                    _.each(portForwardingList, function(num, key) {
+                        if (_.indexOf(existWanPort, num) === -1) {
+                            if (num.wan_port.indexOf("-") === -1) {
+                                existWanPort.push(num.wan_port)
+                            } else {
+                                let aRange = num.wan_port.split("-"),
+                                    nStart = parseInt(aRange[0]),
+                                    nStop = parseInt(aRange[1])
+
+                                for (var j = nStart; j <= nStop; j++) {
+                                    existWanPort.push(j.toString())
+                                }
+                            }
+                        }
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        if (id && oldWANPort) {
+            if (_.indexOf(oldWANPort, "-") === -1) {
+                existWanPort = _.without(existWanPort, oldWANPort)
+            } else {
+                let aRange = oldWANPort.split("-"),
+                    nStart = parseInt(aRange[0]),
+                    nStop = parseInt(aRange[1])
+
+                for (var j = nStart; j <= nStop; j++) {
+                    existWanPort = _.without(existWanPort, j.toString())
+                }
+            }
+
             $.ajax({
                 url: api.apiHost,
                 method: 'post',
@@ -68,7 +120,8 @@ class PortForwardingItem extends Component {
         }
 
         this.setState({
-            portForwarding: portForwarding
+            portForwarding: portForwarding,
+            existWanPort: existWanPort
         })
     }
     _handleCancel = () => {
@@ -233,6 +286,101 @@ class PortForwardingItem extends Component {
             rangeUsedPort: rangeUsedPort
         })
     }
+    _checkWanAndLanFormat = (ele, val, callback) => {
+        const { formatMessage } = this.props.intl
+        let rWanLan = /^\d+(\-\d+)?$/
+        let res = true
+
+        if (!rWanLan.test(val)) {
+            res = false
+        }
+
+        if (_.indexOf(val, "-") === -1) {
+            if (_.indexOf(ele.field, "lan") > -1) {
+                if (parseInt(val) < 1 || parseInt(val) > 65535) {
+                    res = false
+                }
+            } else {
+                if (parseInt(val) < 1025 || parseInt(val) > 65534) {
+                    res = false
+                }
+            }
+        } else if (_.indexOf(val, "-") > -1) {
+            let aRange = val.split("-")
+            let nStart = parseInt(aRange[0])
+            let nStop = parseInt(aRange[1])
+
+            if (nStart > nStop || nStart < 1025 || nStop > 65534) {
+                res = false
+            }
+        }
+
+        if (!res) {
+            callback(formatMessage({id: "LANG4080"}))
+        } else {
+            callback()
+        }
+    }
+    _checkWanAndLanRange = (ele, val, callback) => {
+        const { getFieldValue } = this.props.form
+        const { formatMessage } = this.props.intl
+        let res = false
+        let nLanVal = ""
+        if (ele.field === "wan_port") {
+            nLanVal = getFieldValue('lan_port')
+        } else {
+            nLanVal = getFieldValue('wan_port')
+        }
+        if (!val || !nLanVal) {
+            res = true
+        }
+        if (_.indexOf(val, "-") === -1 && _.indexOf(nLanVal, "-") === -1) {
+            res = true
+        } else if (_.indexOf(val, "-") > -1 && _.indexOf(nLanVal, "-") > -1) {
+            if (val === nLanVal) {
+                res = true
+            }
+        }
+
+        if (!res) {
+            callback(formatMessage({id: "LANG4081"}))
+        } else {
+            callback()
+        }
+    }
+    _checkWanConflict = (ele, val, callback) => {
+        const { getFieldValue } = this.props.form
+        const { formatMessage } = this.props.intl
+        let noConflict = true
+        let res = true
+        let existWanPort = this.state.existWanPort || []
+
+        _.each(existWanPort, function(item, value) {
+            let nOtherVal = item
+
+            if (_.indexOf(val, "-") === -1) {
+                if (val === nOtherVal) {
+                    noConflict = false
+                    res = false
+                }
+            } else {
+                let aRange = val.split("-"),
+                    nStart = parseInt(aRange[0]),
+                    nStop = parseInt(aRange[1])
+
+                if (nOtherVal >= nStart && nOtherVal <= nStop) {
+                    noConflict = false
+                    res = false
+                }
+            }
+        })
+
+        if (!res) {
+            callback(formatMessage({id: "LANG4081"}))
+        } else {
+            callback()
+        }
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, setFieldValue } = this.props.form
@@ -284,10 +432,16 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkWanAndLanFormat
+                                }, {
+                                    validator: this._checkWanAndLanRange
+                                }, {
+                                    validator: this._checkWanConflict
                                 }],
                                 initialValue: PortForwarding.wan_port
                             })(
-                                <Input maxLength="6"/>
+                                <Input/>
                             ) }
                         </FormItem>
                         <FormItem
@@ -328,10 +482,14 @@ class PortForwardingItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: this._checkWanAndLanFormat
+                                }, {
+                                    validator: this._checkWanAndLanRange
                                 }],
                                 initialValue: PortForwarding.lan_port
                             })(
-                                <Input maxLength="6"/>
+                                <Input/>
                             ) }
                         </FormItem>
                         <FormItem

@@ -21,7 +21,7 @@ class Misc extends Component {
     _handleFormChange = (changedFields) => {
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
-                
+
             }
         })
         _.extend(this.props.dataSource, changedFields)
@@ -57,7 +57,7 @@ const CustomizedForm = injectIntl(Form.create({
         labelCol: { span: 6 },
         wrapperCol: { span: 6 }
     }
-    
+
     return (
         <Form>
             <div className="section-title">
@@ -74,10 +74,21 @@ const CustomizedForm = injectIntl(Form.create({
                         </span>
                     )}>
                     { getFieldDecorator('registertimeout', {
-                        rules: [],
+                        rules: [{
+                            required: true,
+                            message: formatMessage({id: "LANG2150"})
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.range(data, value, callback, formatMessage, 10, 100)
+                            }
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.digits(data, value, callback, formatMessage)
+                            }
+                        }],
                         initialValue: sipMiscSettings.registertimeout
                     })(
-                        <Input maxLength="8" />
+                        <Input maxLength="3" />
                     )}
                 </FormItem>
                 <FormItem
@@ -90,10 +101,21 @@ const CustomizedForm = injectIntl(Form.create({
                         </span>
                     )}>
                     { getFieldDecorator('registerattempts', {
-                        rules: [],
+                        rules: [{
+                            required: true,
+                            message: formatMessage({id: "LANG2150"})
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.range(data, value, callback, formatMessage, 0, 10)
+                            }
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.digits(data, value, callback, formatMessage)
+                            }
+                        }],
                         initialValue: sipMiscSettings.registerattempts
                     })(
-                        <Input maxLength="4" />
+                        <Input maxLength="2" />
                     )}
                 </FormItem>
             </div>
@@ -109,10 +131,21 @@ const CustomizedForm = injectIntl(Form.create({
                         </Tooltip>
                     }>
                     { getFieldDecorator('maxcallbitrate', {
-                        rules: [],
+                        rules: [{
+                            required: true,
+                            message: formatMessage({id: "LANG2150"})
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.range(data, value, callback, formatMessage, 0, 65536)
+                            }
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.digits(data, value, callback, formatMessage)
+                            }
+                        }],
                         initialValue: sipMiscSettings.maxcallbitrate
                     })(
-                        <Input maxLength="8" />
+                        <Input maxLength="5" />
                     )}
                 </FormItem>
                 <FormItem

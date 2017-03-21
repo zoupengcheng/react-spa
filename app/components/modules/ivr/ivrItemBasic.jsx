@@ -271,7 +271,7 @@ class BasicSettings extends Component {
             transferDisabled: transferDisabled,
             accountList: accountList
         })
-        this.props.getSpecialState(checkedList)
+        this.props.getSpecialState(e.target.checked ? checkedList : [])
     }
     _onChangeDialTrunk = (e) => {
         if (e.target.checked) {

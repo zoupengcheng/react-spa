@@ -61,7 +61,6 @@ class BasicSettings extends Component {
     }
     componentWillMount() {
         this._initNetwork()
-        this._getInitData()
     }
     componentDidMount() {
     }
@@ -227,9 +226,6 @@ class BasicSettings extends Component {
             dhcp_ip6_class: dhcp_ipv6,
             method_key: method_key
         })
-    }
-    _getInitData = () => {
-
     }
     _networkMethodSwitch = (value) => {
         let method = {}

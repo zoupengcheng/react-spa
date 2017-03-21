@@ -1,13 +1,16 @@
 'use strict'
 
+import $ from 'jquery'
+import _ from 'underscore'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
+import Validator from "../../api/validator"
+
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { Form, Input, message, Popover, Select, Transfer } from 'antd'
-import $ from 'jquery'
-import api from "../../api/api"
-import UCMGUI from "../../api/ucmgui"
-import Title from '../../../views/title'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -15,6 +18,7 @@ const Option = Select.Option
 class SLAStationItem extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
             targetKeys: [],
             accountList: [],
@@ -26,13 +30,12 @@ class SLAStationItem extends Component {
     componentDidMount() {
         this._getInitData()
     }
-    _checkName = (rule, value, callback) => {
-        const form = this.props.form
+    _checkExistence = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
-        const len = form.getFieldValue('gs_jblen')
+        const existedSlaStationNameList = this.state.existedSlaStationNameList
 
-        if (value && len && value < len) {
-            callback(formatMessage({id: "LANG2142"}, { 0: formatMessage({id: "LANG1655"}), 1: formatMessage({id: "LANG2460"}) }))
+        if (value && _.indexOf(existedSlaStationNameList, value) !== -1) {
+            callback(formatMessage({id: "LANG2137"}))
         } else {
             callback()
         }
@@ -44,22 +47,127 @@ class SLAStationItem extends Component {
         let targetKeys = []
         let accountList = []
         let slaStationItem = {}
+        let analogtrunkObj = {}
+        let slaTrunkNameList = []
+        let existedSlaStationNameList = []
+        let existedSlaStationNumberList = []
+
         const { formatMessage } = this.props.intl
         const slaStationId = this.props.params.id
+        const disabled = formatMessage({id: "LANG273"})
 
         $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getAccountList' },
-            type: 'json',
+            type: 'post',
             async: false,
+            url: api.apiHost,
+            data: { action: 'getSIPAccountList' },
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     const response = res.response || {}
+                    const extension = response.extension || []
 
-                    accountList = response.extension || []
+                    accountList = extension.map(function(item) {
+                        return {
+                                key: item.extension,
+                                value: item.extension,
+                                out_of_service: item.out_of_service,
+                                // disabled: (item.out_of_service === 'yes'),
+                                label: (item.extension +
+                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                            }
+                    })
+
+                    accountList = _.sortBy(accountList, function(item) { return item.key })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: api.apiHost,
+            data: {
+                action: 'listAnalogTrunk',
+                options: 'trunk_name,trunk_index,out_of_service'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const analogtrunk = response.analogtrunk || []
+
+                    _.map(analogtrunk, (item) => {
+                        analogtrunkObj[item.trunk_name] = item.out_of_service
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: api.apiHost,
+            data: {
+                action: 'getSLATrunkNameList'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const trunkName = response.trunk_name || []
+
+                    _.map(trunkName, (value) => {
+                        slaTrunkNameList.push({
+                                key: value,
+                                value: value,
+                                out_of_service: analogtrunkObj[value],
+                                label: (analogtrunkObj[value] === 'yes' ? value + ' <' + disabled + '>' : value)
+                            })
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: api.apiHost,
+            data: {
+                'sord': 'asc',
+                'sidx': 'station',
+                'action': 'listSLAStation',
+                'options': 'station_name,station'
+            },
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    const response = res.response || {}
+                    const slaStation = response.sla_station || []
+
+                    _.map(slaStation, (data) => {
+                        if (data.station) {
+                            existedSlaStationNumberList.push(data.station)
+                        }
+
+                        if (data.station_name) {
+                            existedSlaStationNameList.push(data.station_name)
+                        }
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -69,14 +177,13 @@ class SLAStationItem extends Component {
 
         if (slaStationId) {
             $.ajax({
+                type: 'post',
+                async: false,
                 url: api.apiHost,
-                method: 'post',
                 data: {
                     action: 'getSLAStation',
                     sla_station: slaStationId
                 },
-                type: 'json',
-                async: false,
                 success: function(res) {
                     const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -85,18 +192,27 @@ class SLAStationItem extends Component {
 
                         slaStationItem = res.response.sla_station || {}
                         targetKeys = slaStationItem.trunks.split(',') || []
+
+                        existedSlaStationNameList = _.filter(existedSlaStationNameList, (value) => { return value !== slaStationItem.station_name })
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
+        } else {
+            accountList = _.filter(accountList, (data) => {
+                return _.indexOf(existedSlaStationNumberList, data.key) === -1
+            })
         }
 
         this.setState({
             targetKeys: targetKeys,
             accountList: accountList,
-            slaStationItem: slaStationItem
+            slaStationItem: slaStationItem,
+            slaTrunkNameList: slaTrunkNameList,
+            existedSlaStationNameList: existedSlaStationNameList,
+            existedSlaStationNumberList: existedSlaStationNumberList
         })
     }
     _handleCancel = () => {
@@ -119,16 +235,23 @@ class SLAStationItem extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
         let loadingMessage = ''
         let successMessage = ''
+        let minSlaTrunkMessage = ''
+        let maxSlaTrunkMessage = ''
         const { formatMessage } = this.props.intl
         const slaStationId = this.props.params.id
 
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG128"}).toLowerCase()
+        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>
+
+        minSlaTrunkMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
+                    0: formatMessage({id: "LANG3230"}).toLowerCase()
+                })}}></span>
+
+        maxSlaTrunkMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG2169"}, {
+                    0: '16',
+                    1: formatMessage({id: "LANG3230"}).toLowerCase()
                 })}}></span>
 
         this.props.form.validateFieldsAndScroll((err, values) => {
@@ -136,29 +259,33 @@ class SLAStationItem extends Component {
                 console.log('Received values of form: ', values)
 
                 if (!this.state.targetKeys.length) {
-                    message.error(errorMessage)
+                    message.error(minSlaTrunkMessage)
+
+                    return
+                } else if (this.state.targetKeys.length > 16) {
+                    message.error(maxSlaTrunkMessage)
 
                     return
                 }
 
-                message.loading(loadingMessage)
+                message.loading(loadingMessage, 0)
 
                 let action = values
 
-                action.members = this.state.targetKeys.join()
-
                 if (slaStationId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = slaStationId
+                    action.action = 'updateSLAStation'
+                    action.sla_station = slaStationId
                 } else {
-                    action.action = 'addExtensiongroup'
+                    action.action = 'addSLAStation'
                 }
 
+                action.trunks = this.state.targetKeys.join()
+
                 $.ajax({
-                    url: api.apiHost,
-                    method: "post",
+                    type: 'post',
                     data: action,
-                    type: 'json',
+                    async: false,
+                    url: api.apiHost,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -179,13 +306,13 @@ class SLAStationItem extends Component {
     _renderItem = (item) => {
         const customLabel = (
                 <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                    { item.title }
+                    { item.label }
                 </span>
             )
 
         return {
                 label: customLabel,  // for displayed item
-                value: item.title   // for title and filter matching
+                value: item.value   // for title and filter matching
             }
     }
     render() {
@@ -193,13 +320,21 @@ class SLAStationItem extends Component {
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
+        const slaStationItem = this.state.slaStationItem || {}
+        const station_name = slaStationItem.station_name
+        const sla_station = slaStationItem.station
+        const ringtimeout = slaStationItem.ringtimeout
+        const ringdelay = slaStationItem.ringdelay
+        const holdaccess = slaStationItem.holdaccess
+
         const formItemLayout = {
-            labelCol: { span: 3 },
+            labelCol: { span: 4 },
             wrapperCol: { span: 6 }
         }
+
         const formItemTransferLayout = {
-            labelCol: { span: 3 },
-            wrapperCol: { span: 18 }
+            labelCol: { span: 4 },
+            wrapperCol: { span: 8 }
         }
 
         const title = (this.props.params.id
@@ -207,13 +342,6 @@ class SLAStationItem extends Component {
                     0: this.props.params.name
                 })
                 : formatMessage({id: "LANG3226"}))
-
-        const slaStationItem = this.state.slaStationItem || {}
-        const station_name = slaStationItem.station_name
-        const station = slaStationItem.station
-        const ringtimeout = slaStationItem.ringtimeout
-        const ringdelay = slaStationItem.ringdelay
-        const holdaccess = slaStationItem.holdaccess
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
@@ -237,10 +365,20 @@ class SLAStationItem extends Component {
                             )}
                         >
                             { getFieldDecorator('station_name', {
-                                rules: [
-                                    { required: true, message: formatMessage({id: "LANG2150"}) },
-                                    { validator: this._checkName }
-                                ],
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._checkExistence
+                                }],
                                 initialValue: station_name
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG3228"}) } />
@@ -259,17 +397,22 @@ class SLAStationItem extends Component {
                                 </span>
                             )}
                         >
-                            { getFieldDecorator('station', {
-                                initialValue: station
+                            { getFieldDecorator('sla_station', {
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
+                                initialValue: sla_station
                             })(
-                                <Select>
+                                <Select disabled={ !!this.props.params.id }>
                                     {
                                         this.state.accountList.map(function(item) {
                                             return <Option
-                                                    key={ item.extension }
-                                                    value={ item.extension }
-                                                    disabled={ item.out_of_service === 'yes' }>
-                                                    { item.extension + (item.fullname ? ' "' + item.fullname + '"' : '') }
+                                                    key={ item.key }
+                                                    value={ item.value }
+                                                    className={ item.out_of_service === 'yes' }
+                                                >
+                                                    { item.label }
                                                 </Option>
                                             }
                                         ) 
@@ -287,15 +430,18 @@ class SLAStationItem extends Component {
                                 showSearch
                                 render={ this._renderItem }
                                 targetKeys={ this.state.targetKeys }
-                                dataSource={ this.state.accountList }
                                 onChange={ this._handleTransferChange }
+                                dataSource={ this.state.slaTrunkNameList }
                                 filterOption={ this._filterTransferOption }
                                 notFoundContent={ formatMessage({id: "LANG133"}) }
                                 onSelectChange={ this._handleTransferSelectChange }
                                 searchPlaceholder={ formatMessage({id: "LANG803"}) }
-                                titles={[formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})]}
+                                titles={ [formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})] }
                             />
                         </FormItem>
+                        <div className="section-title">
+                            <span>{ formatMessage({id: "LANG3233"}) }</span>
+                        </div>
                         <FormItem
                             { ...formItemLayout }
                             label={(
@@ -310,12 +456,18 @@ class SLAStationItem extends Component {
                             )}
                         >
                             { getFieldDecorator('ringtimeout', {
-                                rules: [
-                                    { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                                ],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 0, 300)
+                                    }
+                                }],
                                 initialValue: ringtimeout
                             })(
-                                <Input min={ 0 } max={ 300 } />
+                                <Input />
                             ) }
                         </FormItem>
                         <FormItem
@@ -332,12 +484,18 @@ class SLAStationItem extends Component {
                             )}
                         >
                             { getFieldDecorator('ringdelay', {
-                                rules: [
-                                    { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                                ],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 0, 300)
+                                    }
+                                }],
                                 initialValue: ringdelay
                             })(
-                                <Input min={ 0 } max={ 300 } />
+                                <Input />
                             ) }
                         </FormItem>
                         <FormItem
@@ -354,7 +512,7 @@ class SLAStationItem extends Component {
                             )}
                         >
                             { getFieldDecorator('holdaccess', {
-                                initialValue: holdaccess
+                                initialValue: holdaccess ? holdaccess : 'open'
                             })(
                                 <Select>
                                     <Option key="open" value="open">{ "Open" }</Option>

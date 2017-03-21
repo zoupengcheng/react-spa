@@ -130,7 +130,39 @@ class PbxGeneralSettings extends Component {
                     actionExtensionPre = {}
 
                 actionGeneralPre.action = 'updateGeneralPrefSettings'
+                actionGeneralPre.global_outboundcid = values.global_outboundcid
+                actionGeneralPre.global_outboundcidname = values.global_outboundcidname
+                actionGeneralPre.ringtime = values.ringtime
+                actionGeneralPre.record_prompt = values.record_prompt ? 'yes' : 'no'
+                actionGeneralPre.repeattime = values.repeattime
+                actionGeneralPre.warningtime = values.warningtime
+                actionGeneralPre.limitime = values.limitime
+
                 actionExtensionPre.action = 'updateExtenPrefSettings'
+                actionExtensionPre.weak_password = values.weak_password ? 'yes' : 'no'
+                actionExtensionPre.rand_password = values.rand_password ? 'yes' : 'no'
+                actionExtensionPre.auto_email_to_user = values.auto_email_to_user ? 'yes' : 'no'
+                actionExtensionPre.disable_extension_ranges = values.disable_extension_ranges ? 'yes' : 'no'
+                actionExtensionPre.ue_start = values.ue_start
+                actionExtensionPre.ue_end = values.ue_end
+                actionExtensionPre.pkue_start = values.pkue_start
+                actionExtensionPre.pkue_end = values.pkue_end
+                actionExtensionPre.zcue_start = values.zcue_start
+                actionExtensionPre.zcue_end = values.zcue_end
+                actionExtensionPre.mm_start = values.mm_start
+                actionExtensionPre.mm_end = values.mm_end
+                actionExtensionPre.rge_start = values.rge_start
+                actionExtensionPre.rge_end = values.rge_end
+                actionExtensionPre.qe_start = values.qe_start
+                actionExtensionPre.qe_end = values.qe_end
+                actionExtensionPre.vmg_start = values.vmg_start
+                actionExtensionPre.vmg_end = values.vmg_end
+                actionExtensionPre.vme_start = values.vme_start
+                actionExtensionPre.vme_end = values.vme_end
+                actionExtensionPre.directory_start = values.directory_start
+                actionExtensionPre.directory_end = values.directory_end
+                actionExtensionPre.fax_start = values.fax_start
+                actionExtensionPre.fax_end = values.fax_end
 
                 $.ajax({
                     url: api.apiHost,
@@ -208,7 +240,9 @@ class PbxGeneralSettings extends Component {
 
         let generalPrefSettings = this.state.generalPrefSettings
         let extensionPrefSettings = this.state.extensionPrefSettings
-        let limitime, warningtime, repeattime
+        let limitime = ''
+        let warningtime = ''
+        let repeattime = ''
 
         if (generalPrefSettings.limitime !== null) {
             limitime = (generalPrefSettings.limitime ? generalPrefSettings.limitime / 1000 : '')

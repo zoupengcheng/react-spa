@@ -76,18 +76,14 @@ Validator.prototype = {
         specialStr: "LANG5140"
     },
     digits: function(data, value, callback, formatMessage) {
-        if (value !== undefined && /^\d+$/i.test(value)) {
-            callback()
-        } else if (value === "") {
+        if (!value || (value && /^\d+$/i.test(value))) {
             callback()
         } else {
             callback(formatMessage({id: "LANG2157"}))
         }
     },
     digitalAndQuote: function(data, value, callback, formatMessage) {
-        if (value && /^\d+(,\d+)*(,)?$/i.test(value)) {
-            callback()
-        } else if (value === "") {
+        if (!value || (value && /^\d+(,\d+)*(,)?$/i.test(value))) {
             callback()
         } else {
             callback(formatMessage({id: "LANG3822"}))
