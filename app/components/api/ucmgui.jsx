@@ -16,7 +16,7 @@ import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
 const baseServerURl = api.apiHost
 
 let loginInterval = null
-let checkInterval = null    
+let checkInterval = null
 let UCMGUI = function() {}
 let userAgent = window.navigator.userAgent.toLowerCase()
 
@@ -38,7 +38,7 @@ UCMGUI.prototype = {
             "-64": "LANG4144", // CGICODE_UPDATE_ZC_MODEL_FAILED
             "-63": "LANG4383", // FAX_SENDING
             "-62": "LANG4383", // FAX_SENDING
-            "-61": "LANG4308", // 
+            "-61": "LANG4308", //
             "-60": "LANG4307", // USER_SENDING_FAX
             "-59": "LANG4306", // SEND_FAX_MEMBER
             "-58": "LANG4221", // GOOGLE_CALENDAR
@@ -116,7 +116,7 @@ UCMGUI.prototype = {
     },
     formatSeconds: function(value) { // xxx seconds to 00:00:00 format
         let second = parseInt(value)
-        
+
         if (!isNaN(second)) {
             let minute = 0
             let hour = 0
@@ -149,7 +149,7 @@ UCMGUI.prototype = {
                 if (status === -5 || status === -6 || status === -7 || status === -8) {
                     message.destroy()
 
-                    // TODO: Need Logout First 
+                    // TODO: Need Logout First
                     browserHistory.push('/login')
                 } else {
                     message.destroy()
@@ -453,7 +453,7 @@ UCMGUI.prototype = {
                             if (type === "ping") { // check user whether has logged per minute.
                                 // let applyChanges = $("#applyChanges_Button", top.frames["frameContainer"].document),
                                 //     lineButton = $("#line_Button", top.frames["frameContainer"].document);
-                                
+
                                 // if (needApply && needApply == 'yes') {
                                 //     cookie.save("needApplyChange", "yes");
 
@@ -512,7 +512,7 @@ UCMGUI.prototype = {
                                             okText: 'OK',
                                             cancelText: 'Cancel',
                                             onOk: () => {
-                                                UCMGUI.prototype.loginFunction.confirmReboot() 
+                                                UCMGUI.prototype.loginFunction.confirmReboot()
                                             },
                                             onCancel: () => {
                                                 UCMGUI.config.needReboot = needReboot
@@ -612,13 +612,14 @@ UCMGUI.prototype = {
                     },
                     success: function(data) {
                         if (data.status === 0) {
-                            top.dialog.clearDialog()
+                            // top.dialog.clearDialog()
+                            message.destroy()
                             browserHistory.push('/login')
                             // UCMGUI.logoutFunction.doLogout();
                         }
                     }
                 })
-                browserHistory.push('/login')
+                // browserHistory.push('/login')
             }
             let reboot = function() {
                 // delete interval while reboot.
@@ -703,7 +704,7 @@ UCMGUI.prototype = {
             })
         }
     },
-    filterHiddenEle: function(ele) { 
+    filterHiddenEle: function(ele) {
         if (typeof ele[0] !== "undefined") {
             if (ele.is(":hidden")) {
                 return false
@@ -718,7 +719,7 @@ UCMGUI.prototype = {
     transCheckboxVal: function(val) {
         if (val === true || val === false) {
             return val ? "yes" : "no"
-        } 
+        }
         return val
     },
     triggerCheckInfo: function(formatMessage) {
@@ -750,7 +751,7 @@ UCMGUI.prototype = {
                                     },
                                     onCancel: () => {
                                     }
-                                })                            
+                                })
                             } else {
 
                             }

@@ -20,19 +20,57 @@ class CDR extends Component {
             isDisplay: 'display-block-filter',
             isDisplaySearch: 'hidden',
             cdrData: [],
-            cdrSearchDownload: {}
+            cdrSearchDownload: {},
+            pagination: {            
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            },
+            loading: false,
+            sorter: {
+                field: "start",
+                order: "desc"
+            }
         }
     }
     componentDidMount () {
         this._getCdrData()
     }
-    _getCdrData = () => {
+    _showTotal = (total) => {
+        const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        const pager = this.state.pagination
+
+        pager.current = pagination.current
+
+        this.setState({
+            pagination: pager,
+            sorter: sorter
+        })
+
+        this._getCdrData({
+            item_num: pagination.pageSize,
+            page: pagination.current,
+            sidx: 'start',
+            sord: 'desc',
+            ...filters
+        })
+    }
+    _getCdrData = (
+        params = {
+            item_num: 10,
+            sidx: "start",
+            sord: "desc",
+            page: 1
+        }) => {
         $.ajax({
             url: api.apiHost,
             data: {
                 action: 'listCDRDB',
-                sidx: 'start',
-                sord: 'desc'
+                ...params
             },
             type: 'POST',
             dataType: 'json',
@@ -40,8 +78,12 @@ class CDR extends Component {
             success: function(res) {
                 let cdrData = res.response.acctid || []
 
+                const pagination = this.state.pagination
+                pagination.total = res.response.total_item
+
                 this.setState({
-                    cdrData: cdrData
+                    cdrData: cdrData,
+                    pagination
                 })
             }.bind(this),
             error: function(e) {
@@ -118,7 +160,9 @@ class CDR extends Component {
             cdrSearchData = {
                 action: 'listCDRDB',
                 sidx: 'start',
-                sord: 'desc'
+                sord: 'desc',
+                page: 1,
+                item_num: 10
             }
 
         let all = form.getFieldsValue()
@@ -193,7 +237,10 @@ class CDR extends Component {
                 <CDRList
                     cdrData={ this.state.cdrData }
                     deleteAll={ this._deleteAll }
-                    getCdrData = { this._getCdrData }
+                    _getCdrData = { this._getCdrData }
+                    pagination = { this.state.pagination }
+                    _handleTableChange = { this._handleTableChange }
+                    loading = { this.state.loading }
                     dataSource = { this.state.cdrSearchDownload } />
             </div>
         )

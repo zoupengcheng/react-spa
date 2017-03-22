@@ -11,6 +11,8 @@ import _ from 'underscore'
 
 const confirm = Modal.confirm
 
+let subCDRList = []
+
 class CDRList extends Component {
     constructor(props) {
         super(props)
@@ -18,6 +20,24 @@ class CDRList extends Component {
             visible: false,
             recordFiles: []
         }
+    }
+    _getSubCDR = (session) => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: {
+                'action': 'getSubCDR',
+                'session': session
+            },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                subCDRList = res.response.sub_cdr || []
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
     }
     _sendDownloadRequest = () => {
         const { formatMessage } = this.props.intl
@@ -290,15 +310,53 @@ class CDRList extends Component {
             }
         ]
 
-        const pagination = {
-            total: this.props.cdrData.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                console.log('Current: ', current, '; PageSize: ', pageSize)
-            },
-            onChange: (current) => {
-                console.log('Current: ', current)
-            }
+        const expandedRowRender = (e) => {
+            const columns = [
+                {
+                    title: formatMessage({id: "LANG186"}),
+                    dataIndex: 'disposition',
+                    render: (text, record, index) => (
+                        this._createStatus(text, record, index)
+                    )
+                }, {
+                    title: formatMessage({id: "LANG581"}),
+                    dataIndex: 'src'
+                }, {
+                    title: formatMessage({id: "LANG582"}),
+                    dataIndex: 'dst'
+                }, {
+                    title: formatMessage({id: "LANG5134"}),
+                    dataIndex: 'action_type'
+                }, {
+                    title: formatMessage({id: "LANG169"}),
+                    dataIndex: 'start',
+                    sorter: (a, b) => a > b
+                }, {
+                    title: formatMessage({id: "LANG2238"}),
+                    dataIndex: 'billsec',
+                    render: (text, record, index) => (
+                        this._createTalkTime(text, record, index)
+                    )
+                }, {
+                    title: formatMessage({id: "LANG4569"}),
+                    dataIndex: 'accountcode'
+                }, {
+                    title: formatMessage({id: "LANG4096"}),
+                    dataIndex: 'recordfiles',
+                    render: (text, record, index) => (
+                        this._createRecordFile(text, record, index)
+                    )
+                }
+            ]
+
+            this._getSubCDR(e.session)
+
+            return (
+                <Table
+                    columns={ columns }
+                    dataSource={ subCDRList }
+                    pagination={ false } />
+            )
         }
 
         return (
@@ -318,11 +376,14 @@ class CDRList extends Component {
                     </Button>
                 </div>
                 <Table
-                    bordered
+                    rowKey={ record => record.session }
                     columns={ columns }
                     dataSource={ this.props.cdrData }
-                    pagination={ pagination }
-                    showHeader={ !!this.props.cdrData.length } />
+                    pagination={ this.props.pagination }
+                    showHeader={ !!this.props.cdrData.length }
+                    loading={ this.props.loading}
+                    expandedRowRender = { expandedRowRender }
+                    onChange={ this.props._handleTableChange }/>
                 <Modal
                     title={ formatMessage({id: "LANG2640"}) }
                     visible={ this.state.visible }

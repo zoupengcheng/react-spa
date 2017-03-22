@@ -629,7 +629,7 @@ class BackupRestore extends Component {
                             okText={ formatMessage({id: "LANG760"}) }
                             cancelText={ formatMessage({id: "LANG726"}) }
                             onConfirm={ this._restore.bind(this, record) }>
-                        <span className="sprite sprite-record" title={ formatMessage({id: "LANG784"}) }></span>
+                        <span className="sprite sprite-restore" title={ formatMessage({id: "LANG760"}) }></span>
                     </Popconfirm>
                     <Popconfirm
                         title={ formatMessage({id: "LANG841"}) }

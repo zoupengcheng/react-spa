@@ -672,12 +672,12 @@ class EmailSendLog extends Component {
                             </Col>
                         </Row>
                     </p>
-                    <p ><span className="lite-desc-warning">
+                    <div className="lite-desc-error">
                         { formatMessage({id: "LANG5429" })}
-                    </span></p>
-                    <p ><span className="lite-desc-warning">
+                    </div>
+                    <div className="lite-desc-error">
                         { formatMessage({id: "LANG5430" })}
-                    </span></p>
+                    </div>
                 </div>
                 <div>
                     <Table

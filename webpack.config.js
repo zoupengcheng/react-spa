@@ -44,6 +44,11 @@ module.exports = {
                 changeOrigin: true,
                 target: 'http://192.168.124.116:8089',
                 secure: false
+            },
+            '/*.json': {
+                changeOrigin: true,
+                target: 'http://192.168.124.116:8089',
+                secure: false
             }
         }
     },

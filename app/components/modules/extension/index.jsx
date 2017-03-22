@@ -17,6 +17,7 @@ import { FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Select, Table, Tag, Tooltip, Upload } from 'antd'
 
 const FormItem = Form.Item
+const Option = Select.Option
 const confirm = Modal.confirm
 
 const formItemLayout = {
@@ -35,6 +36,7 @@ class Extension extends Component {
             selectedRows: [],
             autoRefresh: null,
             extensionList: [],
+            importResults: '',
             importType: 'skip',
             selectedRowKeys: [],
             zeroConfigSettings: {},
@@ -93,8 +95,7 @@ class Extension extends Component {
 
         $.ajax({
             data: data,
-            type: 'json',
-            method: 'post',
+            type: 'post',
             url: api.apiHost,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -142,6 +143,26 @@ class Extension extends Component {
     }
     _batchDelete = () => {
         this.setState({ batchDeleteModalVisible: true })
+    }
+    _beforeUpload = (file) => {
+        const { formatMessage } = this.props.intl
+
+        let filename = file.name
+        let isCSV = filename.toLowerCase().endsWith('.csv')
+
+        if (!isCSV) {
+            message.error(formatMessage({id: "LANG3165"}))
+        } else {
+            this.props.setSpinLoading({
+                loading: true,
+                tip: formatMessage({id: "LANG905"})
+            })
+
+            // Need Set Timeout
+            setTimeout(this._handleImportExtensionCancel, 100)
+        }
+
+        return isCSV
     }
     _clearSelectRows = () => {
         this.setState({
@@ -350,14 +371,13 @@ class Extension extends Component {
         message.loading(loadingMessage)
 
         $.ajax({
+            async: true,
+            type: 'post',
             url: api.apiHost,
-            method: 'post',
             data: {
                 "action": "deleteUser",
                 "user_name": record.extension
             },
-            type: 'json',
-            async: true,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -412,8 +432,7 @@ class Extension extends Component {
 
             $.ajax({
                 data: data,
-                type: 'json',
-                method: 'post',
+                type: 'post',
                 url: api.apiHost,
                 success: function(res) {
                     const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -460,14 +479,13 @@ class Extension extends Component {
         message.loading(loadingMessage)
 
         $.ajax({
+            async: true,
+            type: 'post',
             url: api.apiHost,
-            method: 'post',
             data: {
                 'action': 'deleteUser',
                 'user_name': this.state.selectedRowKeys.join(',')
             },
-            type: 'json',
-            async: true,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -528,13 +546,12 @@ class Extension extends Component {
                 content: confirmMessage,
                 onOk() {
                     $.ajax({
+                        type: 'post',
                         url: api.apiHost,
-                        method: 'post',
                         data: {
                             'ip': ipLists.join(','),
                             'action': 'rebootDevice'
                         },
-                        type: 'json',
                         success: function(res) {
                             const bool = UCMGUI.errorHandler(res, null, __this.props.intl.formatMessage)
 
@@ -578,14 +595,13 @@ class Extension extends Component {
         message.loading(loadingMessage)
 
         $.ajax({
+            async: true,
+            type: 'post',
             url: api.apiHost,
-            method: 'post',
             data: {
                 'extension': sendExtensions,
                 'action': 'sendAccount2User'
             },
-            type: 'json',
-            async: true,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -646,7 +662,64 @@ class Extension extends Component {
         this._clearSelectRows()
     }
     _import = () => {
-        this.setState({ importExtensionVisible: true })
+        this.setState({
+            importExtensionVisible: true
+        })
+    }
+    _loadImportResultsFile = () => {
+        // $.ajax({
+        //     type: 'GET',
+        //     dataType: 'json',
+        //     url: '../import_extension_response.json',
+        //     error: function(jqXHR, textStatus, errorThrown) {},
+        //     success: (data) => {
+        //         if (!$.isEmptyObject(data)) {
+        //             let fileName = data.filename,
+        //                 failed = data.faild,
+        //                 out = data.out,
+        //                 extension = '',
+        //                 buf = [],
+        //                 name = '',
+        //                 err = 0
+
+        //             if (failed.length || out.length) {
+        //                 if (failed.length) {
+        //                     for (let i = 0; i < failed.length; i++) {
+        //                         if (!$.isEmptyObject(failed[i])) {
+        //                             err = this.props.importErrObj[failed[i]['code']]
+
+        //                             if (failed[i]['code'] === -13) {
+        //                                 name = failed[i]['item'] + ' ' + $P.lang(err).format('4')
+        //                             } else {
+        //                                 name = failed[i]['item'] + ' ' + $P.lang(err)
+        //                             }
+
+        //                             extension = failed[i]['ext'] ? failed[i]['ext'] : ''
+
+        //                             buf.push($P.lang('LANG3200').format(failed[i]['line']) + ' (' + extension + ') : ' + name.toString())
+        //                         }
+        //                     }
+        //                 }
+
+        //                 if (out.length) {
+        //                     extension = ''
+
+        //                     for (var i = 0; i < out.length; i++) {
+        //                         if (i % 5 == 0 && i > 0) {
+        //                             extension = extension + '<br/>'
+        //                         }
+
+        //                         extension = extension + out[i] + ','
+        //                     }
+
+        //                     buf.push($P.lang("LANG3182").format(extension.slice(0, extension.length - 1)))
+        //                 }
+
+        //                 $('.levelTip').html($P.lang("LANG2744").format(buf.join('<br/>')))
+        //             }
+        //         }
+        //     }
+        // })
     }
     _normFile(e) {
         if (Array.isArray(e)) {
@@ -654,6 +727,115 @@ class Extension extends Component {
         }
 
         return e && e.fileList
+    }
+    _onChangeImport = (info) => {
+        const { formatMessage } = this.props.intl
+
+        // message.loading(formatMessage({ id: "LANG979" }), 0)
+        console.log(info.file.status)
+
+        if (info.file.status !== 'uploading') {
+            console.log(info.file, info.fileList)
+        }
+
+        if (info.file.status === 'removed') {
+            return
+        }
+
+        if (info.file.status === 'done') {
+            // message.success(`${info.file.name} file uploaded successfully`)
+            let data = info.file.response
+            let bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+            this.props.setSpinLoading({loading: false})
+
+            if (bool) {
+                if (data.hasOwnProperty('response') && data.response.hasOwnProperty('result')) {
+                    if (data.response.result === 0) {
+                        $.ajax({
+                            type: 'GET',
+                            dataType: 'json',
+                            url: '../import_extension_response.json',
+                            error: function(jqXHR, textStatus, errorThrown) {},
+                            success: (data) => {
+                                if (!$.isEmptyObject(data)) {
+                                    let fileName = data.filename,
+                                        failed = data.faild,
+                                        out = data.out,
+                                        extension = '',
+                                        buf = [],
+                                        name = '',
+                                        err = 0
+
+                                    if (failed.length || out.length) {
+                                        if (failed.length) {
+                                            for (let i = 0; i < failed.length; i++) {
+                                                if (!$.isEmptyObject(failed[i])) {
+                                                    err = this.props.importErrObj[failed[i]['code']]
+
+                                                    if (failed[i]['code'] === -13) {
+                                                        name = failed[i]['item'] + ' ' + formatMessage({id: err}, {0: '4'})
+                                                    } else {
+                                                        name = failed[i]['item'] + ' ' + formatMessage({id: err})
+                                                    }
+
+                                                    extension = failed[i]['ext'] ? failed[i]['ext'] : ''
+
+                                                    buf.push(formatMessage({id: 'LANG3200'}, {0: failed[i]['line']}) + ' (' + extension + ') : ' + name.toString())
+                                                }
+                                            }
+                                        }
+
+                                        if (out.length) {
+                                            extension = ''
+
+                                            for (let i = 0; i < out.length; i++) {
+                                                if (i % 5 === 0 && i > 0) {
+                                                    extension = extension + '<br/>'
+                                                }
+
+                                                extension = extension + out[i] + ','
+                                            }
+
+                                            buf.push(formatMessage({id: 'LANG3182'}, {0: extension.slice(0, extension.length - 1)}))
+                                        }
+
+                                        this.setState({
+                                            importExtensionVisible: true,
+                                            importResults: formatMessage({id: 'LANG2743'}, {0: buf.join('<br/>')})
+                                        })
+                                    } else {
+                                        message.success(formatMessage({id: "LANG2742"}))
+                                    }
+                                }
+                            }
+                        })
+                    } else if (data.response.result === -1) {
+                        message.error(formatMessage({id: "LANG3204"}))
+                    } else {
+                        let message = formatMessage({id: "LANG907"})
+
+                        if (parseInt(data.response.result) < 0) {
+                            message = formatMessage({id: this.props.uploadErrObj[Math.abs(parseInt(data.response.result)).toString()]})
+                        } else if (parseInt(data.response.result) === 4) {
+                            message = formatMessage({id: "LANG915"})
+                        } else if (data.response.body) {
+                            message = data.response.body
+                        }
+
+                        message.error(message)
+
+                        this.setState({
+                            importExtensionVisible: true
+                        })
+                    }
+                }
+            }
+        } else if (info.file.status === 'error') {
+            this.props.setSpinLoading({loading: false})
+
+            message.error(formatMessage({id: "LANG907"}))
+        }
     }
     _onChangeImportType = (value) => {
         this.setState({
@@ -826,78 +1008,6 @@ class Extension extends Component {
                 </Menu>
             )
 
-        const importExtensionProps = {
-            name: 'file',
-            headers: { authorization: 'authorization-text' },
-            action: api.apiHost + `action=uploadfile&type=import_${this.state.importType}_extensions`,
-            onChange: (info) => {
-                // message.loading(formatMessage({ id: "LANG979" }), 0)
-                console.log(info.file.status)
-
-                if (info.file.status !== 'uploading') {
-                    console.log(info.file, info.fileList)
-                }
-
-                // if (this.state.upgradeLoading) {
-                //     this.props.setSpinLoading({ loading: true, tip: formatMessage({id: "LANG979"}) })
-
-                //     this.setState({ upgradeLoading: false })
-                // }
-
-                if (info.file.status === 'removed') {
-                    return
-                }
-
-                if (info.file.status === 'done') {
-                    // message.success(`${info.file.name} file uploaded successfully`)
-                    let data = info.file.response
-
-                    if (data) {
-                        let status = data.status,
-                            response = data.response
-
-                        this.props.setSpinLoading({ loading: false })
-
-                        if (data.status === 0 && response && response.result === 0) {
-                            Modal.confirm({
-                                content: '',
-                                okText: 'OK',
-                                cancelText: 'Cancel',
-                                title: formatMessage({id: "LANG924"}),
-                                onOk: () => {
-                                    this.setState({
-                                        visible: false
-                                    })
-
-                                    UCMGUI.loginFunction.confirmReboot()
-                                },
-                                onCancel: () => {
-                                    this.setState({
-                                        visible: false
-                                    })
-                                }
-                            })
-                        } else if (data.status === 4) {
-                            message.error(formatMessage({id: "LANG915"}))
-                        } else if (!_.isEmpty(response)) {
-                            message.error(formatMessage({id: UCMGUI.transUploadcode(response.result)}))
-                        } else {
-                            message.error(formatMessage({id: "LANG916"}))
-                        }
-                    } else {
-                        message.error(formatMessage({id: "LANG916"}))
-                    }
-                } else if (info.file.status === 'error') {
-                    message.error(`${info.file.name} file upload failed.`)
-                }
-            },
-            onRemove: () => {
-                this.props.setSpinLoading({ loading: false })
-
-                message.destroy()
-            }
-        }
-
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: formatMessage({id: "LANG622"})
@@ -1014,10 +1124,14 @@ class Extension extends Component {
                             title={ formatMessage({id: "LANG2733"}) }
                             visible={ this.state.importExtensionVisible }
                             onCancel={ this._handleImportExtensionCancel }
+                            
                         >
                             <Form className="app-content-main">
                                 <div className="function-description">
                                     <span>{ formatMessage({id: "LANG4421"}) }</span>
+                                </div>
+                                <div className={ "lite-desc-warning" + (this.state.importType === 'delete' ? "" : " hidden") }>
+                                    <span>{ formatMessage({id: "LANG4473"}) }</span>
                                 </div>
                                 <FormItem
                                     { ...formItemLayout }
@@ -1052,14 +1166,23 @@ class Extension extends Component {
                                 >
                                     { getFieldDecorator('upload', {
                                         valuePropName: 'fileList',
-                                        normalize: this._normFile
+                                        getValueFromEvent: this._normFile
                                     })(
-                                        <Upload {...importExtensionProps}>
+                                        <Upload
+                                            name='filename'
+                                            showUploadList={ false }
+                                            onChange={ this._onChangeImport }
+                                            beforeUpload={ this._beforeUpload }
+                                            action={ api.apiHost + `action=uploadfile&type=import_${this.state.importType}_extensions` }
+                                        >
                                             <Button type="ghost">
                                                 <Icon type="upload" /> { formatMessage({id: "LANG1607"}) }
                                             </Button>
                                         </Upload>
                                     ) }
+                                </FormItem>
+                                <FormItem { ...formItemLayout }>
+                                    <div>{ this.state.importResults }</div>
                                 </FormItem>
                             </Form>
                         </Modal>
@@ -1124,6 +1247,34 @@ Extension.defaultProps = {
         "2": "LANG919",
         "3": "LANG920",
         "4": "LANG2538"
+    },
+    uploadErrObj: {
+        "1": "LANG890",
+        "2": "LANG891",
+        "3": "LANG892",
+        "4": "LANG893",
+        "5": "LANG894",
+        "6": "LANG895",
+        "7": "LANG896",
+        "8": "LANG897",
+        "9": "LANG898",
+        "10": "LANG899"
+    },
+    importErrObj: {
+        "-1": "LANG3176",
+        "-2": "LANG3177",
+        "-3": "LANG3178",
+        "-4": "LANG3179",
+        "-5": "LANG3190",
+        "-6": "LANG3199",
+        "-7": "LANG3203",
+        "-8": "LANG3180",
+        "-9": "LANG2157",
+        "-10": "LANG2636",
+        "-11": "LANG2174",
+        "-12": "LANG2635",
+        "-13": "LANG2161",
+        "-99": "LANG3181"
     }
 }
 

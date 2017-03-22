@@ -21,7 +21,7 @@ class DateTrunkItem extends Component {
         this.state = {
             enableHDLC: false,
             enableFrameRelay: false,
-            defaultInterface: 0,
+            defaultInterface: false,
             disableDCE: true,
             forbidConnect: false,
             listDigitalGroup: [],
@@ -121,10 +121,12 @@ class DateTrunkItem extends Component {
                 if (bool) {
                     let response = res.response || {}
                     let netHDLCValues = response.nethdlc_settings
+                    let defaultInterface = netHDLCValues.hdlc0__default
 
                     console.log('getNetHDLC is  ', netHDLCValues)
                     this.setState({
-                        netHDLCValues: netHDLCValues
+                        netHDLCValues: netHDLCValues,
+                        defaultInterface: defaultInterface
                     })
                 }
             }.bind(this),
@@ -282,7 +284,7 @@ class DateTrunkItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
-                action.hdlc0__default = this.state.defaultInterface
+                action.hdlc0__default = this.state.defaultInterface ? 1 : 0
                 action.hdlc0__enable = this.state.enableHDLC ? 1 : 0
                 action.action = 'updateNetHDLC'
                 console.log('update netDHLC: ', action)
@@ -351,11 +353,11 @@ class DateTrunkItem extends Component {
 
         if (e.target.checked) {
             this.setState({
-                defaultInterface: 1
+                defaultInterface: true
             })
         } else {
             this.setState({
-                defaultInterface: 0
+                defaultInterface: false
             })
         }
     }
@@ -366,6 +368,10 @@ class DateTrunkItem extends Component {
         if (value !== 'none') {
             this.setState({
                  disableDCE: false
+            })
+        } else {
+            this.setState({
+                 disableDCE: true
             })
         }
     }
