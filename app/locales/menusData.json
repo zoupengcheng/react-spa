@@ -277,9 +277,6 @@
         }, {
             "name": "LANG2988",
             "path": "userFaxFiles"
-        }, {
-            "name": "LANG5583",
-            "path": "userOnlineStatus"
         }]
     }, {
         "name": "user-value-added-features",

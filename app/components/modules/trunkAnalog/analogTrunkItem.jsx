@@ -1168,7 +1168,7 @@ class AnalogTrunkItem extends Component {
 
                 state["faxIntelligentRouteVal"] = !(analogtrunk["fax_intelligent_route"] === "yes" ? true : false)
                 state["firstLoad"] = false
-                state.loading = false
+                // state.loading = false
             }
         }
         return (
@@ -1179,7 +1179,7 @@ class AnalogTrunkItem extends Component {
                     onCancel={ this._handleCancel }  
                     isDisplay='display-block' 
                 />
-                <Spin spinning={ state.loading }>
+                <Spin spinning={ false }>
                     <Form>
                         <Row>
                             <Col span={12}>

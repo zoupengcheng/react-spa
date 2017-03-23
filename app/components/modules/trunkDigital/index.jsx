@@ -267,8 +267,9 @@ class DigitalTrunk extends Component {
             trunkNameList = state.trunkNameList
 
         browserHistory.push({ 
-            pathname: '/extension-trunk/digitalTrunk/edit/' + trunkId + "/" + trunkType + "/" + trunkName, 
+            pathname: '/extension-trunk/digitalTrunk/edit/' + trunkId + "/" + trunkName, 
             state: {
+                trunkType: trunkType,
                 digitalGroup: digitalGroup,
                 groupNameList: groupNameList,
                 trunkNameList: trunkNameList
@@ -277,7 +278,12 @@ class DigitalTrunk extends Component {
     }
     _dodTrunksList = (record) => {
         let signalling = this._transSignallingType(record.type)
-        browserHistory.push('/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index + "/" + signalling)
+        browserHistory.push({ 
+            pathname: '/extension-trunk/voipTrunk/dodTrunksList/' + record.trunk_index, 
+            state: {
+                signalling: signalling
+            } 
+        })
     }
     _transSignallingType = (type) => {
         if (!type || !type.contains) {

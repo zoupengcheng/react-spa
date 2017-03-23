@@ -1,5 +1,8 @@
 'use strict'
 
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import * as Actions from '../../../actions/'
 import $ from 'jquery'
 import React, { Component, PropTypes } from 'react'
 import api from "../../api/api"
@@ -366,13 +369,14 @@ class BackupRestore extends Component {
             }
         })
     }
-    _reload = (record) => {
+    _reload = () => {
         const { formatMessage } = this.props.intl
-        let isRestoreComplete = this.status.isRestoreComplete || false
-        let filename = record.n
-        let loadingMessage = ''
+        let isRestoreComplete = this.state.isRestoreComplete || false
+        let me = this
+        let loadingMessage
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG832" })}}></span>
 
+        this.props.setSpinLoading({loading: true, tip: loadingMessage})
         $.ajax({
             type: "post",
             url: "../cgi",
@@ -380,40 +384,37 @@ class BackupRestore extends Component {
                 "action": "getInfo"
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                setTimeout(this._reload, 5000)
+                setTimeout(me._reload, 5000)
 
                 if (!isRestoreComplete) {
                     isRestoreComplete = true
-                    this.setState({
+                    me.setState({
                         isRestoreComplete: isRestoreComplete
                     })
-                    message.loading(loadingMessage)
                 }
             },
             success: function(data) {
                 if (data && data.hasOwnProperty("status") && (data.status === 0) && isRestoreComplete) {
-                    message.destroy()
-                    UCMGUI.logoutFunction.doLogout()
+                    me.props.setSpinLoading({loading: false})
+                    // UCMGUI.logoutFunction.doLogout()
+                    browserHistory.push('/login')
                 } else {
-                    setTimeout(this._reload, 5000)
+                    setTimeout(me._reload, 5000)
                 }
             }
         })
     }
     _restore = (record) => {
         const { formatMessage } = this.props.intl
-        let loadingMessage = ''
-        let successMessage = ''
         let filename = "default," + record.n
+        let me = this
 
         if (record.key !== "local") {
             filename = "/media/" + record.key + "/," + record.n
         }
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG855" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>
+        this.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG1415"})})
 
-        message.loading(loadingMessage)
         $.ajax({
             type: "post",
             url: "../cgi",
@@ -424,13 +425,11 @@ class BackupRestore extends Component {
             error: function(jqXHR, textStatus, errorThrown) {},
             success: function(data) {
                 if (data && data.hasOwnProperty("status") && (data.status === 0)) {
-                    const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                    const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                     if (bool) {
-                        message.destroy()
-                        message.success(successMessage)
-
-                        this._reload()
+                        me.props.setSpinLoading({loading: false})
+                        me._reload()
                     }
                 } else {
                     message.error(formatMessage({ id: "LANG3868" }))
@@ -1015,8 +1014,15 @@ class BackupRestore extends Component {
         )
     }
 }
+const mapStateToProps = (state) => ({
+    spinLoading: state.spinLoading
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
 
 BackupRestore.propTypes = {
 }
 
-export default Form.create()(injectIntl(BackupRestore))
+export default connect(mapStateToProps, mapDispatchToProps)(Form.create()(injectIntl(BackupRestore)))

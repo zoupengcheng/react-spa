@@ -1063,32 +1063,28 @@ class AdvanceSettings extends Component {
                         </FormItem>
                     </div>
                     <div ref="div_otherR2Advanced" className={ customOptions_style }>
-                        <Row>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={ formatMessage({id: "LANG3323"}) }>
-                                    { getFieldDecorator('mf_advanced_settings', {
-                                        rules: [],
-                                        valuePropName: 'checked',
-                                        initialValue: priSettingsInfo.mf_advanced_settings === "yes" ? true : false
-                                    })(
-                                        <Checkbox onChange={this._onChangeMfAdvancedSettings } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 12 }>
-                            {/*
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label="">
-                                    <span>{ formatMessage({id: "LANG3290"}) }</span>
-                                    <span ref="advanced_area">:ITU</span>
-                                </FormItem>
-                            */}
+                        <FormItem
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3323"}) }>
+                            { getFieldDecorator('mf_advanced_settings', {
+                                rules: [],
+                                valuePropName: 'checked',
+                                initialValue: priSettingsInfo.mf_advanced_settings === "yes" ? true : false
+                            })(
+                                <Checkbox onChange={this._onChangeMfAdvancedSettings } />
+                            ) }
+                        </FormItem>
+
+                        <FormItem
+                            { ...formItemLayout }
+                            label={ formatMessage({id: "LANG3290"}) }>
+                            { formatMessage({ id: this.props.countrys[parentState.mfcr2VariantVal] }) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label="">
                             <Button ref="advanced_default" className={ parentState.advanced_default_style } type="primary" onClick={ this._resetAdvanceDefault }>{ formatMessage({id: "LANG749"}) }</Button>
-                            </Col>
-                        </Row>
+                        </FormItem>
                         <div ref="otherR2AdvancedContent">
                             <div className="des">
                                 <p>{ formatMessage({ id: "LANG4090"}) }</p>
@@ -2048,7 +2044,7 @@ class AdvanceSettings extends Component {
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
-                                        label={ formatMessage({id: "LANG3300"}) }>
+                                        label={ formatMessage({id: "LANG3350"}) }>
                                         { getFieldDecorator('timers__mf_back_cycle', {
                                             rules: [],
                                             initialValue: priSettingsInfo.timers__mf_back_cycle ? priSettingsInfo.timers__mf_back_cycle : ""
@@ -2057,6 +2053,20 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
+                                <Col span={ 12 }>
+                                    <FormItem
+                                        { ...formItemLayout }
+                                        label={ formatMessage({id: "LANG3351"}) }>
+                                        { getFieldDecorator('timers__mf_back_resume_cycle', {
+                                            rules: [],
+                                            initialValue: priSettingsInfo.timers__mf_back_resume_cycle ? priSettingsInfo.timers__mf_back_resume_cycle : ""
+                                        })(
+                                            <Input disabled={ !this.state.advancedSettingsChecked } />
+                                        ) }
+                                    </FormItem>
+                                </Col>
+                            </Row>
+                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2069,8 +2079,6 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
-                            </Row>
-                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2083,6 +2091,8 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2095,8 +2105,6 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
-                            </Row>
-                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2109,6 +2117,8 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2121,8 +2131,6 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
-                            </Row>
-                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2135,6 +2143,8 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2147,8 +2157,6 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
-                            </Row>
-                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2161,6 +2169,8 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col span={ 12 }>
                                     <FormItem
                                         { ...formItemLayout }
@@ -2173,12 +2183,30 @@ class AdvanceSettings extends Component {
                                         ) }
                                     </FormItem>
                                 </Col>
+                                <Col span={ 12 }>
+                                </Col>
                             </Row>       
                         </div>
                     </div>
                 </div>
             </div>
         )
+    }
+}
+
+AdvanceSettings.defaultProps = {
+    countrys: {
+        "ar": "LANG284",
+        "br": "LANG307",
+        "cn": "LANG324",
+        "cz": "LANG332",
+        "co": "LANG325",
+        "ec": "LANG341",
+        "id": "LANG379",
+        "itu": "ITU",
+        "mx": "LANG437",
+        "ph": "LANG458",
+        "ve": "LANG528"
     }
 }
 

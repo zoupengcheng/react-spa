@@ -61,12 +61,13 @@ class DigitalTrunkItem extends Component {
     componentDidMount() {
         const form = this.props.form 
         let mode = this.props.route.path,
-            params = this.props.params
+            params = this.props.params,
+            locationState = this.props.location.state
 
         this._tectFax()
 
         if (mode.indexOf('edit') === 0) {
-            let trunkType = params.trunkType,
+            let trunkType = locationState.trunkType,
                 trunkId = params.trunkId
 
             this._hideCallee(trunkType)

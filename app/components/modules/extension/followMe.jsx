@@ -538,137 +538,137 @@ class FollowMe extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 24 }>
-                                <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG711"}) }</span>
-                                </div>
-                            </Col>
-                            <Col
-                                span={ 24 }
+                        </Col>
+                        <Col span={ 24 }>
+                            <div className="section-title">
+                                <span>{ formatMessage({id: "LANG711"}) }</span>
+                            </div>
+                        </Col>
+                        <Col
+                            span={ 24 }
+                        >
+                            <FormItem
+                                { ...formItemLayoutRow }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1979" /> }>
+                                            <span>{ formatMessage({id: "LANG1978"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
                             >
-                                <FormItem
-                                    { ...formItemLayoutRow }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1979" /> }>
-                                                <span>{ formatMessage({id: "LANG1978"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('fm_member_type', {
-                                        initialValue: this.state.fm_member_type
+                                { getFieldDecorator('fm_member_type', {
+                                    initialValue: this.state.fm_member_type
+                                })(
+                                    <RadioGroup onChange={ this._onChangeMemberType }>
+                                        <Radio value="local">{ formatMessage({id: "LANG1981"}) }</Radio>
+                                        <Radio value="external">{ formatMessage({id: "LANG1982"}) }</Radio>
+                                    </RadioGroup>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col
+                            span={ 24 }
+                        >
+                            <Col
+                                span={ 4 }
+                                offset={ 4 }
+                                className={ this.state.fm_member_type === 'local' ? 'display-block' : 'hidden' }
+                            >
+                                <FormItem>
+                                    { getFieldDecorator('fm_member_local', {
+                                        rules: [],
+                                        initialValue: settings.queue_chairman
                                     })(
-                                        <RadioGroup onChange={ this._onChangeMemberType }>
-                                            <Radio value="local">{ formatMessage({id: "LANG1981"}) }</Radio>
-                                            <Radio value="external">{ formatMessage({id: "LANG1982"}) }</Radio>
-                                        </RadioGroup>
+                                        <Select>
+                                            {
+                                                this.state.memberAccountList.map(function(obj) {
+                                                        return <Option
+                                                                    key={ obj.key }
+                                                                    value={ obj.value }
+                                                                    className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
+                                                                    { obj.label }
+                                                                </Option>
+                                                    })
+                                            }
+                                        </Select>
                                     ) }
                                 </FormItem>
                             </Col>
                             <Col
-                                span={ 24 }
+                                span={ 4 }
+                                offset={ 4 }
+                                className={ this.state.fm_member_type === 'external' ? 'display-block' : 'hidden' }
                             >
-                                <Col
-                                    span={ 4 }
-                                    offset={ 4 }
-                                    className={ this.state.fm_member_type === 'local' ? 'display-block' : 'hidden' }
-                                >
-                                    <FormItem>
-                                        { getFieldDecorator('fm_member_local', {
-                                            rules: [],
-                                            initialValue: settings.queue_chairman
-                                        })(
-                                            <Select>
-                                                {
-                                                    this.state.memberAccountList.map(function(obj) {
-                                                            return <Option
-                                                                        key={ obj.key }
-                                                                        value={ obj.value }
-                                                                        className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                                                                        { obj.label }
-                                                                    </Option>
-                                                        })
-                                                }
-                                            </Select>
-                                        ) }
-                                    </FormItem>
-                                </Col>
-                                <Col
-                                    span={ 4 }
-                                    offset={ 4 }
-                                    className={ this.state.fm_member_type === 'external' ? 'display-block' : 'hidden' }
-                                >
-                                    <FormItem>
-                                        { getFieldDecorator('fm_member_external', {
-                                            rules: [],
-                                            initialValue: ''
-                                        })(
-                                            <Input />
-                                        ) }
-                                    </FormItem>
-                                </Col>
-                                <Col
-                                    span={ 4 }
-                                >
-                                    <FormItem>
-                                        <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
-                                        { getFieldDecorator('fm_member_ringtime', {
-                                            rules: [],
-                                            initialValue: '30'
-                                        })(
-                                            <Input style={{ 'width': '50px' }} />
-                                        ) }
-                                        <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
-                                    </FormItem>
-                                </Col>
-                            </Col>
-                            <Col
-                                span={ 24 }
-                            >
-                                <FormItem
-                                    { ...formItemLayoutRow }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1975" /> }>
-                                                <span>{ formatMessage({id: "LANG1974"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('fm_member_order', {
-                                        initialValue: 'after'
+                                <FormItem>
+                                    { getFieldDecorator('fm_member_external', {
+                                        rules: [],
+                                        initialValue: ''
                                     })(
-                                        <RadioGroup>
-                                            <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
-                                            <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
-                                        </RadioGroup>
+                                        <Input />
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 24 } style={{ 'padding': '10px 0' }}>
-                                <Col
-                                    span={ 4 }
-                                    offset={ 4 }
+                            <Col
+                                span={ 4 }
+                            >
+                                <FormItem>
+                                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
+                                    { getFieldDecorator('fm_member_ringtime', {
+                                        rules: [],
+                                        initialValue: '30'
+                                    })(
+                                        <Input style={{ 'width': '50px' }} />
+                                    ) }
+                                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
+                                </FormItem>
+                            </Col>
+                        </Col>
+                        <Col
+                            span={ 24 }
+                        >
+                            <FormItem
+                                { ...formItemLayoutRow }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1975" /> }>
+                                            <span>{ formatMessage({id: "LANG1974"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('fm_member_order', {
+                                    initialValue: 'after'
+                                })(
+                                    <RadioGroup>
+                                        <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
+                                        <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
+                                    </RadioGroup>
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 24 } style={{ 'padding': '10px 0' }}>
+                            <Col
+                                span={ 4 }
+                                offset={ 4 }
+                            >
+                                <Button
+                                    icon="plus"
+                                    type="primary"
+                                    onClick={ this._addMembers }
                                 >
-                                    <Button
-                                        icon="plus"
-                                        type="primary"
-                                        onClick={ this._addMembers }
-                                    >
-                                        { formatMessage({id: "LANG769"}) }
-                                    </Button>
-                                </Col>
+                                    { formatMessage({id: "LANG769"}) }
+                                </Button>
                             </Col>
-                            <Col span={ 24 } style={{ 'margin': '20px 0 0 0' }}>
-                                <Table
-                                    rowKey="key"
-                                    columns={ columns }
-                                    pagination={ false }
-                                    showHeader={ false }
-                                    dataSource={ this.state.followmeMembers }
-                                />
-                            </Col>
+                        </Col>
+                        <Col span={ 24 } style={{ 'margin': '10px 0 0 0' }}>
+                            <Table
+                                rowKey="key"
+                                columns={ columns }
+                                pagination={ false }
+                                showHeader={ false }
+                                dataSource={ this.state.followmeMembers }
+                            />
                         </Col>
                     </Row>
                 </div>

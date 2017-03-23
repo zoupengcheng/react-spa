@@ -39,11 +39,12 @@ class BasicSettings extends Component {
             }],
             div_crc_style: "display-block",
             collectCall: false,
-            div_hardhdlc_style: "display-block",
+            div_hardhdlc_style: "hidden",
             firstSpanTypeLoad: true,
             firstSignallingLoad: true,
             firstMfcr2VariantLoad: true,
-            mfcr2GeAniFirstValue: false
+            mfcr2GeAniFirstValue: false,
+            dataTrunkGroupIndexList: []
         }
     }
     componentWillMount() { 
@@ -51,6 +52,7 @@ class BasicSettings extends Component {
     componentDidMount() {
         this.props.getRefs(this.refs)
         this._initVal()
+        this._getlistDataTrunk()
     }
     componentDidUpdate() {
         let priSettingsInfo = this.props.priSettingsInfo
@@ -121,6 +123,50 @@ class BasicSettings extends Component {
             mfcr2GeAniFirstValue: e.target.checked
         })
     }
+    _getlistDataTrunk = () => {
+        $.ajax({
+            url: api.apiHost,
+            method: 'post',
+            data: { action: 'listDataTrunk' },
+            type: 'json',
+            async: false,
+            success: function(res) {
+                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let dataTrunkGroupIndexList = []
+                    let response = res.response || {}
+                    let netHDLCSettings = response.nethdlc_settings
+
+                    for (let i = 0; i < netHDLCSettings.length; i++) {
+                        let netHDLCSettingsIndex = netHDLCSettings[i]
+                        dataTrunkGroupIndexList.push(String(netHDLCSettingsIndex.group_index))
+                    }
+                    this.setState({
+                        dataTrunkGroupIndexList: dataTrunkGroupIndexList
+                    })
+                    console.log('listDataTrunk is  ', dataTrunkGroupIndexList)
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _checkDataTrunk = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        let forbidSignalling = false
+        let dataTrunkGroupIndexList = this.state.dataTrunkGroupIndexList
+
+        if (dataTrunkGroupIndexList.length > 0 && value === "mfcr2" || value === "em" || value === "em_w") {
+            forbidSignalling = true
+        }
+        if (forbidSignalling) {
+            callback(formatMessage({id: "LANG3979"}))
+        } else {
+            callback()
+        }
+    }
     _onChangeSignalling = (value) => {
         const form = this.props.form
         const { formatMessage } = this.props.intl
@@ -166,7 +212,7 @@ class BasicSettings extends Component {
 
             let showEles = ["div_ss7Options", "div_callerIdPrefix", "div_SS7dialplan", "div_codec", "div_subscriberprefix", "div_lbo", "div_rtx"],
                 hideEles = ["div_mfcR2", "div_priT310", "div_switchtype", "div_localprefix", "div_privateprefix", "div_special", "div_pridialplan", 
-                            "div_channel", "div_R2Advanced", "otherAdvanced_btn", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_em_immediate", 
+                            "div_hardhdlc", "div_R2Advanced", "otherAdvanced_btn", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_em_immediate", 
                             "div_em_w_outgoing"],
                 showElesObj = {},
                 hideElesObj = {}
@@ -182,7 +228,7 @@ class BasicSettings extends Component {
             // this.setState(showElesObj)
             this.props.getSonState(showElesObj)
         } else if (value === "mfcr2") {
-            let showEles = ["div_mfcR2", "div_channel", "div_R2Advanced", "otherAdvanced_btn", "div_mfcr2PlayLocaRbt", "div_lbo", "div_rtx"],
+            let showEles = ["div_mfcR2", "div_hardhdlc", "div_R2Advanced", "otherAdvanced_btn", "div_mfcr2PlayLocaRbt", "div_lbo", "div_rtx"],
                 hideEles = ["div_hardhdlc", "div_special", "div_priT310", "div_ss7Options", "div_switchtype", "div_callerIdPrefix", "div_pridialplan", 
                             "div_SS7dialplan", "div_codec", "div_priPlayLocalRbt", "div_em_immediate", "div_em_w_outgoing"],
                 showElesObj = {},
@@ -243,7 +289,7 @@ class BasicSettings extends Component {
             //     index.disabled = false;
             // }
 
-            let showEles = ["div_switchtype", "div_priT310", "div_localprefix", "div_privateprefix", "div_special", "div_channel", 
+            let showEles = ["div_switchtype", "div_priT310", "div_localprefix", "div_privateprefix", "div_special", "div_hardhdlc", 
                             "div_callerIdPrefix", "div_pridialplan", "div_codec", "div_priPlayLocalRbt", "div_lbo", "div_rtx"],
                 hideEles = ["div_mfcR2", "div_ss7Options", "div_R2Advanced", "otherAdvanced_btn", "div_subscriberprefix", 
                             "div_SS7dialplan", "div_mfcr2PlayLocaRbt", "div_em_immediate", "div_em_w_outgoing"],
@@ -396,6 +442,10 @@ class BasicSettings extends Component {
                 })
             }
         }
+
+        this.props.getSonState({
+            mfcr2VariantVal: val
+        })
         // $("#advanced_area").text(":" + $(this).find("option:selected").text())
     }
     _onChangeSpanType = (val) => {
@@ -736,7 +786,12 @@ class BasicSettings extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('signalling', {
-                            rules: [],
+                            rules: [{
+                                required: true,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: this._checkDataTrunk
+                            }],
                             initialValue: priSettingsInfo.signalling ? priSettingsInfo.signalling : "pri_net"
                         })(
                             <Select onChange= { this._onChangeSignalling }>

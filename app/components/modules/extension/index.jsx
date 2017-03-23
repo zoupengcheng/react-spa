@@ -14,7 +14,7 @@ import * as Actions from '../../../actions/'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Badge, Button, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Select, Table, Tag, Tooltip, Upload } from 'antd'
+import { Badge, Button, Col, Dropdown, Icon, Form, Input, Menu, message, Modal, Popconfirm, Popover, Row, Select, Table, Tag, Tooltip, Upload } from 'antd'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -662,64 +662,70 @@ class Extension extends Component {
         this._clearSelectRows()
     }
     _import = () => {
+        this._loadImportResultsFile()
+
         this.setState({
             importExtensionVisible: true
         })
     }
     _loadImportResultsFile = () => {
-        // $.ajax({
-        //     type: 'GET',
-        //     dataType: 'json',
-        //     url: '../import_extension_response.json',
-        //     error: function(jqXHR, textStatus, errorThrown) {},
-        //     success: (data) => {
-        //         if (!$.isEmptyObject(data)) {
-        //             let fileName = data.filename,
-        //                 failed = data.faild,
-        //                 out = data.out,
-        //                 extension = '',
-        //                 buf = [],
-        //                 name = '',
-        //                 err = 0
+        const { formatMessage } = this.props.intl
 
-        //             if (failed.length || out.length) {
-        //                 if (failed.length) {
-        //                     for (let i = 0; i < failed.length; i++) {
-        //                         if (!$.isEmptyObject(failed[i])) {
-        //                             err = this.props.importErrObj[failed[i]['code']]
+        $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: '../import_extension_response.json',
+            error: function(jqXHR, textStatus, errorThrown) {},
+            success: (data) => {
+                if (!$.isEmptyObject(data)) {
+                    let fileName = data.filename,
+                        failed = data.faild,
+                        out = data.out,
+                        extension = '',
+                        buf = [],
+                        name = '',
+                        err = 0
 
-        //                             if (failed[i]['code'] === -13) {
-        //                                 name = failed[i]['item'] + ' ' + $P.lang(err).format('4')
-        //                             } else {
-        //                                 name = failed[i]['item'] + ' ' + $P.lang(err)
-        //                             }
+                    if (failed.length || out.length) {
+                        if (failed.length) {
+                            for (let i = 0; i < failed.length; i++) {
+                                if (!$.isEmptyObject(failed[i])) {
+                                    err = this.props.importErrObj[failed[i]['code']]
 
-        //                             extension = failed[i]['ext'] ? failed[i]['ext'] : ''
+                                    if (failed[i]['code'] === -13) {
+                                        name = failed[i]['item'] + ' ' + formatMessage({id: err}, {0: '4'})
+                                    } else {
+                                        name = failed[i]['item'] + ' ' + formatMessage({id: err})
+                                    }
 
-        //                             buf.push($P.lang('LANG3200').format(failed[i]['line']) + ' (' + extension + ') : ' + name.toString())
-        //                         }
-        //                     }
-        //                 }
+                                    extension = failed[i]['ext'] ? failed[i]['ext'] : ''
 
-        //                 if (out.length) {
-        //                     extension = ''
+                                    buf.push(formatMessage({id: 'LANG3200'}, {0: failed[i]['line']}) + ' (' + extension + ') : ' + name.toString())
+                                }
+                            }
+                        }
 
-        //                     for (var i = 0; i < out.length; i++) {
-        //                         if (i % 5 == 0 && i > 0) {
-        //                             extension = extension + '<br/>'
-        //                         }
+                        if (out.length) {
+                            extension = ''
 
-        //                         extension = extension + out[i] + ','
-        //                     }
+                            for (let i = 0; i < out.length; i++) {
+                                if (i % 5 === 0 && i > 0) {
+                                    extension = extension + '<br />'
+                                }
 
-        //                     buf.push($P.lang("LANG3182").format(extension.slice(0, extension.length - 1)))
-        //                 }
+                                extension = extension + out[i] + ','
+                            }
 
-        //                 $('.levelTip').html($P.lang("LANG2744").format(buf.join('<br/>')))
-        //             }
-        //         }
-        //     }
-        // })
+                            buf.push(formatMessage({id: 'LANG3182'}, {0: extension.slice(0, extension.length - 1)}))
+                        }
+
+                        this.setState({
+                            importResults: <span dangerouslySetInnerHTML={{__html: formatMessage({id: 'LANG2744'}, {0: buf.join('<br />')})}}></span>
+                        })
+                    }
+                }
+            }
+        })
     }
     _normFile(e) {
         if (Array.isArray(e)) {
@@ -791,7 +797,7 @@ class Extension extends Component {
 
                                             for (let i = 0; i < out.length; i++) {
                                                 if (i % 5 === 0 && i > 0) {
-                                                    extension = extension + '<br/>'
+                                                    extension = extension + '<br />'
                                                 }
 
                                                 extension = extension + out[i] + ','
@@ -802,7 +808,7 @@ class Extension extends Component {
 
                                         this.setState({
                                             importExtensionVisible: true,
-                                            importResults: formatMessage({id: 'LANG2743'}, {0: buf.join('<br/>')})
+                                            importResults: <span dangerouslySetInnerHTML={{__html: formatMessage({id: 'LANG2743'}, {0: buf.join('<br />')})}}></span>
                                         })
                                     } else {
                                         message.success(formatMessage({id: "LANG2742"}))
@@ -1120,6 +1126,7 @@ class Extension extends Component {
                             ></span>
                         </Modal>
                         <Modal
+                            width={ 650 }
                             footer={ null }
                             title={ formatMessage({id: "LANG2733"}) }
                             visible={ this.state.importExtensionVisible }
@@ -1181,9 +1188,14 @@ class Extension extends Component {
                                         </Upload>
                                     ) }
                                 </FormItem>
-                                <FormItem { ...formItemLayout }>
-                                    <div>{ this.state.importResults }</div>
-                                </FormItem>
+                                <Row>
+                                    <Col span={ 24 }>
+                                        <Col span={ 8 }></Col>
+                                        <Col span={ 16 }>
+                                            <div className="lite-desc-error">{ this.state.importResults }</div>
+                                        </Col>
+                                    </Col>
+                                </Row>
                             </Form>
                         </Modal>
                         <Modal

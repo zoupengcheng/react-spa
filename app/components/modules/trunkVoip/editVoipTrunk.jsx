@@ -92,7 +92,7 @@ class EditVoipTrunk extends Component {
                 trunk: trunkId
             }
 
-        let hideEles = ["div_trunktype", "more_details"],
+        let hideEles = ["div_trunktype", "more_details", "div_did_mode"],
             showEles = ["div_enable_qualify", "div_faxmode", "div_out_maxchans", "div_codecs"],
             hideElesObj = {},
             showElesObj = {}
@@ -456,9 +456,6 @@ class EditVoipTrunk extends Component {
                 if (bEnableRoute) {
                     action['fax_intelligent_route_destination'] = form.getFieldValue('fax_intelligent_route_destination')
                 }
-            } else {
-                delete action['fax_intelligent_route']
-                delete action['fax_intelligent_route_destination']
             }
             if (trunkType.toLowerCase() === "peer" && form.getFieldValue("ldap_sync_enable")) {
                 let outrtVal = form.getFieldValue("ldap_default_outrt"),
@@ -483,6 +480,9 @@ class EditVoipTrunk extends Component {
                 }
             }
         }
+        
+        delete action['fax_intelligent_route']
+        delete action['fax_intelligent_route_destination']
         delete action['ldap_default_outrt']
         delete action['ldap_outrt_prefix']
         delete action['chkOutboundproxy']

@@ -36,6 +36,8 @@ import SLAStationItem from '../components/modules/slaStation/slaStationItem'
 import OutboundRoute from '../components/modules/outboundRoute'
 import OutboundRouteItem from '../components/modules/outboundRoute/outboundRouteItem'
 import OutboundBlackList from '../components/modules/outboundRoute/outboundBlackList'
+import OutboundPinGroups from '../components/modules/outboundRoute/pingroups'
+import OutboundPinGroupsItem from '../components/modules/outboundRoute/pingroupsItem'
 import InboundRoute from '../components/modules/inboundRoute'
 import InboundRouteItem from '../components/modules/inboundRoute/inboundRouteItem'
 import InboundBlackList from '../components/modules/inboundRoute/inboundBlackList'
@@ -186,6 +188,7 @@ import UserExtension from '../components/modules/userExtension'
 // user-personal-data
 import UserFollowMe from '../components/modules/userFollowMe'
 import UserVoicemail from '../components/modules/userVoicemail'
+import UserVoicemailPromptItem from '../components/modules/userVoicemail/voicemailPromptItem'
 import UserRecordingFile from '../components/modules/userRecordingFile'
 import UserFaxFiles from '../components/modules/userFaxFiles'
 import UserOnlineStatus from '../components/modules/userOnlineStatus'
@@ -292,7 +295,7 @@ const routes = (state, currentLocaleData) => {
                     <Route path="digitalTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3141"] } >
                         <IndexRoute component={ DigitalTrunk } />
                         <Route path="add" onEnter={ requireAuth } component={ DigitalTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
-                        <Route path="edit/:trunkId/:trunkType/:trunkName" onEnter={ requireAuth } component={ DigitalTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
+                        <Route path="edit/:trunkId/:trunkName" onEnter={ requireAuth } component={ DigitalTrunkItem } breadcrumbName={ currentLocaleData["LANG762"] } />
                     </Route>
                     <Route path="dataTrunk" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3573"] } >
                         <IndexRoute component={ DataTrunk } />
@@ -302,7 +305,7 @@ const routes = (state, currentLocaleData) => {
                         <IndexRoute component={ VoIPTrunk } />
                         <Route path="createVoipTrunk/:mode" onEnter={ requireAuth } component={ CreateVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="editVoipTrunk/:trunkId/:technology/:trunkType/:trunkName" onEnter={ requireAuth } component={ EditVoipTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
-                        <Route path="dodTrunksList/:trunkId/:signalling" onEnter={ requireAuth } component={ DodTrunksList } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="dodTrunksList/:trunkId" onEnter={ requireAuth } component={ DodTrunksList } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="createEditDodTrunk/:type" onEnter={ requireAuth } component={ CreateEditDodTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="createEditDodTrunk/:type/:trunkId" onEnter={ requireAuth } component={ CreateEditDodTrunk } breadcrumbName={ currentLocaleData["LANG769"] } />
                     </Route>
@@ -316,6 +319,9 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ OutboundRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="blacklist" onEnter={ requireAuth } component={ OutboundBlackList } breadcrumbName={ currentLocaleData["LANG5336"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ OutboundRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="pingroups" onEnter={ requireAuth } component={ OutboundPinGroups } breadcrumbName={ currentLocaleData["LANG4553"] } />
+                        <Route path="pingroups/add" onEnter={ requireAuth } component={ OutboundPinGroupsItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="pingroups/edit/:id/:name" onEnter={ requireAuth } component={ OutboundPinGroupsItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="inboundRoute" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG15"] }>
                         <IndexRoute component={ InboundRoute } />
@@ -610,7 +616,10 @@ const routes = (state, currentLocaleData) => {
                 <Route path="user-personal-data" onEnter={ requireAuth} breadcrumbName={ currentLocaleData["LANG7"] }>
                     <IndexRoute component={ UserFollowMe } />
                     <Route path="userFollowMe" onEnter={ requireAuth } component={ UserFollowMe } breadcrumbName={ currentLocaleData["LANG7"] } />
-                    <Route path="userVoicemail" onEnter={ requireAuth } component={ UserVoicemail } breadcrumbName={ currentLocaleData["LANG8"] } />
+                   <Route path="userVoicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] } >
+                        <IndexRoute component={ UserVoicemail } />
+                        <Route path="update" onEnter={ requireAuth } component={ UserVoicemailPromptItem } breadcrumbName={ currentLocaleData["LANG4722"] } />
+                    </Route>
                     <Route path="userRecordingFile" onEnter={ requireAuth } component={ UserRecordingFile } breadcrumbName={ currentLocaleData["LANG2640"] } />
                     <Route path="userFaxFiles" onEnter={ requireAuth } component={ UserFaxFiles } breadcrumbName={ currentLocaleData["LANG3003"] } />
                     <Route path="userOnlineStatus" onEnter={ requireAuth } component={ UserOnlineStatus } breadcrumbName={ currentLocaleData["LANG3003"] } />

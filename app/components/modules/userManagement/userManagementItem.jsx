@@ -179,6 +179,9 @@ class UserItem extends Component {
                         delete action.privilege
                         delete action.email
                     }
+                    if (action.user_password && action.user_password === '******') {
+                        delete action.user_password
+                    }
                 } else {
                     action.action = 'addUser'
                 }

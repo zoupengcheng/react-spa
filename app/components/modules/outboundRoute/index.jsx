@@ -202,6 +202,9 @@ class OutboundRoute extends Component {
 
         this.setState({ selectedRowKeys })
     }
+    _pingroups = () => {
+        browserHistory.push('/extension-trunk/outboundRoute/pingroups')
+    }
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -300,6 +303,14 @@ class OutboundRoute extends Component {
                             onClick={ this._blacklist }
                         >
                             { formatMessage({id: "LANG5336"}) }
+                        </Button>
+                        <Button
+                            icon="database"
+                            type="primary"
+                            size='default'
+                            onClick={ this._pingroups }
+                        >
+                            { formatMessage({id: "LANG4553"}) }
                         </Button>
                     </div>
                     <div className="function-description">

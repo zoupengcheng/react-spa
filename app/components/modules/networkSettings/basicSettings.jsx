@@ -1120,6 +1120,10 @@ class BasicSettings extends Component {
                                             validator: (data, value, callback) => {
                                                 this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
                                             }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? this._inSameNetworkSegment(data, value, callback, formatMessage, "ipfrom", "dhcp_gateway", "dhcp_submask", "dhcp_submask", "", true) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp_settings.ipfrom
                                     })(
@@ -1140,6 +1144,10 @@ class BasicSettings extends Component {
                                         }, {
                                             validator: (data, value, callback) => {
                                                 this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? Validator.ipv4Address(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp_enable ? this._inSameNetworkSegment(data, value, callback, formatMessage, "ipto", "dhcp_gateway", "dhcp_submask", "dhcp_submask", "", true) : callback()
                                             }
                                         }],
                                         initialValue: dhcp_settings.ipto

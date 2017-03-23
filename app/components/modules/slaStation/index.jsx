@@ -76,8 +76,7 @@ class SLAStation extends Component {
 
                 $.ajax({
                     async: true,
-                    type: 'json',
-                    method: 'post',
+                    type: 'post',
                     url: api.apiHost,
                     data: {
                         'action': 'deleteSLAStation',
@@ -119,14 +118,13 @@ class SLAStation extends Component {
         message.loading(loadingMessage)
 
         $.ajax({
+            async: true,
+            type: 'post',
             url: api.apiHost,
-            method: 'post',
             data: {
                 'action': 'deleteSLAStation',
                 'sla_station': record.station
             },
-            type: 'json',
-            async: true,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
@@ -153,8 +151,7 @@ class SLAStation extends Component {
         const { formatMessage } = this.props.intl
 
         $.ajax({
-            type: 'json',
-            method: 'post',
+            type: 'post',
             url: api.apiHost,
             data: {
                 action: 'getSLATrunkNameList'
@@ -178,8 +175,7 @@ class SLAStation extends Component {
         })
 
         $.ajax({
-            type: 'json',
-            method: 'post',
+            type: 'post',
             url: api.apiHost,
             data: {
                 action: 'getSIPAccountList'
@@ -224,8 +220,7 @@ class SLAStation extends Component {
 
             $.ajax({
                 data: data,
-                type: 'json',
-                method: 'post',
+                type: 'post',
                 url: api.apiHost,
                 success: function(res) {
                     const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -306,14 +301,17 @@ class SLAStation extends Component {
         const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const columns = [{
+                sorter: true,
                 key: 'station_name',
                 dataIndex: 'station_name',
                 title: formatMessage({id: "LANG3228"})
             }, {
+                sorter: true,
                 key: 'station',
                 dataIndex: 'station',
                 title: formatMessage({id: "LANG3229"})
             }, {
+                sorter: true,
                 key: 'trunks',
                 dataIndex: 'trunks',
                 title: formatMessage({id: "LANG3230"})

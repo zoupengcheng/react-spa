@@ -405,7 +405,7 @@ class AdvanceSettings extends Component {
         const { formatMessage } = this.props.intl
 
         let trunk = this.props.trunk,
-            loadValue = (trunk.ldap_sync_port === null ? null : trunk.ldap_sync_port.toString())
+            loadValue = trunk.ldap_sync_port ? trunk.ldap_sync_port.toString() : null 
         
         if (value === loadValue) {
             callback()
@@ -519,7 +519,7 @@ class AdvanceSettings extends Component {
                         ) }
                 </FormItem>
                 <FormItem
-                    id="div_send_ppi"
+                    ref="div_send_ppi"
                     className={ parentState.div_send_ppi_style === false ? "hidden" : "display-block" }
                     { ...formItemLayout }
                     label={                            
@@ -720,7 +720,7 @@ class AdvanceSettings extends Component {
                             required: true, 
                             message: formatMessage({id: "LANG2150"}) 
                         }],
-                        initialValue: trunk.qualifyfreq === null ? trunk.qualifyfreq : 1
+                        initialValue: trunk.qualifyfreq ? trunk.qualifyfreq : 1
                     })(
                         <Input min={1} max={3600} maxLength="4" />
                     ) }
@@ -740,7 +740,7 @@ class AdvanceSettings extends Component {
                             required: true, 
                             message: formatMessage({id: "LANG2150"}) 
                         }],
-                        initialValue: trunk.out_maxchans === null ? trunk.out_maxchans : 1
+                        initialValue: trunk.out_maxchans ? trunk.out_maxchans : 1
                     })(
                         <Input max={999} />
                     ) }
@@ -755,7 +755,7 @@ class AdvanceSettings extends Component {
                     }>
                     { getFieldDecorator('faxmode', {
                         rules: [],
-                        initialValue: trunk.faxmode
+                        initialValue: trunk.faxdetect === "yes" ? "detect" : "no"
                     })(
                         <Select onChange={this._onChangeFaxmode} >
                             <Option value='no'>{formatMessage({id: "LANG133"})}</Option>
@@ -831,6 +831,7 @@ class AdvanceSettings extends Component {
                 <div ref="div_ldap" className={ parentState.div_ldap_style === false ? "hidden" : "display-block" }>
                     <FormItem
                         ref="div_ldap_sync_enable"
+                        className={ parentState.div_ldap_style === false ? "hidden" : "display-block" }
                         { ...formItemLayout }
                         label={                            
                             <Tooltip title={<FormattedHTMLMessage id="LANG2497" />}>
@@ -891,7 +892,7 @@ class AdvanceSettings extends Component {
                                     this._checkOpenPort(data, value, callback)
                                 }
                             }],
-                            initialValue: trunk.ldap_sync_port === null ? trunk.ldap_sync_port : 1
+                            initialValue: trunk.ldap_sync_port ? trunk.ldap_sync_port : 1
                         })(
                             <Input min={1} max={65534} />
                         ) }
@@ -940,7 +941,7 @@ class AdvanceSettings extends Component {
                             }, { 
                                 validator: this._checkLdapPrefix
                             }],
-                            initialValue: trunk.ldap_default_outrt_prefix === null ? Number(trunk.ldap_default_outrt_prefix) : 1
+                            initialValue: trunk.ldap_default_outrt_prefix ? Number(trunk.ldap_default_outrt_prefix) : 1
                         })(
                             <Input maxLength="14" disabled={ this.state.ldapDefaultOutrt !== "custom" ? true : false }/>
                         ) }
@@ -991,7 +992,7 @@ class AdvanceSettings extends Component {
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }],
-                            initialValue: trunk.cc_max_agents === null ? trunk.cc_max_agents : 1
+                            initialValue: trunk.cc_max_agents ? trunk.cc_max_agents : 1
                         })(
                             <Input min={1} max={999} maxLength="10" />
                         ) }
@@ -1011,7 +1012,7 @@ class AdvanceSettings extends Component {
                                 required: true, 
                                 message: formatMessage({id: "LANG2150"}) 
                             }],
-                            initialValue: trunk.cc_max_monitors === null ? trunk.cc_max_monitors : 1
+                            initialValue: trunk.cc_max_monitors ? trunk.cc_max_monitors : 1
                         })(
                             <Input min={1} max={999} maxLength="10" />
                         ) }

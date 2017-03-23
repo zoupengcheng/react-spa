@@ -36,7 +36,8 @@ class DigitalHardwareItem extends Component {
             ss7Settings: this.props.location.state ? this.props.location.state.ss7Settings : [],
             mfcr2SkipCategoryChecked: false,
             mfcr2SkipCategoryVal: false,
-            mfcr2GetAniFirstChecked: false
+            mfcr2GetAniFirstChecked: false,
+            mfcr2VariantVal: "ve"
         }
     }
     componentDidMount() {
@@ -688,6 +689,7 @@ class DigitalHardwareItem extends Component {
         }
         this.setState({
             hardhdlcOpts: opts,
+            mfcr2VariantVal: priSettingsInfo.mfcr2_variant,
             priSettingsInfo: priSettingsInfo
         })
 

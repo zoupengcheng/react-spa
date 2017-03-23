@@ -40,7 +40,7 @@ class BasicSettings extends Component {
 
         if (this.state.firstLoad) {
             if (technology.toLowerCase() === "sip") {
-                this._setUsernameAndSerect(trunk)
+                // this._setUsernameAndSerect(trunk)
 
                 // var allow = (trunk.allow ? trunk.allow.split(",") : []),
                 //     leftOpts = transData(codecsArr.remove(allow), codecsObj),
