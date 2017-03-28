@@ -14,20 +14,8 @@ const FormItem = Form.Item
 const baseServerURl = api.apiHost
 
 global.checkPingTimer = null
-global.oSipStack = null
 global.oSipSessionRegister = null
-global.oSipSessionCall = null
 global.oSipSessionTransferCall = null
-global.sipUnRegisterFlag = true
-// var sTransferNumber
-// var oRingTone, oRingbackTone
-// var videoRemote, videoLocal, audioRemote
-// var bFullScreen = false
-// var oNotifICall
-// var bDisableVideo = false
-// var viewVideoLocal, viewVideoRemote, viewLocalScreencast // <video> (webrtc) or <div> (webrtc4all)
-// var oConfigCall
-// var oReadyStateTimer
 
 class UserWebrtc extends Component {
     constructor(props) {
@@ -35,11 +23,24 @@ class UserWebrtc extends Component {
         this.state = {
             txtRegStatusMsg: "",
             oWebrtcInputConf: {},
-            SIPWebRTCHttpSettings: {}
+            SIPWebRTCHttpSettings: {},
+            oConfigCall: {},
+            sipUnRegisterFlag: true,
+            oSipSessionCall: null,
+            oNotifICall: null,
+            btnCall: true,
+            btnHangUp: true,
+            bDisableVideo: false,
+            btnCallVal: "Call",
+            btnHangUpVal: "",
+            btnMuteVal: "Mute",
+            btnHoldResumeVal: "Hold",
+            sRemoteCalleeName: "",
+            bFullScreen: false
         }
         this._handleSubmit = (e) => {
             const { formatMessage } = this.props.intl
-            const form = this.props.form 
+            const form = this.props.form  
 
             let action = {}
 
@@ -65,14 +66,93 @@ class UserWebrtc extends Component {
         }
     }
     componentDidMount() {
+        let SIPml = window.SIPml
+
         if (window.console) {
             window.console.info("location=" + window.location)
         }
         this._loadEnableWebrtcDefault()
+        let isTxtWebsocketServerUrl = !window.WebSocket || navigator.appName === "Microsoft Internet Explorer" // Do not use WS on IE
+        this.setState({
+            isTxtWebsocketServerUrl: isTxtWebsocketServerUrl
+        })
         this._loadWebrtcInputConf()
+        // Initialize call button
+        // this._uiBtnCallSetText("Call")
+
+        // document.onkeyup = this._onKeyUp
+        // document.body.onkeyup = this._onKeyUp
+        // divCallCtrl.onmousemove = this._onDivCallCtrlMouseMove
+
+        // set debug level
+        SIPml.setDebugLevel(this.state.oWebrtcInputConf.disable_debug_messages === "yes" ? "error" : "info")
+
+        // initialize SIPML5
+        this._preInit()
+
+        // try {
+        //     let pageTracker = _gat._getTracker("UA-6868621-19")
+        //     pageTracker._trackPageview()
+        // } catch (err) {}
     }
     componentWillUnmount() {
+    }
+    _getPVal = (PName) => {
+        let query = window.location.search.substring(1)
+        let vars = query.split('&')
 
+        for (let i = 0; i < vars.length; i++) {
+            let pair = vars[i].split('=')
+            if (decodeURIComponent(pair[0]) === PName) {
+                return decodeURIComponent(pair[1])
+            }
+        }
+        return null
+    }
+    _preInit = () => {
+        let SIPml = window.SIPml
+        // set default webrtc type (before initialization)
+        let s_webrtc_type = this._getPVal("wt")
+        let s_fps = this._getPVal("fps")
+        let s_mvs = this._getPVal("mvs") // maxVideoSize
+        let s_mbwu = this._getPVal("mbwu") // maxBandwidthUp (kbps)
+        let s_mbwd = this._getPVal("mbwd") // maxBandwidthUp (kbps)
+        let s_za = this._getPVal("za") // ZeroArtifacts
+        let s_ndb = this._getPVal("ndb") // NativeDebug
+
+        if (s_webrtc_type) SIPml.setWebRtcType(s_webrtc_type)
+
+        // initialize SIPML5
+        SIPml.init(this._postInit)
+
+        // set other options after initialization
+        if (s_fps) SIPml.setFps(parseFloat(s_fps))
+        if (s_mvs) SIPml.setMaxVideoSize(s_mvs)
+        if (s_mbwu) SIPml.setMaxBandwidthUp(parseFloat(s_mbwu))
+        if (s_mbwd) SIPml.setMaxBandwidthDown(parseFloat(s_mbwd))
+        if (s_za) SIPml.setZeroArtifacts(s_za === "true")
+        if (s_ndb === "true") SIPml.startNativeDebug()
+    }
+    _sendPing =() => {
+        $.ajax({
+            type: 'POST',
+            url: baseServerURl,
+            data: {
+                action: "ping"  
+            },
+            success: function(data) {
+                // if (data.status != 0) {
+                //     UCMGUI.loginFunction.switchToLoginPanel()
+                // }
+            }
+        })
+    }
+    _checkPhoneNumber = (val, ele) => {
+        if (val.match(/^[0-9#*.@:a-zA-Z]{0,64}$/)) {
+            return true
+        }
+
+        return false
     }
     _loadEnableWebrtcDefault = () => {
         const { formatMessage } = this.props.intl
@@ -187,14 +267,144 @@ class UserWebrtc extends Component {
                     // $('#txtPassword').val(oWebrtcInputConf.register_password || '')
                     // $('#txtWebsocketServerUrl').val(oWebrtcInputConf.register_server_url || '')
                     // $('#txtPhoneNumber').val(oWebrtcInputConf.dial_number || '')
+                    this.state["oWebrtcInputConf"] = oWebrtcInputConf
+                    let bDisableVideo = (oWebrtcInputConf.disable_video === "yes")
 
                     this.setState({
-                        oWebrtcInputConf: oWebrtcInputConf,
-                        SIPWebRTCHttpSettings: oWebrtcInputConf
+                        SIPWebRTCHttpSettings: oWebrtcInputConf,
+                        txtCallStatusMsg: 'Video ' + (bDisableVideo ? 'disabled' : 'enabled')
                     })
                 }
             }.bind(this)
         })
+    }
+    _postInit = () => {
+        let SIPml = window.SIPml
+        // check webrtc4all version
+        if (SIPml.isWebRtc4AllSupported() && SIPml.isWebRtc4AllPluginOutdated()) {
+            if (confirm("Your WebRtc4all extension is outdated (" + SIPml.getWebRtc4AllVersion() + "). A new version with critical bug fix is available. Do you want to install it?\nIMPORTANT: You must restart your browser after the installation.")) {
+                window.location = 'http://code.google.com/p/webrtc4all/downloads/list'
+                return
+            }
+        }
+
+        // check for WebRTC support
+        if (!SIPml.isWebRtcSupported()) {
+            // is it chrome?
+            if (SIPml.getNavigatorFriendlyName() === 'chrome') {
+                if (confirm("You're using an old Chrome version or WebRTC is not enabled.\nDo you want to see how to enable WebRTC?")) {
+                    window.location = 'http://www.webrtc.org/running-the-demos'
+                } else {
+                    window.location = "index.html"
+                }
+                return
+            }
+
+            // for now the plugins (WebRTC4all only works on Windows)
+            if (SIPml.getSystemFriendlyName() === 'windows') {
+                // Internet explorer
+                if (SIPml.getNavigatorFriendlyName() === 'ie') {
+                    // Check for IE version 
+                    if (parseFloat(SIPml.getNavigatorVersion()) < 9.0) {
+                        if (confirm("You are using an old IE version. You need at least version 9. Would you like to update IE?")) {
+                            window.location = 'http://windows.microsoft.com/en-us/internet-explorer/products/ie/home'
+                        } else {
+                            window.location = "index.html"
+                        }
+                    }
+
+                    // check for WebRTC4all extension
+                    if (!SIPml.isWebRtc4AllSupported()) {
+                        if (confirm("webrtc4all extension is not installed. Do you want to install it?\nIMPORTANT: You must restart your browser after the installation.")) {
+                            window.location = 'http://code.google.com/p/webrtc4all/downloads/list'
+                        } else {
+                            // Must do nothing: give the user the chance to accept the extension
+                            // window.location = "index.html"
+                        }
+                    }
+                    // break page loading ('window.location' won't stop JS execution)
+                    if (!SIPml.isWebRtc4AllSupported()) {
+                        return
+                    }
+                } else if (SIPml.getNavigatorFriendlyName() === "safari" || SIPml.getNavigatorFriendlyName() === "firefox" || SIPml.getNavigatorFriendlyName() === "opera") {
+                    if (confirm("Your browser don't support WebRTC.\nDo you want to install WebRTC4all extension to enjoy audio/video calls?\nIMPORTANT: You must restart your browser after the installation.")) {
+                        window.location = 'http://code.google.com/p/webrtc4all/downloads/list'
+                    } else {
+                        window.location = "index.html"
+                    }
+                    return
+                }
+            } else { // OSX, Unix, Android, iOS...
+                if (confirm('WebRTC not supported on your browser.\nDo you want to download a WebRTC-capable browser?')) {
+                    window.location = 'https://www.google.com/intl/en/chrome/browser/'
+                } else {
+                    window.location = "index.html"
+                }
+                return
+            }
+        }
+
+        // checks for WebSocket support
+        if (!SIPml.isWebSocketSupported() && !SIPml.isWebRtc4AllSupported()) {
+            if (confirm('Your browser don\'t support WebSockets.\nDo you want to download a WebSocket-capable browser?')) {
+                window.location = 'https://www.google.com/intl/en/chrome/browser/'
+            }
+            return
+        }
+
+        // FIXME: displays must be per session
+        // attachs video displays
+        let viewVideoLocal = document.getElementById("divVideoLocal"),
+            viewVideoRemote = document.getElementById("divVideoRemote"),
+            viewLocalScreencast = document.getElementById("divScreencastLocal"),
+            videoLocal = document.getElementById("video_local"),
+            videoRemote = document.getElementById("video_remote"),
+            audioRemote = document.getElementById("audio_remote")
+
+        if (SIPml.isWebRtc4AllSupported()) {
+            window.WebRtc4all_SetDisplays(viewVideoLocal, viewVideoRemote, viewLocalScreencast) // FIXME: move to SIPml.* API
+        } else {
+            viewVideoLocal = videoLocal
+            viewVideoRemote = videoRemote
+        }
+
+        if (!SIPml.isWebRtc4AllSupported() && !SIPml.isWebRtcSupported()) {
+            if (confirm('Your browser don\'t support WebRTC.\naudio/video calls will be disabled.\nDo you want to download a WebRTC-capable browser?')) {
+                window.location = 'https://www.google.com/intl/en/chrome/browser/'
+            }
+        }
+
+        this.setState({
+            btnRegister: false
+        })
+        // document.body.style.cursor = 'default'
+
+        this.state["oConfigCall"] = {
+            audio_remote: audioRemote,
+            video_local: viewVideoLocal,
+            video_remote: viewVideoRemote,
+            screencast_window_id: 0x00000000, // entire desktop
+            bandwidth: {
+                audio: undefined,
+                video: undefined
+            },
+            video_size: {
+                minWidth: undefined,
+                minHeight: undefined,
+                maxWidth: undefined,
+                maxHeight: undefined
+            },
+            events_listener: {
+                events: '*',
+                listener: this._onSipEventSession
+            },
+            sip_caps: [{
+                name: '+g.oma.sip-im'
+            }, {
+                name: 'language',
+                value: '\"en,fr\"'
+            }]
+        }
     }
     _advanceSettings = () => {
         browserHistory.push({
@@ -235,24 +445,25 @@ class UserWebrtc extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldValue } = this.props.form
         let ucm_user_name = localStorage.getItem("username")
+        let SIPml = window.SIPml
 
         // catch exception for IE (DOM not ready)
         try {
             this.setState({
-                isBtnRegisterDisabled: true
+                btnRegister: true
             })
             if (!getFieldValue("txtPrivateIdentity") || !getFieldValue("txtPublicIdentity")) {
                 this.setState({
                     txtRegStatusMsg: "<b>Please fill madatory fields (*)</b>",
-                    isBtnRegisterDisabled: false
+                    btnRegister: false
                 })
                 return
             }
-            let o_impu = tsip_uri.prototype.Parse(getFieldValue("txtPublicIdentity"))
+            let o_impu = window.tsip_uri.prototype.Parse(getFieldValue("txtPublicIdentity"))
             if (!o_impu || !o_impu.s_user_name || !o_impu.s_host) {
                 this.setState({
                     txtRegStatusMsg: "<b>[" + getFieldValue("txtPublicIdentity") + "] is not a valid Public identity</b>",
-                    isBtnRegisterDisabled: false
+                    btnRegister: false
                 })
                 return
             }
@@ -269,8 +480,10 @@ class UserWebrtc extends Component {
             // update debug level to be sure new values will be used if the user haven't updated the page
             SIPml.setDebugLevel((oWebrtcInputConf.disable_debug_messages === "yes") ? "error" : "info")
 
+            let tsk_string_to_object = window.tsk_string_to_object
+
             // create SIP stack
-            global.oSipStack = new SIPml.Stack({
+            this.state["oSipStack"] = new SIPml.Stack({
                 realm: 'grandstream',
                 impi: getFieldValue("txtPrivateIdentity"),
                 impu: getFieldValue("txtPublicIdentity"),
@@ -296,7 +509,7 @@ class UserWebrtc extends Component {
                     value: 'Doubango Telecom'
                 }]
             })
-            if (global.oSipStack.start() !== 0) {
+            if (this.state.oSipStack.start() !== 0) {
                 this.state({
                     txtRegStatusMsg: '<b>Failed to start the SIP stack</b>'
                 })
@@ -307,26 +520,273 @@ class UserWebrtc extends Component {
                 })
         }
         this.state({
-            isBtnRegisterDisabled: false
+            btnRegister: false
         })
     }
     // sends SIP REGISTER (expires=0) to logout
     _sipUnRegister = () => {
-        // sipUnRegisterFlag = false
-        // if (oSipStack) {
-        //     oSipStack.stop() // shutdown all sessions
-        // }
+        this.state.sipUnRegisterFlag = false
+        let oSipStack = this.state.oSipStack
+        if (oSipStack) {
+            oSipStack.stop() // shutdown all sessions
+        }
     }
-    _sipHangUp = () => {
+    // makes a call (SIP INVITE)
+    _sipCall = (s_type) => {
+        const { getFieldValue } = this.props.form 
 
+        let me = this,
+            state = this.state,
+            SIPml = window.SIPml,
+            txtPhoneNumberVal = getFieldValue("txtPhoneNumber"),
+            tsk_string_to_object = window.tsk_string_to_object
+
+        if (txtPhoneNumberVal === '') {
+            this.setState({
+                txtCallStatusMsg: "Dial number can not be empty"
+            })
+            return
+        } else if (!txtPhoneNumberVal.match(/^[0-9#*.@:a-zA-Z]{0,64}$/)) {
+            this.setState({
+                txtCallStatusMsg: "Invalid format"
+            })
+            return
+        }
+
+        this._sendPing()
+        global.checkPingTimer = setInterval(() => {
+            me._sendPing()
+        }, 30000)
+
+        if (state.oSipStack && !state.oSipSessionCall && !window.tsk_string_is_null_or_empty(txtPhoneNumberVal)) {
+            if (s_type === 'call-screenshare') {
+                if (!SIPml.isScreenShareSupported()) {
+                    alert('Screen sharing not supported. Are you using chrome 26+?')
+                    return
+                }
+                if (!location.protocol.match('https')) {
+                    if (confirm("Screen sharing requires https://. Do you want to be redirected?")) {
+                        this._sipUnRegister()
+                        window.location = 'https://ns313841.ovh.net/call.htm'
+                    }
+                    return
+                }
+            }
+            this.setState({
+                btnCall: true,
+                btnHangUp: false
+            })
+            // if (window.localStorage) {
+                state.oConfigCall.bandwidth = tsk_string_to_object(state.oWebrtcInputConf.max_bandwidth) // already defined at stack-level but redifined to use latest values
+                state.oConfigCall.video_size = tsk_string_to_object(state.oWebrtcInputConf.video_size) // already defined at stack-level but redifined to use latest values
+            // }
+
+            // create call session
+            state["oSipSessionCall"] = this.state.oSipStack.newSession(s_type, state.oConfigCall)
+            // make call
+            if (state["oSipSessionCall"].call(txtPhoneNumberVal) !== 0) {
+                state["oSipSessionCall"] = null
+                this.setState({
+                    txtCallStatus: 'Failed to make call',
+                    btnCall: false,
+                    btnHangUp: true
+                })
+                return
+            }
+            this._saveCallOptions()
+        } else if (state["oSipSessionCall"]) {
+            this.setState({
+                txtCallStatus: 'Connecting...',
+                btnCall: false,
+                btnHangUp: true
+            })
+            state["oSipSessionCall"].accept(state.oConfigCall)
+        }
+    }
+    _showNotifICall = (s_number) => {
+        let state = this.state
+        // permission already asked when we registered
+        if (window.webkitNotifications && window.webkitNotifications.checkPermission() === 0) {
+            if (state.oNotifICall) {
+                state.oNotifICall.cancel()
+            }
+            state.oNotifICall = window.webkitNotifications.createNotification('images/sipml-34x39.png', 'Incaming call', 'Incoming call from ' + s_number)
+            state.oNotifICall.onclose = function() {
+                state.oNotifICall = null
+            }
+            state.oNotifICall.show()
+        }
+    }
+
+    _onKeyUp = (evt) => {
+        let state = this.state
+        evt = (evt || window.event)
+        if (evt.keyCode === 27) {
+            this._fullScreen(false)
+        } else if (evt.ctrlKey && evt.shiftKey) { // CTRL + SHIFT
+            if (evt.keyCode === 65 || evt.keyCode === 86) { // A (65) or V (86)
+                state.bDisableVideo = (evt.keyCode === 65)
+                this.setState({
+                    txtCallStatusMsg: 'Video ' + (state.bDisableVideo ? 'disabled' : 'enabled')
+                })
+                window.localStorage.setItem('org.doubango.expert.disable_video', state.bDisableVideo)
+            }
+        }
+    }
+
+    _onDivCallCtrlMouseMove = (evt) => {
+        try { // IE: DOM not ready
+            if (window.tsk_utils_have_stream()) {
+                this.setState({
+                    btnCall: (!window.tsk_utils_have_stream() || !global.oSipSessionRegister || !global.oSipSessionRegister.is_connected())
+                })
+                document.getElementById("divCallCtrl").onmousemove = null // unsubscribe
+            }
+        } catch (e) {}
+    }
+
+    _uiOnConnectionEvent = (b_connected, b_connecting) => { // should be enum: connecting, connected, terminating, terminated
+        this.setState({
+            btnRegister: b_connected || b_connecting,
+            btnUnRegister: !b_connected && !b_connecting,
+            btnCall: !(b_connected && window.tsk_utils_have_webrtc() && window.tsk_utils_have_stream()),
+            btnHangUp: !this.state.oSipSessionCall
+        })
+    }
+
+    _uiVideoDisplayEvent = (b_local, b_added) => {
+        let SIPml = window.SIPml
+        let o_elt_video = b_local ? document.getElementById("video_local") : document.getElementById("video_remote")
+
+        if (b_added) {
+            if (SIPml.isWebRtc4AllSupported()) {
+                if (b_local) {
+                    if (window.WebRtc4all_GetDisplayLocal()) window.WebRtc4all_GetDisplayLocal().style.visibility = "visible"
+                    if (window.WebRtc4all_GetDisplayLocalScreencast()) window.WebRtc4all_GetDisplayLocalScreencast().style.visibility = "visible"
+                } else {
+                    if (window.WebRtc4all_GetDisplayRemote()) window.WebRtc4all_GetDisplayRemote().style.visibility = "visible"
+                }
+            } else {
+                o_elt_video.style.opacity = 1
+            }
+            this._uiVideoDisplayShowHide(true)
+        } else {
+            if (SIPml.isWebRtc4AllSupported()) {
+                if (b_local) {
+                    if (window.WebRtc4all_GetDisplayLocal()) window.WebRtc4all_GetDisplayLocal().style.visibility = "hidden"
+                    if (window.WebRtc4all_GetDisplayLocalScreencast()) window.WebRtc4all_GetDisplayLocalScreencast().style.visibility = "hidden"
+                    // viewVideoLocal.style.visibility = "hidden"
+                    // viewLocalScreencast.style.visibility = "hidden"
+                    // if (WebRtc4all_GetDisplayLocal()) WebRtc4all_GetDisplayLocal().hidden = true
+                    // if (WebRtc4all_GetDisplayLocalScreencast()) WebRtc4all_GetDisplayLocalScreencast().hidden = true
+                } else {
+                    if (window.WebRtc4all_GetDisplayRemote()) window.WebRtc4all_GetDisplayRemote().style.visibility = "hidden"
+                    // viewVideoRemote.style.visibility = "hidden"
+                    // if (WebRtc4all_GetDisplayRemote()) WebRtc4all_GetDisplayRemote().hidden = true
+                }
+            } else {
+                o_elt_video.style.opacity = 0
+            }
+            this._fullScreen(false)
+        }
+    }
+    _uiVideoDisplayShowHide = (b_show) => {
+        let divCallCtrl = document.getElementById("divCallCtrl")
+        if (b_show) {
+            divCallCtrl.style.display = 'block'
+
+            this._scrollToBottom()
+        } else {
+            divCallCtrl.style.display = 'none'
+        }
+    }
+    // _uiBtnCallSetText = (s_text) => {
+    //     switch (s_text) {
+    //         case "Call":
+    //             {
+    //                 let bDisableCallBtnOptions = false // (window.localStorage && window.localStorage.getItem('org.doubango.expert.disable_callbtn_options') == "true")
+    //                 // btnCall.value = btnCall.innerHTML = bDisableCallBtnOptions ? 'Call' : 'Call <span id="spanCaret" class="caret">'
+                    
+    //                 btnCall.onClick = bDisableCallBtnOptions ? function() {
+    //                     sipCall(bDisableVideo ? 'call-audio' : 'call-audiovideo')
+    //                 } : null
+
+    //                 ulCallOptions.style.visibility = bDisableCallBtnOptions ? "hidden" : "visible"
+    //                 if (!bDisableCallBtnOptions && ulCallOptions.parentNode != divBtnCallGroup) {
+    //                     divBtnCallGroup.appendChild(ulCallOptions)
+    //                 } else if (bDisableCallBtnOptions && ulCallOptions.parentNode == divBtnCallGroup) {
+    //                     document.body.appendChild(ulCallOptions)
+    //                 }
+
+    //                 break
+    //             }
+    //         default:
+    //             {
+    //                 btnCall.value = btnCall.innerHTML = s_text
+    //                 btnCall.setAttribute("class", "btn btn-primary")
+    //                 btnCall.onClick = function() {
+    //                     sipCall(bDisableVideo ? 'call-audio' : 'call-audiovideo')
+    //                 }
+    //                 ulCallOptions.style.visibility = "hidden"
+    //                 if (ulCallOptions.parentNode == divBtnCallGroup) {
+    //                     document.body.appendChild(ulCallOptions)
+    //                 }
+    //                 break
+    //             }
+    //     }
+    // }
+    _uiCallTerminated = (s_description) => {
+        let state = this.state
+        window.clearInterval(global.checkPingTimer)
+        // this._uiBtnCallSetText("Call")
+        this.setState({
+            btnHangUpVal: 'HangUp',
+            btnHoldResumeVal: 'hold',
+            btnMuteVal: "Mute",
+            btnCall: false,
+            btnHangUp: true
+        })
+
+        if (window.btnBFCP) window.btnBFCP.disabled = true
+
+        state.oSipSessionCall = null
+
+        this._stopRingbackTone()
+        this._stopRingTone()
+
+        this.setState({
+            txtCallStatusMsg: s_description
+        })
+        this._uiVideoDisplayShowHide(false)
+        document.getElementById("divCallOptions").style.display = 'none'
+        this.setState({
+            btnHoldResume: false,
+            btnTransfer: false
+        })
+
+        if (state.oNotifICall) {
+            state.oNotifICall.cancel()
+            state.oNotifICall = null
+        }
+
+        this._uiVideoDisplayEvent(false, false)
+        this._uiVideoDisplayEvent(true, false)
+
+        setTimeout(() => {
+            if (!state.oSipSessionCall) {
+                this.setState({
+                    txtCallStatusMsg: ""
+                })
+            }
+        }, 2500)
     }
     // Callback function for SIP Stacks
     _onSipEventStack = (e) => { /* SIPml.Stack.Event */ 
-        tsk_utils_log_info('==stack event = ' + e.type)
-        let oSipSessionCall = global.oSipSessionCall,
-            oSipSessionRegister = global.oSipSessionRegister,
-            sipUnRegisterFlag = global.sipUnRegisterFlag,
-            oConfigCall = global.oConfigCall
+        window.tsk_utils_log_info('==stack event = ' + e.type)
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall,
+            sipUnRegisterFlag = state.sipUnRegisterFlag,
+            oConfigCall = this.state.oConfigCall
 
         switch (e.type) {
             case 'started':
@@ -334,7 +794,7 @@ class UserWebrtc extends Component {
                     // catch exception for IE (DOM not ready)
                     try {
                         // LogIn (REGISTER) as soon as the stack finish starting
-                        oSipSessionRegister = this.newSession('register', {
+                        global.oSipSessionRegister = this.state.oSipStack.newSession('register', {
                             expires: 200,
                             events_listener: {
                                 events: '*',
@@ -354,11 +814,11 @@ class UserWebrtc extends Component {
                                 }
                             ]
                         })
-                        oSipSessionRegister.register()
+                        global.oSipSessionRegister.register()
                     } catch (e) {
                         this.setState({
                             txtRegStatusMsg: "<b>1:" + e + "</b>",
-                            isBtnRegisterDisabled: false
+                            btnRegister: false
                         })
                     }
                     break
@@ -370,21 +830,21 @@ class UserWebrtc extends Component {
                 {
                     window.clearInterval(global.checkPingTimer)
                     let bFailure = (e.type === 'failed_to_start') || (e.type === 'failed_to_stop')
-                    // oSipStack = null
-                    oSipSessionRegister = null
+                    // this.state.oSipStack = null
+                    global.oSipSessionRegister = null
                     oSipSessionCall = null
 
                     // uiOnConnectionEvent(false, false)
-                    // stopRingbackTone()
-                    // stopRingTone()
-                    // uiVideoDisplayShowHide(false)
+                    this._stopRingbackTone()
+                    this._stopRingTone()
+                    this._uiVideoDisplayShowHide(false)
 
-                    // divCallOptions.style.display = 'none'
-                    // btnHoldResume.disabled = false
-                    // btnTransfer.disabled = false
-                    // txtCallStatus.innerHTML = ''
+                    document.getElementById("divCallOptions").style.display = 'none'
                     this.setState({
-                        txtRegStatusMsg: bFailure ? "<i>Disconnected: <b>" + e.description + "</b></i>" : "<i>Disconnected</i>"
+                        txtRegStatusMsg: bFailure ? "<i>Disconnected: <b>" + e.description + "</b></i>" : "<i>Disconnected</i>",
+                        btnHoldResume: false,
+                        btnTransfer: false,
+                        txtCallStatusMsg: ""
                     })
                     if (sipUnRegisterFlag) {
                         this._sipUnRegister()
@@ -400,37 +860,40 @@ class UserWebrtc extends Component {
                     } else {
                         oSipSessionCall = e.newSession
                         // start listening for events
-                        oSipSessionCall.setConfiguration(oConfigCall)
+                        oSipSessionCall.setConfiguration(this.state.oConfigCall)
 
                         // scroll to bottom before answer a call
-                        // scrollToBottom()
-                        // uiBtnCallSetText('Answer')
-                        // btnHangUp.value = 'Reject'
-                        // btnCall.disabled = false
-                        // btnHangUp.disabled = false
+                        this._scrollToBottom()
+                        // this._uiBtnCallSetText('Answer')
+                        this.setState({
+                            btnHangUpVal: 'Reject',
+                            btnCall: false,
+                            btnHangUp: false
+                        })
+                        this._startRingTone()
 
-                        // startRingTone()
-
-                        // let sRemoteNumber = (oSipSessionCall.getRemoteFriendlyName() || 'unknown')
-                        // txtCallStatus.innerHTML = "<i>Incoming call from <b>" + (sRemoteCalleeName ? (sRemoteCalleeName + ' ') : '')  + '[' + sRemoteNumber + "]</b></i>"
-                        // txtPhoneNumber.value = sRemoteNumber
-                        // showNotifICall(sRemoteNumber)
+                        let sRemoteNumber = (oSipSessionCall.getRemoteFriendlyName() || 'unknown')
+                        this.setState({
+                            txtCallStatusMsg: "Incoming call from <b>" + (state.sRemoteCalleeName ? (state.sRemoteCalleeName + ' ') : '') + '[' + sRemoteNumber + "]</b>",
+                            txtPhoneNumberVal: sRemoteNumber
+                        })
+                        this._showNotifICall(sRemoteNumber)
                     }
                     break
                 }
 
             case 'm_permission_requested':
                 {
-                    // divGlassPanel.style.visibility = 'visible'
+                    document.getElementById("divGlassPanel").style.visibility = 'visible'
                     break
                 }
             case 'm_permission_accepted':
             case 'm_permission_refused':
                 {
-                    // divGlassPanel.style.visibility = 'hidden'
-                    // if (e.type == 'm_permission_refused') {
-                    //     uiCallTerminated('Media stream permission denied')
-                    // }
+                    document.getElementById("divGlassPanel").style.visibility = 'hidden'
+                    if (e.type === 'm_permission_refused') {
+                        this._uiCallTerminated('Media stream permission denied')
+                    }
                     break
                 }
 
@@ -441,274 +904,540 @@ class UserWebrtc extends Component {
     }
     // Callback function for SIP sessions (INVITE, REGISTER, MESSAGE...)
     _onSipEventSession = (e) => { /* SIPml.Session.Event */
-        tsk_utils_log_info('==session event = ' + e.type)
+        const { getFieldValue } = this.props.form
+        let SIPml = window.SIPml,
+            state = this.state,
+            oSipSessionCall = state.oSipSessionCall
+        window.tsk_utils_log_info('==session event = ' + e.type)
 
-        // switch (e.type) {
-        //     case 'connecting':
-        //     case 'connected':
-        //         {
-        //             var bConnected = (e.type == 'connected')
-        //             if (e.session == oSipSessionRegister) {
-        //                 uiOnConnectionEvent(bConnected, !bConnected)
-        //                 txtRegStatus.innerHTML = "<i>" + e.description + "</i>"
-        //             } else if (e.session == oSipSessionCall) {
-        //                 btnHangUp.value = 'HangUp'
-        //                 btnCall.disabled = true
-        //                 btnHangUp.disabled = false
-        //                 btnTransfer.disabled = false
+        switch (e.type) {
+            case 'connecting':
+            case 'connected':
+                {
+                    let bConnected = (e.type === 'connected')
+                    if (e.session === global.oSipSessionRegister) {
+                        this._uiOnConnectionEvent(bConnected, !bConnected)
+                        this.setState({
+                            txtRegStatusMsg: e.description
+                        })
+                    } else if (e.session === oSipSessionCall) {
+                        this.setState({
+                            btnHangUpVal: 'HangUp',
+                            btnCall: true,
+                            btnHangUp: false,
+                            btnTransfer: false
+                        })
+                        if (window.btnBFCP) window.btnBFCP.disabled = false
 
-        //                 if (window.btnBFCP) window.btnBFCP.disabled = false
+                        if (bConnected) {
+                            this._stopRingbackTone()
+                            this._stopRingTone()
 
-        //                 if (bConnected) {
-        //                     stopRingbackTone()
-        //                     stopRingTone()
+                            if (state.oNotifICall) {
+                                state.oNotifICall.cancel()
+                                state.oNotifICall = null
+                            }
+                        }
 
-        //                     if (oNotifICall) {
-        //                         oNotifICall.cancel()
-        //                         oNotifICall = null
-        //                     }
-        //                 }
+                        this.setState({
+                            txtRegStatusMsg: e.description
+                        })
+                        if (e.session.o_session.o_uri_to.s_user_name !== getFieldValue("txtPrivateIdentity").value) {
+                            document.getElementById("divCallOptions").style.display = bConnected ? 'inline-block' : 'none'
+                            if (document.getElementById("btnHangUp").disabled) {
+                                document.getElementById("divCallOptions").style.display = "none"
+                            }
+                            if (bConnected) {
+                                this.setState({
+                                    btnHoldResume: false,
+                                    btnTransfer: false
+                                })
+                            }
+                        }
 
-        //                 txtCallStatus.innerHTML = "<i>" + e.description + "</i>"
+                        if (SIPml.isWebRtc4AllSupported()) { // IE don't provide stream callback
+                            this._uiVideoDisplayEvent(false, true)
+                            this._uiVideoDisplayEvent(true, true)
+                        }
+                    }
+                    break
+                } // 'connecting' | 'connected'
+            case 'terminating':
+            case 'terminated':
+                {
+                    if (e.session === global.oSipSessionRegister) {
+                        this._uiOnConnectionEvent(false, false)
 
-        //                 if (e.session.o_session.o_uri_to.s_user_name !== txtPrivateIdentity.value) {
-        //                     divCallOptions.style.display = bConnected ? 'inline-block' : 'none'
-        //                     if (btnHangUp.disabled) {
-        //                         divCallOptions.style.display = "none"
-        //                     }
-        //                     if (bConnected) {
-        //                         btnHoldResume.disabled = false
-        //                         btnTransfer.disabled = false
-        //                     }
-        //                 }
+                        oSipSessionCall = null
+                        global.oSipSessionRegister = null
+                        this.setState({
+                            txtRegStatusMsg: e.description
+                        })
+                    } else if (e.session === oSipSessionCall) {
+                        if (e.description === 'Request Cancelled') {
+                            document.getElementById("divGlassPanel").style.visibility = 'hidden'
+                        }
 
-        //                 if (SIPml.isWebRtc4AllSupported()) { // IE don't provide stream callback
-        //                     uiVideoDisplayEvent(false, true)
-        //                     uiVideoDisplayEvent(true, true)
-        //                 }
-        //             }
-        //             break
-        //         } // 'connecting' | 'connected'
-        //     case 'terminating':
-        //     case 'terminated':
-        //         {
-        //             if (e.session == oSipSessionRegister) {
-        //                 uiOnConnectionEvent(false, false)
+                        this._uiCallTerminated(e.description)
+                    }
+                    break
+                } // 'terminating' | 'terminated'
 
-        //                 oSipSessionCall = null
-        //                 oSipSessionRegister = null
+            case 'm_stream_video_local_added':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this._uiVideoDisplayEvent(true, true)
+                    }
+                    break
+                }
+            case 'm_stream_video_local_removed':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this._uiVideoDisplayEvent(true, false)
+                    }
+                    break
+                }
+            case 'm_stream_video_remote_added':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this._uiVideoDisplayEvent(false, true)
+                    }
+                    break
+                }
+            case 'm_stream_video_remote_removed':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this._uiVideoDisplayEvent(false, false)
+                    }
+                    break
+                }
 
-        //                 txtRegStatus.innerHTML = "<i>" + e.description + "</i>"
-        //             } else if (e.session == oSipSessionCall) {
-        //                 if (e.description === 'Request Cancelled') {
-        //                     divGlassPanel.style.visibility = 'hidden'
-        //                 }
+            case 'm_stream_audio_local_added':
+            case 'm_stream_audio_local_removed':
+            case 'm_stream_audio_remote_added':
+            case 'm_stream_audio_remote_removed':
+                {
+                    break
+                }
 
-        //                 uiCallTerminated(e.description)
-        //             }
-        //             break
-        //         } // 'terminating' | 'terminated'
+            case 'i_ect_new_call':
+                {
+                    global.oSipSessionTransferCall = e.session
+                    break
+                }
 
-        //     case 'm_stream_video_local_added':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 uiVideoDisplayEvent(true, true)
-        //             }
-        //             break
-        //         }
-        //     case 'm_stream_video_local_removed':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 uiVideoDisplayEvent(true, false)
-        //             }
-        //             break
-        //         }
-        //     case 'm_stream_video_remote_added':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 uiVideoDisplayEvent(false, true)
-        //             }
-        //             break
-        //         }
-        //     case 'm_stream_video_remote_removed':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 uiVideoDisplayEvent(false, false)
-        //             }
-        //             break
-        //         }
+            case 'i_ao_request':
+                {
+                    if (e.session === oSipSessionCall) {
+                        let iSipResponseCode = e.getSipResponseCode()
+                        if (iSipResponseCode === 180 || iSipResponseCode === 183) {
+                            this._startRingbackTone()
+                            this.setState({
+                                txtCallStatusMsg: 'Remote ringing...'
+                            })
+                        }
+                    }
+                    break
+                }
 
-        //     case 'm_stream_audio_local_added':
-        //     case 'm_stream_audio_local_removed':
-        //     case 'm_stream_audio_remote_added':
-        //     case 'm_stream_audio_remote_removed':
-        //         {
-        //             break
-        //         }
+            case 'm_early_media':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this._stopRingbackTone()
+                        this._stopRingTone()
+                        this.setState({
+                            txtCallStatusMsg: 'Early media started'
+                        })
+                    }
+                    break
+                }
 
-        //     case 'i_ect_new_call':
-        //         {
-        //             oSipSessionTransferCall = e.session
-        //             break
-        //         }
+            case 'm_local_hold_ok':
+                {
+                    if (e.session === oSipSessionCall) {
+                        if (oSipSessionCall.bTransfering) {
+                            oSipSessionCall.bTransfering = false
+                            // this.AVSession.TransferCall(this.transferUri)
+                        }
+                        this.setState({
+                            btnHoldResumeVal: 'Resume',
+                            btnHoldResume: false,
+                            txtCallStatusMsg: 'Call placed on hold'
+                        })
+                        oSipSessionCall.bHeld = true
+                    }
+                    break
+                }
+            case 'm_local_hold_nok':
+                {
+                    if (e.session === oSipSessionCall) {
+                        oSipSessionCall.bTransfering = false
+                        this.setState({
+                            btnHoldResumeVal: 'Hold',
+                            btnHoldResume: false,
+                            txtCallStatusMsg: 'Failed to place remote party on hold'
+                        })
+                    }
+                    break
+                }
+            case 'm_local_resume_ok':
+                {
+                    if (e.session === oSipSessionCall) {
+                        oSipSessionCall.bTransfering = false
+                        this.setState({
+                            btnHoldResumeVal: 'Hold',
+                            btnHoldResume: false,
+                            txtCallStatusMsg: 'Call taken off hold'
+                        })
+                        oSipSessionCall.bHeld = false
 
-        //     case 'i_ao_request':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 var iSipResponseCode = e.getSipResponseCode()
-        //                 if (iSipResponseCode == 180 || iSipResponseCode == 183) {
-        //                     startRingbackTone()
-        //                     txtCallStatus.innerHTML = '<i>Remote ringing...</i>'
-        //                 }
-        //             }
-        //             break
-        //         }
+                        if (SIPml.isWebRtc4AllSupported()) { // IE don't provide stream callback yet
+                            this._uiVideoDisplayEvent(false, true)
+                            this._uiVideoDisplayEvent(true, true)
+                        }
+                    }
+                    break
+                }
+            case 'm_local_resume_nok':
+                {
+                    if (e.session === oSipSessionCall) {
+                        oSipSessionCall.bTransfering = false
+                        this.setState({
+                            btnHoldResume: false,
+                            txtCallStatusMsg: 'Failed to unhold call'
+                        })
+                    }
+                    break
+                }
+            case 'm_remote_hold':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'Placed on hold by remote party'
+                        })
+                    }
+                    break
+                }
+            case 'm_remote_resume':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'Taken off hold by remote party'
+                        })
+                    }
+                    break
+                }
+            case 'm_bfcp_info':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'BFCP Info: ' + e.description
+                        })
+                    }
+                    break
+                }
 
-        //     case 'm_early_media':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 stopRingbackTone()
-        //                 stopRingTone()
-        //                 txtCallStatus.innerHTML = '<i>Early media started</i>'
-        //             }
-        //             break
-        //         }
+            case 'o_ect_trying':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'Call transfer in progress...'
+                        })
+                    }
+                    break
+                }
+            case 'o_ect_accepted':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'Call transfer accepted'
+                        })
+                    }
+                    break
+                }
+            case 'o_ect_completed':
+            case 'i_ect_completed':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'Call transfer completed',
+                            btnTransfer: false
+                        })
+                        if (global.oSipSessionTransferCall) {
+                            oSipSessionCall = global.oSipSessionTransferCall
+                        }
+                        global.oSipSessionTransferCall = null
+                    }
+                    break
+                }
+            case 'o_ect_failed':
+            case 'i_ect_failed':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: 'Call transfer failed',
+                            btnTransfer: false
+                        })
+                    }
+                    break
+                }
+            case 'o_ect_notify':
+            case 'i_ect_notify':
+                {
+                    if (e.session === oSipSessionCall) {
+                        this.setState({
+                            txtCallStatusMsg: "Call Transfer: <b>" + e.getSipResponseCode() + " " + e.description + "</b>"
+                        })
+                        if (e.getSipResponseCode() >= 300) {
+                            if (oSipSessionCall.bHeld) {
+                                oSipSessionCall.resume()
+                            }
+                            this.setState({
+                                btnTransfer: false
+                            })
+                        }
+                    }
+                    break
+                }
+            case 'i_ect_requested':
+                {
+                    if (e.session === oSipSessionCall) {
+                        let s_message = "Do you accept call transfer to [" + e.getTransferDestinationFriendlyName() + "]?" // FIXME
+                        if (confirm(s_message)) {
+                            this.setState({
+                                txtCallStatusMsg: 'Call transfer in progress...'
+                            })
+                            oSipSessionCall.acceptTransfer()
+                            break
+                        }
+                        oSipSessionCall.rejectTransfer()
+                    }
+                    break
+                }
+        }
+    }
 
-        //     case 'm_local_hold_ok':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 if (oSipSessionCall.bTransfering) {
-        //                     oSipSessionCall.bTransfering = false
-        //                     // this.AVSession.TransferCall(this.transferUri)
-        //                 }
-        //                 btnHoldResume.value = 'Resume'
-        //                 btnHoldResume.disabled = false
-        //                 txtCallStatus.innerHTML = '<i>Call placed on hold</i>'
-        //                 oSipSessionCall.bHeld = true
-        //             }
-        //             break
-        //         }
-        //     case 'm_local_hold_nok':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 oSipSessionCall.bTransfering = false
-        //                 btnHoldResume.value = 'Hold'
-        //                 btnHoldResume.disabled = false
-        //                 txtCallStatus.innerHTML = '<i>Failed to place remote party on hold</i>'
-        //             }
-        //             break
-        //         }
-        //     case 'm_local_resume_ok':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 oSipSessionCall.bTransfering = false
-        //                 btnHoldResume.value = 'Hold'
-        //                 btnHoldResume.disabled = false
-        //                 txtCallStatus.innerHTML = '<i>Call taken off hold</i>'
-        //                 oSipSessionCall.bHeld = false
+    _scrollToBottom = () => {
+        window.scrollTo(0, document.body.scrollHeight)
+    }
+    // Share entire desktop aor application using BFCP or WebRTC native implementation
+    _sipShareScreen = () => {
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall,
+            SIPml = window.SIPml
 
-        //                 if (SIPml.isWebRtc4AllSupported()) { // IE don't provide stream callback yet
-        //                     uiVideoDisplayEvent(false, true)
-        //                     uiVideoDisplayEvent(true, true)
-        //                 }
-        //             }
-        //             break
-        //         }
-        //     case 'm_local_resume_nok':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 oSipSessionCall.bTransfering = false
-        //                 btnHoldResume.disabled = false
-        //                 txtCallStatus.innerHTML = '<i>Failed to unhold call</i>'
-        //             }
-        //             break
-        //         }
-        //     case 'm_remote_hold':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = '<i>Placed on hold by remote party</i>'
-        //             }
-        //             break
-        //         }
-        //     case 'm_remote_resume':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = '<i>Taken off hold by remote party</i>'
-        //             }
-        //             break
-        //         }
-        //     case 'm_bfcp_info':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = 'BFCP Info: <i>' + e.description + '</i>'
-        //             }
-        //             break
-        //         }
+        if (SIPml.getWebRtcType() === 'w4a') {
+            // Sharing using BFCP -> requires an active session
+            if (!oSipSessionCall) {
+                this.setState({
+                        txtCallStatusMsg: "No active session"
+                    })
+                return
+            }
+            if (oSipSessionCall.bfcpSharing) {
+                if (oSipSessionCall.stopBfcpShare(state.oConfigCall) !== 0) {
+                    this.setState({
+                        txtCallStatusMsg: "Failed to start BFCP share"
+                    })
+                } else {
+                    oSipSessionCall.bfcpSharing = false
+                }
+            } else {
+                state.oConfigCall.screencast_window_id = 0x00000000
+                if (oSipSessionCall.startBfcpShare(state.oConfigCall) !== 0) {
+                    this.setState({
+                        txtCallStatusMsg: "Failed to start BFCP share"
+                    })
+                } else {
+                    oSipSessionCall.bfcpSharing = true
+                }
+            }
+        } else {
+            this._sipCall('call-screenshare')
+        }
+    }
 
-        //     case 'o_ect_trying':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = '<i>Call transfer in progress...</i>'
-        //             }
-        //             break
-        //         }
-        //     case 'o_ect_accepted':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = '<i>Call transfer accepted</i>'
-        //             }
-        //             break
-        //         }
-        //     case 'o_ect_completed':
-        //     case 'i_ect_completed':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = '<i>Call transfer completed</i>'
-        //                 btnTransfer.disabled = false
-        //                 if (oSipSessionTransferCall) {
-        //                     oSipSessionCall = oSipSessionTransferCall
-        //                 }
-        //                 oSipSessionTransferCall = null
-        //             }
-        //             break
-        //         }
-        //     case 'o_ect_failed':
-        //     case 'i_ect_failed':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = '<i>Call transfer failed</i>'
-        //                 btnTransfer.disabled = false
-        //             }
-        //             break
-        //         }
-        //     case 'o_ect_notify':
-        //     case 'i_ect_notify':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 txtCallStatus.innerHTML = "<i>Call Transfer: <b>" + e.getSipResponseCode() + " " + e.description + "</b></i>"
-        //                 if (e.getSipResponseCode() >= 300) {
-        //                     if (oSipSessionCall.bHeld) {
-        //                         oSipSessionCall.resume()
-        //                     }
-        //                     btnTransfer.disabled = false
-        //                 }
-        //             }
-        //             break
-        //         }
-        //     case 'i_ect_requested':
-        //         {
-        //             if (e.session == oSipSessionCall) {
-        //                 var s_message = "Do you accept call transfer to [" + e.getTransferDestinationFriendlyName() + "]?" //FIXME
-        //                 if (confirm(s_message)) {
-        //                     txtCallStatus.innerHTML = "<i>Call transfer in progress...</i>"
-        //                     oSipSessionCall.acceptTransfer()
-        //                     break
-        //                 }
-        //                 oSipSessionCall.rejectTransfer()
-        //             }
-        //             break
-        //         }
-        // }
+    // transfers the call
+    _sipTransfer = () => {
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall
+
+        if (oSipSessionCall) {
+            let s_destination = prompt('Enter destination number', '')
+            if (!window.sk_string_is_null_or_empty(s_destination)) {
+                this.setState({
+                    btnTransfer: true
+                })
+                if (oSipSessionCall.transfer(s_destination) !== 0) {
+                    this.setState({
+                        txtCallStatusMsg: "Call transfer failed",
+                        btnTransfer: false
+                    })
+                    return
+                }
+                this.setState({
+                    txtCallStatusMsg: "Transfering the call...",
+                    btnTransfer: false
+                })
+            }
+        }
+    }
+
+    // holds or resumes the call
+    _sipToggleHoldResume = () => {
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall
+
+        if (oSipSessionCall) {
+            this.setState({
+                txtCallStatusMsg: oSipSessionCall.bHeld ? 'Resuming the call...' : 'Holding the call...',
+                btnHoldResume: false
+            })
+            let i_ret = oSipSessionCall.bHeld ? oSipSessionCall.resume() : oSipSessionCall.hold()
+            if (i_ret !== 0) {
+                this.setState({
+                    txtCallStatusMsg: "Hold / Resume failed",
+                    btnHoldResume: false
+                })
+                return
+            }
+        }
+    }
+
+    // Mute or Unmute the call
+    _sipToggleMute = () => {
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall
+
+        if (oSipSessionCall) {
+            let bMute = !oSipSessionCall.bMute
+            this.setState({
+                txtCallStatusMsg: bMute ? 'Mute the call...' : 'Unmute the call...'
+            })
+            let i_ret = oSipSessionCall.mute('audio' /* could be 'video' */, bMute)
+            if (i_ret !== 0) {
+                this.setState({
+                    txtCallStatusMsg: 'Mute / Unmute failed'
+                })
+                return
+            }
+            oSipSessionCall.bMute = bMute
+            document.getElementById("btnMute").value = bMute ? "Unmute" : "Mute"
+        }
+    }
+
+    // terminates the call (SIP BYE or CANCEL)
+    _sipHangUp = () => {
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall
+        window.clearInterval(global.checkPingTimer)
+
+        if (oSipSessionCall) {
+            this.setState({
+                txtCallStatusMsg: "Terminating the call..."
+            })
+            document.getElementById("divCallOptions").style.display = "none"
+            oSipSessionCall.hangup({
+                events_listener: {
+                    events: '*',
+                    listener: this._onSipEventSession
+                }
+            })
+        }
+    }
+
+    _sipSendDTMF = (c) => {
+        let state = this.state,
+            oSipSessionCall = state.oSipSessionCall
+
+        if (oSipSessionCall && c) {
+            if (oSipSessionCall.dtmf(c) === 0) {
+                try {
+                    this._dtmfTone.play()
+                } catch (e) {}
+            }
+        }
+    }
+
+    _startRingTone = () => {
+        try {
+            document.getElementById("ringtone").play()
+        } catch (e) {}
+    }
+
+    _stopRingTone = () => {
+        try {
+            document.getElementById("ringtone").pause()
+        } catch (e) {}
+    }
+
+    _startRingbackTone = () => {
+        try {
+            document.getElementById("ringbacktone").play()
+        } catch (e) {}
+    }
+
+    _stopRingbackTone = () => {
+        try {
+            document.getElementById("ringbacktone").pause()
+        } catch (e) {}
+    }
+
+    _toggleFullScreen = () => {
+        let videoRemote = document.getElementById("video_remote")
+        if (videoRemote.webkitSupportsFullscreen) {
+            this._fullScreen(!videoRemote.webkitDisplayingFullscreen)
+        } else {
+            this._fullScreen(!this.state.bFullScreen)
+        }
+    }
+
+    _openKeyPad() {
+        let divKeyPad = document.getElementById("divKeyPad")
+        divKeyPad.style.visibility = 'visible'
+        divKeyPad.style.left = ((document.body.clientWidth - this.props.C.divKeyPadWidth) >> 1) + 'px'
+        divKeyPad.style.top = '70px'
+        document.getElementById("divGlassPanel").style.visibility = 'visible'
+    }
+
+    _closeKeyPad = () => {
+        let divKeyPad = document.getElementById("divKeyPad")
+        divKeyPad.style.left = '0px'
+        divKeyPad.style.top = '0px'
+        divKeyPad.style.visibility = 'hidden'
+        document.getElementById("divGlassPanel").style.visibility = 'hidden'
+    }
+
+    _fullScreen = (b_fs) => {
+        let state = this.state,
+            videoRemote = document.getElementById("video_remote")
+        state.bFullScreen = b_fs
+        if (window.tsk_utils_have_webrtc4native() && state.bFullScreen && videoRemote.webkitSupportsFullscreen) {
+            if (state.bFullScreen) {
+                videoRemote.webkitEnterFullScreen()
+            } else {
+                videoRemote.webkitExitFullscreen()
+            }
+        } else {
+            if (window.tsk_utils_have_webrtc4npapi()) {
+                try {
+                    if (window.__o_display_remote) window.__o_display_remote.setFullScreen(b_fs)
+                } catch (e) {
+                    document.getElementById("divVideo").setAttribute("className", b_fs ? "full-screen" : "normal-screen")
+                }
+            } else {
+                document.getElementById("divVideo").setAttribute("className", b_fs ? "full-screen" : "normal-screen")
+            }
+        }
+    }
+    _handleButtonClick = (e) => {
+    }
+    _handleMenuClick = (e) => {
+        // message.info('Click on menu item.')
+        console.log('click', e)
+        // <li><a href="#" onClick='sipCall("call-audio")'>Audio</a></li>
+        // <li><a href="#" onClick='sipCall("call-audiovideo")'>Video</a></li>
+        // <li id='liScreenShare'><a href="#" onClick='sipShareScreen()'>Screen Share</a></li>
     }
     render() {
         const {formatMessage} = this.props.intl
@@ -727,6 +1456,14 @@ class UserWebrtc extends Component {
             0: model_info.model_name, 
             1: formatMessage({id: "LANG4263"})
         })
+
+        const menu = (
+            <Menu onClick={ this._handleMenuClick }>
+                <Menu.Item key="1">Audio</Menu.Item>
+                <Menu.Item key="2">Video</Menu.Item>
+                <Menu.Item key="3">Screen Share</Menu.Item>
+            </Menu>
+        )
         return (
             <div className="app-content-main" id="app-content-main">
                 <Title 
@@ -734,7 +1471,7 @@ class UserWebrtc extends Component {
                     isDisplay='hidden' 
                 />
                 <div className="content">
-                    <div className="top-button">
+                    <div className="top-Button">
                         <Button icon="setting" type="primary" size="default" onClick={ this._advanceSettings }>
                             { formatMessage({id: "LANG229"}) }
                         </Button>
@@ -749,7 +1486,7 @@ class UserWebrtc extends Component {
                                 <FormItem
                                     { ...formItemLayout }
                                     label="">
-                                    <span ref="txtRegStatus" dangerouslySetInnerHTML={{__html: state.txtRegStatusMsg}}></span>
+                                    <span id="txtRegStatus" dangerouslySetInnerHTML={{__html: state.txtRegStatusMsg}}></span>
                                 </FormItem>
                                 <FormItem
                                     { ...formItemLayout }
@@ -820,20 +1557,21 @@ class UserWebrtc extends Component {
                                         rules: [],
                                         initialValue: SIPWebRTCHttpSettings.txtWebsocketServerUrl || ""
                                     })(
-                                        <Input></Input>
+                                        <Input disabled={ state.isTxtWebsocketServerUrl }></Input>
                                     )}
                                 </FormItem>
                                 <FormItem
                                     { ...formItemLayout }
                                 >
-                                    <Button type="primary" size="default" ref="btnUnRegister" onClick={ this._sipUnRegister }>
+                                    <Button type="primary" size="default" id="btnUnRegister" onClick={ this._sipUnRegister }>
                                         { formatMessage({id: "LANG4451"}) }
                                     </Button>
-                                    <Button type="primary" size="default" ref="btnRegister" onClick={ this._sipRegister } disabled={ state.isBtnRegisterDisabled ? true : false}>
+                                    <Button type="primary" size="default" id="btnRegister" onClick={ this._sipRegister } disabled={ state.btnRegister ? false : false}>
                                         { formatMessage({id: "LANG1892"}) }
                                     </Button>
                                 </FormItem>
-                                {/* /是否注册 */}                                               
+                                {/* /是否注册 */}
+                                {/* 呼叫控制 */}                                                
                                 <div className="section-title">
                                     <span>{ formatMessage({id: "LANG4228"}) }</span>
                                 </div>
@@ -842,7 +1580,7 @@ class UserWebrtc extends Component {
                                         { ...formItemLayout }
                                         label="">
                                         { getFieldDecorator('txtCallStatus')(
-                                            <span></span>
+                                            <i>{ state.txtCallStatusMsg}</i>
                                         )}
                                     </FormItem>
                                     <FormItem
@@ -862,77 +1600,138 @@ class UserWebrtc extends Component {
                                     <FormItem
                                         { ...formItemLayout }
                                     >
-                                        <Button type="primary" size="default" ref="btnUnRegister" onClick={ this._sipHangUp }>
-                                            { formatMessage({id: "LANG97"}) }
+                                        <Button type="primary" size="default" id="btnHangUp" disabled={ state.btnHangUp } onClick={ this._sipHangUp }>
+                                            { state.btnHangUpVal ? state.btnHangUpVal : formatMessage({id: "LANG97"}) }
                                         </Button>
-                                        <Button type="primary" size="default" ref="btnRegister">
-                                            { formatMessage({id: "LANG1892"}) }
-                                        </Button>
+                                        <Dropdown.Button
+                                            onClick={ this._handleButtonClick } overlay={ menu }
+                                            disabled={ state.btnCall }
+                                            style={{ marginLeft: 8 }}
+                                        >
+                                           { state.btnCallVal }
+                                        </Dropdown.Button>
                                     </FormItem>
-                                    {/* 
-<!--呼叫控制-->
-            <div class="section-title mt10" locale="LANG4228"></div>
-            <div class="field-cell">
-                <div class="field-label">&nbsp</div>
-                <div class="field-content">
-                    <div class="btn-group">
-                        <button type="button" id="btnHangUp" class="btn btn-primary" locale="LANG97" onclick='sipHangUp()' disabled></button>
-                    </div>&nbsp&nbsp
-                    <div id="divBtnCallGroup" class="btn-group">
-                        <button id="btnCall" disabled class="btn btn-primary" data-toggle="dropdown">Call</button>
-                    </div>
-                </div>
-            </div>
-            <!--/呼叫控制-->
-            <!--四个按钮-->
-            <div class="field-cell">
-                <div class="field-label">&nbsp</div>
-                <div class="field-content">
-                    <div id='divCallOptions' class='call-options' style='display: none margin-top: 0px z-index: 10 position: relative '>
-                        <!-- <input type="button" class="btn" style="" id="btnFullScreen" value="FullScreen" disabled onclick='toggleFullScreen()' /> &nbsp -->
-                        <input type="button" class="btn" style="" id="btnMute" value="Mute" onclick='sipToggleMute()' /> &nbsp
-                        <input type="button" class="btn" style="" id="btnHoldResume" value="Hold" onclick='sipToggleHoldResume()' /> &nbsp
-                        <input type="button" class="btn" style="" id="btnTransfer" value="Transfer" onclick='sipTransfer()' /> &nbsp
-                        <input type="button" class="btn" style="" id="btnKeyPad" value="KeyPad" onclick='openKeyPad()' />
-                    </div>
-                </div>
-            </div>
-            <!--/四个按钮-->
-            <div id="divCallCtrl">
-                <table style='width: 100%'>
-                    <tr>
-                        <td id="tdVideo" class='tab-video'>
-                            <div id="divVideo" class='div-video'>
-                                <div id="divVideoRemote" style='position:relative border:0px solid #009 height:100% width:100% z-index: auto'>
-                                    <video class="video" width="100%" height="100%" id="video_remote" autoplay="autoplay" style="opacity: 0 background-color: #000000 -webkit-transition-property: opacity -webkit-transition-duration: 2s">
-                                    </video>
                                 </div>
-                                <div id="divVideoLocalWrapper" style="margin-left: 0px border:0px solid #009 z-index: 1000">
-                                    <iframe class="previewvideo" style="border:0px solid #009 z-index: 1000"> </iframe>
-                                    <div id="divVideoLocal" class="previewvideo" style=' border:0px solid #009 z-index: 1000'>
-                                        <video class="video" width="100%" height="100%" id="video_local" autoplay="autoplay" muted="true" style="opacity: 0 background-color: #000000 -webkit-transition-property: opacity
-                                            -webkit-transition-duration: 2s">
-                                        </video>
-                                    </div>
+                                {/* /呼叫控制 */}
+                                {/* 四个按钮 */}
+                                <div id='divCallOptions' className='call-options' style={{display: "none", marginTop: "0px", zIndex: "10", position: "relative" }}>
+                                    {/* <input type="Button" style="" id="btnFullScreen" value="FullScreen" disabled onClick='toggleFullScreen()' /> */}
+                                    <Button type="primary" size="default" id="btnMute" onClick={ this._sipToggleMute }>
+                                        { state.btnMuteVal }
+                                    </Button>
+                                    <Button type="primary" size="default" id="btnHoldResume" onClick={ this._sipToggleHoldResume }>
+                                        { state.btnHoldResumeVal }
+                                    </Button>
+                                    <Button type="primary" size="default" id="btnTransfer" onClick={ this._sipTransfer }>
+                                        Transfer
+                                    </Button>
+                                    <Button type="primary" size="default" id="btnKeyPad" onClick={ this._openKeyPad }>
+                                        KeyPad
+                                    </Button>
                                 </div>
-                                <div id="divScreencastLocalWrapper" style="margin-left: 90px border:0px solid #009 z-index: 1000">
-                                    <iframe class="previewvideo" style="border:0px solid #009 z-index: 1000"> </iframe>
-                                    <div id="divScreencastLocal" class="previewvideo" style=' border:0px solid #009 z-index: 1000'>
-                                    </div>
-                                </div>
+                                {/* /四个按钮 */}                     
                             </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-                                    */}                      
-                                </div>
-                            </div>
+                        </div>
+                        <div id="divCallCtrl">
+                            <table style={{ width: "100%" }}>
+                                <tbody>
+                                    <tr>
+                                        <td id="tdVideo" className='tab-video'>
+                                            <div id="divVideo" className='div-video'>
+                                                <div id="divVideoRemote" style={{ position: "relative", border: "0px solid #009", height: "100%", width: "100%", zIndex: "auto" }}>
+                                                    <video className="video" width="100%" height="100%" id="video_remote" autoPlay="autoplay" 
+                                                        style={{ opacity: 0, backgroundColor: "#000000"}}>
+                                                    </video>
+                                                </div>
+                                                <div id="divVideoLocalWrapper" style={{ marginLeft: "0px", border: "0px solid #009", zIndex: 1000 }}>
+                                                    <iframe className="previewvideo" style={{ border: "0px solid #009", zIndex: 1000 }}> </iframe>
+                                                    <div id="divVideoLocal" className="previewvideo" 
+                                                        style={{ border: "0px solid #009", zIndex: 1000 }}>
+                                                        <video className="video" width="100%" height="100%" id="video_local" autoPlay="autoplay" muted="true" 
+                                                            style={{ opacity: 0, backgroundColor: "#000000" }} >
+                                                        </video>
+                                                    </div>
+                                                </div>
+                                                <div id="divScreencastLocalWrapper" 
+                                                    style={{ marginLeft: "90px", border: "0px solid #009", zIndex: 1000 }}>
+                                                    <iframe className="previewvideo" 
+                                                        style={{ border: "0px solid #009", zIndex: 1000 }}
+                                                    > </iframe>
+                                                    <div id="divScreencastLocal" className="previewvideo" style={{ border: "0px solid #009", zIndex: 1000 }}>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </Form>
                 </div>
+                {/* Glass Panel */}      
+                <div id='divGlassPanel' className='glass-panel' style={{ visibility: "hidden" }}></div>
+                {/* KeyPad Div */} 
+                <div id='divKeyPad' className='span2 well div-keypad' style={{ left: "0px", top: "0px", width: "250px", height: "240px", visibility: "hidden" }}>
+                    <table style={{ width: "100%", height: "100%" }}>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('1') }>1</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('2') }>2
+                                        <br/>ABC</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('3') }>3
+                                        <br/>DEF</Button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('4') }>4
+                                        <br/>GHI</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('5') }>5
+                                        <br/>JKL</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('6') }>6
+                                        <br/>MNO</Button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('7') }>7
+                                        <br/>PQRS</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('8') }>8
+                                        <br/>TUV</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('9') }>9
+                                        <br/>WXYZ</Button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('*') }>*</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('0') }>0
+                                        <br/>OPER</Button>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('#') }>#</Button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan={ 3 }>
+                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._closeKeyPad }>close</Button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {/* Audios */}
+                <audio id="audio_remote" autoPlay="autoplay" />
+                <audio id="ringtone" loop src="../../sounds/ringtone.wav" />
+                <audio id="ringbacktone" loop src="../../sounds/ringbacktone.wav" />
+                <audio id="dtmfTone" src="../../sounds/dtmf.wav" />
             </div>
         )
+    }
+}
+
+UserWebrtc.defaultProps = {
+    C: {
+        divKeyPadWidth: 220
     }
 }
 

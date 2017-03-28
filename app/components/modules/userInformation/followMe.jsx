@@ -27,18 +27,64 @@ class FollowMe extends Component {
         let followMeData = this.props.followMeData || []
 
         return (
-            <div className="followMe">
+            <div className="followme">
                 <Card
                     title={ formatMessage({id: "LANG568"}) }
                     bordered={ true }
+                    className={ followMeData.length === 0 ? 'hidden' : 'display-block'}
                 >
-                    <Row align="middle" justify="center" type="flex" style={{ marginBottom: 10 }}>
-                        
+                    <Row style={{ marginBottom: 10 }}>
+                        <Col className="gutter-row">
+                            <div className="display-inline" style={{ marginRight: 60 }}>
+                                <span className="sprite sprite-while-ring"></span>
+                                <span>{ formatMessage({id: "LANG1062"}) }</span>
+                            </div>
+                            <div className="display-inline">
+                                <span className="sprite sprite-order-ring"></span>
+                                <span>{ formatMessage({id: "LANG1063"}) }</span>
+                            </div>
+                        </Col>
+                    </Row>
+                    <Row align="middle" justify="center" type="flex">
+                        {
+                            followMeData.map(function(item, key) {
+                                let extensionArray = item.extension.split(',')
+
+                                return (
+                                    <Col className="gutter-row" key={ key } span={ 24 }>
+                                        <div className="followme-col">
+                                            <span className="sprite sprite-while-ring"></span>
+                                            {
+                                                extensionArray.map(function(itemExten, key) {
+                                                    return (
+                                                        <div key={ key }
+                                                            className="display-inline font-bold followme-list"
+                                                        >
+                                                            { itemExten }
+                                                        </div>
+                                                    )
+                                                })
+                                            }
+                                            <div
+                                                style={{ textAlign: 'right' }}
+                                                className="font-bold"
+                                            >
+                                                { item.ringtime }s
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'center', marginBottom: 5 }}>
+                                            <span className={ "sprite sprite-order-ring" + (key === followMeData.length - 1 ? 'hidden' : '') }></span>
+                                        </div>
+                                    </Col>
+                                )
+                            })
+                        }
                     </Row>
                 </Card>
                 <Card
                     title={ formatMessage({id: "LANG568"}) }
                     bordered={ true }
+                    className={ followMeData.length === 0 ? 'display-block' : 'hidden'}
                 >
                     <Row align="middle" justify="center" type="flex">
                         <Col className="gutter-row" style={{ marginTop: 30 }}>

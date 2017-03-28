@@ -80,7 +80,7 @@ class JitterBuffer extends Component {
 
                 action.action = 'updateJBSettings'
 
-                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
+                action.gs_jbenable = (action.gs_jbenable ? 'yes' : 'no')
 
                 $.ajax({
                     url: api.apiHost,

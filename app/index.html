@@ -22,21 +22,44 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Cache-Control" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <link href="/css/ui-lightness/jquery-ui.css" media="all" rel="Stylesheet" type="text/css" />
+    <link href="/css/ui.multiselect.css" media="all" rel="stylesheet" type="text/css" />
+    <link href="/css/ui.zero-config.css" media="all" rel="stylesheet" type="text/css" />
     <link href="/main.css" media="all" rel="Stylesheet" type="text/css" />
+    <link href="/css/chosen.css" media="all" rel="Stylesheet" type="text/css" />
     <!-- Polyfills -->
     <!--[if lt IE 10]>
-    <script  type="text/javascript" src="/es5-shim.js" charset="utf-8"></script>
+    <script  type="text/javascript" src="/shim/es5-shim.js" charset="utf-8"></script>
     <![endif]-->
     <!--[if lte IE 11]>
-    <script type="text/javascript" src="/es6-shim.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/shim/es6-shim.js" charset="utf-8"></script>
     <![endif]-->
     <title></title>
 </head>
 <body>
     <div id="app-root"></div>
     <script type="text/javascript" src="/prototype-extentsion.js" charset="utf-8"></script>
-    <script type="text/javascript" src="/SIPml-api.js" charset="utf-8"></script>
     <script type="text/javascript" src="/vendor.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/subClass.js" charset="utf-8"></script>
     <script type="text/javascript" src="/main.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/chosen.jquery.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/SIPml-api.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/jquery-ui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/ajaxupload.3.5.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/ucm-zeroconfig.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/zc-library.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/ucm-widgets.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/zeroconfig/handlebars-v2.0.0.js" charset="utf-8"></script>
+    <script id="invalidModelWarning" type="text/x-handlebars-template">
+        <p style="line-height:1.5;margin-bottom: 0;">{{warning_msg}}</p>
+        <div>
+            {{#each models}}
+            <div>
+                {{name}} ({{xml_version}})
+            </div>
+            {{/each}}
+        </div>
+        <p style="line-height:1.5;margin-bottom: 0;">{{{go_restore}}}</p>
+    </script>
 </body>
 </html>

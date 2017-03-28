@@ -768,7 +768,7 @@ class AdvanceSettings extends Component {
                             label={ formatMessage({id: "LANG3192"}) }>
                             { getFieldDecorator('nationalprefix', {
                                 rules: [],
-                                initialValue: priSettingsInfo.nationalprefi
+                                initialValue: priSettingsInfo.nationalprefix
                             })(
                                 <Input maxLength="10" />
                             ) }

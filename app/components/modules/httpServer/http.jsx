@@ -31,7 +31,7 @@ class HttpServer extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldValue } = this.props.form
         const web_redirect = getFieldValue('web_redirect')
-        if (value && value === this.state.httpserver.web_port) {
+        if (value && value === this.state.httpserver.web_port + '') {
             callback()
         } else if (web_redirect === '1' && value === '80') {
             callback(formatMessage({id: "LANG936"}))

@@ -123,16 +123,16 @@ class SecuritySettings extends Component {
                     action_fail2ban.asterisk_maxretry = values.asterisk_maxretry
                     action_fail2ban.ignoreip1 = values.ignoreip1
                     let ignoreip_list = []
-                    if (values.ignoreip2 != null) {
+                    if (values.ignoreip2 != null && values.ignoreip2 !== undefined) {
                         ignoreip_list.push('ignoreip2')
                     }
-                    if (values.ignoreip3 != null) {
+                    if (values.ignoreip3 != null && values.ignoreip3 !== undefined) {
                         ignoreip_list.push('ignoreip3')
                     }
-                    if (values.ignoreip4 != null) {
+                    if (values.ignoreip4 != null && values.ignoreip4 !== undefined) {
                         ignoreip_list.push('ignoreip4')
                     }
-                    if (values.ignoreip5 !== null) {
+                    if (values.ignoreip5 !== null && values.ignoreip5 !== undefined) {
                         ignoreip_list.push('ignoreip5')
                     }
                     if (ignoreip_list.length > 0) {
@@ -143,7 +143,7 @@ class SecuritySettings extends Component {
                     if (ignoreip_list.length < 4) {
                         const len = ignoreip_list.length
                         for (let i = len; i < 4; i++) {
-                            action_fail2ban[`ignoreip${len + 2}`] = ''
+                            action_fail2ban[`ignoreip${i + 2}`] = ''
                         }
                     }
                     $.ajax({

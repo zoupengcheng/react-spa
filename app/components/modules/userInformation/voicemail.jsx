@@ -25,7 +25,13 @@ class VoiceMail extends Component {
         const {formatMessage} = this.props.intl
 
         let voicemailData = this.props.voicemailData || {},
-            newmsg = voicemailData.newmsg,
+            socketVoiceMailData = this.props.socketVoiceMailData
+
+        if (socketVoiceMailData.length > 0) {
+            voicemailData = socketVoiceMailData[0]
+        }
+
+        let newmsg = voicemailData.newmsg,
             oldmsg = voicemailData.oldmsg,
             urgemsg = voicemailData.urgemsg,
             totalmsg = (newmsg + oldmsg + urgemsg) || 0
@@ -35,6 +41,7 @@ class VoiceMail extends Component {
                 <Card
                     title={ formatMessage({id: "LANG20"}) }
                     bordered={ true }
+                    className={ newmsg === 0 ? 'hidden' : 'display-block'}
                 >
                     <Row align="middle" justify="center" type="flex" style={{ marginBottom: 40 }}>
                         <Col className="gutter-row">
@@ -58,6 +65,7 @@ class VoiceMail extends Component {
                 <Card
                     title={ formatMessage({id: "LANG20"}) }
                     bordered={ true }
+                    className={ newmsg === 0 ? 'display-block' : 'hidden'}
                 >
                     <Row align="middle" justify="center" type="flex">
                         <Col className="gutter-row">

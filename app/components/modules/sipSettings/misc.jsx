@@ -264,6 +264,54 @@ const CustomizedForm = injectIntl(Form.create({
                     )}
                 </FormItem>
             </div>
+
+            <div className="section-title">
+                <span>{ formatMessage({id: "LANG1214"}) }</span>
+            </div>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG5594" /> }>
+                            <span>{ formatMessage({id: "LANG5593"}) }</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('allow_blind_transfer_callback', {
+                    rules: [],
+                    valuePropName: 'checked',
+                    initialValue: sipMiscSettings.allow_blind_transfer_callback === "yes" ? true : false
+                })(
+                    <Checkbox />
+                )}
+            </FormItem>
+            <FormItem
+                { ...formItemLayout }
+                label={(
+                    <span>
+                        <Tooltip title={ <FormattedHTMLMessage id="LANG5596" /> }>
+                            <span>{ formatMessage({id: "LANG5595"}) }</span>
+                        </Tooltip>
+                    </span>
+                )}>
+                { getFieldDecorator('blind_transfer_timeout', {
+                    rules: [{
+                        required: true,
+                        message: formatMessage({id: "LANG2150"})
+                    }, {
+                        validator: (data, value, callback) => {
+                            Validator.range(data, value, callback, formatMessage, 0, 65536)
+                        }
+                    }, {
+                        validator: (data, value, callback) => {
+                            Validator.digits(data, value, callback, formatMessage)
+                        }
+                    }],
+                    initialValue: sipMiscSettings.blind_transfer_timeout ? sipMiscSettings.blind_transfer_timeout : '60'
+                })(
+                    <Input maxLength="5" />
+                )}
+            </FormItem>
         </Form>
     )
 }))

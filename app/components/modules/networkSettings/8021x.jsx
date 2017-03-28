@@ -171,7 +171,11 @@ class Network8021x extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
         }
-
+        if (this.props.firstLoad) {
+            this._initNetwork()
+            this.props.setFirstLoad(0)
+        }
+        
         return (
             <div className="app-content-main" id="app-content-main">
                 <Form>

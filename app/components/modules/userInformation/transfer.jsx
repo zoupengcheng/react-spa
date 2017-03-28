@@ -38,6 +38,7 @@ class Transfer extends Component {
                 <Card
                     title={ formatMessage({id: "LANG3887"}) }
                     bordered={ true }
+                    className={ (cfu === null && cfn === null && cfb === null) ? 'hidden' : 'display-block' }
                 >
                     <Row align="middle" justify="center" type="flex" style={{ marginBottom: 10 }}>
                         <Col className="gutter-row">
@@ -76,6 +77,7 @@ class Transfer extends Component {
                 <Card
                     title={ formatMessage({id: "LANG3887"}) }
                     bordered={ true }
+                    className={ (cfu === null && cfn === null && cfb === null) ? 'display-block' : 'hidden' }
                 >
                     <Row align="middle" justify="center" type="flex">
                         <Col className="gutter-row">

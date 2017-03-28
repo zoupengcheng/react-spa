@@ -112,5 +112,41 @@ module.exports = {
                 "eventnames": ["ActiveCallStatus"]
             }
         }]
-    }
+    },
+    userInformation: {
+        "subscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "subscribe", 
+                "eventnames": ["VoiceMailStatus", "ConfigReloadStatus"]
+            }
+        }],
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["VoiceMailStatus", "ConfigReloadStatus"]
+            }
+        }]
+    },
+    userAgent: {
+        "subscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "subscribe", 
+                "eventnames": ["CallQueueStatus"]
+            }
+        }],
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["CallQueueStatus"]
+            }
+        }]
+    }    
 }

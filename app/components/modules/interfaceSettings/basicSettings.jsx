@@ -140,7 +140,9 @@ class BasicSettings extends Component {
 
                     for (let i = 0; i < netHDLCSettings.length; i++) {
                         let netHDLCSettingsIndex = netHDLCSettings[i]
-                        dataTrunkGroupIndexList.push(String(netHDLCSettingsIndex.group_index))
+                        if (netHDLCSettingsIndex.group_index) {
+                            dataTrunkGroupIndexList.push(String(netHDLCSettingsIndex.group_index))
+                        }
                     }
                     this.setState({
                         dataTrunkGroupIndexList: dataTrunkGroupIndexList
@@ -153,19 +155,20 @@ class BasicSettings extends Component {
             }
         })
     }
-    _checkDataTrunk = (rule, value, callback) => {
+    _isChangeSignalling = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
-        let forbidSignalling = false
-        let dataTrunkGroupIndexList = this.state.dataTrunkGroupIndexList
 
-        if (dataTrunkGroupIndexList.length > 0 && value === "mfcr2" || value === "em" || value === "em_w") {
-            forbidSignalling = true
-        }
-        if (forbidSignalling) {
-            callback(formatMessage({id: "LANG3979"}))
-        } else {
+        // if (value === "mfcr2" || value === "em" || value === "em_w") {
+        //     let totalArr = this.props.getTotalArrgetTotalArr(this.state.dataTrunkChannelListArr)
+
+        //     if (totalArr.length !== 0) {
+        //         callback(formatMessage({id: "LANG3979"}))
+        //     } else {
+        //         callback()
+        //     }
+        // } else {
             callback()
-        }
+        // }
     }
     _onChangeSignalling = (value) => {
         const form = this.props.form
@@ -212,11 +215,9 @@ class BasicSettings extends Component {
 
             let showEles = ["div_ss7Options", "div_callerIdPrefix", "div_SS7dialplan", "div_codec", "div_subscriberprefix", "div_lbo", "div_rtx"],
                 hideEles = ["div_mfcR2", "div_priT310", "div_switchtype", "div_localprefix", "div_privateprefix", "div_special", "div_pridialplan", 
-                            "div_hardhdlc", "div_R2Advanced", "otherAdvanced_btn", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_em_immediate", 
-                            "div_em_w_outgoing"],
+                            "div_R2Advanced", "otherAdvanced_btn", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_em_immediate", "div_em_w_outgoing"],
                 showElesObj = {},
                 hideElesObj = {}
-
             showEles.map(function(it) {
                 showElesObj[it + "_style"] = "display-block"
             })
@@ -228,12 +229,15 @@ class BasicSettings extends Component {
             // this.setState(showElesObj)
             this.props.getSonState(showElesObj)
         } else if (value === "mfcr2") {
-            let showEles = ["div_mfcR2", "div_hardhdlc", "div_R2Advanced", "otherAdvanced_btn", "div_mfcr2PlayLocaRbt", "div_lbo", "div_rtx"],
-                hideEles = ["div_hardhdlc", "div_special", "div_priT310", "div_ss7Options", "div_switchtype", "div_callerIdPrefix", "div_pridialplan", 
+            let showEles = ["div_mfcR2", "div_R2Advanced", "otherAdvanced_btn", "div_mfcr2PlayLocaRbt", "div_lbo", "div_rtx"],
+                hideEles = ["div_special", "div_priT310", "div_ss7Options", "div_switchtype", "div_callerIdPrefix", "div_pridialplan", 
                             "div_SS7dialplan", "div_codec", "div_priPlayLocalRbt", "div_em_immediate", "div_em_w_outgoing"],
                 showElesObj = {},
                 hideElesObj = {}
 
+            this.setState({
+                div_hardhdlc_style: "hidden"
+            })
             showEles.map(function(it) {
                 showElesObj[it + "_style"] = "display-block"
             })
@@ -246,19 +250,20 @@ class BasicSettings extends Component {
             this.props.getSonState(showElesObj)
         } else if (value === "em" || value === "em_w") {
             let showEles = ["div_em_immediate"],
-                hideEles = [],
+                hideEles = ["div_mfcR2", "div_priT310", "div_ss7Options", "div_lbo", "div_R2Advanced", "otherAdvanced_btn", 
+                            "div_subscriberprefix", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_SS7dialplan", "div_callerIdPrefix",
+                            "div_switchtype", "div_pridialplan", "div_special"],
                 showElesObj = {},
                 hideElesObj = {}
-
+            this.setState({
+                div_hardhdlc_style: "hidden"
+            })
             if (value === "em_w") {
                 showEles.push("div_em_w_outgoing")
             } else {
                 hideEles.push("div_em_w_outgoing")
             }
             flag = false
-            hideEles.push(["div_hardhdlc", "div_mfcR2", "div_priT310", "div_ss7Options", "div_lbo", "div_R2Advanced", "otherAdvanced_btn", 
-                            "div_subscriberprefix", "div_priPlayLocalRbt", "div_mfcr2PlayLocaRbt", "div_SS7dialplan", "div_callerIdPrefix",
-                            "div_switchtype", "div_pridialplan", "div_special"])
             
             showEles.map(function(it) {
                 showElesObj[it + "_style"] = "display-block"
@@ -790,7 +795,7 @@ class BasicSettings extends Component {
                                 required: true,
                                 message: formatMessage({id: "LANG2150"})
                             }, {
-                                validator: this._checkDataTrunk
+                                validator: this._isChangeSignalling
                             }],
                             initialValue: priSettingsInfo.signalling ? priSettingsInfo.signalling : "pri_net"
                         })(

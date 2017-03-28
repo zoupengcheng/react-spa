@@ -26,11 +26,13 @@ class Basic extends Component {
                 username: "",
                 password: ""
             },
-            openPort: ["22"]
+            openPort: ["22"],
+            usedPort: ["22"],
+            rangeUsedPort: []
         }
     }
     componentDidMount() {
-        this._getOpenPort()
+        this._getUsedPort()
         this._getBasicSettings()
     }
     componentWillUnmount() {
@@ -38,11 +40,27 @@ class Basic extends Component {
     }
     _checkOpenPort = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        let openPort = this.state.usedPort
+        openPort = _.without(openPort, this.state.basicSettings.ucm_port)
 
-        if (value && _.indexOf(this.state.openPort, value) > -1) {
+        if (value && _.indexOf(openPort, value) > -1) {
             callback(formatMessage({id: "LANG3869"}))
         } else {
-            callback()
+            let used = false
+            this.state.rangeUsedPort.map(function(item) {
+                let min = parseInt(item.split('-')[0])
+                let max = parseInt(item.split('-')[1])
+                let valuenum = parseInt(value)
+                if (valuenum >= min && valuenum <= max) {
+                    used = true
+                }
+            })
+            if (used) {
+                callback(formatMessage({id: "LANG3869"}))
+            } else {
+                callback()
+            }
         }
     }
     _doNothing = () => {
@@ -63,6 +81,43 @@ class Basic extends Component {
             onCancel() {},
             okText: formatMessage({id: "LANG727"}),
             cancelText: formatMessage({id: "LANG726"})
+        })
+    }
+    _getUsedPort = () => {
+        let usedPort = this.state.usedPort
+        let rangeUsedPort = this.state.rangeUsedPort
+        const me = this
+        $.ajax({
+            url: api.apiHost,
+            method: "post",
+            data: { action: 'getUsedPortInfo' },
+            type: 'json',
+            async: false,
+            error: function(e) {
+                message.error(e.statusText)
+            },
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let response = data.response
+                    const usedport = response.usedport
+                    
+                    usedport.map(function(item) {
+                        if ($.inArray(item.port, usedPort) > -1 || $.inArray(item.port, rangeUsedPort) > -1) {
+
+                        } else if (_.indexOf(item.port, '-') > -1) {
+                            rangeUsedPort.push(item.port)
+                        } else {
+                            usedPort.push(item.port)
+                        }
+                    })
+                }
+            }.bind(this)
+        })
+        this.setState({
+            usedPort: usedPort,
+            rangeUsedPort: rangeUsedPort
         })
     }
     _getOpenPort = () => {
@@ -254,6 +309,10 @@ class Basic extends Component {
                             rules: [{
                                 required: basicSettings.pms_protocol === "hmobile" || basicSettings.pms_protocol.value === "hmobile",
                                 message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.host(data, value, callback, formatMessage, 'IP or URL')
+                                }
                             }],
                             initialValue: basicSettings.pms_addr
                         })(

@@ -23,6 +23,11 @@ import cookie from 'react-cookie'
 const store = createStore()
 import { handleResponse, handleRequest } from './components/api/handleMessage'
 import actions from './actions/'
+// import zc from './components/modules/zeroConfig/parser/ZCNss.jsx'
+
+// window.zc = zc
+window.jQuery = $
+// window.jQuery = jQuery
 
 const chooseLocale = () => {
     // Try full locale, try locale without region code, fallback to 'en'
@@ -165,7 +170,7 @@ const startSocket = () => {
     // make sure socket.js is supported
     if (Socketjs.isSupported()) {
         // connect to the server
-        const socket = Socketjs.connect("192.168.124.232:7681")
+        const socket = Socketjs.connect("192.168.124.116:7681")
         // const socket = Socketjs.connect(`${location.hostname}:7681`)
         window.socket = socket
         let LEAVEPAGE = "login",

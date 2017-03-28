@@ -26,6 +26,7 @@ class QueueItem extends Component {
             numberList: [],
             vmPromptList: [],
             vq_switch: false,
+            vq_mode: 'periodic',
             destination_value: '',
             announce_position: false,
             destination_type: 'hangup',
@@ -86,6 +87,7 @@ class QueueItem extends Component {
         let extgroupList = []
         let vmPromptList = []
         let vq_switch = false
+        let vq_mode = 'periodic'
         let destination_value = ''
         let announce_position = false
         let destination_type = 'hangup'
@@ -296,6 +298,7 @@ class QueueItem extends Component {
                             }
                         })
 
+                        vq_mode = queueItem.vq_mode
                         vq_switch = (queueItem.vq_switch === 'yes')
                         announce_position = (queueItem.announce_position === 'yes')
                         destination_voice_enable = (queueItem.destination_voice_enable === 'yes')
@@ -329,6 +332,7 @@ class QueueItem extends Component {
         }
 
         this.setState({
+            vq_mode: vq_mode,
             vq_switch: vq_switch,
             queueItem: queueItem,
             memberList: memberList,
@@ -492,6 +496,11 @@ class QueueItem extends Component {
     _onChangeVoiceEnable = (e) => {
         this.setState({
             destination_voice_enable: e.target.checked
+        })
+    }
+    _onChangeVQMode = (value) => {
+        this.setState({
+            vq_mode: value
         })
     }
     _onChangeVQSwitch = (e) => {
@@ -1117,9 +1126,9 @@ class QueueItem extends Component {
                                             >
                                                 { getFieldDecorator('vq_mode', {
                                                     rules: [],
-                                                    initialValue: settings.vq_mode ? settings.vq_mode : 'periodic'
+                                                    initialValue: this.state.vq_mode
                                                 })(
-                                                    <Select disabled={ !this.state.vq_switch }>
+                                                    <Select disabled={ !this.state.vq_switch } onChange={ this._onChangeVQMode }>
                                                         <Option value="periodic">{ formatMessage({id: "LANG5317"}) }</Option>
                                                         <Option value="digit">{ formatMessage({id: "LANG5316"}) }</Option>
                                                     </Select>
@@ -1141,7 +1150,7 @@ class QueueItem extends Component {
                                                     rules: [],
                                                     initialValue: settings.vq_periodic ? settings.vq_periodic : 20
                                                 })(
-                                                    <Input disabled={ !this.state.vq_switch } />
+                                                    <Input disabled={ !this.state.vq_switch || (this.state.vq_mode === 'digit') } />
                                                 ) }
                                             </FormItem>
                                         </Col>

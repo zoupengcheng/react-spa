@@ -7,6 +7,9 @@ import App from '../views/Main'
 // Login
 import Login from '../components/modules/login'
 
+// Setup Wizard
+import SetupWizard from '../components/modules/setupWizard'
+
 // System Status
 import Dashboard from '../components/modules/dashboard'
 import SystemInformation from '../components/modules/systemInfo'
@@ -261,6 +264,9 @@ const routes = (state, currentLocaleData) => {
             </Route>
 
             <Route path="/" component={ App }>
+                { /* Setup Wizard */ }
+                <Route path="setup-wizard" onEnter={ requireAuth } component={ SetupWizard } breadcrumbName={ currentLocaleData["LANG4283"] }/ >
+
                 {/* System Status */}
                 <Route path="system-status" breadcrumbName={ currentLocaleData["LANG585"] }>
                     <IndexRoute component={ Dashboard } />

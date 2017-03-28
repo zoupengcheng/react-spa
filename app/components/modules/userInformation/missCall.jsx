@@ -28,9 +28,9 @@ class MissCall extends Component {
                 <Card
                     title={ formatMessage({id: "LANG4864"}) }
                     bordered={ true }
-                    className="misscall-display-list"
+                    className={ missCallData.length === 0 ? 'hidden' : 'display-block'}
                 >
-                    <Row align="middle" justify="center" type="flex" style={{ marginBottom: 10 }}>
+                    <Row align="middle" justify="center" type="flex">
                         {
                             missCallData.map(function(item, key) {
                                 let type = item.disposition,
@@ -56,6 +56,7 @@ class MissCall extends Component {
                 <Card
                     title={ formatMessage({id: "LANG4864"}) }
                     bordered={ true }
+                    className={ missCallData.length === 0 ? 'display-block' : 'hidden'}
                 >
                     <Row align="middle" justify="center" type="flex">
                         <Col className="gutter-row" style={{ marginTop: 30 }}>

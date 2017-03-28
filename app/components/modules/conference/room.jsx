@@ -14,21 +14,63 @@ import { Badge, Button, message, Popconfirm, Popover, Table, Tag, Form, Input, M
 
 const FormItem = Form.Item
 
+let limitConference = 3,
+    limitConferenceMembers = 25,
+    conferenceRange = []
+
 class Room extends Component {
     constructor(props) {
         super(props)
         this.state = {
             confoList: [],
             visible: false,
+            limitVisible: false,
             members: {}
         }
     }
     componentDidMount() {
         this._getConfoList()
         this._getMembers()
+        this._getLimit()
+    }
+    _getLimit = () => {
+        let model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        conferenceRange = UCMGUI.isExist.getRange('conference')
+
+        let numFxo = Number(model_info.num_fxo),
+            numPri = model_info.num_pri
+
+        if (numPri >= 1) {
+            limitConference = 8
+            limitConferenceMembers = 64
+        }
+
+        if (numFxo > 4) {
+            limitConference = 6
+            limitConferenceMembers = 32
+        }
     }
     _add = () => {
-        browserHistory.push('/call-features/conference/add')
+        const { formatMessage } = this.props.intl
+
+        let maxlength = (conferenceRange[1] && conferenceRange[0]) ? (conferenceRange[1] - conferenceRange[0] + 1) : 1,
+            conferenceList = this.state.confoList
+
+        if ((conferenceList.length < limitConference) && (conferenceList.length < maxlength)) {
+            browserHistory.push('/call-features/conference/add')
+        } else if (conferenceList.length >= maxlength) {
+            this.setState({
+                limitVisible: true
+            })
+        } else {
+            message.error(
+                formatMessage({id: "LANG808"}, {
+                    0: limitConference,
+                    1: formatMessage({id: "LANG98"})
+                })
+            )
+        }  
     }
     _delete = (record) => {
         let loadingMessage = ''
@@ -261,9 +303,17 @@ class Room extends Component {
             } 
         })
     }
+    _handleLimitOk = () => {
+        browserHistory.push('/pbx-settings/pbxGeneralSettings')
+    }
     _handleCancel = () => {
         this.setState({
             visible: false
+        })
+    }
+    _handleLimitCancel = () => {
+        this.setState({
+            limitVisible: false
         })
     }
     _mutedRequest = (record) => {
@@ -614,6 +664,14 @@ class Room extends Component {
                                 </FormItem>
                             </div>
                         </Form>
+                    </Modal>
+                    <Modal 
+                        title={ formatMessage({id: "LANG2732"}, { 0: conferenceRange[0], 1: conferenceRange[1] }) }
+                        visible={this.state.limitVisible}
+                        onOk={this._handleLimitOk} 
+                        onCancel={this._handleLimitCancel}
+                        okText={formatMessage({id: "LANG727"})}
+                        cancelText={formatMessage({id: "LANG726"})}>
                     </Modal>
                 </div>
             </div>

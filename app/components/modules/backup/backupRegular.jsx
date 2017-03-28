@@ -69,6 +69,7 @@ class BackupRegular extends Component {
         }]
 
         let storageList = this.state.storageList || []
+        let storageValueList = []   
         let checkedList = this.state.checkedList || []
         let dialAll = this.state.dialAll
         let settings = {}
@@ -123,6 +124,7 @@ class BackupRegular extends Component {
                             val: "sd"
                         }
                         storageList.push(obj)
+                        storageValueList.push("sd")
                     }
                     if (bUsb === 'true') {
                         obj = { 
@@ -130,6 +132,7 @@ class BackupRegular extends Component {
                             val: "usb"
                         }
                         storageList.push(obj)
+                        storageValueList.push("usb")
                     }
                 }
             }.bind(this),
@@ -146,6 +149,9 @@ class BackupRegular extends Component {
         })
 
         dialAll = checkedList.length === plainOptions.length
+        if (_.indexOf(storageValueList, settings.location) === -1) {
+            settings.location = "network"
+        }
 
         // this.props.getSpecialState(checkedList)
         this.setState({
@@ -208,7 +214,6 @@ class BackupRegular extends Component {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
-        message.loading(loadingMessage, 0)
         form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
                 let action = values
@@ -233,43 +238,63 @@ class BackupRegular extends Component {
 
                 delete action.newbkp_name
 
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                let warnMsg = ''
 
-                        if (bool) {
-                            let actionEn = {}
-                            actionEn.action = "reloadCrontabs"
-                            actionEn.crontabjobs = ""
-                            $.ajax({
-                                url: api.apiHost,
-                                method: "get",
-                                data: actionEn,
-                                type: 'json',
-                                async: false,
-                                error: function(e) {
-                                    message.error(e.statusText)
-                                },
-                                success: function(data) {
-                                    const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                if (this.state.checkedList.length === 0) {
+                    warnMsg = "LANG852"
+                } else {
+                    if (action["config"] === 'no' && (action["vfax"] === 'yes' || action["voice_file"] === 'yes' || action["storage"] === 'yes')) {
+                        warnMsg = 'LANG5267'
+                    }
+                }
 
-                                    if (bool) {
-                                        message.destroy()
-                                        this._handleCancel()
-                                        message.success(successMessage)
-                                    }
-                                }.bind(this)
-                            })
-                        }
-                    }.bind(this)
-                })
+                if (warnMsg !== "") {
+                    Modal.warning({
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: warnMsg})}} ></span>,
+                        okText: (formatMessage({id: "LANG727"}))
+                    })
+                } else {
+                    delete action.newbkp_name
+                    message.loading(loadingMessage, 0)
+
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: action,
+                        type: 'json',
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                let actionEn = {}
+                                actionEn.action = "reloadCrontabs"
+                                actionEn.crontabjobs = ""
+                                $.ajax({
+                                    url: api.apiHost,
+                                    method: "get",
+                                    data: actionEn,
+                                    type: 'json',
+                                    async: false,
+                                    error: function(e) {
+                                        message.error(e.statusText)
+                                    },
+                                    success: function(data) {
+                                        const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                        if (bool) {
+                                            message.destroy()
+                                            this._handleCancel()
+                                            message.success(successMessage)
+                                        }
+                                    }.bind(this)
+                                })
+                            }
+                        }.bind(this)
+                    })
+                }
             }
         })
     }
@@ -333,6 +358,13 @@ class BackupRegular extends Component {
         this.setState({
             settings: data
         })
+    }
+    _checkDirectory = (data, value, callback, formatMessage) => {
+        if (value && !/^([\w-.]+)(\/[\w-.]+)*$/i.test(value)) {
+            callback(formatMessage({id: "LANG2767"}))
+        } else {
+            callback()
+        }
     }
     render() {
         const form = this.props.form
@@ -420,12 +452,9 @@ class BackupRegular extends Component {
                         <Row>
                             <Col span={16} >
                                 { getFieldDecorator('location', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }],
+                                    rules: [],
                                     width: 100,
-                                    initialValue: (settings.location)
+                                    initialValue: settings.location
                                 })(
                                     <Select onChange={this._onLocationChange} disabled={ !settings.enable_regular } >
                                         <Option value="network">{ formatMessage({id: "LANG4074"}) }</Option>  
@@ -455,8 +484,16 @@ class BackupRegular extends Component {
                         >
                             { getFieldDecorator('username', {
                                 rules: [{
-                                    required: true,
+                                    required: settings.enable_regular && this.state.settings.location === "network",
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.maxlength(data, value, callback, formatMessage, 32) : callback()
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.alphanumericUndDotAt(data, value, callback, formatMessage) : callback()
+                                    }
                                 }],
                                 initialValue: settings.username
                             })(
@@ -472,7 +509,15 @@ class BackupRegular extends Component {
                             )}
                         >
                             { getFieldDecorator('password', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.maxlength(data, value, callback, formatMessage, 32) : callback()
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.alphanumericUnd(data, value, callback, formatMessage) : callback()
+                                    }
+                                }],
                                 initialValue: settings.password
                             })(
                                 <Input maxLength="32" disabled={ !settings.enable_regular } />
@@ -488,8 +533,16 @@ class BackupRegular extends Component {
                         >
                             { getFieldDecorator('server', {
                                 rules: [{
-                                    required: true,
+                                    required: settings.enable_regular && this.state.settings.location === "network",
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.maxlength(data, value, callback, formatMessage, 256) : callback()
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.host(data, value, callback, formatMessage, 'IP or URL') : callback()
+                                    }
                                 }],
                                 initialValue: settings.server
                             })(
@@ -505,7 +558,15 @@ class BackupRegular extends Component {
                             )}
                         >
                             { getFieldDecorator('backup_dir', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? Validator.maxlength(data, value, callback, formatMessage, 256) : callback()
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        settings.enable_regular && this.state.settings.location === "network" ? this._checkDirectory(data, value, callback, formatMessage) : callback()
+                                    }
+                                }],
                                 initialValue: settings.backup_dir
                             })(
                                 <Input maxLength="256" disabled={ !settings.enable_regular } />
@@ -521,9 +582,18 @@ class BackupRegular extends Component {
                         )}
                     >
                         { getFieldDecorator('time', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: settings.enable_regular,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    settings.enable_regular ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    settings.enable_regular ? Validator.range(data, value, callback, formatMessage, 0, 23) : callback()
+                                }
+                            }],
                             initialValue: settings.time
                         })(
                             <Input min={ 0 } max={ 23 } disabled={ !settings.enable_regular } />
@@ -538,23 +608,34 @@ class BackupRegular extends Component {
                         )}
                     >
                         { getFieldDecorator('interval', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: settings.enable_regular,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    settings.enable_regular ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    settings.enable_regular ? Validator.range(data, value, callback, formatMessage, 1, 30) : callback()
+                                }
+                            }],
                             initialValue: settings.interval
                         })(
                             <Input min={ 1 } max={ 30 } disabled={ !settings.enable_regular } />
                         ) }
                     </FormItem>
-                    <div className="top-button">
-                        <Button
-                            icon="plus"
-                            type="primary"
-                            size='default'
-                            onClick={ this._testServer }
-                        >
-                            { formatMessage({id: "LANG761"}) }
-                        </Button>
+                    <div className={ this.state.settings.location === "network" ? "display-block" : "hidden" }>
+                        <div className="top-button">
+                            <Button
+                                icon="plus"
+                                type="primary"
+                                size='default'
+                                onClick={ this._testServer }
+                            >
+                                { formatMessage({id: "LANG761"}) }
+                            </Button>
+                        </div>
                     </div>
                 </Form>
             </div>

@@ -106,11 +106,11 @@ class AnnouncementCenter extends Component {
             codeNumberList.map(function(item) {
                 if (me._beginsWith(value, item)) {
                     contain = true
-                    callback(formatMessage({id: "LANG2126"}))
+                    callback(formatMessage({id: "LANG5378"}))
                     return
                 } else if (me._beginsWith(item, value)) {
                     contain = true
-                    callback(formatMessage({id: "LANG2126"}))
+                    callback(formatMessage({id: "LANG5378"}))
                     return
                 }
             })
@@ -118,14 +118,14 @@ class AnnouncementCenter extends Component {
                 numberList.map(function(num) {
                     if ((value + '' + item) === num) {
                         contain = true
-                        callback(formatMessage({id: "LANG2126"}))
+                        callback(formatMessage({id: "LANG5378"}))
                         return
                     }
                 })
             })
 
             if (contain) {
-                callback(formatMessage({id: "LANG2126"}))
+                callback(formatMessage({id: "LANG5378"}))
             } else {
                 callback()
             }
@@ -445,6 +445,18 @@ class AnnouncementCenter extends Component {
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
                                 }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.maxlength(data, value, callback, formatMessage, 64)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
+                                }, {
                                     validator: this._checkName
                                 }],
                                 width: 100,
@@ -497,13 +509,13 @@ class AnnouncementCenter extends Component {
                                     message: formatMessage({id: "LANG2150"})
                                 }],
                                 width: 100,
-                                initialValue: centerItem.code_prompt ? centerItem.code_prompt : (this.state.fileList.length > 0 ? this.state.fileList[0].text : "")
+                                initialValue: centerItem.code_prompt ? centerItem.code_prompt : (this.state.fileList.length > 0 ? this.state.fileList[0].val : "")
                             })(
                                 <Select>
                                     {
                                         this.state.fileList.map(function(item) {
                                             return <Option
-                                                    key={ item.text }
+                                                    key={ item.val }
                                                     value={ item.val }>
                                                     { item.text }
                                                 </Option>
@@ -530,6 +542,10 @@ class AnnouncementCenter extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 3, 600)
+                                    }
                                 }],
                                 width: 100,
                                 initialValue: centerItem.code_timeout ? centerItem.code_timeout : 30

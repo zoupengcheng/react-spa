@@ -1,53 +1,110 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
-import { FormattedMessage, injectIntl} from 'react-intl'
 import $ from 'jquery'
-import { Form, Row, Col, Icon, Popover, message } from 'antd'
-const FormItem = Form.Item
+import _ from 'underscore'
+import api from "../../api/api"
+import { message, Tabs } from 'antd'
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
 
-class Network extends Component {
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
+import { browserHistory } from 'react-router'
+import React, { Component, PropTypes } from 'react'
+import { FormattedMessage, injectIntl } from 'react-intl'
+
+import SwitchBoardItem from './item'
+
+const TabPane = Tabs.TabPane
+
+class SwitchBoard extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
-            
+            activeTabKey: '',
+            queueMembers: [],
+            callQueueList: [],
+            answerCallings: [],
+            waitingCallings: [],
+            currentUserName: localStorage.getItem('username')
         }
     }
-    componentDidMount() {
-
+    componentWillMount () {
+        this.props.getCallQueuesMessage(this.state.currentUserName)
     }
-    componentWillUnmount() {
+    _onTabsChange = (activeTabKey) => {
+        this.setState({ activeTabKey })
 
+        this.props.getCallQueuesMemberMessage(activeTabKey, this.state.currentUserName)
+        this.props.getQueueCallingAnswered(activeTabKey, this.state.currentUserName)
+        this.props.getQueueCallingWaiting(activeTabKey, this.state.currentUserName)
     }
     render() {
-        const {formatMessage} = this.props.intl
-        const { getFieldDecorator } = this.props.form
+        const { formatMessage } = this.props.intl
+        const queueMembers = this.props.queueMembers
+        const callQueueList = this.props.callQueueList
+        const answerCallings = this.props.answerCallings
+        const waitingCallings = this.props.waitingCallings
+        const activeTabKey = (callQueueList && callQueueList.length ? callQueueList[0].extension : '')
+
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: formatMessage({id: "LANG82"}),
+                    1: formatMessage({id: "LANG5407"})
+                })
+
+        let content = <SwitchBoardItem
+                        queueDetail={ {} }
+                        queueMembers={ queueMembers }
+                        answerCallings={ answerCallings }
+                        waitingCallings={ waitingCallings }
+                    />
+
+        if (activeTabKey) {
+            content = <Tabs
+                        onChange={ this._onTabsChange }
+                        activeKey={ this.state.activeTabKey ? this.state.activeTabKey : activeTabKey }
+                    >
+                    {
+                        callQueueList.map(function(item) {
+                            return <TabPane
+                                        key={ item.extension }
+                                        tab={ item.extension + (item.queuename ? (' (' + item.queuename + ')') : '') }
+                                    >
+                                        <SwitchBoardItem
+                                            queueDetail={ item }
+                                            queueMembers={ queueMembers }
+                                            answerCallings={ answerCallings }
+                                            waitingCallings={ waitingCallings }
+                                        />
+                                    </TabPane>
+                        })
+                    }
+                    </Tabs>
+        }
 
         return (
-            <div className="app-content-main" id="app-content-main">
-                <Form horizontal={true}>
-                    <Row gutter={16}>
-                        <Col sm={24}>
-                            <FormItem>
-                                <Popover content={formatMessage({id: "LANG169"})} title={formatMessage({id: "LANG169"})}>
-                                    <span>{formatMessage({id: "LANG169"})}</span>
-                                </Popover>
-                                <span></span>
-                            </FormItem>
-                        </Col>
-                        <Col sm={24}>
-                            <FormItem>
-                                <Popover content={formatMessage({id: "LANG184"})} title={formatMessage({id: "LANG184"})}>
-                                    <span>{formatMessage({id: "LANG169"})}</span>
-                                </Popover>
-                                <span></span>
-                            </FormItem>
-                        </Col>
-                    </Row>
-                </Form>
+            <div className="app-content-main app-content-cdr">
+                <Title
+                    headerTitle={ formatMessage({id: "LANG24"}) }
+                    isDisplay='hidden'
+                />
+                { content }
             </div>
         )
     }
 }
 
-module.exports = Form.create()(injectIntl(Network))
+const mapStateToProps = (state) => ({
+    queueMembers: state.queueMembers,
+    callQueueList: state.callQueueList,
+    answerCallings: state.answerCallings,
+    waitingCallings: state.waitingCallings
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(SwitchBoard))

@@ -65,6 +65,28 @@ class AMIItem extends Component {
         this._getAmiList()
         this._getInitData()
     }
+    _checkPermitNetMask0 = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const permitIP_0 = getFieldValue('permitIP_0')
+
+        if (permitIP_0 && !value) {
+            callback(formatMessage({id: "LANG2150"}))
+        } else {
+            callback()
+        }
+    }
+    _checkPermit0 = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const permitNetmask_0 = getFieldValue('permitNetmask_0')
+
+        if (permitNetmask_0 && !value) {
+            callback(formatMessage({id: "LANG2150"}))
+        } else {
+            callback()
+        }
+    }
     _checkName = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
 
@@ -228,7 +250,7 @@ class AMIItem extends Component {
                     0: formatMessage({id: "LANG85"}).toLowerCase()
                 })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
@@ -248,6 +270,9 @@ class AMIItem extends Component {
                     ipList.push(values[ip] + '/' + values[netmask])
                 })
                 action.permit = ipList.join(';')
+                if (action.permit === '/') {
+                    action.permit = ''
+                }
                 /* let i = 1
                 if (i === 1) {
                     return false
@@ -257,11 +282,14 @@ class AMIItem extends Component {
                 // action["pri"] = ""
                 // action["permit"] = ""
 
+                let needReboot = false
                 if (userId) {
                     action.action = 'updateAmiUser'
                     action.user = userId
+                    needReboot = true
                 } else {
                     action.action = 'addAmiUser'
+                    needReboot = false
                 }
 
                 if (priList.length === 0) {
@@ -285,6 +313,19 @@ class AMIItem extends Component {
                             if (bool) {
                                 message.destroy()
                                 message.success(successMessage)
+                                if (needReboot) {
+                                    Modal.confirm({
+                                        title: <span dangerouslySetInnerHTML={{ __html: formatMessage({id: "LANG833"}) }}></span>,
+                                        content: '',
+                                        okText: formatMessage({id: 'LANG727'}),
+                                        cancelText: formatMessage({id: 'LANG726'}),
+                                        onOk: () => {
+                                            UCMGUI.loginFunction.confirmReboot() 
+                                        },
+                                        onCancel: () => {
+                                        }
+                                    })
+                                }
                             }
 
                             this._handleCancel()
@@ -469,8 +510,7 @@ class AMIItem extends Component {
                                 <FormItem>
                                     {getFieldDecorator("permitIP_0", {
                                         rules: [{
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._checkPermit0
                                         }, {
                                             validator: (data, value, callback) => {
                                                 Validator.ipAddress(data, value, callback, formatMessage)
@@ -489,8 +529,7 @@ class AMIItem extends Component {
                                 <FormItem>
                                     {getFieldDecorator("permitNetmask_0", {
                                         rules: [{
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
+                                            validator: this._checkPermitNetMask0
                                         }, {
                                             validator: (data, value, callback) => {
                                                 Validator.specialIpAddress(data, value, callback, formatMessage)

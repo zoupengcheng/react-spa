@@ -248,7 +248,7 @@ export const getCallQueuesMessage = (chairman) => (dispatch) => {
     let data = {}
 
     if (chairman) {
-        data.chairman = chairman
+        data.queuechairman = chairman
     }
 
     data.action = 'getCallQueuesMessage'
@@ -275,76 +275,82 @@ export const getCallQueuesMessage = (chairman) => (dispatch) => {
             // getQueueCallingWaiting(activeTabKey)
 
             // TODO: Optimization Later
-            $.ajax({
-                type: 'json',
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    extension: activeTabKey,
-                    action: 'getCallQueuesMemberMessage'
-                },
-                success: function(res) {
-                    let queueMembers = []
-                    const response = res.response || {}
+            if (activeTabKey) {
+                $.ajax({
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    data: {
+                        extension: activeTabKey,
+                        action: 'getCallQueuesMemberMessage'
+                    },
+                    success: function(res) {
+                        let queueMembers = []
+                        const response = res.response || {}
 
-                    if (response.CallQueueMembersMessage && response.CallQueueMembersMessage.member) {
-                        queueMembers = response.CallQueueMembersMessage.member
+                        if (response.CallQueueMembersMessage && response.CallQueueMembersMessage.member) {
+                            queueMembers = response.CallQueueMembersMessage.member
+                        }
+
+                        dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
+                    },
+                    error: function(e) {
+                        console.log(e.statusText)
                     }
+                })
 
-                    dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: queueMembers})
-                },
-                error: function(e) {
-                    console.log(e.statusText)
-                }
-            })
+                $.ajax({
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    data: {
+                        role: 'answer',
+                        extension: activeTabKey,
+                        action: 'getQueueCalling'
+                    },
+                    success: function(res) {
+                        let answerCallings = []
+                        const response = res.response || {}
 
-            $.ajax({
-                type: 'json',
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    role: 'answer',
-                    extension: activeTabKey,
-                    action: 'getQueueCalling'
-                },
-                success: function(res) {
-                    let answerCallings = []
-                    const response = res.response || {}
+                        if (response.CallQueues && response.CallQueues.member) {
+                            answerCallings = response.CallQueues.member
+                        }
 
-                    if (response.CallQueues && response.CallQueues.member) {
-                        answerCallings = response.CallQueues.member
+                        dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
+                    },
+                    error: function(e) {
+                        console.log(e.statusText)
                     }
+                })
 
-                    dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: answerCallings})
-                },
-                error: function(e) {
-                    console.log(e.statusText)
-                }
-            })
+                $.ajax({
+                    type: 'json',
+                    method: 'post',
+                    url: api.apiHost,
+                    data: {
+                        role: '',
+                        extension: activeTabKey,
+                        action: 'getQueueCalling'
+                    },
+                    success: function(res) {
+                        let waitingCallings = []
+                        const response = res.response || {}
 
-            $.ajax({
-                type: 'json',
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    role: '',
-                    extension: activeTabKey,
-                    action: 'getQueueCalling'
-                },
-                success: function(res) {
-                    let waitingCallings = []
-                    const response = res.response || {}
+                        if (response.CallQueues && response.CallQueues.member) {
+                            waitingCallings = response.CallQueues.member
+                        }
 
-                    if (response.CallQueues && response.CallQueues.member) {
-                        waitingCallings = response.CallQueues.member
+                        dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: _.sortBy(waitingCallings, function(item) { return item.position })})
+                    },
+                    error: function(e) {
+                        console.log(e.statusText)
                     }
-
-                    dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: _.sortBy(waitingCallings, function(item) { return item.position })})
-                },
-                error: function(e) {
-                    console.log(e.statusText)
-                }
-            })
+                })
+            } else {
+                dispatch({type: 'GET_QUEUEMEMBERS', queueMembers: []})
+                dispatch({type: 'GET_QUEUECALLINGANSWERED', answerCallings: []})
+                dispatch({type: 'GET_QUEUECALLINGWAITING', waitingCallings: []})
+            }
         },
         error: function(e) {
             console.log(e.statusText)

@@ -692,7 +692,7 @@ class BasicSettings extends Component {
                                         {
                                             this.state.fileList.map(function(item) {
                                                 return <Option
-                                                        key={ item.text }
+                                                        key={ item.val }
                                                         value={ item.val }>
                                                         { item.text }
                                                     </Option>
@@ -787,7 +787,7 @@ class BasicSettings extends Component {
                                         {
                                             this.state.fileList.map(function(item) {
                                                 return <Option
-                                                        key={ item.text }
+                                                        key={ item.val }
                                                         value={ item.val }>
                                                         { item.text }
                                                     </Option>
@@ -826,7 +826,7 @@ class BasicSettings extends Component {
                                         {
                                             this.state.fileList.map(function(item) {
                                                 return <Option
-                                                        key={ item.text }
+                                                        key={ item.val }
                                                         value={ item.val }>
                                                         { item.text }
                                                     </Option>

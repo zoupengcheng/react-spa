@@ -110,6 +110,10 @@ export const handleRequest = (msg, store) => {
             store.dispatch({type: 'GET_CONFERENCESTATUS', conferenceStatus: eventBody})
         } else if (msg.eventname === "ActiveCallStatus") {
             store.dispatch({type: 'GET_BRIDGECHANNEL', activeCallStatus: eventBody})
+        } else if (msg.eventname === "VoiceMailStatus") {
+            store.dispatch({type: 'GET_VOICEMAILSTATUS', voiceMailStatus: eventBody})
+        } else if (msg.eventname === "ConfigReloadStatus") {
+            store.dispatch({type: 'GET_CONFIGRELOADSTATUS', configReloadStatus: eventBody})
         }
     }
 }

@@ -423,6 +423,38 @@ class BasicSettings extends Component {
             callback()
         }
     }
+    _checkDHCPPrefix = (data, value, callback, formatMessage) => {
+        const { form } = this.props
+        const reg = /^[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:)$|^([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:)$|^([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:)$|^([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:)$|^([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?$|^([0-9a-fA-F]{1,4}:){6}:$/
+
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG5164"}))
+        } else {
+            callback()
+        }
+    }
+    _checkPrefixNoFourDigits = (data, value, callback, formatMessage) => {
+        const { form } = this.props
+        let res = false
+        let arr = value.split(":"),
+            noEmptyLen = 0
+
+        _.each(arr, function(item, num) {
+            if (item !== "") {
+                noEmptyLen++
+            }
+        })
+
+        if (noEmptyLen <= 4 && arr[arr.length - 1] === "" && arr[arr.length - 2] === "") {
+            res = true
+        }
+
+        if (res === false) {
+            callback(formatMessage({id: "LANG5241"}))
+        } else {
+            callback()
+        }
+    }
     render() {
         const { getFieldDecorator } = this.props.form
         const { formatMessage } = this.props.intl
@@ -432,6 +464,11 @@ class BasicSettings extends Component {
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
+        }
+
+        if (this.props.firstLoad) {
+            this._initNetwork()
+            this.props.setFirstLoad(0)
         }
 
         return (
@@ -1534,6 +1571,14 @@ class BasicSettings extends Component {
                                         rules: [{
                                             required: this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0",
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0" ? this._checkDHCPPrefix(data, value, callback, formatMessage) : callback()
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                this.state.method_change_calss.lan === 'display-block' && network_settings.dhcp6_enable !== "0" ? this._checkPrefixNoFourDigits(data, value, callback, formatMessage) : callback()
+                                            }
                                         }],
                                         initialValue: dhcp6_settings.dhcp6_prefix
                                     })(

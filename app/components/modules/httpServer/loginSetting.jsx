@@ -186,7 +186,7 @@ class LoginSetting extends Component {
             pagination_banned: pager_banned
         })
 
-        this._getPmsRooms({
+        this._listLoginBanned({
             item_num: pagination_banned.pageSize,
             page: pagination_banned.current,
             sidx: sorter.field ? sorter.field : 'ip',
@@ -203,7 +203,7 @@ class LoginSetting extends Component {
             pagination_white: pager_white
         })
 
-        this._getPmsRooms({
+        this._listLoginWhiteAddr({
             item_num: pagination_white.pageSize,
             page: pagination_white.current,
             sidx: sorter.field ? sorter.field : 'ip',

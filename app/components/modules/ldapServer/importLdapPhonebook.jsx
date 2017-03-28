@@ -93,7 +93,7 @@ class ImportLdapPhonebook extends Component {
                                         sErrMsg = ''
 
                                     if (nRes === -4) {
-                                        // let sDn = mWindow.$("#pbxdn", mWindow.document).val().split(',')[0].split('=')[1]
+                                        // let sDn = mwindow.jQuery("#pbxdn", mWindow.document).val().split(',')[0].split('=')[1]
                                         sErrMsg = nRes === 0 ? '' : formatMessage({ id: "LANG4364"}, {0: formatMessage({ id: aErr[nRes] })})
                                     } else {
                                         sErrMsg = nRes === 0 ? '' : formatMessage({ id: "LANG4364"}, {0: formatMessage({ id: aErr[nRes] })})

@@ -9,6 +9,7 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
 import { Row, Button, message, Modal, Tooltip, Table, Tag, Switch, Select, Col, Form, Input, BackTop } from 'antd'
 import _ from 'underscore'
+import Validator from "../../api/validator"
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
@@ -798,10 +799,14 @@ class WarningEventList extends Component {
                             )}>
                             <Col span={ 6 } >
                                 { getFieldDecorator('email_circle', {
-                                    rules: [],
+                                    rules: [{
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, this.state.minInterval, this.state.maxInterval)
+                                        }
+                                    }],
                                     initialValue: this.state.Pmin_send_warningemail
                                 })(
-                                    <Input min={ this.state.minInterval } max={ this.state.maxInterval } disabled={ this.state.typeDisable } />
+                                    <Input disabled={ this.state.typeDisable } />
                                 ) }
                             </Col>
                             <Col span={ 6 } >

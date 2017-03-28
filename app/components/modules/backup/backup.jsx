@@ -27,7 +27,6 @@ class BackupRestore extends Component {
             fileList: [],
             fileListUSB: [],
             fileListSD: [],
-            selectedRowKeys: [],
             pagination: {
                 showTotal: this._showTotal,
                 showSizeChanger: true,
@@ -39,7 +38,12 @@ class BackupRestore extends Component {
             visible: false,
             type: "upload",
             fileName: "",
+            selectedRowKeys: [],
             selectedRows: [],
+            selectedRowKeysUSB: [],
+            selectedRowsUSB: [],
+            selectedRowKeysSD: [],
+            selectedRowsSD: [],
             download_visible: false,
             initPackName: '',
             isRestoreComplete: false,
@@ -79,7 +83,11 @@ class BackupRestore extends Component {
     _clearSelectRows = () => {
         this.setState({
             selectedRowKeys: [],
-            selectedRows: []
+            selectedRows: [],
+            selectedRowKeysUSB: [],
+            selectedRowsUSB: [],
+            selectedRowKeysSD: [],
+            selectedRowsSD: []
         })
     }
     _createNew = (record) => {
@@ -488,10 +496,15 @@ class BackupRestore extends Component {
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2798" })}}></span>
 
         message.loading(loadingMessage)
-
+        let data = this.state.selectedRows
+        if (record === "USB") {
+            data = this.state.selectedRowsUSB 
+        } else if (record === "SD") {
+            data = this.state.selectedRowsSD
+        }
         let filelist = []
         let key = "local"
-        this.state.selectedRows.map((item, index) => {
+        data.map((item, index) => {
             key = item.key
             if (key !== 'local') {
                 filelist.push(item.key + '/' + item.n)
@@ -534,8 +547,14 @@ class BackupRestore extends Component {
     _deleteSelect = (record) => {
         const { formatMessage } = this.props.intl
         const __this = this
+        let data = this.state.selectedRowKeys
+        if (record === "USB") {
+            data = this.state.selectedRowKeysUSB 
+        } else if (record === "SD") {
+            data = this.state.selectedRowKeysSD
+        }
 
-        if (this.state.selectedRowKeys.length === 0) {
+        if (data.length === 0) {
             Modal.warning({
                 content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG129"}, {0: formatMessage({id: "LANG2913"})})}} ></span>,
                 okText: (formatMessage({id: "LANG727"}))
@@ -543,7 +562,7 @@ class BackupRestore extends Component {
         } else {
             confirm({
                 title: (formatMessage({id: "LANG543"})),
-                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG818"}, {0: this.state.selectedRowKeys.join('  ')})}} ></span>,
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG818"}, {0: data.join('  ')})}} ></span>,
                 onOk() {
                     __this._deleteSelectOk(record)
                 },
@@ -610,6 +629,22 @@ class BackupRestore extends Component {
         this.setState({
             selectedRowKeys: selectedRowKeys,
             selectedRows: selectedRows
+        })
+    }
+    _onSelectChangeUSB = (selectedRowKeys, selectedRows) => {
+        console.log('selectedRowKeys changed: ', selectedRowKeys)
+        // console.log('selectedRow changed: ', selectedRows)
+        this.setState({
+            selectedRowKeysUSB: selectedRowKeys,
+            selectedRowsUSB: selectedRows
+        })
+    }
+    _onSelectChangeSD = (selectedRowKeys, selectedRows) => {
+        console.log('selectedRowKeys changed: ', selectedRowKeys)
+        // console.log('selectedRow changed: ', selectedRows)
+        this.setState({
+            selectedRowKeysSD: selectedRowKeys,
+            selectedRowsSD: selectedRows
         })
     }
     _createOptions = (text, record, index) => {
@@ -701,6 +736,26 @@ class BackupRestore extends Component {
                 onOk: this._doCleanLog.bind(this)
             })
     }
+
+    _onUploadFormBeforeUploading = (file) => {
+        const { formatMessage } = this.props.intl
+        let tmp_fname = file.name
+        const reg = /^[-a-zA-Z0-9_]+$/
+
+        if (tmp_fname.endsWith('.tar') && reg.test(tmp_fname.slice(0, -4)) === true) {
+            // top.dialog.dialogMessage({
+            //    type: 'loading',
+            //    content: $P.lang("LANG866")
+            // });
+            return true
+        } else {
+            Modal.warning({
+                content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG850"})}} ></span>,
+                okText: (formatMessage({id: "LANG727"}))
+            })
+            return false
+        }
+    }
     _tranSize = (cellvalue, options, rowObject) => {
         var size = parseFloat(cellvalue),
             rank = 0,
@@ -775,7 +830,16 @@ class BackupRestore extends Component {
                 selectedRowKeys: this.state.selectedRowKeys,
                 selectedRows: this.state.selectedRows
             }
-
+        const rowSelectionUSB = {
+                onChange: this._onSelectChangeUSB,
+                selectedRowKeys: this.state.selectedRowKeysUSB,
+                selectedRows: this.state.selectedRowsUSB
+            }
+        const rowSelectionSD = {
+                onChange: this._onSelectChangeSD,
+                selectedRowKeys: this.state.selectedRowKeysSD,
+                selectedRows: this.state.selectedRowsSD
+            }
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,
                     1: formatMessage({id: "LANG62"})
@@ -831,7 +895,8 @@ class BackupRestore extends Component {
             },
             onRemove() {
                 message.destroy()
-            }
+            },
+            beforeUpload: this._onUploadFormBeforeUploading.bind(this)
         }
 
         const fileListUSB = this.state.fileListUSB
@@ -841,7 +906,7 @@ class BackupRestore extends Component {
                     rowKey="n"
                     columns={ columns }
                     pagination={ this.state.paginationUSB[index] }
-                    rowSelection={ rowSelection }
+                    rowSelection={ rowSelectionUSB }
                     dataSource={ item }
                     showHeader={ !!item.length }
                     loading={ this.state.loading}
@@ -856,7 +921,7 @@ class BackupRestore extends Component {
                     rowKey="n"
                     columns={ columns }
                     pagination={ this.state.paginationSD[index] }
-                    rowSelection={ rowSelection }
+                    rowSelection={ rowSelectionSD }
                     dataSource={ item }
                     showHeader={ !!item.length }
                     loading={ this.state.loading}
@@ -911,7 +976,8 @@ class BackupRestore extends Component {
                             icon="delete"
                             type="primary"
                             size='default'
-                            onClick={ this._deleteSelect }
+                            onClick={ this._deleteSelect.bind(this, "local") }
+                            disabled={ !this.state.selectedRowKeys.length }
                         >
                             { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG2913"})}) }
                         </Button>
@@ -939,7 +1005,8 @@ class BackupRestore extends Component {
                                 icon="delete"
                                 type="primary"
                                 size='default'
-                                onClick={ this._deleteSelect }
+                                onClick={ this._deleteSelect.bind(this, "USB") }
+                                disabled={ !this.state.selectedRowKeysUSB.length }
                             >
                                 { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG2913"})}) }
                             </Button>
@@ -959,7 +1026,8 @@ class BackupRestore extends Component {
                                 icon="delete"
                                 type="primary"
                                 size='default'
-                                onClick={ this._deleteSelect }
+                                onClick={ this._deleteSelect.bind(this, "SD") }
+                                disabled={ !this.state.selectedRowKeysSD.length }
                             >
                                 { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG2913"})}) }
                             </Button>

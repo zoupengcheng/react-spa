@@ -747,53 +747,49 @@ class Fax extends Component {
                             </span>
                         </p>
                     </div>
-                    <Row>
-                        <FormItem
-                            ref="div_file_keyword"
-                            { ...formItemLayout }
-
-                            label={(
-                                <Tooltip title={<FormattedHTMLMessage id="LANG2792" />}>
-                                    <span>{formatMessage({id: "LANG2793"})}</span>
-                                </Tooltip>
-                            )}>
-                            <Col span={ 9 }>
-                            { getFieldDecorator('file_keyword', {
-                                rules: [],
-                                initialValue: ""
-                            })(
-                                <Input maxLength='127' />
-                            ) }
+                    <div className="top-button">
+                        <Row>
+                            <Col span={12}>
+                                <Button
+                                    icon="delete"
+                                    type="primary"
+                                    size='default'
+                                    onClick={ this._deleteAllSelectdFile }
+                                >
+                                    { formatMessage({id: "LANG2791"}) }
+                                </Button>
+                                <Button
+                                    icon="delete"
+                                    type="primary"
+                                    size='default'
+                                    onClick={ this._deleteAllFile }
+                                >
+                                    { formatMessage({id: "LANG740"}) }
+                                </Button>
                             </Col>
-                            <Col span={ 6 } offset={ 1 }>
+                            <Col span={ 8 } className="right-nav">
+                                { getFieldDecorator('file_keyword', {
+                                    rules: [],
+                                    initialValue: ""
+                                })(
+                                    <Input maxLength='127' 
+                                        placeholder={ formatMessage({id: "LANG2793"}) }
+                                        onPressEnter={ this._onSearchFile }
+                                        onSearch={ this._onSearchFile }/>
+                                ) }
+                            </Col>
+                            <Col span={ 3 } offset={ 1 }>
                                 <Button
                                     icon="search"
                                     type="primary"
                                     size='default'
                                     onClick={ this._onSearchFile }
+                                    title={ formatMessage({id: "LANG2792"}) }
                                 >
                                     { formatMessage({id: "LANG803"}) }
                                 </Button>
                             </Col>
-                        </FormItem>
-                    </Row>
-                    <div className="top-button">
-                        <Button
-                            icon="delete"
-                            type="primary"
-                            size='default'
-                            onClick={ this._deleteAllSelectdFile }
-                        >
-                            { formatMessage({id: "LANG2791"}) }
-                        </Button>
-                        <Button
-                            icon="delete"
-                            type="primary"
-                            size='default'
-                            onClick={ this._deleteAllFile }
-                        >
-                            { formatMessage({id: "LANG740"}) }
-                        </Button>
+                        </Row>
                     </div>
                     <Table
                         rowKey="n"

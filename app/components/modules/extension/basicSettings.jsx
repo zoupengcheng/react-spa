@@ -11,12 +11,6 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
 import { Checkbox, Col, Form, Input, message, Row, Select, Transfer, Tooltip } from 'antd'
 
-let secret
-let vmsecret
-let newExtension
-let user_password
-let hasGeneratePassword = false
-
 const FormItem = Form.Item
 const Option = Select.Option
 
@@ -29,26 +23,38 @@ class BasicSettings extends Component {
                         : true
 
         this.state = {
+            secret: '',
+            vmsecret: '',
+            newExtension: '',
+            user_password: '',
             languages: [],
             batch_number: '5',
+            batch_interval: '1',
             add_method: 'single',
             hasvoicemail: hasvoicemail,
             enable_qualify: this.props.settings.enable_qualify === 'yes' ? true : false
         }
     }
     componentDidMount() {
+        const currentEditId = this.props.currentEditId
+        const extensionRange = this.props.extensionRange
+        const existNumberList = this.props.existNumberList
+
+        if (!currentEditId && extensionRange && extensionRange.length && existNumberList && existNumberList.length) {
+            let newExtension = this._generateNewExtension(extensionRange, existNumberList)
+            let secret = this._generatePassword(extensionRange, existNumberList) || newExtension
+            let user_password = this._generatePassword(extensionRange, existNumberList) || newExtension
+            let vmsecret = this._generatePassword(extensionRange, existNumberList, 'number') || newExtension
+
+            this.setState({
+                secret: secret,
+                vmsecret: vmsecret,
+                newExtension: newExtension,
+                user_password: user_password
+            })
+        }
     }
     componentWillMount() {
-        this._getLanguages()
-    }
-    _getLanguages = () => {
-        const { formatMessage } = this.props.intl
-
-        let languages = UCMGUI.isExist.getList('getLanguage', formatMessage)
-
-        this.setState({
-            languages: languages
-        })
     }
     _generateNewExtension = (extensionRange, existNumberList) => {
         let startExt = extensionRange[0]
@@ -101,7 +107,6 @@ class BasicSettings extends Component {
             return pw
         } else {
             return ''
-            // return this._generateNewExtension(extensionRange, existNumberList)
         }
     }
     _onChangeExtensionType = (value) => {
@@ -111,12 +116,15 @@ class BasicSettings extends Component {
             })
         }
 
+        this.props.onAddMethodChange('single')
         this.props.onExtensionTypeChange(value)
     }
     _onChangeAddMethod = (value) => {
         this.setState({
             add_method: value
         })
+
+        this.props.onAddMethodChange(value)
     }
     _onChangeHasVoicemail = (e) => {
         this.setState({
@@ -156,18 +164,6 @@ class BasicSettings extends Component {
             wrapperCol: { span: 6 }
         }
 
-        if (!currentEditId && !hasGeneratePassword &&
-            extensionRange && extensionRange.length &&
-            existNumberList && existNumberList.length) {
-            newExtension = this._generateNewExtension(extensionRange, existNumberList)
-
-            secret = this._generatePassword(extensionRange, existNumberList) || newExtension
-            user_password = this._generatePassword(extensionRange, existNumberList) || newExtension
-            vmsecret = this._generatePassword(extensionRange, existNumberList, 'number') || newExtension
-
-            hasGeneratePassword = true
-        }
-
         return (
             <div className="content">
                 <div className="ant-form">
@@ -203,9 +199,9 @@ class BasicSettings extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 }>
+                        <Col span={ 24 }>
                             <FormItem
-                                { ...formItemLayout }
+                                { ...formItemLayoutRow }
                                 label={(
                                     <span>
                                         <Tooltip title={ <FormattedHTMLMessage id="LANG5418" /> }>
@@ -244,14 +240,40 @@ class BasicSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('batch_number', {
-                                    rules: [
-                                        {
-                                            // type: 'integer',
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     initialValue: this.state.batch_number,
+                                    className: (!currentEditId && this.state.add_method === 'batch')
+                                                    ? 'display-block'
+                                                    : 'hidden'
+                                })(
+                                    <Input min={ 1 } max={ 100 } />
+                                ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={ 12 }>
+                            <FormItem
+                                { ...formItemLayout }
+                                className={ (!currentEditId && this.state.add_method === 'batch')
+                                                    ? 'display-block'
+                                                    : 'hidden'
+                                                }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5105" /> }>
+                                            <span>{ formatMessage({id: "LANG5104"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
+                            >
+                                { getFieldDecorator('batch_interval', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
+                                    initialValue: this.state.batch_interval,
                                     className: (!currentEditId && this.state.add_method === 'batch')
                                                     ? 'display-block'
                                                     : 'hidden'
@@ -287,7 +309,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.extension ? settings.extension : newExtension
+                                    initialValue: settings.extension ? settings.extension : this.state.newExtension
                                 })(
                                     <Input disabled={ !!currentEditId } />
                                 ) }
@@ -393,7 +415,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.secret ? settings.secret : secret,
+                                    initialValue: settings.secret ? settings.secret : this.state.secret,
                                     className: extension_type === 'fxs' ? 'hidden' : 'display-block'
                                 })(
                                     <Input />
@@ -461,7 +483,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: settings.vmsecret ? settings.vmsecret : vmsecret
+                                    initialValue: settings.vmsecret ? settings.vmsecret : this.state.vmsecret
                                 })(
                                     <Input disabled={ !this.state.hasvoicemail } />
                                 ) }
@@ -561,14 +583,15 @@ class BasicSettings extends Component {
                             </FormItem>
                         </Col>
                     </Row>
-                    <Row>
+                    <Row
+                        span={ 12 }
+                        className={ this.state.add_method === 'single' ? 'display-block' : 'hidden' }
+                    >
                         <Col span={ 24 }>
                             <div className="section-title">
                                 <span>{ formatMessage({id: "LANG2712"}) }</span>
                             </div>
                         </Col>
-                    </Row>
-                    <Row>
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
@@ -644,7 +667,7 @@ class BasicSettings extends Component {
                                             message: formatMessage({id: "LANG2150"})
                                         }
                                     ],
-                                    initialValue: userSettings.user_password ? userSettings.user_password : user_password
+                                    initialValue: userSettings.user_password ? userSettings.user_password : this.state.user_password
                                 })(
                                     <Input />
                                 ) }
@@ -673,7 +696,7 @@ class BasicSettings extends Component {
                                     <Select>
                                         <Option value='default'>{ formatMessage({id: "LANG257"}) }</Option>
                                         {
-                                            this.state.languages.map(function(item) {
+                                            this.props.languages.map(function(item) {
                                                 return <Option
                                                             key={ item.language_id }
                                                             value={ item.language_id }

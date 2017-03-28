@@ -518,6 +518,7 @@ class SipSettings extends Component {
                     <TabPane tab={formatMessage({id: "LANG43"})} key="4">
                         <TcpTls
                             dataSource={this.state.sipTcpSettings}
+                             reboot={this._applyChangeAndReboot}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG44"})} key="5">

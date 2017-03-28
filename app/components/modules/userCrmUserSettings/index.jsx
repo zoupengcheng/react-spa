@@ -19,7 +19,8 @@ class UserCrmUserSettings extends Component {
         super(props)
         this.state = {
             crmSettings: {},
-            salesforceCalss: false
+            salesforceCalss: false,
+            isUpdate: false
         }
     }
     componentWillMount() {
@@ -32,6 +33,7 @@ class UserCrmUserSettings extends Component {
         let crmSettings = this.state.crmSettings || {}
         let salesforceCalss = this.state.salesforceCalss || false
         let data = {} 
+        let isUpdate = this.state.isUpdate || false
 
         $.ajax({
             url: api.apiHost,
@@ -69,10 +71,15 @@ class UserCrmUserSettings extends Component {
                 if (bool) {
                     let response = res.response || {}
                     crmSettings = response.extension || []
-                    if (crmSettings.enable_crm === "yes") {
-                        crmSettings.enable_crm = true
+                    if (crmSettings.length === 0) {
+                        isUpdate = false
                     } else {
-                        crmSettings.enable_crm = false
+                        if (crmSettings.enable_crm === "yes") {
+                            crmSettings.enable_crm = true
+                        } else {
+                            crmSettings.enable_crm = false
+                        }
+                        isUpdate = true
                     }
                 }
             }.bind(this),
@@ -83,7 +90,8 @@ class UserCrmUserSettings extends Component {
 
         this.setState({
             crmSettings: crmSettings,
-            salesforceCalss: salesforceCalss
+            salesforceCalss: salesforceCalss,
+            isUpdate: isUpdate
         })
     }
     _handleCancel = () => {
@@ -113,7 +121,12 @@ class UserCrmUserSettings extends Component {
                 } else {
                     action.enable_crm = "no"
                 }
-                action.action = "updateCRMUserSettings"
+
+                if (this.state.isUpdate) {
+                    action.action = "updateCRMUserSettings"
+                } else {
+                    action.action = "addCRMUserSettings"
+                }
                 action.extension = JSON.parse(localStorage.getItem('username'))
 
                 $.ajax({

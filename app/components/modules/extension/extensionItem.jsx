@@ -4,10 +4,11 @@ import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
-import { injectIntl } from 'react-intl'
 import Title from '../../../views/title'
-import { Form, Input, message, Tabs } from 'antd'
+
+import { injectIntl } from 'react-intl'
 import { browserHistory } from 'react-router'
+import { Form, Input, message, Modal, Tabs, Tag } from 'antd'
 import React, { Component, PropTypes } from 'react'
 
 import Media from './media'
@@ -18,6 +19,7 @@ import BasicSettings from './basicSettings'
 
 const MAXLOCALNETWORK = 10
 const TabPane = Tabs.TabPane
+const confirm = Modal.confirm
 
 class ExtensionItem extends Component {
     constructor(props) {
@@ -25,7 +27,22 @@ class ExtensionItem extends Component {
 
         this.state = {
             settings: {},
+            languages: [],
             userSettings: {},
+            add_method: 'single',
+            autoEmailToUser: 'no',
+            destinationDataSource: {
+                ivr: [],
+                none: [],
+                queue: [],
+                hangup: [],
+                account: [],
+                vmgroup: [],
+                voicemail: [],
+                ringgroup: [],
+                external_number: []
+            },
+            mohNameList: ['default', 'ringbacktone_default'],
             currentEditId: this.props.params.id,
             extension_type: this.props.params.type ? this.props.params.type : 'sip'
         }
@@ -37,20 +54,194 @@ class ExtensionItem extends Component {
     }
     componentWillUnmount() {
     }
+    _bigNumAdd = (a) => {
+        if (!a) {
+            a = '0'
+        }
+
+        let m = a.split('').reverse(),
+            ret = [],
+            s = 0,
+            flag = 1,
+            t
+
+        for (let i = 0; i < a.length; i++) {
+            t = Number(m[i]) + flag
+
+            if (t > 9) {
+                flag = 1
+            } else {
+                flag = 0
+            }
+
+            ret.push(t % 10)
+        }
+
+        if (flag) {
+            ret.push(1)
+        }
+
+        return ret.reverse().join('')
+    }
+    _bigNumDelete = (a) => {
+        if (!a) {
+            a = '0'
+        }
+
+        let m = a.split('').reverse(),
+            ret = [],
+            s = 0,
+            flag = 1,
+            t
+
+        for (let i = 0; i < a.length; i++) {
+            t = Number(m[i]) - flag
+
+            if (t < 0) {
+                flag = 1
+            } else {
+                flag = 0
+            }
+
+            ret.push((t + 10) % 10)
+        }
+
+        return ret.reverse().join('').replace(/0*(\d+)/, '$1')
+    }
     _getInitData = () => {
+        let extensionEnd
+        let extensionStart
         let settings = {}
+        let languages = {}
+        let autoEmail = 'no'
         let userSettings = {}
+        let extensionRange = []
+        let existNumberList = []
+        let destinationDataSource = {}
+        let mohNameList = ['default', 'ringbacktone_default']
+        let getList = [
+                { 'getIVRList': '' },
+                { 'getLanguage': '' },
+                { 'getQueueList': '' },
+                { 'getNumberList': '' },
+                { 'getMOHNameList': '' },
+                { 'getVMGroupList': '' },
+                { 'getAccountList': '' },
+                { 'getVoicemailList': '' },
+                { 'getRingGroupList': '' },
+                { 'getExtenPrefSettings': '' }
+            ]
+
         const { formatMessage } = this.props.intl
         const extensionId = this.props.params.id
         const extensionType = this.props.params.type
         const disabled = formatMessage({id: "LANG273"})
-        const extensionRange = UCMGUI.isExist.getRange('extension', formatMessage)
-        const existNumberList = UCMGUI.isExist.getList('getNumberList', formatMessage)
         const extensionTypeUpperCase = extensionType ? extensionType.toUpperCase() : ''
 
-        this.setState({
-            extensionRange: extensionRange,
-            existNumberList: existNumberList
+        $.ajax({
+            type: 'GET',
+            async: false,
+            url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(getList),
+            success: function(res) {
+                let bool = UCMGUI.errorHandler(res, null, formatMessage)
+
+                if (bool) {
+                    let response = res.response || {}
+
+                    let ivrList = response.getIVRList.ivr || []
+                    let queueList = response.getQueueList.queues || []
+                    let vmgroupList = response.getVMGroupList.vmgroups || []
+                    let accountList = response.getAccountList.extension || []
+                    let voicemailList = response.getVoicemailList.extension || []
+                    let ringgroupList = response.getRingGroupList.ringgroups || []
+                    let extensionPrefSettings = response.getExtenPrefSettings.extension_pref_settings || {}
+
+                    ivrList = ivrList.map(function(item) {
+                            return {
+                                    key: item.ivr_id,
+                                    value: item.ivr_id,
+                                    label: item.ivr_name
+                                }
+                        })
+
+                    queueList = queueList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.queue_name
+                            }
+                        })
+
+                    vmgroupList = vmgroupList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.vmgroup_name
+                            }
+                        })
+
+                    accountList = accountList.map(function(item) {
+                            return {
+                                    key: item.extension,
+                                    value: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    label: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                                }
+                        })
+
+                    voicemailList = voicemailList.map(function(item) {
+                            return {
+                                    key: item.extension,
+                                    value: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    label: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                                }
+                        })
+
+                    ringgroupList = ringgroupList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.ringgroup_name
+                            }
+                        })
+
+                    languages = response.getLanguage.languages || []
+                    mohNameList = response.getMOHNameList.moh_name || []
+                    existNumberList = response.getNumberList.number || []
+                    autoEmail = extensionPrefSettings.auto_email_to_user
+                    extensionEnd = extensionPrefSettings.ue_end
+                    extensionStart = extensionPrefSettings.ue_start
+                    extensionRange = [(extensionStart ? parseInt(extensionStart) : undefined), (extensionEnd ? parseInt(extensionEnd) : undefined)]
+                    extensionRange.push(extensionPrefSettings.disable_extension_ranges, extensionPrefSettings.rand_password, extensionPrefSettings.weak_password)
+
+                    this.setState({
+                        destinationDataSource: {
+                            none: [],
+                            hangup: [],
+                            external_number: [],
+                            ivr: ivrList,
+                            queue: queueList,
+                            account: accountList,
+                            vmgroup: vmgroupList,
+                            voicemail: voicemailList,
+                            ringgroup: ringgroupList
+                        },
+                        languages: languages,
+                        mohNameList: mohNameList,
+                        extensionRange: extensionRange,
+                        existNumberList: existNumberList,
+                        autoEmailToUser: autoEmail ? autoEmail : 'no'
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
         })
 
         if (extensionId) {
@@ -68,6 +259,7 @@ class ExtensionItem extends Component {
 
                     if (bool) {
                         const response = res.response || {}
+
                         settings = response.extension || {}
 
                         _.map(settings, (value, key) => {
@@ -78,9 +270,7 @@ class ExtensionItem extends Component {
                             }
                         })
 
-                        this.setState({
-                            settings: settings
-                        })
+                        settings.presence_settings = response.sip_presence_settings || []
                     }
                 }.bind(this),
                 error: function(e) {
@@ -109,6 +299,7 @@ class ExtensionItem extends Component {
                                 userSettings.first_name + userSettings.last_name + userSettings.user_password
 
                         this.setState({
+                            settings: settings,
                             userSettings: userSettings,
                             importantValues: importantValues
                         })
@@ -117,27 +308,6 @@ class ExtensionItem extends Component {
                 error: function(e) {
                     message.error(e.statusText)
                 }
-            })
-
-            $.ajax({
-                type: 'json',
-                method: 'post',
-                url: api.apiHost,
-                data: {
-                    action: 'getExtenPrefSettings'
-                },
-                error: function(jqXHR, textStatus, errorThrown) {},
-                success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                    if (bool) {
-                        let autoEmail = res.response.extension_pref_settings.auto_email_to_user
-
-                        this.setState({
-                            autoEmailToUser: autoEmail ? autoEmail : 'no'
-                        })
-                    }
-                }.bind(this)
             })
         }
     }
@@ -148,6 +318,30 @@ class ExtensionItem extends Component {
         fieldsValue = getFieldsValue(['secret', 'authid', 'email', 'phone_number', 'first_name', 'last_name', 'user_password'])
 
         return fieldsValue
+    }
+    _getBatchUsers = () => {
+        const getFieldValue = this.props.form.getFieldValue
+
+        let existNumberList = _.clone(this.state.existNumberList),
+            startExt = getFieldValue('extension'),
+            addNumber = getFieldValue('batch_number'),
+            batchInterval = getFieldValue('batch_interval'),
+            batchAddExtList = []
+
+        while (addNumber) {
+            if (existNumberList.indexOf(startExt) !== -1) {
+                startExt = this._bigNumAdd(startExt)
+                continue
+            }
+
+            batchAddExtList.push(startExt)
+
+            startExt = parseInt(this._bigNumAdd(startExt)) + (batchInterval - 1) + ''
+
+            addNumber--
+        }
+
+        return batchAddExtList
     }
     _handleCancel = (e) => {
         browserHistory.push('/extension-trunk/extension')
@@ -164,6 +358,7 @@ class ExtensionItem extends Component {
                         dndwhitelist: [],
                         fwdwhitelist: []
                     },
+                    add_method = this.state.add_method,
                     fax = values.faxmode ? values.faxmode : '',
                     type = values.extension_type ? values.extension_type : ''
 
@@ -172,21 +367,23 @@ class ExtensionItem extends Component {
                 } else {
                     action.action = `add${this.state.extension_type.toUpperCase()}AccountAndUser`
 
-                    action.first_name = values.first_name ? values.first_name : ''
-                    action.last_name = values.last_name ? values.last_name : ''
-                    action.email = values.email ? values.email : ''
-                    action.language = (values.language && values.language !== 'default') ? values.language : ''
-                    action.user_password = values.user_password ? values.user_password : ''
-                    action.phone_number = values.phone_number ? values.phone_number : ''
+                    if (add_method === 'single') {
+                        action.first_name = values.first_name ? values.first_name : ''
+                        action.last_name = values.last_name ? values.last_name : ''
+                        action.email = values.email ? values.email : ''
+                        action.language = (values.language && values.language !== 'default') ? values.language : ''
+                        action.user_password = values.user_password ? values.user_password : ''
+                        action.phone_number = values.phone_number ? values.phone_number : ''
 
-                    if (action.first_name && action.last_name) {
-                        action.fullname = action.first_name + ' ' + action.last_name
-                    } else if (action.first_name) {
-                        action.fullname = action.first_name
-                    } else if (action.last_name) {
-                        action.fullname = action.last_name
-                    } else {
-                        action.fullname = ''
+                        if (action.first_name && action.last_name) {
+                            action.fullname = action.first_name + ' ' + action.last_name
+                        } else if (action.first_name) {
+                            action.fullname = action.first_name
+                        } else if (action.last_name) {
+                            action.fullname = action.last_name
+                        } else {
+                            action.fullname = ''
+                        }
                     }
                 }
 
@@ -195,8 +392,7 @@ class ExtensionItem extends Component {
 
                     if (key === 'mode' || key === 'out_limitime' || key === 'maximumTime' || key === 'enable_cc' ||
                         key === 'whiteLists' || key === 'fwdwhiteLists' || key === 'localNetworks' ||
-                        key === 'presence_dst_account_voicemail' || key === 'presence_dst_external_number' ||
-                        key === 'room' || key === 'faxmode' || key === 'cc_mode' || key === 'batch_number' ||
+                        key === 'room' || key === 'faxmode' || key === 'cc_mode' || key === 'batch_number' || key === 'batch_interval' ||
                         key === 'cc_max_agents' || key === 'cc_max_monitors' || key === 'custom_alert_info' ||
                         key === 'user_password' || key === 'phone_number' || key === 'email' || key === 'language' ||
                         key === 'extension_type' || key === 'fullname' || key === 'first_name' || key === 'last_name') {
@@ -204,6 +400,10 @@ class ExtensionItem extends Component {
                     }
 
                     if (key.indexOf('fm_') === 0) {
+                        return false
+                    }
+
+                    if (key.indexOf('ps_') === 0) {
                         return false
                     }
 
@@ -325,11 +525,72 @@ class ExtensionItem extends Component {
                             action['room'] = action['extension']
                         }
 
-                        if (values.presence_dst_type === '1' || values.presence_dst_type === '3') {
-                            action['presence_dst_account'] = values.presence_dst_account_voicemail
-                        } else if (values.presence_dst_type === '2') {
-                            action['presence_dst_account'] = values.presence_dst_external_number
-                        }
+                        let presence_settings = []
+                        let presenceStatusList = ['available', 'away', 'chat', 'userdef', 'unavailable']
+
+                        presenceStatusList.map((value) => {
+                            let type = values[`ps_${value}_cfu_type`]
+                            let obj = {
+                                    presence_status: value
+                                }
+
+                            if (type) {
+                                obj.cfu_destination_type = type
+                                obj.cfb_destination_type = values[`ps_${value}_cfb_type`]
+                                obj.cfn_destination_type = values[`ps_${value}_cfn_type`]
+                                obj.cfu_timetype = values[`ps_${value}_cfu_timetype`]
+                                obj.cfb_timetype = values[`ps_${value}_cfb_timetype`]
+                                obj.cfn_timetype = values[`ps_${value}_cfn_timetype`]
+                                
+                                if (obj.cfu_destination_type === '0' || obj.cfu_destination_type === '7') {
+                                    obj.cfu = ''
+                                } else if (obj.cfu_destination_type === '2') { // External Number
+                                    obj.cfu = values[`ps_${value}_cfu_external`]
+                                } else {
+                                    obj.cfu = values[`ps_${value}_cfu_value`]
+                                }
+
+                                if (obj.cfn_destination_type === '0' || obj.cfn_destination_type === '7') {
+                                    obj.cfn = ''
+                                } else if (obj.cfn_destination_type === '2') { // External Number
+                                    obj.cfn = values[`ps_${value}_cfn_external`]
+                                } else {
+                                    obj.cfn = values[`ps_${value}_cfn_value`]
+                                }
+
+                                if (obj.cfb_destination_type === '0' || obj.cfb_destination_type === '7') {
+                                    obj.cfb = ''
+                                } else if (obj.cfb_destination_type === '2') { // External Number
+                                    obj.cfb = values[`ps_${value}_cfb_external`]
+                                } else {
+                                    obj.cfb = values[`ps_${value}_cfb_value`]
+                                }
+                            } else {
+                                if (this.state.currentEditId) {
+                                    let presence = this.state.settings.presence_settings
+
+                                    _.map(presence, (data) => {
+                                        if (data.presence_status === value) {
+                                            obj = data
+                                        }
+                                    })
+                                } else {
+                                    obj.cfu = ''
+                                    obj.cfb = ''
+                                    obj.cfn = ''
+                                    obj.cfu_timetype = 0
+                                    obj.cfb_timetype = 0
+                                    obj.cfn_timetype = 0
+                                    obj.cfu_destination_type = '0'
+                                    obj.cfb_destination_type = '0'
+                                    obj.cfn_destination_type = '0'
+                                }
+                            }
+
+                            presence_settings.push(obj)
+                        })
+
+                        action['presence_settings'] = JSON.stringify(presence_settings)
                     }
                 }
 
@@ -339,42 +600,90 @@ class ExtensionItem extends Component {
                     action['limitime'] = ''
                 }
 
-                // console.log('Received values of form: ', action)
-                // console.log('Received values of form: ', values)
+                console.log('Received values of form: ', action)
+                console.log('Received values of form: ', values)
 
-                // if (values.batch_number) {
-                //     let batchAddExtList = []
-                //     let newusersLists = []
-                //     let addNumber = values.batch_number
+                if (add_method === 'batch') {
+                    let newusersLists = []
+                    let batchAddExtList = []
+                    let addNumber = values.batch_number
+                    let extensionRange = this.state.extensionRange
 
-                //     batchAddExtList = this._getBatchUsers()
+                    batchAddExtList = this._getBatchUsers()
                     
-                //     if (askExtensionRange($("#batch_extension").val(), extensionRange[0], extensionRange[1], extensionRange[2], batchAddExtList[batchAddExtList.length - 1])) {
-                //         newusersLists.push("<font>" + batchAddExtList[0] + "</font>");
+                    if (UCMGUI.askExtensionRange(values.extension, extensionRange[0], extensionRange[1], extensionRange[2], batchAddExtList[batchAddExtList.length - 1], formatMessage)) {
+                        newusersLists.push('<font>' + batchAddExtList[0] + '</font>')
 
-                //         for (var i = 1; i < addNumber; i++) {
-                //             var newusersItem = batchAddExtList[i],
-                //                 prevItem = batchAddExtList[i - 1],
-                //                 prev = bigNumDelete(newusersItem);
+                        for (let i = 1; i < addNumber; i++) {
+                            let newusersItem = batchAddExtList[i],
+                                prevItem = batchAddExtList[i - 1],
+                                prev = this._bigNumDelete(newusersItem)
 
-                //             if ((typeof prevItem == 'string' ? prevItem.replace(/0*(\d+)/, "$1") : prevItem) == prev) {
-                //                 newusersItem = "<font>" + newusersItem + "</font>";
-                //             } else {
-                //                 newusersItem = "<font color='green'>" + newusersItem + "</font>";
-                //             }
+                            if ((typeof prevItem === 'string' ? prevItem.replace(/0*(\d+)/, '$1') : prevItem) === prev) {
+                                newusersItem = '<font>' + newusersItem + '</font>'
+                            } else {
+                                newusersItem = '<font color="green">' + newusersItem + '</font>'
+                            }
 
-                //             newusersLists.push(newusersItem);
-                //         }
+                            newusersLists.push(newusersItem)
+                        }
 
-                //         action['extension'] = batchAddExtList.toString();
-                //     }
-                // } else {
+                        action.user_password = 'r'
+                        action.extension = batchAddExtList.toString()
+
+                        confirm({
+                            onCancel: () => {},
+                            title: formatMessage({id: "LANG543" }),
+                            okText: formatMessage({id: "LANG727" }),
+                            cancelText: formatMessage({id: "LANG726" }),
+                            content: <span dangerouslySetInnerHTML={{ __html: formatMessage({ id: "LANG813" }, {0: newusersLists.join('  ')}) }}></span>,
+                            onOk: () => {
+                                message.loading(formatMessage({ id: "LANG736" }), 0)
+
+                                $.ajax({
+                                    data: action,
+                                    type: 'post',
+                                    url: api.apiHost,
+                                    error: function(e) {
+                                        message.error(e.statusText)
+                                    },
+                                    success: (data) => {
+                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                        if (bool) {
+                                            message.destroy()
+                                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
+
+                                            $.ajax({
+                                                type: 'post',
+                                                url: api.apiHost,
+                                                data: {
+                                                    'action': 'addFollowme',
+                                                    'extension': action['extension']
+                                                },
+                                                error: function(e) {
+                                                    message.error(e.statusText)
+                                                },
+                                                success: (data) => {
+                                                    // var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                                    // if (bool) {}
+                                                }
+                                            })
+
+                                            this._handleCancel()
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    }
+                } else {
                     message.loading(formatMessage({ id: "LANG826" }), 0)
 
                     $.ajax({
                         data: action,
-                        type: 'json',
-                        method: "post",
+                        type: 'post',
                         url: api.apiHost,
                         error: function(e) {
                             message.error(e.statusText)
@@ -466,7 +775,7 @@ class ExtensionItem extends Component {
                             }
                         }.bind(this)
                     })
-                // }
+                }
             }
         })
     }
@@ -476,6 +785,11 @@ class ExtensionItem extends Component {
         //         return false
         //     }
         // })
+    }
+    _onAddMethodChange = (value) => {
+        this.setState({
+            add_method: value
+        })
     }
     _onExtensionTypeChange = (value) => {
         this.setState({
@@ -513,11 +827,13 @@ class ExtensionItem extends Component {
                             <BasicSettings
                                 form={ form }
                                 settings={ this.state.settings }
+                                languages={ this.state.languages }
                                 userSettings={ this.state.userSettings }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 extensionRange={ this.state.extensionRange }
                                 existNumberList={ this.state.existNumberList }
+                                onAddMethodChange={ this._onAddMethodChange }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                             />
                         </TabPane>
@@ -534,9 +850,11 @@ class ExtensionItem extends Component {
                             <Feature
                                 form={ form }
                                 settings={ this.state.settings }
+                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
+                                destinationDataSource={ this.state.destinationDataSource }
                             />
                         </TabPane>
                         {/* <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
@@ -555,6 +873,7 @@ class ExtensionItem extends Component {
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
+                                destinationDataSource={ this.state.destinationDataSource }
                             />
                         </TabPane>
                     </Tabs>

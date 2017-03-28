@@ -367,6 +367,13 @@ Validator.prototype = {
             callback()
         }
     },
+    alphanumericUnd: function(data, value, callback, formatMessage) {
+        if (value && !/^[a-zA-Z_0-9]+$/i.test(value)) {
+            callback(formatMessage({id: "LANG2203"}))
+        } else {
+            callback()
+        }
+    },
     gain: function(data, value, callback, formatMessage, param) {
         if (value && /^(-|\+)?[0-9]*\.?[0-9]*$/i.test(value) && parseFloat(value) >= parseFloat(param[0]) && parseFloat(value) <= parseFloat(param[1])) {
             callback(formatMessage({id: "LANG2206"}))

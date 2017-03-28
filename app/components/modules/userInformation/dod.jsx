@@ -39,10 +39,11 @@ class DOD extends Component {
                 <Card
                     title={ formatMessage({id: "LANG5178"}) }
                     bordered={true}
+                    className={ dndNum === 0 ? 'hidden' : 'display-block'}
                 >
                     <Row align="middle" justify="center" type="flex" style={{ marginBottom: 10 }}>
                         <Col className="gutter-row">
-                            <span className="sprite sprite-dod"></span>
+                            <span className="sprite sprite-userportal-dod"></span>
                             <span className="num-font">{ dndNum }</span>
                         </Col>
                     </Row>
@@ -58,7 +59,6 @@ class DOD extends Component {
                                     return (
                                         <div key={ key }
                                             className="display-inline font-bold dod-list"
-                                            style={{ marginBottom: 10, marginRight: 10 }}
                                         >
                                             { item }
                                         </div>
@@ -71,6 +71,7 @@ class DOD extends Component {
                 <Card
                     title={ formatMessage({id: "LANG5178"}) }
                     bordered={ true }
+                    className={ dndNum === 0 ? 'display-block' : 'hidden'}
                 >
                     <Row align="middle" justify="center" type="flex">
                         <Col className="gutter-row">

@@ -63,22 +63,42 @@ let App = React.createClass({
         const { formatMessage } = this.props.intl
         const collapse = this.state.collapse
         let subMenus = menusData.subMenus
+        let SideBarShow = window.location.pathname === '/setup-wizard'
 
         if (localStorage.getItem('role') === 'privilege_3') {
             subMenus = menusData.userPortalMenus
         }
-        const container = (
-            <div className={ collapse ? "app-wrapper app-wrapper-collapse" : "app-wrapper" }>
+
+        let containerSub = ''
+        if (!SideBarShow) {
+            containerSub = (
                 <div className="app-container">
                     <Header />
-                    <SideBar subMenus={subMenus} collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
+                    <SideBar className={SideBarShow} subMenus={subMenus} collapse={this.state.collapse} onChangeCollpase={ this.handleCollapseChange } />
                     <div className="app-main">
                         <Container>
                             { this.renderChild() }
                         </Container>
                     </div>
                 </div>
-                <Footer />        
+                )
+        } else {
+            containerSub = (
+                <div className="app-container">
+                    <Header />
+                    <div className="">
+                        <Container>
+                            { this.renderChild() }
+                        </Container>
+                    </div>
+                </div>
+                )
+        }
+        
+        const container = (
+            <div className={ collapse ? "app-wrapper app-wrapper-collapse" : "app-wrapper" }>
+                { containerSub }
+                <Footer />
             </div>
         )
         let tip = this.props.spinLoading.tip

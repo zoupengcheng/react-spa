@@ -20,7 +20,9 @@ class DISAItem extends Component {
         this.state = {
             disaNameList: [],
             disaItem: {
-                permission: 'internal'
+                permission: 'internal',
+                digit_timeout: 3,
+                response_timeout: 10
             }
         }
     }
@@ -258,9 +260,13 @@ class DISAItem extends Component {
                                         }
                                     }, {
                                         validator: (data, value, callback) => {
-                                            Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
-                                    }
-                                }],
+                                           Validator.maxlength(data, value, callback, formatMessage, 32)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
+                                    }],
                                 initialValue: this.state.disaItem.password
                             })(
                                 <Input maxLength="40" />
@@ -300,10 +306,15 @@ class DISAItem extends Component {
                                 rules: [{
                                         required: true,
                                         message: formatMessage({id: "LANG2150"})
-                                    }, { 
-                                       /* type: 'integer', */
-                                       message: formatMessage({id: "LANG2150"}) 
-                                    } ],
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 3, 180)
+                                        }
+                                    }],
                                 initialValue: this.state.disaItem.response_timeout
                             })(
                                 <Input min={3} max={180} maxLength="3" />
@@ -322,10 +333,15 @@ class DISAItem extends Component {
                                 rules: [{
                                         required: true,
                                         message: formatMessage({id: "LANG2150"})
-                                    }, { 
-                                       /* type: 'integer', */
-                                       message: formatMessage({id: "LANG2150"}) 
-                                    } ],
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
+                                    }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 1, 10)
+                                        }
+                                    }],
                                 initialValue: this.state.disaItem.digit_timeout
                             })(
                                 <Input min={1} max={10} maxLength="2" />

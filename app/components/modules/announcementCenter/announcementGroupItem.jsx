@@ -434,6 +434,18 @@ class AnnouncementGroup extends Component {
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
                                 }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.maxlength(data, value, callback, formatMessage, 64)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
+                                }, {
                                     validator: this._checkName
                                 }],
                                 width: 100,

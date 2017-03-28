@@ -312,7 +312,7 @@ class WakeupItem extends Component {
                                 }],
                                 initialValue: wakeupItem.w_date ? moment(wakeupItem.w_date, "YYYYMMDD") : null
                             })(
-                                <DatePicker showTime format="YYYY-MM-DD"/>
+                                <DatePicker format="YYYY-MM-DD"/>
                             )}
                         </FormItem>
                         <FormItem

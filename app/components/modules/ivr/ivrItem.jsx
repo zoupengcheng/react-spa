@@ -556,6 +556,10 @@ class IvrItem extends Component {
             if (err && err.hasOwnProperty('custom_alert_info')) {
                 return
             }
+            if (err && (err.hasOwnProperty('digit_timeout') ||
+                err.hasOwnProperty('response_timeout'))) {
+                return
+            }
 
             const disable_extension_ranges = this.state.disable_extension_ranges
             const ivrStart = this.state.ivrStart

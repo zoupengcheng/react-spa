@@ -129,6 +129,24 @@ const activeCallStatus = (state = [], action) => {
     }
 }
 
+const voiceMailStatus = (state = [], action) => {
+    switch (action.type) {
+        case 'GET_VOICEMAILSTATUS':
+            return action.voiceMailStatus
+        default:
+            return state
+    }
+}
+
+const configReloadStatus = (state = [], action) => {
+    switch (action.type) {
+        case 'GET_CONFIGRELOADSTATUS':
+            return action.configReloadStatus
+        default:
+            return state
+    }
+}
+
 // ues redux's combineReducers
 const rootReducer = combineReducers({
     msg,
@@ -150,7 +168,9 @@ const rootReducer = combineReducers({
     waitingCallings,
     spinLoading,
     conferenceStatus,
-    activeCallStatus
+    activeCallStatus,
+    voiceMailStatus,
+    configReloadStatus
 })
 
 export default rootReducer

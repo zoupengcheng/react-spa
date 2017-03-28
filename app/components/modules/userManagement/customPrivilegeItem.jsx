@@ -212,12 +212,18 @@ class BarItem extends Component {
         loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
         successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
         errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
+                    0: formatMessage({id: "LANG5167"}).toLowerCase()
                 })}}></span>
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
+
+                if (!this.state.targetKeys.length) {
+                    message.error(errorMessage)
+
+                    return
+                }
 
                 message.loading(loadingMessage)
                 const targetKeys = this.state.targetKeys

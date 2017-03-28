@@ -179,10 +179,18 @@ class AnalogRecord extends Component {
         const { formatMessage } = this.props.intl
 
         let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG905" })}}></span>
+        let errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
+                            0: formatMessage({id: "LANG237"}).toLowerCase()
+                        })}}></span>
 
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
+                if (values.fxo.length === 0 && values.fxs.length === 0) {
+                    message.error(errorMessage)
+                    return
+                }
+
                 let portsArr = values.fxo
                 portsArr = portsArr.concat(values.fxs)
                 let ports = portsArr.join('_'),

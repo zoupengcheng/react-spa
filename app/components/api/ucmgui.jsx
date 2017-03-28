@@ -13,12 +13,13 @@ import { message, Modal } from 'antd'
 import { browserHistory } from 'react-router'
 import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
 
-const baseServerURl = api.apiHost
-
 let loginInterval = null
 let checkInterval = null
-let UCMGUI = function() {}
+let confirm = Modal.confirm
+let baseServerURl = api.apiHost
 let userAgent = window.navigator.userAgent.toLowerCase()
+
+let UCMGUI = function() {}
 
 UCMGUI.prototype = {
     initConfig: {
@@ -113,6 +114,47 @@ UCMGUI.prototype = {
         const number = Math.floor(num)
 
         return ((number <= 9) ? ("0" + number) : number)
+    },
+    askExtensionRange: function(ext, start, end, disabled, extEnd, formatMessage) {
+        let res = 0
+
+        if (!ext || !/^([0-9]\d+)$/.test(ext)) {
+            return true
+        }
+
+        if (disabled === 'yes') {
+            return true
+        }
+
+        if (!start || !end) {
+            return true
+        }
+
+        let nExt = Number(ext)
+        let nExtEnd = Number(extEnd)
+
+        if (nExt < start || nExt > end || nExtEnd > end) {
+            let str = formatMessage({id: "LANG2132" }, { 0: ext, 1: start, 2: end })
+
+            if (nExtEnd > end) {
+                str = formatMessage({id: "LANG2132" }, { 0: nExtEnd, 1: start, 2: end })
+            }
+
+            confirm({
+                onCancel: () => {},
+                title: formatMessage({id: "LANG543" }),
+                okText: formatMessage({id: "LANG727" }),
+                cancelText: formatMessage({id: "LANG726" }),
+                content: <span dangerouslySetInnerHTML={{ __html: str }}></span>,
+                onOk: () => {
+                    browserHistory.push('/pbx-settings/pbxGeneralSettings')
+                }
+            })
+
+            return false
+        }
+
+        return true
     },
     formatSeconds: function(value) { // xxx seconds to 00:00:00 format
         let second = parseInt(value)
@@ -368,52 +410,6 @@ UCMGUI.prototype = {
             })
 
             return response
-        },
-        askExtensionRange: function(ext, start, end, disabled, extEnd) {
-            let res = 0
-
-            if (!ext || !/^([0-9]\d+)$/.test(ext)) {
-                return true
-            }
-
-            if (disabled === 'yes') {
-                return true
-            }
-
-            if (!start || !end) {
-                return true
-            }
-
-            let nExt = Number(ext)
-            let nExtEnd = Number(extEnd)
-
-            if (nExt < start || nExt > end || nExtEnd > end) {
-                let str = <FormattedMessage
-                                id="LANG2132"
-                                defaultMessage={ '<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?' }
-                                values={{ 0: ext, 1: start, 2: end }}/>
-
-                if (nExtEnd > end) {
-                    str = <FormattedMessage
-                                id="welcome"
-                                defaultMessage={ '<b>{0}</b> is not in preferred range <b>[{1},{2}]</b>.<br />Do you want to go to \"<b>General</b>\" page to manage extension preference?' }
-                                values={{ 0: nExtEnd, 1: start, 2: end }}/>
-                }
-                top.dialog.dialogConfirm({
-                    confirmStr: str,
-                    buttons: {
-                        ok: function() {
-                            top.frames['frameContainer'].module.jumpMenu('preferences.html')
-                        },
-                        cancel: function() {
-                            top.dialog.container.show()
-                            top.dialog.shadeDiv.show()
-                        }
-                    }
-                })
-                return false
-            }
-            return true
         }
     },
     loginFunction: { // login function

@@ -155,6 +155,8 @@ const Login = React.createClass({
 
                         if (localStorage.getItem('role') === 'privilege_3') {
                             browserHistory.push('/user-basic-information/userInformation')
+                        } else if (res.response.user.is_first_login === 'yes') {
+                            browserHistory.push('/setup-wizard')
                         } else {
                             browserHistory.push('/system-status/dashboard')
                         }

@@ -6,6 +6,7 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import Validator from "../../api/validator"
+
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
@@ -31,6 +32,60 @@ class PinGroupsItem extends Component {
     componentDidMount() {
         this._getInitData()
     }
+    _addMembers = () => {
+        // e.preventDefault()
+
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
+
+        form.validateFieldsAndScroll(['pin', 'pin_name'], { force: true }, (err, values) => {
+            if (!err) {
+                let obj = {
+                        pin: values.pin,
+                        pin_name: values.pin_name
+                    },
+                    pingroupsMembers = _.clone(this.state.pingroupsMembers)
+
+                pingroupsMembers.push(obj)
+
+                this.setState({
+                    pingroupsMembers: pingroupsMembers
+                })
+
+                form.resetFields(['pin', 'pin_name'])
+            }
+        })
+    }
+    _checkGroupName = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const pingroupsNameList = this.state.pingroupsNameList
+
+        if (value && _.indexOf(pingroupsNameList, value) !== -1) {
+            callback(formatMessage({id: "LANG2137"}))
+        } else {
+            callback()
+        }
+    }
+    _checkPin = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const pingroupsMembers = this.state.pingroupsMembers
+
+        if (value && _.find(pingroupsMembers, (data) => { return data.pin === value })) {
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG4555"})}))
+        } else {
+            callback()
+        }
+    }
+    _checkPinName = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const pingroupsMembers = this.state.pingroupsMembers
+
+        if (value && _.find(pingroupsMembers, (data) => { return data.pin_name === value })) {
+            callback(formatMessage({id: "LANG270"}, {0: formatMessage({id: "LANG4556"})}))
+        } else {
+            callback()
+        }
+    }
     _createOption = (text, record, index) => {
         const { formatMessage } = this.props.intl
 
@@ -40,6 +95,14 @@ class PinGroupsItem extends Component {
                     onClick={ this._delete.bind(this, record.pin) }>
                 </span>
             </div>
+    }
+    _createMembersColumn = (text, record, index) => {
+        const { formatMessage } = this.props.intl
+
+        return <div style={{ 'paddingLeft': '10px', 'textAlign': 'left' }}>
+                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG4555"}) + ': ' + record.pin }</span>
+                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG4556"}) + ': ' + record.pin_name }</span>
+                </div>
     }
     _delete = (pin) => {
         let pingroupsMembers = _.clone(this.state.pingroupsMembers)
@@ -53,14 +116,13 @@ class PinGroupsItem extends Component {
     _getInitData = () => {
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const currentEditId = this.props.params.id
 
         let pingroups = []
         let currentName = []
         let pingroupsItem = {}
         let pingroupsMembers = []
         let pingroupsNameList = []
-
+        let currentEditId = this.props.params.id
         let extensionRange = UCMGUI.isExist.getRange('', formatMessage)
 
         $.ajax({
@@ -132,23 +194,18 @@ class PinGroupsItem extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
-        let loadingMessage = ''
-        let successMessage = ''
         const { formatMessage } = this.props.intl
-        const extensionGroupId = this.props.params.id
+        const currentEditId = this.props.params.id
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
-                })}}></span>
+        let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        let successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
+        let errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3391" })}}></span>
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll(['pin_sets_name', 'record_in_cdr'], { force: true }, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
-                if (!this.state.targetKeys.length) {
+                if (!this.state.pingroupsMembers.length) {
                     message.error(errorMessage)
 
                     return
@@ -156,22 +213,36 @@ class PinGroupsItem extends Component {
 
                 message.loading(loadingMessage)
 
-                let action = values
+                let action = {}
+                let members = []
 
-                action.members = this.state.targetKeys.join()
+                action.pin_sets_name = values.pin_sets_name
+                action.record_in_cdr = values.record_in_cdr ? 'yes' : 'no'
 
-                if (extensionGroupId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = extensionGroupId
+                if (currentEditId) {
+                    action.action = 'updatePinSets'
+                    action.pin_sets_id = currentEditId
                 } else {
-                    action.action = 'addExtensiongroup'
+                    let date = new Date()
+
+                    action.action = 'addPinSets'
+                    action.pin_sets_id = date.getTime() + ''
                 }
 
+                this.state.pingroupsMembers.map((data) => {
+                    let obj = _.clone(data)
+
+                    obj.pin_sets_id = action.pin_sets_id
+
+                    members.push(obj)
+                })
+
+                action.members = JSON.stringify(members)
+
                 $.ajax({
-                    url: api.apiHost,
-                    method: "post",
+                    type: 'post',
                     data: action,
-                    type: 'json',
+                    url: api.apiHost,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -189,32 +260,6 @@ class PinGroupsItem extends Component {
             }
         })
     }
-    _onChangeMemberType = (e) => {
-        this.setState({
-            member_type: e.target.value
-        })
-    }
-    _onChangeRingtime = (key, event) => {
-        let followmeMembers = _.clone(this.state.followmeMembers)
-
-        followmeMembers[key].ringtime = event.target.value
-
-        this.setState({
-            followmeMembers: followmeMembers
-        })
-    }
-    _renderItem = (item) => {
-        const customLabel = (
-                <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                    { item.label }
-                </span>
-            )
-
-        return {
-                label: customLabel,  // for displayed item
-                value: item.value   // for title and filter matching
-            }
-    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, getFieldValue } = this.props.form
@@ -226,19 +271,13 @@ class PinGroupsItem extends Component {
             wrapperCol: { span: 6 }
         }
 
-        const formItemLayoutRow = {
-            labelCol: { span: 4 },
-            wrapperCol: { span: 20 }
-        }
-
         const columns = [{
                 key: 'pin',
                 dataIndex: 'pin',
-                title: formatMessage({id: "LANG4555"})
-            }, {
-                key: 'pin_name',
-                dataIndex: 'pin_name',
-                title: formatMessage({id: "LANG4556"})
+                title: formatMessage({id: "LANG4555"}),
+                render: (text, record, index) => (
+                    this._createMembersColumn(text, record, index)
+                )
             }, {
                 key: 'options',
                 dataIndex: 'options',
@@ -250,10 +289,12 @@ class PinGroupsItem extends Component {
 
         const title = (this.props.params.id
                 ? formatMessage({id: "LANG222"}, {
-                    0: formatMessage({id: "LANG4554"}),
-                    1: this.props.params.name
-                })
-                : formatMessage({id: "LANG4340"}, {0: formatMessage({id: "LANG4554"})}))
+                        0: formatMessage({id: "LANG4554"}),
+                        1: this.props.params.name
+                    })
+                : formatMessage({id: "LANG4340"}, {
+                        0: formatMessage({id: "LANG4554"})
+                    }))
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: formatMessage({id: "LANG4554"}),
@@ -283,7 +324,20 @@ class PinGroupsItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('pin_sets_name', {
-                                        rules: [],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.minlength(data, value, callback, formatMessage, 2)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                            }
+                                        }, {
+                                            validator: this._checkGroupName
+                                        }],
                                         initialValue: settings.pin_sets_name
                                     })(
                                         <Input />
@@ -329,7 +383,16 @@ class PinGroupsItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('pin', {
-                                        rules: [],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.digits(data, value, callback, formatMessage)
+                                            }
+                                        }, {
+                                            validator: this._checkPin
+                                        }],
                                         initialValue: settings.pin
                                     })(
                                         <Input />
@@ -350,7 +413,20 @@ class PinGroupsItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('pin_name', {
-                                        rules: [],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.minlength(data, value, callback, formatMessage, 2)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                            }
+                                        }, {
+                                            validator: this._checkPinName
+                                        }],
                                         initialValue: settings.pin_name
                                     })(
                                         <Input />

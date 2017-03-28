@@ -135,6 +135,18 @@ class ChangePassword extends Component {
         }
     }
 
+    _gotoEmailTemplate = () => {
+        const { formatMessage } = this.props.intl
+        confirm({
+            title: (formatMessage({id: "LANG543"})),
+            content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG843"}, {0: formatMessage({id: "LANG4576"})})}} ></span>,
+            onOk() {
+                browserHistory.push('/system-settings/emailSettings/template')
+            },
+            onCancel() {}
+        })
+    }
+
     render() {
         const { formatMessage } = this.props.intl
         const model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -144,6 +156,11 @@ class ChangePassword extends Component {
         const formItemLayout = {
             labelCol: { span: 3 },
             wrapperCol: { span: 6 }
+        }
+
+        const formItemWithTempLayout = {
+            labelCol: { span: 3 },
+            wrapperCol: { span: 18 }
         }
 
         const title = formatMessage({id: "LANG5468"}, {
@@ -249,21 +266,28 @@ class ChangePassword extends Component {
                     </FormItem>
                     <FormItem
                         ref="div_email"
-                        { ...formItemLayout }
+                        { ...formItemWithTempLayout }
                         className= { this.state.enableEmail ? 'display-block' : 'hidden' }
                         label={
                             <Tooltip title={<FormattedHTMLMessage id="LANG4192" />}>
                                 <span>{formatMessage({id: "LANG1081"})}</span>
                             </Tooltip>
                         }>
-                        { getFieldDecorator('email', {
-                            rules: [{ required: this.state.enableEmail === true,
-                                message: formatMessage({id: "LANG2150"})
-                                }],
-                            initialValue: user_name.email ? user_name.email : ''
-                        })(
-                            <Input />
-                        ) }
+                        <Col span={8}>
+                            <FormItem>
+                            { getFieldDecorator('email', {
+                                rules: [{ required: this.state.enableEmail === true,
+                                    message: formatMessage({id: "LANG2150"})
+                                    }],
+                                initialValue: user_name.email ? user_name.email : ''
+                            })(
+                                <Input />
+                            ) }
+                            </FormItem>
+                        </Col>
+                        <Col span={6} offset={1} >
+                            <a className="email_template" onClick={ this._gotoEmailTemplate } >{ formatMessage({id: "LANG4576"}) }</a>
+                        </Col>
                     </FormItem>
                 </Form>
             </div>

@@ -13,6 +13,10 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import $ from 'jquery'
 import api from "../../api/api"
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
+import _ from 'underscore'
 
 class UserInformation extends Component {
     constructor(props) {
@@ -58,12 +62,18 @@ class UserInformation extends Component {
 
         let infoList = this.state.infoList
 
+        let configReloadStatus = this.props.configReloadStatus
+
+        if (configReloadStatus.module) {
+            message.warning(configReloadStatus.module + 'is update.')
+        }
+
         return (
             <div className="user-information">
                 <div className="app-content-main" id="app-content-main">
                     <Row gutter={16}>
                         <Col className="gutter-row" span={ 6 }>
-                            <VoiceMail voicemailData={ infoList.voicemail } />
+                            <VoiceMail voicemailData={ infoList.voicemail } socketVoiceMailData={ this.props.voiceMailStatus } />
                         </Col>
                         <Col className="gutter-row" span={ 6 }>
                             <AlarmClock wakeupData={ infoList.wakeup } />
@@ -81,7 +91,7 @@ class UserInformation extends Component {
                             <FollowMe followMeData={ infoList.followme } />
                         </Col>
                         <Col className="gutter-row" span={ 8 }>
-                            <ConferenceSchedule />
+                            <ConferenceSchedule conferenceData={ infoList.meetme_sche } />
                         </Col>
                     </Row>
                 </div>
@@ -90,4 +100,13 @@ class UserInformation extends Component {
     }
 }
 
-export default injectIntl(UserInformation)
+const mapStateToProps = (state) => ({
+    configReloadStatus: state.configReloadStatus,
+    voiceMailStatus: state.voiceMailStatus
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(UserInformation))

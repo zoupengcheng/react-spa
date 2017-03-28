@@ -22,34 +22,22 @@ class FollowMe extends Component {
 
         this.state = {
             followmeItem: {},
+            followmeMembers: [],
             member_type: 'local',
             memberAccountList: [],
             destination_value: '',
             enable_destination: false,
             destination_type: 'account',
             mohNameList: ['default', 'ringbacktone_default'],
-            followmeMembers: [{
-                'key': 0,
-                'ringtime': '30',
-                'number': ['1001', '1005']
-            }, {
-                'key': 1,
-                'ringtime': '30',
-                'number': ['1001']
-            }, {
-                'key': 2,
-                'ringtime': '30',
-                'number': ['123456']
-            }],
+            currentExtension: localStorage.getItem('username'),
             destinationListDataSource: {
+                'ivr': [],
                 'account': [],
                 'voicemail': [],
                 'queue': [],
                 'ringgroup': [],
                 'vmgroup': [],
-                'ivr': [],
-                'external_number': [],
-                'hangup': []
+                'external_number': []
             }
         }
     }
@@ -58,18 +46,83 @@ class FollowMe extends Component {
     componentDidMount() {
         this._getInitData()
     }
-    _createNumber = (text, record, index) => {
-        let number
-        const { formatMessage } = this.props.intl
+    _addMembers = () => {
+        // e.preventDefault()
 
-        number = <div style={{ 'paddingLeft': '10px', 'textAlign': 'left' }}>
-                    <span>{ record.number.join(' & ') }</span>
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
+        const fields = ['member_type', 'member_local', 'member_external', 'member_ringtime', 'member_order']
+
+        form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
+            if (!err) {
+                let followmeMembers = _.clone(this.state.followmeMembers)
+
+                if (values.member_order === 'after') {
+                    let obj = {
+                            key: followmeMembers.length,
+                            ringtime: values.member_ringtime
+                        }
+
+                    if (values.member_type === 'local') {
+                        obj.extension = [values.member_local]
+                    } else {
+                        obj.extension = [values.member_external]
+                    }
+
+                    followmeMembers.push(obj)
+                } else {
+                    let obj = followmeMembers[followmeMembers.length - 1]
+
+                    obj.ringtime = values.member_ringtime
+
+                    if (values.member_type === 'local') {
+                        obj.extension.push(values.member_local)
+                    } else {
+                        obj.extension.push(values.member_external)
+                    }
+
+                    followmeMembers[followmeMembers.length - 1] = obj
+                }
+
+                this.setState({
+                    member_type: 'local',
+                    followmeMembers: followmeMembers
+                })
+
+                form.resetFields(fields)
+            }
+        })
+    }
+    _createExtension = (text, record, index) => {
+        let extension
+        const { formatMessage } = this.props.intl
+        const { getFieldDecorator, getFieldValue } = this.props.form
+
+        extension = <div style={{ 'paddingLeft': '10px', 'textAlign': 'left' }}>
+                    <span>{ record.extension.join(' & ') }</span>
                     <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
-                    <Input style={{ 'width': '50px' }} value={ record.ringtime } onChange={ this._onChangeRingtime.bind(this, record.key) } />
+                    <span style={{ 'padding': '0 5px' }}>{ record.ringtime }</span>
+                    {/* getFieldDecorator(`member_ringtime_${record.key}`, {
+                        rules: [{
+                            required: true,
+                            message: formatMessage({id: "LANG2150"})
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.digits(data, value, callback, formatMessage)
+                            }
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.range(data, value, callback, formatMessage, 10, 60)
+                            }
+                        }],
+                        initialValue: record.ringtime
+                    })(
+                        <Input style={{ 'width': '50px' }} onChange={ this._onChangeRingtime.bind(this, record.key) } />
+                    ) */}
                     <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
                 </div>
 
-        return number
+        return extension
     }
     _createOption = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -95,107 +148,114 @@ class FollowMe extends Component {
         const { formatMessage } = this.props.intl
 
         const Disabled = formatMessage({id: "LANG273"})
-        const currentEditId = localStorage.getItem('username')
+        const currentExtension = this.state.currentExtension
 
         let mohNameList = []
         let followmeItem = {}
+        let followmeMembers = []
         let memberAccountList = []
         let destination_value = ''
         let enable_destination = false
         let destination_type = 'account'
         let destinationListDataSource = {}
-        let extenion = form.getFieldValue('extension')
-
-        let account = UCMGUI.isExist.getList('getAccountList', formatMessage)
-        let voicemail = UCMGUI.isExist.getList('getVoicemailList', formatMessage)
-        let queue = UCMGUI.isExist.getList('getQueueList', formatMessage)
-        let ringgroup = UCMGUI.isExist.getList('getRinggroupList', formatMessage)
-        let vmgroup = UCMGUI.isExist.getList('getVMgroupList', formatMessage)
-        let ivr = UCMGUI.isExist.getList('getIVRList', formatMessage)
-
-        account = account.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            out_of_service: item.out_of_service,
-                            // disabled: (item.out_of_service === 'yes'),
-                            label: (item.extension +
-                                    (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                    (item.out_of_service === 'yes' ? ' <' + Disabled + '>' : ''))
-                        }
-                })
-
-        memberAccountList = _.filter(account, (data) => { return data.value !== extenion })
-
-        voicemail = voicemail.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            out_of_service: item.out_of_service,
-                            // disabled: (item.out_of_service === 'yes'),
-                            label: (item.extension +
-                                    (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                    (item.out_of_service === 'yes' ? ' <' + Disabled + '>' : ''))
-                        }
-                })
-
-        queue = queue.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            label: item.queue_name
-                        }
-                })
-
-        ringgroup = ringgroup.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            label: item.ringgroup_name
-                        }
-                })
-
-        vmgroup = vmgroup.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            label: item.vmgroup_name
-                        }
-                })
-
-        ivr = ivr.map(function(item) {
-                    return {
-                            key: item.ivr_id,
-                            value: item.ivr_id,
-                            label: item.ivr_name
-                        }
-                })
-
-        destinationListDataSource = {
-            account: account,
-            voicemail: voicemail,
-            queue: queue,
-            ringgroup: ringgroup,
-            vmgroup: vmgroup,
-            ivr: ivr,
-            external_number: []
-        }
+        let getList = [
+                { 'getIVRList': '' },
+                { 'getQueueList': '' },
+                { 'getMOHNameList': '' },
+                { 'getVMGroupList': '' },
+                { 'getAccountList': '' },
+                { 'getVoicemailList': '' },
+                { 'getRingGroupList': '' }
+            ]
 
         $.ajax({
-            async: false,
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getMohNameList'
-            },
+            type: 'GET',
+            url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(getList),
             success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                let bool = UCMGUI.errorHandler(res, null, formatMessage)
 
                 if (bool) {
-                    const response = res.response || {}
+                    let response = res.response || {}
 
-                    mohNameList = response.moh_name || []
+                    let ivrList = response.getIVRList.ivr || []
+                    let queueList = response.getQueueList.queues || []
+                    let vmgroupList = response.getVMGroupList.vmgroups || []
+                    let accountList = response.getAccountList.extension || []
+                    let voicemailList = response.getVoicemailList.extension || []
+                    let ringgroupList = response.getRingGroupList.ringgroups || []
+
+                    ivrList = ivrList.map(function(item) {
+                            return {
+                                    key: item.ivr_id,
+                                    value: item.ivr_id,
+                                    label: item.ivr_name
+                                }
+                        })
+
+                    queueList = queueList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.queue_name
+                            }
+                        })
+
+                    vmgroupList = vmgroupList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.vmgroup_name
+                            }
+                        })
+
+                    accountList = accountList.map(function(item) {
+                            return {
+                                    key: item.extension,
+                                    value: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    label: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + Disabled + '>' : ''))
+                                }
+                        })
+
+                    voicemailList = voicemailList.map(function(item) {
+                            return {
+                                    key: item.extension,
+                                    value: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    label: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + Disabled + '>' : ''))
+                                }
+                        })
+
+                    ringgroupList = ringgroupList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.ringgroup_name
+                            }
+                        })
+
+                    mohNameList = response.getMOHNameList.moh_name || ['default', 'ringbacktone_default']
+                    memberAccountList = _.filter(accountList, (data) => { return data.value !== currentExtension })
+
+                    destinationListDataSource = {
+                            ivr: ivrList,
+                            queue: queueList,
+                            account: accountList,
+                            voicemail: voicemailList,
+                            ringgroup: ringgroupList,
+                            vmgroup: vmgroupList,
+                            external_number: []
+                        }
+
+                    this.setState({
+                        mohNameList: mohNameList,
+                        memberAccountList: memberAccountList,
+                        destinationListDataSource: destinationListDataSource
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -203,22 +263,23 @@ class FollowMe extends Component {
             }
         })
 
-        if (currentEditId) {
+        if (currentExtension) {
             $.ajax({
+                type: 'post',
                 async: false,
-                type: 'json',
-                method: 'post',
                 url: api.apiHost,
                 data: {
                     action: 'getFollowme',
-                    followme: currentEditId
+                    followme: currentExtension
                 },
                 success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                    // const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                    if (bool) {
+                    // if (bool) {
+                    if (res.status === 0) {
                         const response = res.response || {}
                         const followme = res.response.followme || {}
+                        const members = followme.members
 
                         _.map(followme, (value, key) => {
                             if (value === null) {
@@ -226,6 +287,16 @@ class FollowMe extends Component {
                             } else {
                                 followmeItem['' + key] = value
                             }
+                        })
+
+                        _.map(members, (data, key) => {
+                            let extension = data.extension ? data.extension.split(',') : []
+
+                            followmeMembers.push({
+                                key: key,
+                                extension: extension,
+                                ringtime: data.ringtime
+                            })
                         })
 
                         destination_type = followme.destination_type
@@ -238,6 +309,14 @@ class FollowMe extends Component {
                         } else {
                             destination_value = followme[destination_type]
                         }
+
+                        this.setState({
+                            followmeItem: followmeItem,
+                            followmeMembers: followmeMembers,
+                            destination_value: destination_value,
+                            enable_destination: enable_destination,
+                            destination_type: destination_type.replace(/_t/g, '')
+                        })
                     }
                 }.bind(this),
                 error: function(e) {
@@ -245,16 +324,6 @@ class FollowMe extends Component {
                 }
             })
         }
-
-        this.setState({
-            followmeItem: followmeItem,
-            memberAccountList: memberAccountList,
-            destination_value: destination_value,
-            enable_destination: enable_destination,
-            destinationListDataSource: destinationListDataSource,
-            destination_type: destination_type.replace(/_t/g, ''),
-            mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
-        })
     }
     _handleCancel = () => {
         browserHistory.push('/user-personal-data/userFollowMe')
@@ -262,23 +331,28 @@ class FollowMe extends Component {
     _handleSubmit = () => {
         // e.preventDefault()
 
-        let errorMessage = ''
-        let loadingMessage = ''
-        let successMessage = ''
         const { formatMessage } = this.props.intl
         const extensionGroupId = this.props.params.id
 
-        loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
-        successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
-        errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG4762"}, {
-                    0: formatMessage({id: "LANG85"}).toLowerCase()
-                })}}></span>
+        let loadingMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG826" })}}></span>
+        let successMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}}></span>
+        let errorMessage = <span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3391" })}}></span>
+        let fields = [
+                'musicclass',
+                'enable_option',
+                'external_number',
+                'enable_followme',
+                'destination_type',
+                'bypass_outrt_auth',
+                'destination_value',
+                'enable_destination'
+            ]
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
-                if (!this.state.targetKeys.length) {
+                if (!this.state.followmeMembers.length) {
                     message.error(errorMessage)
 
                     return
@@ -286,16 +360,71 @@ class FollowMe extends Component {
 
                 message.loading(loadingMessage)
 
-                let action = values
+                let action = {}
+                let members = []
+                let destinationTypeList = ['voicemail', 'account', 'vmgroup', 'ivr', 'ringgroup', 'queue', 'external_number']
 
-                action.members = this.state.targetKeys.join()
+                _.map(values, function(value, key) {
+                    if (key === 'destination_value') {
+                        return false
+                    }
 
-                if (extensionGroupId) {
-                    action.action = 'updateExtensionGroup'
-                    action.extension_group = extensionGroupId
+                    action[key] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
+                })
+
+                if (_.isEmpty(this.state.followmeItem)) {
+                    action.action = 'addFollowme'
+                    action.extension = this.state.currentExtension
                 } else {
-                    action.action = 'addExtensiongroup'
+                    action.action = 'updateFollowme'
+                    action.followme = this.state.currentExtension
                 }
+
+                for (let i = 0; i < destinationTypeList.length; i++) {
+                    let destinationType = destinationTypeList[i]
+
+                    if (destinationType !== values.destination_type) {
+                        if (destinationType === 'queue') {
+                            action['queue_dest'] = ''
+                        } else if (destinationType === 'voicemail') {
+                            action['vm_extension'] = ''
+                        } else {
+                            action[destinationType] = ''
+                        }
+                    } else {
+                        if (destinationType === 'queue') {
+                            action['queue_dest'] = values.destination_value
+                        } else if (destinationType === 'voicemail') {
+                            action['vm_extension'] = values.destination_value
+                        } else if (destinationType === 'external_number') {
+                            action[destinationType] = values.external_number
+                        } else {
+                            action[destinationType] = values.destination_value
+                        }
+                    }
+                }
+
+                _.map(this.state.followmeMembers, (data, key) => {
+                    let obj = {
+                            'local_extension': [],
+                            'outside_extension': [],
+                            'ringtime': data.ringtime
+                        }
+
+                    let extensions = data.extension
+
+                    _.map(extensions, (value, index) => {
+                        if (_.find(this.state.destinationListDataSource.account, (data) => { return data.key === value })) {
+                            obj['local_extension'].push(value)
+                        } else {
+                            obj['outside_extension'].push(value)
+                        }
+                    })
+
+                    members.push(obj)
+                })
+
+                action['members'] = JSON.stringify(members)
 
                 $.ajax({
                     url: api.apiHost,
@@ -343,18 +472,6 @@ class FollowMe extends Component {
             followmeMembers: followmeMembers
         })
     }
-    _renderItem = (item) => {
-        const customLabel = (
-                <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                    { item.label }
-                </span>
-            )
-
-        return {
-                label: customLabel,  // for displayed item
-                value: item.value   // for title and filter matching
-            }
-    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, getFieldValue } = this.props.form
@@ -377,13 +494,21 @@ class FollowMe extends Component {
             lineHeight: "30px"
         }
 
+        const orderRadio = this.state.followmeMembers.length
+                            ? <RadioGroup>
+                                    <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
+                                    <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
+                                </RadioGroup>
+                            : <RadioGroup>
+                                    <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
+                                </RadioGroup>
+
         const columns = [{
-                sorter: true,
-                key: 'number',
-                dataIndex: 'number',
+                key: 'key',
+                dataIndex: 'key',
                 title: formatMessage({id: "LANG85"}),
                 render: (text, record, index) => (
-                    this._createNumber(text, record, index)
+                    this._createExtension(text, record, index)
                 )
             }, { 
                 key: 'options',
@@ -535,7 +660,14 @@ class FollowMe extends Component {
                                         )}
                                     >
                                         { getFieldDecorator('destination_type', {
-                                            rules: [],
+                                            rules: [
+                                                this.state.enable_destination
+                                                    ? {
+                                                            required: true,
+                                                            message: formatMessage({id: "LANG2150"})
+                                                        }
+                                                    : {}
+                                            ],
                                             initialValue: this.state.destination_type
                                         })(
                                             <Select
@@ -555,15 +687,12 @@ class FollowMe extends Component {
                                 </Col>
                                 <Col
                                     span={ 6 }
-                                    className={ this.state.destination_type !== 'external_number' && this.state.destination_type !== 'hangup'
-                                                    ? 'display-block'
-                                                    : 'hidden' }
+                                    className={ this.state.destination_type !== 'external_number' ? 'display-block' : 'hidden' }
                                 >
                                     <FormItem>
                                         { getFieldDecorator('destination_value', {
                                             rules: [
                                                 this.state.enable_destination &&
-                                                this.state.destination_type !== 'hangup' &&
                                                 this.state.destination_type !== 'external_number'
                                                     ? {
                                                             required: true,
@@ -579,7 +708,8 @@ class FollowMe extends Component {
                                                             return <Option
                                                                         key={ obj.key }
                                                                         value={ obj.value }
-                                                                        className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
+                                                                        className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }
+                                                                    >
                                                                         { obj.label }
                                                                     </Option>
                                                         })
@@ -590,9 +720,7 @@ class FollowMe extends Component {
                                 </Col>
                                 <Col
                                     span={ 6 }
-                                    className={ this.state.destination_type === 'external_number'
-                                                    ? 'display-block'
-                                                    : 'hidden' }
+                                    className={ this.state.destination_type === 'external_number' ? 'display-block' : 'hidden' }
                                 >
                                     <FormItem>
                                         { getFieldDecorator('external_number', {
@@ -602,6 +730,10 @@ class FollowMe extends Component {
                                                     ? {
                                                             required: true,
                                                             message: formatMessage({id: "LANG2150"})
+                                                        }, {
+                                                            validator: (data, value, callback) => {
+                                                                Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                                            }
                                                         }
                                                     : {}
                                             ],
@@ -631,7 +763,7 @@ class FollowMe extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('member_type', {
-                                        initialValue: this.state.member_type
+                                        initialValue: 'local'
                                     })(
                                         <RadioGroup onChange={ this._onChangeMemberType }>
                                             <Radio value="local">{ formatMessage({id: "LANG1981"}) }</Radio>
@@ -650,8 +782,15 @@ class FollowMe extends Component {
                                 >
                                     <FormItem>
                                         { getFieldDecorator('member_local', {
-                                            rules: [],
-                                            initialValue: settings.queue_chairman
+                                            rules: [
+                                                this.state.member_type === 'local'
+                                                    ? {
+                                                            required: true,
+                                                            message: formatMessage({id: "LANG2150"})
+                                                        }
+                                                    : {}
+                                            ],
+                                            initialValue: ''
                                         })(
                                             <Select>
                                                 {
@@ -659,7 +798,8 @@ class FollowMe extends Component {
                                                             return <Option
                                                                         key={ obj.key }
                                                                         value={ obj.value }
-                                                                        className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
+                                                                        className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }
+                                                                    >
                                                                         { obj.label }
                                                                     </Option>
                                                         })
@@ -675,24 +815,50 @@ class FollowMe extends Component {
                                 >
                                     <FormItem>
                                         { getFieldDecorator('member_external', {
-                                            rules: [],
+                                            rules: [
+                                                this.state.member_type === 'external'
+                                                    ? {
+                                                            required: true,
+                                                            message: formatMessage({id: "LANG2150"})
+                                                        }, {
+                                                            validator: (data, value, callback) => {
+                                                                Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                                            }
+                                                        }
+                                                    : {}
+                                            ],
                                             initialValue: ''
                                         })(
                                             <Input />
                                         ) }
                                     </FormItem>
                                 </Col>
-                                <Col
-                                    span={ 4 }
-                                >
+                                <FormItem style={{ float: 'left', display: 'inline-block' }}>
+                                    <span style={{ 'padding': '0 10px' }}>{ formatMessage({id: "LANG569"}) }</span>
+                                </FormItem>
+                                <Col span={ 3 }>
                                     <FormItem>
-                                        <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
                                         { getFieldDecorator('member_ringtime', {
-                                            rules: [],
+                                            rules: [{
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    Validator.digits(data, value, callback, formatMessage)
+                                                }
+                                            }, {
+                                                validator: (data, value, callback) => {
+                                                    Validator.range(data, value, callback, formatMessage, 10, 60)
+                                                }
+                                            }],
                                             initialValue: '30'
                                         })(
-                                            <Input style={{ 'width': '50px' }} />
+                                            <Input />
                                         ) }
+                                    </FormItem>
+                                </Col>
+                                <Col span={ 1 }>
+                                    <FormItem>
                                         <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
                                     </FormItem>
                                 </Col>
@@ -713,10 +879,7 @@ class FollowMe extends Component {
                                     { getFieldDecorator('member_order', {
                                         initialValue: 'after'
                                     })(
-                                        <RadioGroup>
-                                            <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
-                                            <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
-                                        </RadioGroup>
+                                        orderRadio
                                     ) }
                                 </FormItem>
                             </Col>

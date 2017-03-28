@@ -28,32 +28,69 @@ class UserExtension extends Component {
             currentEditId: '',
             extension_type: '',
             settingsPrivilege: {},
-            userSettingsPrivilege: {}
+            userSettingsPrivilege: {},
+            mohNameList: ['default', 'ringbacktone_default'],
+            destinationDataSource: {
+                ivr: [],
+                none: [],
+                queue: [],
+                hangup: [],
+                account: [],
+                vmgroup: [],
+                voicemail: [],
+                ringgroup: [],
+                external_number: []
+            }
         }
     }
     componentDidMount() {
-        this._getOtherData()
+        this._getInitData()
     }
     componentWillMount() {
-        this._getInitData()
     }
     componentWillUnmount() {
     }
     _getInitData = () => {
-        let extensionId = ''
-        let extensionType = ''
+        let extensionId
+        let extensionType
+        let extensionEnd
+        let extensionStart
         let settings = {}
         let userSettings = {}
         let settingsPrivilege = {}
         let userSettingsPrivilege = {}
         let extensionTypeUpperCase = ''
 
+        let ivrList
+        let queueList
+        let vmgroupList
+        let accountList
+        let voicemailList
+        let ringgroupList
+        let extensionPrefSettings
+
+        let languages = {}
+        let extensionRange = []
+        let destinationDataSource = {}
+        let mohNameList = ['default', 'ringbacktone_default']
+        let getList = [
+                { 'getIVRList': '' },
+                { 'getLanguage': '' },
+                { 'getQueueList': '' },
+                { 'getMOHNameList': '' },
+                { 'getVMGroupList': '' },
+                { 'getAccountList': '' },
+                { 'getVoicemailList': '' },
+                { 'getRingGroupList': '' },
+                { 'getExtenPrefSettings': '' }
+            ]
+
         const { formatMessage } = this.props.intl
+        const disabled = formatMessage({id: "LANG273"})
 
         $.ajax({
-            type: 'json',
+            type: 'post',
             async: false,
-            method: 'post',
             url: api.apiHost,
             data: {
                 action: 'listAccount',
@@ -77,9 +114,8 @@ class UserExtension extends Component {
         })
 
         $.ajax({
-            type: 'json',
+            type: 'post',
             async: false,
-            method: 'post',
             url: api.apiHost,
             data: {
                 extension: extensionId,
@@ -101,6 +137,8 @@ class UserExtension extends Component {
                             settings[key] = value
                         }
                     })
+
+                    settings.presence_settings = response.sip_presence_settings || []
                 }
             }.bind(this),
             error: function(e) {
@@ -109,9 +147,8 @@ class UserExtension extends Component {
         })
 
         $.ajax({
-            type: 'json',
+            type: 'post',
             async: false,
-            method: 'post',
             url: api.apiHost,
             data: {
                 action: 'getUser',
@@ -132,29 +169,112 @@ class UserExtension extends Component {
             }
         })
 
+        $.ajax({
+            type: 'GET',
+            async: false,
+            url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(getList),
+            success: function(res) {
+                let bool = UCMGUI.errorHandler(res, null, formatMessage)
+
+                if (bool) {
+                    let response = res.response || {}
+
+                    ivrList = response.getIVRList.ivr || []
+                    queueList = response.getQueueList.queues || []
+                    vmgroupList = response.getVMGroupList.vmgroups || []
+                    accountList = response.getAccountList.extension || []
+                    voicemailList = response.getVoicemailList.extension || []
+                    ringgroupList = response.getRingGroupList.ringgroups || []
+                    extensionPrefSettings = response.getExtenPrefSettings.extension_pref_settings || {}
+
+                    ivrList = ivrList.map(function(item) {
+                            return {
+                                    key: item.ivr_id,
+                                    value: item.ivr_id,
+                                    label: item.ivr_name
+                                }
+                        })
+
+                    queueList = queueList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.queue_name
+                            }
+                        })
+
+                    vmgroupList = vmgroupList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.vmgroup_name
+                            }
+                        })
+
+                    accountList = accountList.map(function(item) {
+                            return {
+                                    key: item.extension,
+                                    value: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    label: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                                }
+                        })
+
+                    voicemailList = voicemailList.map(function(item) {
+                            return {
+                                    key: item.extension,
+                                    value: item.extension,
+                                    out_of_service: item.out_of_service,
+                                    label: (item.extension +
+                                            (item.fullname ? ' "' + item.fullname + '"' : '') +
+                                            (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
+                                }
+                        })
+
+                    ringgroupList = ringgroupList.map(function(item) {
+                            return {
+                                key: item.extension,
+                                value: item.extension,
+                                label: item.ringgroup_name
+                            }
+                        })
+
+                    languages = response.getLanguage.languages || []
+                    mohNameList = response.getMOHNameList.moh_name || []
+                    extensionEnd = extensionPrefSettings.ue_end
+                    extensionStart = extensionPrefSettings.ue_start
+                    extensionRange = [(extensionStart ? parseInt(extensionStart) : undefined), (extensionEnd ? parseInt(extensionEnd) : undefined)]
+                    extensionRange.push(extensionPrefSettings.disable_extension_ranges, extensionPrefSettings.rand_password, extensionPrefSettings.weak_password)
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
         this.setState({
             settings: settings,
             userSettings: userSettings,
             currentEditId: extensionId,
             extension_type: extensionType,
-            settingsPrivilege: settingsPrivilege,
-            userSettingsPrivilege: userSettingsPrivilege
-        })
-    }
-    _getOtherData = () => {
-        const { formatMessage } = this.props.intl
-        const disabled = formatMessage({id: "LANG273"})
-
-        const languages = UCMGUI.isExist.getList('getLanguage', formatMessage)
-        const extensionRange = UCMGUI.isExist.getRange('extension', formatMessage)
-        // const officeTimeList = UCMGUI.isExist.getList('listTimeConditionOfficeTime', formatMessage)
-        // const holidayList = UCMGUI.isExist.getList('listTimeConditionHoliday', formatMessage)
-
-        this.setState({
             languages: languages,
-            // holidayList: holidayList,
-            // officeTimeList: officeTimeList,
-            extensionRange: extensionRange
+            mohNameList: mohNameList,
+            extensionRange: extensionRange,
+            settingsPrivilege: settingsPrivilege,
+            userSettingsPrivilege: userSettingsPrivilege,
+            destinationDataSource: {
+                none: [],
+                hangup: [],
+                external_number: [],
+                ivr: ivrList,
+                queue: queueList,
+                account: accountList,
+                vmgroup: vmgroupList,
+                voicemail: voicemailList,
+                ringgroup: ringgroupList
+            }
         })
     }
     _getImportantValues = () => {
@@ -180,10 +300,10 @@ class UserExtension extends Component {
                         dndwhitelist: [],
                         fwdwhitelist: []
                     },
-                    fax = values.faxmode ? values.faxmode : '',
-                    type = values.extension_type ? values.extension_type : ''
+                    type = this.state.extension_type,
+                    fax = values.faxmode ? values.faxmode : ''
 
-                action.action = `update${this.state.extension_type.toUpperCase()}Account`
+                action.action = `update${type.toUpperCase()}Account`
 
                 _.map(values, function(value, key) {
                     let fieldInstance = getFieldInstance(key)
@@ -200,6 +320,10 @@ class UserExtension extends Component {
                     }
 
                     if (key.indexOf('fm_') === 0) {
+                        return false
+                    }
+
+                    if (key.indexOf('ps_') === 0) {
                         return false
                     }
 
@@ -321,11 +445,72 @@ class UserExtension extends Component {
                             action['room'] = action['extension']
                         }
 
-                        // if (values.presence_dst_type === '1' || values.presence_dst_type === '3') {
-                        //     action['presence_dst_account'] = values.presence_dst_account_voicemail
-                        // } else if (values.presence_dst_type === '2') {
-                        //     action['presence_dst_account'] = values.presence_dst_external_number
-                        // }
+                        let presence_settings = []
+                        let presenceStatusList = ['available', 'away', 'chat', 'userdef', 'unavailable']
+
+                        presenceStatusList.map((value) => {
+                            let type = values[`ps_${value}_cfu_type`]
+                            let obj = {
+                                    presence_status: value
+                                }
+
+                            if (type) {
+                                obj.cfu_destination_type = type
+                                obj.cfb_destination_type = values[`ps_${value}_cfb_type`]
+                                obj.cfn_destination_type = values[`ps_${value}_cfn_type`]
+                                obj.cfu_timetype = values[`ps_${value}_cfu_timetype`]
+                                obj.cfb_timetype = values[`ps_${value}_cfb_timetype`]
+                                obj.cfn_timetype = values[`ps_${value}_cfn_timetype`]
+                                
+                                if (obj.cfu_destination_type === '0' || obj.cfu_destination_type === '7') {
+                                    obj.cfu = ''
+                                } else if (obj.cfu_destination_type === '2') { // External Number
+                                    obj.cfu = values[`ps_${value}_cfu_external`]
+                                } else {
+                                    obj.cfu = values[`ps_${value}_cfu_value`]
+                                }
+
+                                if (obj.cfn_destination_type === '0' || obj.cfn_destination_type === '7') {
+                                    obj.cfn = ''
+                                } else if (obj.cfn_destination_type === '2') { // External Number
+                                    obj.cfn = values[`ps_${value}_cfn_external`]
+                                } else {
+                                    obj.cfn = values[`ps_${value}_cfn_value`]
+                                }
+
+                                if (obj.cfb_destination_type === '0' || obj.cfb_destination_type === '7') {
+                                    obj.cfb = ''
+                                } else if (obj.cfb_destination_type === '2') { // External Number
+                                    obj.cfb = values[`ps_${value}_cfb_external`]
+                                } else {
+                                    obj.cfb = values[`ps_${value}_cfb_value`]
+                                }
+                            } else {
+                                if (this.state.currentEditId) {
+                                    let presence = this.state.settings.presence_settings
+
+                                    _.map(presence, (data) => {
+                                        if (data.presence_status === value) {
+                                            obj = data
+                                        }
+                                    })
+                                } else {
+                                    obj.cfu = ''
+                                    obj.cfb = ''
+                                    obj.cfn = ''
+                                    obj.cfu_timetype = 0
+                                    obj.cfb_timetype = 0
+                                    obj.cfn_timetype = 0
+                                    obj.cfu_destination_type = '0'
+                                    obj.cfb_destination_type = '0'
+                                    obj.cfn_destination_type = '0'
+                                }
+                            }
+
+                            presence_settings.push(obj)
+                        })
+
+                        action['presence_settings'] = JSON.stringify(presence_settings)
                     }
                 }
 
@@ -398,12 +583,11 @@ class UserExtension extends Component {
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const model_info = JSON.parse(localStorage.getItem('model_info'))
 
         const title = formatMessage({id: "LANG4094"})
 
         document.title = formatMessage({id: "LANG584"}, {
-                    0: model_info.model_name,
+                    0: formatMessage({id: "LANG82"}),
                     1: title
                 })
 
@@ -434,22 +618,15 @@ class UserExtension extends Component {
                             <Feature
                                 form={ form }
                                 settings={ this.state.settings }
+                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 settingsPrivilege={ this.state.settingsPrivilege }
+                                destinationDataSource={ this.state.destinationDataSource }
                             />
                         </TabPane>
                         {/* <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
                             <SpecificTime
-                                form={ form }
-                                settings={ this.state.settings }
-                                currentEditId={ this.state.currentEditId }
-                                extensionType={ this.state.extension_type }
-                                onExtensionTypeChange={ this._onExtensionTypeChange }
-                            />
-                        </TabPane>
-                        <TabPane tab={ formatMessage({id: "LANG568"}) } key="5">
-                            <FollowMe
                                 form={ form }
                                 settings={ this.state.settings }
                                 currentEditId={ this.state.currentEditId }

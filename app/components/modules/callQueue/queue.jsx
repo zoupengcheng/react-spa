@@ -188,6 +188,11 @@ class Queue extends Component {
                     return this._strategy(text)
                 }
             }, {
+                key: 'queue_chairman',
+                dataIndex: 'queue_chairman',
+                title: formatMessage({id: "LANG5408"}),
+                sorter: (a, b) => a.queue_chairman - b.queue_chairman
+            }, {
                 key: 'members',
                 dataIndex: 'members',
                 title: formatMessage({id: "LANG128"}),

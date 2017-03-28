@@ -21,6 +21,7 @@ const TabPane = Tabs.TabPane
 class SwitchBoard extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
             activeTabKey: '',
             queueMembers: [],

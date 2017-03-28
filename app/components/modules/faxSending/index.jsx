@@ -14,6 +14,7 @@ import Validator from "../../api/validator"
 
 const confirm = Modal.confirm
 const FormItem = Form.Item
+const Search = Input.Search
 
 class FaxSending extends Component {
     constructor(props) {
@@ -581,63 +582,55 @@ class FaxSending extends Component {
                             </span>
                         </p>
                     </div>
-                    <Row>
-                        <Col span={ 12 } >
-                            <FormItem
-                                ref="div_callee"
-                                { ...formItemLayout }
-
-                                label={(
-                                    <Tooltip title={<FormattedHTMLMessage id="LANG4065" />}>
-                                        <span>{formatMessage({id: "LANG4065"})}</span>
-                                    </Tooltip>
-                                )}>
-                                { getFieldDecorator('callee', {
-                                    rules: [],
-                                    initialValue: ""
-                                })(
-                                    <Input maxLength='127' />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={3} >
-                            <Button
-                                icon="search"
-                                type="primary"
-                                size='default'
-                                onClick={ this._searchFile }
-                            >
-                                { formatMessage({id: "LANG803"}) }
-                            </Button>
-                        </Col>
-                        <Col span={3} >
-                            <Button
-                                icon="search"
-                                type="primary"
-                                size='default'
-                                onClick={ this._showAll }
-                            >       
-                                { formatMessage({id: "LANG4142"}, {0: formatMessage({id: "LANG4146"})}) }
-                            </Button>
-                        </Col>
-                    </Row>
+                    
                     <div className="top-button">
-                        <Button
-                            icon="delete"
-                            type="primary"
-                            size='default'
-                            onClick={ this._deleteAllSelectd }
-                        >
-                            { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG4146"})}) }
-                        </Button>
-                        <Button
-                            icon="delete"
-                            type="primary"
-                            size='default'
-                            onClick={ this._deleteAll }
-                        >
-                            { formatMessage({id: "LANG740"}) }
-                        </Button>
+                        <Row>
+                            <Col span={ 12 } >
+                                <Button
+                                    icon="delete"
+                                    type="primary"
+                                    size='default'
+                                    onClick={ this._deleteAllSelectd }
+                                >
+                                    { formatMessage({id: "LANG3872"}, {0: formatMessage({id: "LANG4146"})}) }
+                                </Button>
+                                <Button
+                                    icon="delete"
+                                    type="primary"
+                                    size='default'
+                                    onClick={ this._deleteAll }
+                                >
+                                    { formatMessage({id: "LANG740"}) }
+                                </Button>
+                            </Col>
+                            <Col span={ 8 } className="right-nav">
+                                <FormItem
+                                    ref="div_callee"
+                                >
+                                    { getFieldDecorator('callee', {
+                                        rules: [],
+                                        initialValue: ""
+                                    })(
+                                        <Input maxLength='127'
+                                            placeholder={ formatMessage({id: "LANG4065"}) }
+                                            onPressEnter={ this._searchFile }
+                                            onSearch={ this._searchFile }
+                                        />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={3} offset={1}>
+                                <Button
+                                    icon="search"
+                                    type="primary"
+                                    size='default'
+                                    onClick={ this._searchFile }
+                                    title={ formatMessage({id: "LANG4065"}) }
+                                >
+                                    { formatMessage({id: "LANG803"}) }
+                                </Button>
+                            </Col>
+                        </Row>
                     </div>
                     
                     <Table

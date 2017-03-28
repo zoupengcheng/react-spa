@@ -213,13 +213,13 @@ class ExtensionGroup extends Component {
         })
     }
     _editbar = (record) => {
-        browserHistory.push('/value-added-features/pmsMinibar/editbar/' + record.extension + '/' + record.extension)
+        browserHistory.push('/value-added-features/pmsMinibar/editbar/' + record.extension + '/' + record.minibar_name)
     }
     _editwaiter = (record) => {
         browserHistory.push('/value-added-features/pmsMinibar/editwaiter/' + record.waiter_id + '/' + record.waiter_id)
     }
     _editgoods = (record) => {
-        browserHistory.push('/value-added-features/pmsMinibar/editgoods/' + record.extension + '/' + record.extension)
+        browserHistory.push('/value-added-features/pmsMinibar/editgoods/' + record.extension + '/' + record.goods_name)
     }
     _getAccountList = () => {
         $.ajax({
@@ -573,12 +573,12 @@ class ExtensionGroup extends Component {
                     <Table
                         rowKey="extension"
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ false }
                         dataSource={ this.state.miniBar }
                         showHeader={ !!this.state.miniBar.length }
                     />
                 </div>
-                <div className="content">
+                <div className="content" style={{marginTop: '30px'}}>
                     <div className="top-button">
                         <Button
                             icon="plus"
@@ -599,7 +599,7 @@ class ExtensionGroup extends Component {
                         loading={ this.state.loading}
                     />
                 </div>
-                <div className="content">
+                <div className="content" style={{marginTop: '30px'}}>
                     <div className="top-button">
                         <Button
                             icon="plus"

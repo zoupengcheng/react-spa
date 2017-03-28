@@ -33,7 +33,7 @@ class UserItem extends Component {
         const { formatMessage } = this.props.intl
 
         if (value && _.indexOf(this.state.userNameList, value) > -1) {
-            callback(formatMessage({id: "LANG3467"}))
+            callback(formatMessage({id: "LANG2843"}))
         } else {
             callback()
         }

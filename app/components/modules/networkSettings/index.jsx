@@ -41,7 +41,8 @@ class NetWorkSettings extends Component {
                 lan1title: 'hidden',
                 lan2title: 'hidden',
                 wantitle: 'hidden'
-            }
+            },
+            firstLoad: false
         }
     }
     componentWillMount() {
@@ -398,6 +399,11 @@ class NetWorkSettings extends Component {
             method_8021_calss: method
         })       
     }
+    _setFirstLoad = (e) => {
+        this.setState({
+            firstLoad: e !== 0 ? true : false
+        })
+    }
     _onChangeDHCP = (e) => {
         let data = this.state.network_settings
         data.dhcp_enable = e.target.checked
@@ -485,8 +491,12 @@ class NetWorkSettings extends Component {
     }
     _handleCancel = () => {
         browserHistory.push('/system-settings/networkSettings')
+
         this._getInitNetwork()
         this.props.form.resetFields()
+        this.setState({
+            firstLoad: true
+        })
     }
     _handleSubmit = (e) => {
         const { formatMessage } = this.props.intl
@@ -565,6 +575,8 @@ class NetWorkSettings extends Component {
                             change8021x={ this._change8021xMethod.bind(this) }
                             dhcpEnable={ this._onChangeDHCP.bind(this) }
                             dhcp6Enable={ this._changeDHCP6Enable.bind(this) }
+                            firstLoad={ this.state.firstLoad }
+                            setFirstLoad={ this._setFirstLoad.bind(this) }
                         />
                     </TabPane>
                     { model_info.allow_nat !== "0" && this.state.network_settings.method === "0"
@@ -580,6 +592,8 @@ class NetWorkSettings extends Component {
                         <Network8021x
                             form={ this.props.form }
                             class8021x={ this.state.method_8021_calss }
+                            firstLoad={ this.state.firstLoad }
+                            setFirstLoad={ this._setFirstLoad.bind(this) }
                         />
                     </TabPane>
                     { model_info.allow_nat !== "0"

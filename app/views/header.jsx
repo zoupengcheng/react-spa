@@ -102,6 +102,9 @@ let Header = React.createClass({
             }.bind(this)
         })
     },
+    _gotoSetupWizard () {
+        browserHistory.push('/setup-wizard')
+    },
     render: function () {
         let username = localStorage.getItem('username')
         const { formatMessage } = this.props.intl
@@ -149,6 +152,9 @@ let Header = React.createClass({
                                     </Option>
                             })}
                         </Select>
+                    </nav>
+                    <nav className="right-nav">
+                        <a type="primary" size="small" onClick={this._gotoSetupWizard} className={username === 'admin' ? "display-inline" : "hidden"}>{formatMessage({id: "LANG4283"})}</a>
                     </nav>
                     <nav className="right-nav">
                         <Button type="primary" size="small" onClick={this._applyChanges} className={this.state.visible ? "display-inline" : "hidden"}>{formatMessage({id: "LANG260"})}</Button>

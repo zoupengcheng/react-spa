@@ -6,13 +6,17 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import Validator from "../../api/validator"
+
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Checkbox, Col, Form, Input, Icon, message, Row, Select, Transfer, Tooltip } from 'antd'
+import { Checkbox, Col, Form, Input, Icon, message, Row, Select, Tabs, Transfer, Tooltip } from 'antd'
+
+import PresenceStatus from './presenceStatus'
 
 const FormItem = Form.Item
 const Option = Select.Option
+const TabPane = Tabs.TabPane
 
 class Feature extends Component {
     constructor(props) {
@@ -21,7 +25,6 @@ class Feature extends Component {
         const cc_mode = this.props.settings.cc_mode
         const presence_status = this.props.settings.presence_status
         const dnd = this.props.settings.dnd === 'yes' ? true : false
-        const presence_dst_type = this.props.settings.presence_dst_type
         const bypass_outrt_auth = this.props.settings.bypass_outrt_auth
         const callbarging_monitor = this.props.settings.callbarging_monitor
         const enable_cc = this.props.settings.enable_cc === 'yes' ? true : false
@@ -32,83 +35,18 @@ class Feature extends Component {
 
         this.state = {
             dnd: dnd,
-            accountList: [],
             cc_mode: cc_mode,
             enable_cc: enable_cc,
             en_hotline: en_hotline,
             en_ringboth: en_ringboth,
             out_limitime: out_limitime,
             bypass_outrt_auth: bypass_outrt_auth,
-            mohNameList: ['default', 'ringbacktone_default'],
-            presence_status: presence_status ? presence_status : 'not_set',
-            presence_dst_type: presence_dst_type ? presence_dst_type : '0',
+            presence_status: presence_status ? presence_status : 'available',
             targetKeysCallbarging: callbarging_monitor ? callbarging_monitor.split(',') : [],
             targetKeysSeamless: seamless_transfer_members ? seamless_transfer_members.split(',') : []
         }
     }
     componentWillMount() {
-        const { formatMessage } = this.props.intl
-        const disabled = formatMessage({id: "LANG273"})
-
-        $.ajax({
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getAccountList'
-            },
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    let extension = response.extension || []
-
-                    extension = extension.map(function(item) {
-                        return {
-                                key: item.extension,
-                                value: item.extension,
-                                out_of_service: item.out_of_service,
-                                // disabled: (item.out_of_service === 'yes'),
-                                label: (item.extension +
-                                        (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                        (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                            }
-                    })
-
-                    this.setState({
-                        accountList: extension
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-
-        /* $.ajax({
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getMohNameList'
-            },
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-                    let mohNameList = response.moh_name || []
-
-                    this.setState({
-                        mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
-                    })
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        }) */
     }
     componentDidMount() {
     }
@@ -182,14 +120,15 @@ class Feature extends Component {
         return result
     }
     _filterCodecsSource = () => {
-        const currentEditId = this.props.currentEditId
+        let currentEditId = this.props.currentEditId
+        let accountList = _.clone(this.props.destinationDataSource.account)
 
         if (currentEditId) {
-            return _.filter(this.state.accountList, function(item) {
+            return _.filter(accountList, function(item) {
                     return item.key !== currentEditId
                 })
         } else {
-            return this.state.accountList
+            return accountList
         }
     }
     _filterTransferOption = (inputValue, option) => {
@@ -246,13 +185,20 @@ class Feature extends Component {
         console.log('targetSelectedKeys: ', targetSelectedKeys)
     }
     _onChangePresenceStatus = (value) => {
+        const { form } = this.props
+
+        if (value === 'dnd') {
+            form.setFieldsValue({
+                dnd: true
+            })
+
+            this.setState({
+                dnd: true
+            })
+        }
+
         this.setState({
             presence_status: value
-        })
-    }
-    _onChangePresenceDesType = (value) => {
-        this.setState({
-            presence_dst_type: value
         })
     }
     _onChangeCCMode = (value) => {
@@ -334,15 +280,17 @@ class Feature extends Component {
         form.setFieldsValue(fieldsValue)
     }
     render() {
-        let whiteListIds = []
-        let fwdwhiteListIds = []
         const form = this.props.form
         const { formatMessage } = this.props.intl
+        const { getFieldDecorator, getFieldValue } = this.props.form
+
+        const whiteListIds = []
+        const fwdwhiteListIds = []
         const settings = this.props.settings || {}
         const currentEditId = this.props.currentEditId
         const extension_type = this.props.extensionType
         const callbarging_monitor = settings.callbarging_monitor
-        const { getFieldDecorator, getFieldValue } = this.props.form
+        const presenceSettings = settings.presence_settings || []
         const seamless_transfer_members = settings.seamless_transfer_members
         const dndwhitelist = settings.dndwhitelist ? settings.dndwhitelist.split(',') : []
         const fwdwhitelist = settings.fwdwhitelist ? settings.fwdwhitelist.split(',') : []
@@ -460,159 +408,286 @@ class Feature extends Component {
                                 <span>{ formatMessage({id: "LANG3887"}) }</span>
                             </div>
                         </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1084" /> }>
-                                            <span>{ formatMessage({id: "LANG1083"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
+                        <Row
+                            className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
+                        >
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5452" /> }>
+                                                <span>{ formatMessage({id: "LANG5450"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('presence_status', {
+                                        rules: [],
+                                        initialValue: this.state.presence_status,
+                                        className: extension_type === 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Select onChange={ this._onChangePresenceStatus }>
+                                            <Option value='available'>{ formatMessage({id: "LANG116"}) }</Option>
+                                            <Option value='away'>{ formatMessage({id: "LANG5453"}) }</Option>
+                                            <Option value='chat'>{ formatMessage({id: "LANG5465"}) }</Option>
+                                            <Option value='dnd'>{ formatMessage({id: "LANG4768"}) }</Option>
+                                            <Option value='userdef'>{ formatMessage({id: "LANG5451"}) }</Option>
+                                            <Option value='unavailable'>{ formatMessage({id: "LANG113"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col
+                                span={ 12 }
+                                className={ (extension_type === 'sip' && this.state.presence_status === 'userdef')
+                                                ? 'display-block'
+                                                : 'hidden' }
                             >
-                                { getFieldDecorator('cfu', {
-                                    rules: [],
-                                    initialValue: settings.cfu
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3374" /> }>
-                                            <span>{ formatMessage({id: "LANG3371"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('cfu_timetype', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0'
-                                })(
-                                    <Select>
-                                        <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
-                                        <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
-                                        <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
-                                        <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
-                                        <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
-                                        <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
-                                        <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1086" /> }>
-                                            <span>{ formatMessage({id: "LANG1085"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('cfn', {
-                                    rules: [],
-                                    initialValue: settings.cfn
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3374" /> }>
-                                            <span>{ formatMessage({id: "LANG3371"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('cfu_timetype', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0'
-                                })(
-                                    <Select>
-                                        <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
-                                        <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
-                                        <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
-                                        <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
-                                        <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
-                                        <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
-                                        <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1088" /> }>
-                                            <span>{ formatMessage({id: "LANG1087"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('cfb', {
-                                    rules: [],
-                                    initialValue: settings.cfb
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG3376" /> }>
-                                            <span>{ formatMessage({id: "LANG3373"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('cfb_timetype', {
-                                    rules: [
-                                        {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    ],
-                                    initialValue: settings.cfb_timetype ? settings.cfb_timetype + '' : '0'
-                                })(
-                                    <Select>
-                                        <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
-                                        <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
-                                        <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
-                                        <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
-                                        <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
-                                        <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
-                                        <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG5451" /> }>
+                                                <span>{ formatMessage({id: "LANG5451"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('presence_def_script', {
+                                        rules: [
+                                            (extension_type === 'sip' && this.state.presence_status === 'userdef')
+                                                ? {
+                                                        required: true,
+                                                        message: formatMessage({id: "LANG2150"})
+                                                    }
+                                                : {}
+                                        ],
+                                        initialValue: settings.presence_def_script,
+                                        className: (extension_type === 'sip' && this.state.presence_status === 'userdef')
+                                                ? 'display-block'
+                                                : 'hidden'
+                                    })(
+                                        <Input />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 24 }>
+                                <Tabs type="card" className="custom-tabs">
+                                    <TabPane tab={ formatMessage({id: "LANG116"}) } key="available">
+                                        <PresenceStatus
+                                            form={ form }
+                                            presenceStatusType={ 'available' }
+                                            presenceSettings={ presenceSettings }
+                                            destinationDataSource={ this.props.destinationDataSource }
+                                        />
+                                    </TabPane>
+                                    <TabPane tab={ formatMessage({id: "LANG5453"}) } key="away">
+                                        <PresenceStatus
+                                            form={ form }
+                                            presenceStatusType={ 'away' }
+                                            presenceSettings={ presenceSettings }
+                                            destinationDataSource={ this.props.destinationDataSource }
+                                        />
+                                    </TabPane>
+                                    <TabPane tab={ formatMessage({id: "LANG5465"}) } key="chat">
+                                        <PresenceStatus
+                                            form={ form }
+                                            presenceStatusType={ 'chat' }
+                                            presenceSettings={ presenceSettings }
+                                            destinationDataSource={ this.props.destinationDataSource }
+                                        />
+                                    </TabPane>
+                                    {/* <TabPane tab={ formatMessage({id: "LANG4768"}) } key="dnd">
+                                        <PresenceStatus
+                                            form={ form }
+                                            presenceStatusType={ 'dnd' }
+                                            presenceSettings={ presenceSettings }
+                                            destinationDataSource={ this.props.destinationDataSource }
+                                        />
+                                    </TabPane> */}
+                                    <TabPane tab={ formatMessage({id: "LANG5451"}) } key="userdef">
+                                        <PresenceStatus
+                                            form={ form }
+                                            presenceStatusType={ 'userdef' }
+                                            presenceSettings={ presenceSettings }
+                                            destinationDataSource={ this.props.destinationDataSource }
+                                        />
+                                    </TabPane>
+                                    <TabPane tab={ formatMessage({id: "LANG113"}) } key="unavailable">
+                                        <PresenceStatus
+                                            form={ form }
+                                            presenceStatusType={ 'unavailable' }
+                                            presenceSettings={ presenceSettings }
+                                            destinationDataSource={ this.props.destinationDataSource }
+                                        />
+                                    </TabPane>
+                                </Tabs>
+                            </Col>
+                        </Row>
+                        <Row
+                            className={ extension_type !== 'sip' ? 'display-block' : 'hidden' }
+                        >
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1084" /> }>
+                                                <span>{ formatMessage({id: "LANG1083"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('cfu', {
+                                        rules: [],
+                                        initialValue: settings.cfu,
+                                        className: extension_type !== 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Input />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3374" /> }>
+                                                <span>{ formatMessage({id: "LANG3371"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('cfu_timetype', {
+                                        rules: [
+                                            {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        ],
+                                        initialValue: settings.cfu_timetype ? settings.cfu_timetype + '' : '0',
+                                        className: extension_type !== 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Select>
+                                            <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
+                                            <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
+                                            <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
+                                            <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
+                                            <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
+                                            <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
+                                            <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1086" /> }>
+                                                <span>{ formatMessage({id: "LANG1085"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('cfn', {
+                                        rules: [],
+                                        initialValue: settings.cfn,
+                                        className: extension_type !== 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Input />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3375" /> }>
+                                                <span>{ formatMessage({id: "LANG3372"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('cfn_timetype', {
+                                        rules: [
+                                            {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        ],
+                                        initialValue: settings.cfn_timetype ? settings.cfn_timetype + '' : '0',
+                                        className: extension_type !== 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Select>
+                                            <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
+                                            <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
+                                            <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
+                                            <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
+                                            <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
+                                            <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
+                                            <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG1088" /> }>
+                                                <span>{ formatMessage({id: "LANG1087"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('cfb', {
+                                        rules: [],
+                                        initialValue: settings.cfb,
+                                        className: extension_type !== 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Input />
+                                    ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 12 }>
+                                <FormItem
+                                    { ...formItemLayout }
+                                    label={(
+                                        <span>
+                                            <Tooltip title={ <FormattedHTMLMessage id="LANG3376" /> }>
+                                                <span>{ formatMessage({id: "LANG3373"}) }</span>
+                                            </Tooltip>
+                                        </span>
+                                    )}
+                                >
+                                    { getFieldDecorator('cfb_timetype', {
+                                        rules: [
+                                            {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        ],
+                                        initialValue: settings.cfb_timetype ? settings.cfb_timetype + '' : '0',
+                                        className: extension_type !== 'sip' ? 'display-block' : 'hidden'
+                                    })(
+                                        <Select>
+                                            <Option value='0'>{ formatMessage({id: "LANG3285"}) }</Option>
+                                            <Option value='1'>{ formatMessage({id: "LANG3271"}) }</Option>
+                                            <Option value='2'>{ formatMessage({id: "LANG3275"}) }</Option>
+                                            <Option value='3'>{ formatMessage({id: "LANG3266"}) }</Option>
+                                            <Option value='4'>{ formatMessage({id: "LANG3286"}) }</Option>
+                                            <Option value='5'>{ formatMessage({id: "LANG3287"}) }</Option>
+                                            <Option value='6'>{ formatMessage({id: "LANG3288"}) }</Option>
+                                        </Select>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Row>
                         <Col span={ 12 }>
                             <FormItem
                                 { ...formItemLayout }
@@ -627,7 +702,7 @@ class Feature extends Component {
                                 { getFieldDecorator('dnd', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.dnd ? (settings.dnd === 'yes') : false
+                                    initialValue: this.state.dnd
                                 })(
                                     <Checkbox onChange={ this._onChangeDND } />
                                 ) }
@@ -1044,168 +1119,6 @@ class Feature extends Component {
                             </FormItem>
                         </Col>
                     </Row>
-                    {/* <Row
-                        className={ extension_type === 'sip' ? 'display-block' : 'hidden' }
-                    >
-                        <Col span={ 24 }>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG5450"}) }</span>
-                            </div>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5452" /> }>
-                                            <span>{ formatMessage({id: "LANG5450"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('presence_status', {
-                                    rules: [],
-                                    initialValue: this.state.presence_status,
-                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
-                                })(
-                                    <Select onChange={ this._onChangePresenceStatus }>
-                                        <Option value='not_set'>{ formatMessage({id: "LANG257"}) }</Option>
-                                        <Option value='unavailable'>{ formatMessage({id: "LANG113"}) }</Option>
-                                        <Option value='available'>{ formatMessage({id: "LANG116"}) }</Option>
-                                        <Option value='away'>{ formatMessage({id: "LANG5453"}) }</Option>
-                                        <Option value='chat'>{ formatMessage({id: "LANG5465"}) }</Option>
-                                        <Option value='dnd'>{ formatMessage({id: "LANG4768"}) }</Option>
-                                        <Option value='userdef1'>{ formatMessage({id: "LANG5451"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col
-                            span={ 12 }
-                            className={ (extension_type === 'sip' && this.state.presence_status === 'userdef1')
-                                            ? 'display-block'
-                                            : 'hidden' }
-                        >
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5451" /> }>
-                                            <span>{ formatMessage({id: "LANG5451"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('presence_def_script', {
-                                    rules: [
-                                        (extension_type === 'sip' && this.state.presence_status === 'userdef1')
-                                            ? {
-                                                    required: true,
-                                                    message: formatMessage({id: "LANG2150"})
-                                                }
-                                            : {}
-                                    ],
-                                    initialValue: settings.presence_def_script,
-                                    className: (extension_type === 'sip' && this.state.presence_status === 'userdef1')
-                                            ? 'display-block'
-                                            : 'hidden'
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5454" /> }>
-                                            <span>{ formatMessage({id: "LANG5454"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('presence_dst_type', {
-                                    rules: [],
-                                    initialValue: this.state.presence_dst_type,
-                                    className: extension_type === 'sip' ? 'display-block' : 'hidden'
-                                })(
-                                    <Select onChange={ this._onChangePresenceDesType }>
-                                        <Option value='0'>{ formatMessage({id: "LANG133"}) }</Option>
-                                        <Option value='1'>{ formatMessage({id: "LANG85"}) }</Option>
-                                        <Option value='2'>{ formatMessage({id: "LANG3458"}) }</Option>
-                                        <Option value='3'>{ formatMessage({id: "LANG20"}) }</Option>
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col
-                            span={ 12 }
-                            className={ (extension_type === 'sip' && (this.state.presence_dst_type === '1' || this.state.presence_dst_type === '3'))
-                                            ? 'display-block'
-                                            : 'hidden' }
-                        >
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5456" /> }>
-                                            <span>{ formatMessage({id: "LANG1535"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('presence_dst_account_voicemail', {
-                                    rules: [],
-                                    initialValue: settings.presence_dst_account
-                                })(
-                                    <Select>
-                                        {
-                                            this.state.accountList.map(function(obj) {
-                                                return <Option
-                                                            key={ obj.key }
-                                                            value={ obj.value }
-                                                            className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                                                            { obj.label }
-                                                        </Option>
-                                            })
-                                        }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col
-                            span={ 12 }
-                            className={ (extension_type === 'sip' && this.state.presence_dst_type === '2')
-                                            ? 'display-block'
-                                            : 'hidden' }
-                        >
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5456" /> }>
-                                            <span>{ formatMessage({id: "LANG1535"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('presence_dst_external_number', {
-                                    rules: [
-                                        (extension_type === 'sip' && this.state.presence_dst_type === '2')
-                                            ? {
-                                                    required: true,
-                                                    message: formatMessage({id: "LANG2150"})
-                                                }
-                                            : {}
-                                    ],
-                                    initialValue: settings.presence_dst_account
-                                })(
-                                    <Input />
-                                ) }
-                            </FormItem>
-                        </Col>
-                    </Row> */}
                     {/* <Row>
                         <Col span={ 24 }>
                             <div className="section-title">

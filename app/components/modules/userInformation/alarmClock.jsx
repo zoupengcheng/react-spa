@@ -32,6 +32,7 @@ class AlarmClock extends Component {
                 <Card
                     title={ formatMessage({id: "LANG4858"}) }
                     bordered={true}
+                    className={ wakeupDataNum === 0 ? 'hidden' : 'display-block'}
                 >
                     <Row align="middle" justify="center" type="flex" style={{ marginBottom: 10 }}>
                         <Col className="gutter-row">
@@ -51,7 +52,7 @@ class AlarmClock extends Component {
                                     return (
                                         <div key={ key }
                                             className="display-inline"
-                                            style={{ marginBottom: 10, marginRight: (key % 2 === 0 ? 50 : 0) }}
+                                            style={{ marginBottom: 10, marginRight: (key % 2 === 0 ? 30 : 0) }}
                                         >
                                             <span className="sprite sprite-wakeup-clock"></span>
                                             <span className="font-bold wakeup-list">{ item.custom_date + ' ' + item.time }</span>
@@ -65,6 +66,7 @@ class AlarmClock extends Component {
                 <Card
                     title={ formatMessage({id: "LANG4858"}) }
                     bordered={ true }
+                    className={ wakeupDataNum === 0 ? 'display-block' : 'hidden'}
                 >
                     <Row align="middle" justify="center" type="flex">
                         <Col className="gutter-row">
