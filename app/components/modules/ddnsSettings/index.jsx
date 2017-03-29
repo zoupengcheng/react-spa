@@ -1,13 +1,15 @@
 'use strict'
 
+import $ from 'jquery'
+import _ from 'underscore'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
+import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { Form, Input, Button, Checkbox, message, Popover, Select } from 'antd'
-import $ from 'jquery'
-import api from "../../api/api"
-import UCMGUI from "../../api/ucmgui"
-import Title from '../../../views/title'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -21,6 +23,7 @@ class DDNS extends Component {
                 hash: 'hidden',
                 phddns: 'hidden'
             },
+            oldFieldsValue: '',
             inadyn_settings: {},
             phddns_settings: {},
             dyndns_system: '',
@@ -29,11 +32,12 @@ class DDNS extends Component {
         }
     }
     componentWillMount() {
-        this._getInadyn()
-        this._getPhddns()
+        this._getInitData()
     }
     componentDidMount() {
-        this._loadDefault()
+        this.setState({
+            oldFieldsValue: this._getDOMValues()
+        })
     }
     _checkJBLen = (rule, value, callback) => {
         const form = this.props.form
@@ -55,8 +59,62 @@ class DDNS extends Component {
             callback()
         }
     }
-    _loadDefault = () => {
-        const dyndns_system = this.state.dyndns_system
+    _getDOMValues = () => {
+        let fieldsValue = ''
+        let getFieldsValue = this.props.form.getFieldsValue()
+
+        _.map(getFieldsValue, (value, key) => {
+            fieldsValue += value
+        })
+
+        return fieldsValue
+    }
+    _getInitData = () => {
+        let dyndns_system
+        let enable_inadyn
+        let enable_phddns
+        let inadyn_settings
+        let phddns_settings
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: api.apiHost,
+            data: { action: 'getInadyn' },
+            success: function(res) {
+                inadyn_settings = res.response.inadyn_settings || {}
+                dyndns_system = inadyn_settings.dyndns_system
+                enable_inadyn = (inadyn_settings.enable_inadyn === 'yes')
+
+                this.setState({
+                    dyndns_system: dyndns_system,
+                    enable_inadyn: enable_inadyn,
+                    inadyn_settings: inadyn_settings
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: api.apiHost,
+            data: { action: 'getPhddns' },
+            success: function(res) {
+                phddns_settings = res.response.phddns_settings || {}
+                enable_phddns = (phddns_settings.enable_phddns === 'yes')
+
+                this.setState({
+                    enable_phddns: enable_phddns,
+                    phddns_settings: phddns_settings
+                })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
 
         if (dyndns_system === 'oray.net' || !dyndns_system) {
             if (!dyndns_system) {
@@ -71,7 +129,7 @@ class DDNS extends Component {
                     hash: 'hidden',
                     phddns: 'display-block'
                 },
-                enable_inadyn: this.state.enable_phddns
+                enable_inadyn: enable_phddns
             })
         } else {
             if (dyndns_system === "freedns.afraid.org") {
@@ -81,7 +139,7 @@ class DDNS extends Component {
                         hash: 'display-block',
                         phddns: 'hidden'
                     },
-                    enable_phddns: this.state.enable_inadyn
+                    enable_phddns: enable_inadyn
                 })
             } else {
                 this.setState({
@@ -90,51 +148,10 @@ class DDNS extends Component {
                         hash: 'hidden',
                         phddns: 'hidden'
                     },
-                    enable_phddns: this.state.enable_inadyn
+                    enable_phddns: enable_inadyn
                 })
             }
         }
-    }
-    _getInadyn = () => {
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getInadyn' },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                let inadyn_settings = res.response.inadyn_settings || {}
-
-                this.setState({
-                    inadyn_settings: inadyn_settings,
-                    enable_inadyn: (inadyn_settings.enable_inadyn === 'yes'),
-                    dyndns_system: inadyn_settings.dyndns_system
-                })
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
-    }
-    _getPhddns = () => {
-        $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getPhddns' },
-            type: 'json',
-            async: false,
-            success: function(res) {
-                let phddns_settings = res.response.phddns_settings || {}
-
-                this.setState({
-                    phddns_settings: phddns_settings,
-                    enable_phddns: (phddns_settings.enable_phddns === 'yes')
-                })
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
     }
     _handleCancel = () => {
         browserHistory.push('/system-settings/ddnsSettings')
@@ -144,9 +161,21 @@ class DDNS extends Component {
 
         const { formatMessage } = this.props.intl
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
+
+                let newFieldsValue = this._getDOMValues()
+
+                if (newFieldsValue === this.state.oldFieldsValue) {
+                    message.error(formatMessage({ id: "LANG4140" }))
+
+                    return false
+                } else {
+                    this.setState({
+                        oldFieldsValue: newFieldsValue
+                    })
+                }
 
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
@@ -165,8 +194,8 @@ class DDNS extends Component {
                 }
 
                 action_phddns['szHost'] = ''
-                action_phddns['szUserID'] = ''
-                action_phddns['szUserPWD'] = ''
+                action_phddns['szUserID'] = values.szUserID
+                action_phddns['szUserPWD'] = values.szUserPWD
                 action_phddns['conffile'] = ''
 
                 let enableInadyn = 'no'
@@ -197,7 +226,7 @@ class DDNS extends Component {
                         error: function(e) {
                             message.error(e.statusText)
                         },
-                        success: function(data) {
+                        success: (data) => {
                             var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                             if (bool) {
@@ -208,7 +237,7 @@ class DDNS extends Component {
                                     error: function(e) {
                                         message.error(e.statusText)
                                     },
-                                    success: function(data) {
+                                    success: (data) => {
                                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                                         if (bool) {
@@ -223,24 +252,24 @@ class DDNS extends Component {
                                                     error: function(e) {
                                                         message.error(e.statusText)
                                                     },
-                                                    success: function(data) {
+                                                    success: (data) => {
                                                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                                                         if (bool) {
                                                             message.destroy()
                                                             message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>)
                                                         }
-                                                    }.bind(this)
+                                                    }
                                                 })
                                             } else {
                                                 message.destroy()
                                                 message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>)
                                             }
                                         }
-                                    }.bind(this)
+                                    }
                                 })
                             }
-                        }.bind(this)
+                        }
                     })
                 }
 
@@ -254,7 +283,7 @@ class DDNS extends Component {
                     error: function(e) {
                         message.error(e.statusText)
                     },
-                    success: function(data) {
+                    success: (data) => {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
@@ -265,7 +294,7 @@ class DDNS extends Component {
                                 error: function(e) {
                                     message.error(e.statusText)
                                 },
-                                success: function(data) {
+                                success: (data) => {
                                     var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                                     if (bool) {
@@ -280,22 +309,22 @@ class DDNS extends Component {
                                                 error: function(e) {
                                                     message.error(e.statusText)
                                                 },
-                                                success: function(data) {
+                                                success: (data) => {
                                                     var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                                                     if (bool) {
                                                         phddns_setting()
                                                     }
-                                                }.bind(this)
+                                                }
                                             })
                                         } else {
                                             phddns_setting()
                                         }
                                     }
-                                }.bind(this)
+                                }
                             })
                         }
-                    }.bind(this)
+                    }
                 })
             }
         })
@@ -369,202 +398,204 @@ class DDNS extends Component {
         return (
             <div className="app-content-main">
                 <Title headerTitle={ formatMessage({id: "LANG4040"}) } onSubmit={ this._handleSubmit } onCancel={ this._handleCancel } isDisplay='display-block' />
-                <Form>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4041"}) } content={ formatMessage({id: "LANG4042"}) }><span>{ formatMessage({id: "LANG4041"}) }</span></Popover>
-                            </span>
-                        )}
-                    >
-                        { getFieldDecorator('dyndns_system', {
-                            initialValue: this.state.dyndns_system
-                        })(
-                            <Select onChange={ this._onChangeSystem }>
-                                <Option value="dyndns.org">dyndns.org</Option>
-                                <Option value="freedns.afraid.org">freedns.afraid.org</Option>
-                                <Option value="zoneedit.com">zoneedit.com</Option>
-                                <Option value="no-ip.com">no-ip.com</Option>
-                                <Option value="oray.net">oray.net</Option>
-                            </Select>
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4030"}) } content={ formatMessage({id: "LANG4031"}) }><span>{ formatMessage({id: "LANG4030"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.inadyn }
-                    >
-                        { getFieldDecorator('enable_inadyn', {
-                            valuePropName: 'checked',
-                            initialValue: this.state.enable_inadyn
-                        })(
-                            <Checkbox onChange={ this._onChangeInadyn } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG72"}) } content={ formatMessage({id: "LANG4025"}) }><span>{ formatMessage({id: "LANG72"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.inadyn }
-                    >
-                        <input type="text" name="username" className="hidden" />
-                        { getFieldDecorator('username', {
-                            rules: [
-                                this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: username
-                        })(
-                            <Input disabled={ !this.state.enable_inadyn } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG73"}) } content={ formatMessage({id: "LANG4026"}) }><span>{ formatMessage({id: "LANG73"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.inadyn }
-                    >
-                        <input type="password" name="password" className="hidden" />
-                        { getFieldDecorator('password', {
-                            rules: [
-                                this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: password
-                        })(
-                            <Input type="password" disabled={ !this.state.enable_inadyn } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title="Hash" content={ formatMessage({id: "LANG4029"}) }><span>Hash</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.hash }
-                    >
-                        { getFieldDecorator('hash', {
-                            rules: [
-                                this.state.class.hash === 'display-block'
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: hash
-                        })(
-                            <Input disabled={ !this.state.enable_inadyn } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4027"}) } content={ formatMessage({id: "LANG4028"}) }><span>{ formatMessage({id: "LANG4027"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.inadyn }
-                    >
-                        { getFieldDecorator('alias', {
-                            rules: [
-                                this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: alias
-                        })(
-                            <Input disabled={ !this.state.enable_inadyn } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG4030"}) } content={ formatMessage({id: "LANG4031"}) }><span>{ formatMessage({id: "LANG4030"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.phddns }
-                    >
-                        { getFieldDecorator('enable_phddns', {
-                            valuePropName: 'checked',
-                            initialValue: this.state.enable_phddns
-                        })(
-                            <Checkbox onChange={ this._onChangePhddns } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG72"}) } content={ formatMessage({id: "LANG4025"}) }><span>{ formatMessage({id: "LANG72"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.phddns }
-                    >
-                        <input type="text" name="szUserID" className="hidden" />
-                        { getFieldDecorator('szUserID', {
-                            rules: [
-                                this.state.enable_phddns && this.state.class.phddns === 'display-block'
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: szUserID
-                        })(
-                            <Input disabled={ !this.state.enable_phddns } />
-                        ) }
-                    </FormItem>
-                    <FormItem
-                        { ...formItemLayout }
-                        label={(
-                            <span>
-                                <Popover title={ formatMessage({id: "LANG73"}) } content={ formatMessage({id: "LANG4026"}) }><span>{ formatMessage({id: "LANG73"}) }</span></Popover>
-                            </span>
-                        )}
-                        className={ this.state.class.phddns }
-                    >
-                        <input type="password" name="szUserPWD" className="hidden" />
-                        { getFieldDecorator('szUserPWD', {
-                            rules: [
-                                this.state.enable_phddns && this.state.class.phddns === 'display-block'
-                                    ? {
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }
-                                    : {}
-                            ],
-                            initialValue: szUserPWD
-                        })(
-                            <Input type="password" disabled={ !this.state.enable_phddns } />
-                        ) }
-                    </FormItem>
-                </Form>
+                <div className="content">
+                    <Form>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4041"}) } content={ formatMessage({id: "LANG4042"}) }><span>{ formatMessage({id: "LANG4041"}) }</span></Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('dyndns_system', {
+                                initialValue: this.state.dyndns_system
+                            })(
+                                <Select onChange={ this._onChangeSystem }>
+                                    <Option value="dyndns.org">dyndns.org</Option>
+                                    <Option value="freedns.afraid.org">freedns.afraid.org</Option>
+                                    <Option value="zoneedit.com">zoneedit.com</Option>
+                                    <Option value="no-ip.com">no-ip.com</Option>
+                                    <Option value="oray.net">oray.net</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4030"}) } content={ formatMessage({id: "LANG4031"}) }><span>{ formatMessage({id: "LANG4030"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.inadyn }
+                        >
+                            { getFieldDecorator('enable_inadyn', {
+                                valuePropName: 'checked',
+                                initialValue: this.state.enable_inadyn
+                            })(
+                                <Checkbox onChange={ this._onChangeInadyn } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG72"}) } content={ formatMessage({id: "LANG4025"}) }><span>{ formatMessage({id: "LANG72"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.inadyn }
+                        >
+                            <input type="text" name="username" className="hidden" />
+                            { getFieldDecorator('username', {
+                                rules: [
+                                    this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}
+                                ],
+                                initialValue: username
+                            })(
+                                <Input disabled={ !this.state.enable_inadyn } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG73"}) } content={ formatMessage({id: "LANG4026"}) }><span>{ formatMessage({id: "LANG73"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.inadyn }
+                        >
+                            <input type="password" name="password" className="hidden" />
+                            { getFieldDecorator('password', {
+                                rules: [
+                                    this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}
+                                ],
+                                initialValue: password
+                            })(
+                                <Input type="password" disabled={ !this.state.enable_inadyn } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title="Hash" content={ formatMessage({id: "LANG4029"}) }><span>Hash</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.hash }
+                        >
+                            { getFieldDecorator('hash', {
+                                rules: [
+                                    this.state.enable_inadyn && this.state.class.hash === 'display-block'
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}
+                                ],
+                                initialValue: hash
+                            })(
+                                <Input disabled={ !this.state.enable_inadyn } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4027"}) } content={ formatMessage({id: "LANG4028"}) }><span>{ formatMessage({id: "LANG4027"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.inadyn }
+                        >
+                            { getFieldDecorator('alias', {
+                                rules: [
+                                    this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}
+                                ],
+                                initialValue: alias
+                            })(
+                                <Input disabled={ !this.state.enable_inadyn } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG4030"}) } content={ formatMessage({id: "LANG4031"}) }><span>{ formatMessage({id: "LANG4030"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.phddns }
+                        >
+                            { getFieldDecorator('enable_phddns', {
+                                valuePropName: 'checked',
+                                initialValue: this.state.enable_phddns
+                            })(
+                                <Checkbox onChange={ this._onChangePhddns } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG72"}) } content={ formatMessage({id: "LANG4025"}) }><span>{ formatMessage({id: "LANG72"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.phddns }
+                        >
+                            <input type="text" name="szUserID" className="hidden" />
+                            { getFieldDecorator('szUserID', {
+                                rules: [
+                                    this.state.enable_phddns && this.state.class.phddns === 'display-block'
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}
+                                ],
+                                initialValue: szUserID
+                            })(
+                                <Input disabled={ !this.state.enable_phddns } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover title={ formatMessage({id: "LANG73"}) } content={ formatMessage({id: "LANG4026"}) }><span>{ formatMessage({id: "LANG73"}) }</span></Popover>
+                                </span>
+                            )}
+                            className={ this.state.class.phddns }
+                        >
+                            <input type="password" name="szUserPWD" className="hidden" />
+                            { getFieldDecorator('szUserPWD', {
+                                rules: [
+                                    this.state.enable_phddns && this.state.class.phddns === 'display-block'
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}
+                                ],
+                                initialValue: szUserPWD
+                            })(
+                                <Input type="password" disabled={ !this.state.enable_phddns } />
+                            ) }
+                        </FormItem>
+                    </Form>
+                </div>
             </div>
         )
     }

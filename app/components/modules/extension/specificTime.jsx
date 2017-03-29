@@ -21,19 +21,12 @@ class SpecificTime extends Component {
         super(props)
 
         this.state = {
-            followmeItem: {},
-            followmeMembers: [],
-            memberAccountList: [],
-            fm_destination_value: '',
-            fm_member_type: 'local',
-            fm_enable_destination: false,
-            fm_destination_type: 'account'
+            timeConditionsOfficetime: this.props.timeConditionsOfficetime
         }
     }
     componentWillMount() {
     }
     componentDidMount() {
-        this._getInitData()
     }
     _addMembers = () => {
         // e.preventDefault()
@@ -139,95 +132,6 @@ class SpecificTime extends Component {
 
         this.setState({
             followmeMembers: followmeMembers
-        })
-    }
-    _getInitData = () => {
-        const form = this.props.form
-        const { formatMessage } = this.props.intl
-        const currentEditId = this.props.currentEditId
-
-        let followmeItem = {}
-        let followmeMembers = []
-        let fm_destination_value = ''
-        let fm_enable_destination = false
-        let fm_destination_type = 'account'
-        let extenion = form.getFieldValue('extension')
-        let destinationDataSource = this.props.destinationDataSource
-        let memberAccountList = _.filter(destinationDataSource.account, (data) => { return data.value !== extenion })
-
-        if (currentEditId) {
-            $.ajax({
-                async: false,
-                type: 'post',
-                url: api.apiHost,
-                data: {
-                    action: 'getFollowme',
-                    followme: currentEditId
-                },
-                success: function(res) {
-                    // const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                    // if (bool) {
-                    if (res.status === 0) {
-                        const response = res.response || {}
-                        const followme = res.response.followme || {}
-                        const members = followme.members
-
-                        _.map(followme, (value, key) => {
-                            if (value === null) {
-                                followmeItem['fm_' + key] = ''
-                            } else {
-                                followmeItem['fm_' + key] = value
-                            }
-                        })
-
-                        _.map(members, (data, key) => {
-                            let extension = data.extension ? data.extension.split(',') : []
-
-                            followmeMembers.push({
-                                key: key,
-                                extension: extension,
-                                ringtime: data.ringtime
-                            })
-                        })
-
-                        fm_destination_type = followme.destination_type
-                        fm_enable_destination = followme.enable_destination === 'yes'
-
-                        if (fm_destination_type === 'voicemail') {
-                            fm_destination_value = followme['vm_extension']
-                        } else if (fm_destination_type === 'queue') {
-                            fm_destination_value = followme['queue_dest']
-                        } else {
-                            fm_destination_value = followme[fm_destination_type]
-                        }
-
-                        form.setFieldsValue({
-                            fm_action: 'updateFollowme'
-                        })
-                    } else {
-                        form.setFieldsValue({
-                            fm_action: 'addFollowme'
-                        })
-                    }
-                }.bind(this),
-                error: function(e) {
-                    message.error(e.statusText)
-                }
-            })
-        } else {
-            form.setFieldsValue({
-                fm_action: 'addFollowme'
-            })
-        }
-
-        this.setState({
-            followmeItem: followmeItem,
-            followmeMembers: followmeMembers,
-            memberAccountList: memberAccountList,
-            fm_destination_value: fm_destination_value,
-            fm_enable_destination: fm_enable_destination,
-            fm_destination_type: fm_destination_type.replace(/_t/g, '')
         })
     }
     _onChangeDesType = (value) => {
@@ -675,7 +579,7 @@ class SpecificTime extends Component {
                                 columns={ columns }
                                 pagination={ false }
                                 showHeader={ false }
-                                dataSource={ this.state.followmeMembers }
+                                dataSource={ this.state.timeConditionsOfficetime }
                             />
                         </Col>
                     </Row>

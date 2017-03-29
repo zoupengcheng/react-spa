@@ -113,7 +113,7 @@ UCMGUI.prototype = {
     addZero: function(num) {
         const number = Math.floor(num)
 
-        return ((number <= 9) ? ("0" + number) : number)
+        return ((number <= 9) ? ('0' + number) : (number + ''))
     },
     askExtensionRange: function(ext, start, end, disabled, extEnd, formatMessage) {
         let res = 0

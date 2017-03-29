@@ -33,6 +33,7 @@ class ExtensionItem extends Component {
             editFollowme: false,
             add_method: 'single',
             autoEmailToUser: 'no',
+            time_conditions_officetime: [],
             destinationDataSource: {
                 ivr: [],
                 none: [],
@@ -50,9 +51,9 @@ class ExtensionItem extends Component {
         }
     }
     componentDidMount() {
+        this._getInitData()
     }
     componentWillMount() {
-        this._getInitData()
     }
     componentWillUnmount() {
     }
@@ -131,6 +132,7 @@ class ExtensionItem extends Component {
         let extensionRange = []
         let existNumberList = []
         let destinationDataSource = {}
+        let time_conditions_officetime = []
         let mohNameList = ['default', 'ringbacktone_default']
         let getList = [
                 { 'getIVRList': '' },
@@ -259,9 +261,8 @@ class ExtensionItem extends Component {
 
         if (extensionId) {
             $.ajax({
-                type: 'json',
+                type: 'post',
                 async: false,
-                method: 'post',
                 url: api.apiHost,
                 data: {
                     extension: extensionId,
@@ -292,8 +293,7 @@ class ExtensionItem extends Component {
             })
 
             $.ajax({
-                type: 'json',
-                method: 'post',
+                type: 'post',
                 url: api.apiHost,
                 data: {
                     action: 'getUser',
@@ -315,6 +315,59 @@ class ExtensionItem extends Component {
                             settings: settings,
                             userSettings: userSettings,
                             importantValues: importantValues
+                        })
+
+                        $.ajax({
+                            type: 'post',
+                            url: api.apiHost,
+                            data: {
+                                'sord': 'asc',
+                                'sidx': 'condition_index',
+                                'user_id': userSettings.user_id,
+                                'action': 'listTimeConditionOfficeTime'
+                            },
+                            success: function(res) {
+                                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+
+                                if (bool) {
+                                    let response = res.response || {},
+                                        time_condition = response.time_conditions_officetime,
+                                        translateTime = time_condition.sortBy('condition_index'),
+                                        ary = []
+
+                                    for (let i = 0; i < translateTime.length; i++) {
+                                        let obj = translateTime[i]
+
+                                        obj.start_hour = UCMGUI.addZero(obj.start_hour)
+                                        obj.start_min = UCMGUI.addZero(obj.start_min)
+                                        obj.end_hour = UCMGUI.addZero(obj.end_hour)
+                                        obj.end_min = UCMGUI.addZero(obj.end_min)
+
+                                        let stime_hour = obj.start_hour
+                                            stime_minute = obj.start_min
+                                            ftime_hour = obj.end_hour
+                                            ftime_minute = obj.end_min
+
+                                        if (stime_hour === '' && stime_minute === '' &&
+                                            ftime_hour === '' && ftime_minute === '') {
+
+                                            obj.time = '00:00-23:59'
+                                        } else {
+                                            obj.time = stime_hour + ':' + stime_minute + '-' +
+                                                ftime_hour + ':' + ftime_minute
+                                        }
+
+                                        ary.push(obj)
+                                    }
+
+                                    this.setState({
+                                        time_conditions_officetime: ary
+                                    })
+                                }
+                            }.bind(this),
+                            error: function(e) {
+                                message.error(e.statusText)
+                            }
                         })
                     }
                 }.bind(this),
@@ -975,11 +1028,11 @@ class ExtensionItem extends Component {
                             <SpecificTime
                                 form={ form }
                                 settings={ this.state.settings }
-                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
                                 destinationDataSource={ this.state.destinationDataSource }
+                                timeConditionsOfficetime={ this.state.time_conditions_officetime }
                             />
                         </TabPane>
                         <TabPane tab={ formatMessage({id: "LANG568"}) } key="5" disabled={ this.state.add_method === 'batch' }>
