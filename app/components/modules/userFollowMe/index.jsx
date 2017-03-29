@@ -427,10 +427,9 @@ class FollowMe extends Component {
                 action['members'] = JSON.stringify(members)
 
                 $.ajax({
-                    url: api.apiHost,
-                    method: "post",
+                    type: 'post',
                     data: action,
-                    type: 'json',
+                    url: api.apiHost,
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -516,7 +515,7 @@ class FollowMe extends Component {
                 title: formatMessage({id: "LANG74"}),
                 render: (text, record, index) => (
                     this._createOption(text, record, index)
-                ) 
+                )
             }]
 
         const title = formatMessage({id: "LANG710"})
@@ -725,17 +724,18 @@ class FollowMe extends Component {
                                     <FormItem>
                                         { getFieldDecorator('external_number', {
                                             rules: [
-                                                this.state.enable_destination &&
+                                                (this.state.enable_destination &&
                                                 this.state.destination_type === 'external_number'
                                                     ? {
                                                             required: true,
                                                             message: formatMessage({id: "LANG2150"})
-                                                        }, {
-                                                            validator: (data, value, callback) => {
-                                                                Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
-                                                            }
                                                         }
-                                                    : {}
+                                                    : {}),
+                                                {
+                                                    validator: (data, value, callback) => {
+                                                        Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                                    }
+                                                }
                                             ],
                                             initialValue: settings.external_number
                                         })(
@@ -816,16 +816,17 @@ class FollowMe extends Component {
                                     <FormItem>
                                         { getFieldDecorator('member_external', {
                                             rules: [
-                                                this.state.member_type === 'external'
+                                                (this.state.member_type === 'external'
                                                     ? {
                                                             required: true,
                                                             message: formatMessage({id: "LANG2150"})
-                                                        }, {
-                                                            validator: (data, value, callback) => {
-                                                                Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
-                                                            }
                                                         }
-                                                    : {}
+                                                    : {}),
+                                                {
+                                                    validator: (data, value, callback) => {
+                                                        Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                                    }
+                                                }
                                             ],
                                             initialValue: ''
                                         })(

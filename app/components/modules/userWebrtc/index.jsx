@@ -9,6 +9,7 @@ import $ from 'jquery'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import _ from 'underscore'
+import '../../../css/userWebRTC'
 
 const FormItem = Form.Item
 const baseServerURl = api.apiHost
@@ -545,11 +546,21 @@ class UserWebrtc extends Component {
             this.setState({
                 txtCallStatusMsg: "Dial number can not be empty"
             })
+            setTimeout(() => {
+                me.setState({
+                txtCallStatusMsg: ""
+            })
+            }, 3000)
             return
         } else if (!txtPhoneNumberVal.match(/^[0-9#*.@:a-zA-Z]{0,64}$/)) {
             this.setState({
                 txtCallStatusMsg: "Invalid format"
             })
+            setTimeout(() => {
+                me.setState({
+                txtCallStatusMsg: ""
+            })
+            }, 3000)
             return
         }
 
@@ -587,7 +598,7 @@ class UserWebrtc extends Component {
             if (state["oSipSessionCall"].call(txtPhoneNumberVal) !== 0) {
                 state["oSipSessionCall"] = null
                 this.setState({
-                    txtCallStatus: 'Failed to make call',
+                    txtCallStatusMsg: 'Failed to make call',
                     btnCall: false,
                     btnHangUp: true
                 })
@@ -596,11 +607,19 @@ class UserWebrtc extends Component {
             this._saveCallOptions()
         } else if (state["oSipSessionCall"]) {
             this.setState({
-                txtCallStatus: 'Connecting...',
+                txtCallStatusMsg: 'Connecting...',
                 btnCall: false,
                 btnHangUp: true
             })
             state["oSipSessionCall"].accept(state.oConfigCall)
+        }
+    }
+    _saveCallOptions() {
+        const { getFieldValue } = this.props.form
+
+        if (window.localStorage) {
+            window.localStorage.setItem('org.doubango.call.phone_number', getFieldValue('txtPhoneNumber'))
+            window.localStorage.setItem('org.doubango.expert.disable_video', this.state.bDisableVideo ? "true" : "false")
         }
     }
     _showNotifICall = (s_number) => {
@@ -844,7 +863,8 @@ class UserWebrtc extends Component {
                         txtRegStatusMsg: bFailure ? "<i>Disconnected: <b>" + e.description + "</b></i>" : "<i>Disconnected</i>",
                         btnHoldResume: false,
                         btnTransfer: false,
-                        txtCallStatusMsg: ""
+                        txtCallStatusMsg: "",
+                        btnRegister: false
                     })
                     if (sipUnRegisterFlag) {
                         this._sipUnRegister()
@@ -1433,11 +1453,19 @@ class UserWebrtc extends Component {
     _handleButtonClick = (e) => {
     }
     _handleMenuClick = (e) => {
-        // message.info('Click on menu item.')
-        console.log('click', e)
-        // <li><a href="#" onClick='sipCall("call-audio")'>Audio</a></li>
-        // <li><a href="#" onClick='sipCall("call-audiovideo")'>Video</a></li>
-        // <li id='liScreenShare'><a href="#" onClick='sipShareScreen()'>Screen Share</a></li>
+        switch (e.key) {
+            case "1":
+                this._sipCall("call-audio")
+                break
+            case "2":
+                this._sipCall("call-audiovideo")
+                break
+            case "3":
+                // this._sipShareScreen()
+                break
+            default:
+                break
+        }
     }
     render() {
         const {formatMessage} = this.props.intl
@@ -1461,7 +1489,7 @@ class UserWebrtc extends Component {
             <Menu onClick={ this._handleMenuClick }>
                 <Menu.Item key="1">Audio</Menu.Item>
                 <Menu.Item key="2">Video</Menu.Item>
-                <Menu.Item key="3">Screen Share</Menu.Item>
+                { /* <Menu.Item key="3">Screen Share</Menu.Item> */}
             </Menu>
         )
         return (
@@ -1563,10 +1591,10 @@ class UserWebrtc extends Component {
                                 <FormItem
                                     { ...formItemLayout }
                                 >
-                                    <Button type="primary" size="default" id="btnUnRegister" onClick={ this._sipUnRegister }>
+                                    <Button type="primary" size="default" id="btnUnRegister" onClick={ this._sipUnRegister } disabled={ state.btnRegister ? false : true}>
                                         { formatMessage({id: "LANG4451"}) }
                                     </Button>
-                                    <Button type="primary" size="default" id="btnRegister" onClick={ this._sipRegister } disabled={ state.btnRegister ? false : false}>
+                                    <Button type="primary" size="default" id="btnRegister" onClick={ this._sipRegister } disabled={ state.btnRegister ? true : false}>
                                         { formatMessage({id: "LANG1892"}) }
                                     </Button>
                                 </FormItem>
@@ -1580,7 +1608,7 @@ class UserWebrtc extends Component {
                                         { ...formItemLayout }
                                         label="">
                                         { getFieldDecorator('txtCallStatus')(
-                                            <i>{ state.txtCallStatusMsg}</i>
+                                            <span id="txtRegStatus" dangerouslySetInnerHTML={{ __html: state.txtCallStatusMsg }}></span>
                                         )}
                                     </FormItem>
                                     <FormItem
@@ -1629,95 +1657,110 @@ class UserWebrtc extends Component {
                                         KeyPad
                                     </Button>
                                 </div>
-                                {/* /四个按钮 */}                     
+                                {/* /四个按钮 */}
+                                {/* Glass Panel */}      
+                                <div id='divGlassPanel' className='glass-panel' style={{ visibility: "hidden" }}></div>
+                                {/* KeyPad Div */} 
+                                <div id='divKeyPad' className='span2 well div-keypad' style={{ left: "0px", top: "0px", width: "250px", height: "240px", visibility: "hidden" }}>
+                                    <table style={{ width: "100%", height: "100%" }}>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <Button size="small" style={{ width: "31%", paddingTop: "18px" }} onClick={ this._sipSendDTMF('1') }>1</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('2') }>2
+                                                        <br/>ABC</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('3') }>3
+                                                        <br/>DEF</Button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('4') }>4
+                                                        <br/>GHI</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('5') }>5
+                                                        <br/>JKL</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('6') }>6
+                                                        <br/>MNO</Button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('7') }>7
+                                                        <br/>PQRS</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('8') }>8
+                                                        <br/>TUV</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('9') }>9
+                                                        <br/>WXYZ</Button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Button size="small" style={{ width: "31%", paddingTop: "18px" }} onClick={ this._sipSendDTMF('*') }>*</Button>
+                                                    <Button size="small" style={{ width: "31%" }} onClick={ this._sipSendDTMF('0') }>0
+                                                        <br/>OPER</Button>
+                                                    <Button size="small" style={{ width: "31%", paddingTop: "18px" }} onClick={ this._sipSendDTMF('#') }>#</Button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan={ 3 }>
+                                                    <Button type="danger" size="small" style={{ width: "31%", paddingTop: "18px" }} onClick={ this._closeKeyPad }>close</Button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="divCallCtrl">
+                                    {/* <table style={{ width: "100%" }}>
+                                        <tbody>
+                                            <tr>
+                                                <td id="tdVideo" className='tab-video'>
+                                                    <div id="divVideo" className='div-video'>
+                                                        <div id="divVideoRemote" style={{ position: "relative", border: "0px solid #009", height: "100%", width: "100%", zIndex: "auto" }}>
+                                                            <video className="video" width="100%" height="100%" id="video_remote" autoPlay="autoplay" 
+                                                                style={{ opacity: 1, backgroundColor: "#000000"}}>
+                                                            </video>
+                                                        </div>
+                                                        <div id="divVideoLocalWrapper" style={{ marginLeft: "0px", border: "0px solid #009", zIndex: 1000 }}>
+                                                            <iframe className="previewvideo" style={{ border: "0px solid #009", zIndex: 1000 }}> </iframe>
+                                                            <div id="divVideoLocal" className="previewvideo" 
+                                                                style={{ border: "0px solid #009", zIndex: 1000 }}>
+                                                                <video className="video" width="100%" height="100%" id="video_local" autoPlay="autoplay" muted="true" 
+                                                                    style={{ opacity: 1, backgroundColor: "#000000" }} >
+                                                                </video>
+                                                            </div>
+                                                        </div>
+                                                        <div id="divScreencastLocalWrapper" 
+                                                            style={{ marginLeft: "90px", border: "0px solid #009", zIndex: 1000 }}>
+                                                            <iframe className="previewvideo" 
+                                                                style={{ border: "0px solid #009", zIndex: 1000 }}
+                                                            > </iframe>
+                                                            <div id="divScreencastLocal" className="previewvideo" style={{ border: "0px solid #009", zIndex: 1000 }}>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    */}
+                                    <div id="divVideo" className='div-video'>
+                                        <div id="divVideoRemote" className="remote_wrapper">
+                                            <video className="video" id="video_remote" autoPlay="autoplay" width="100%" height="100%"
+                                                style={{ opacity: 0, backgroundColor: "#000000"}}>
+                                            </video>
+                                        </div>
+                                        <div id="divVideoLocalWrapper" className="local-stream local-stream-audio room-preview">
+                                            <div id="divVideoLocal" className="previewvideo">
+                                                <video className="video" width="100%" height="100%" id="video_local" autoPlay="autoplay" muted="true"
+                                                    style={{ opacity: 0, backgroundColor: "#000000"}}>
+                                                </video>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>                     
                             </div>
                         </div>
-                        <div id="divCallCtrl">
-                            <table style={{ width: "100%" }}>
-                                <tbody>
-                                    <tr>
-                                        <td id="tdVideo" className='tab-video'>
-                                            <div id="divVideo" className='div-video'>
-                                                <div id="divVideoRemote" style={{ position: "relative", border: "0px solid #009", height: "100%", width: "100%", zIndex: "auto" }}>
-                                                    <video className="video" width="100%" height="100%" id="video_remote" autoPlay="autoplay" 
-                                                        style={{ opacity: 0, backgroundColor: "#000000"}}>
-                                                    </video>
-                                                </div>
-                                                <div id="divVideoLocalWrapper" style={{ marginLeft: "0px", border: "0px solid #009", zIndex: 1000 }}>
-                                                    <iframe className="previewvideo" style={{ border: "0px solid #009", zIndex: 1000 }}> </iframe>
-                                                    <div id="divVideoLocal" className="previewvideo" 
-                                                        style={{ border: "0px solid #009", zIndex: 1000 }}>
-                                                        <video className="video" width="100%" height="100%" id="video_local" autoPlay="autoplay" muted="true" 
-                                                            style={{ opacity: 0, backgroundColor: "#000000" }} >
-                                                        </video>
-                                                    </div>
-                                                </div>
-                                                <div id="divScreencastLocalWrapper" 
-                                                    style={{ marginLeft: "90px", border: "0px solid #009", zIndex: 1000 }}>
-                                                    <iframe className="previewvideo" 
-                                                        style={{ border: "0px solid #009", zIndex: 1000 }}
-                                                    > </iframe>
-                                                    <div id="divScreencastLocal" className="previewvideo" style={{ border: "0px solid #009", zIndex: 1000 }}>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
                     </Form>
-                </div>
-                {/* Glass Panel */}      
-                <div id='divGlassPanel' className='glass-panel' style={{ visibility: "hidden" }}></div>
-                {/* KeyPad Div */} 
-                <div id='divKeyPad' className='span2 well div-keypad' style={{ left: "0px", top: "0px", width: "250px", height: "240px", visibility: "hidden" }}>
-                    <table style={{ width: "100%", height: "100%" }}>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('1') }>1</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('2') }>2
-                                        <br/>ABC</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('3') }>3
-                                        <br/>DEF</Button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('4') }>4
-                                        <br/>GHI</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('5') }>5
-                                        <br/>JKL</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('6') }>6
-                                        <br/>MNO</Button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('7') }>7
-                                        <br/>PQRS</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('8') }>8
-                                        <br/>TUV</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('9') }>9
-                                        <br/>WXYZ</Button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('*') }>*</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('0') }>0
-                                        <br/>OPER</Button>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._sipSendDTMF('#') }>#</Button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colSpan={ 3 }>
-                                    <Button type="primary" style={{ width: "33%" }} onClick={ this._closeKeyPad }>close</Button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
                 {/* Audios */}
                 <audio id="audio_remote" autoPlay="autoplay" />

@@ -1,0 +1,44 @@
+#divCallCtrl {
+    position: relative; 
+    top: 0; 
+    width: 100%; 
+    height:90%;
+}
+#divVideo {
+    width: 100%;
+    height:100%;
+}    
+.div-video {
+    width: 100%;
+    height: 0px;
+    -webkit-transition-property: height;
+    -moz-transition-property: height;
+    -o-transition-property: height;
+    -webkit-transition-duration: 2s;
+    -moz-transition-duration: 2s;
+    -o-transition-duration: 2s;
+}
+.remote_wrapper {
+    position: relative;
+    top: 0;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    z-index: 9000
+}
+.local-stream.room-preview {
+    height: 30%;
+    width: 30%;
+    bottom: -6px;
+}
+.local-stream {
+    position: absolute;
+    right: 3px;
+    bottom: 5px;
+    /* next two lines are workaround for lack of object-fit; see bug 1020445 */
+    max-width: 140px;
+    width: 30%;
+    height: 28%;
+    max-height: 105px;
+    box-shadow: none;
+}

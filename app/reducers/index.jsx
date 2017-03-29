@@ -147,6 +147,15 @@ const configReloadStatus = (state = [], action) => {
     }
 }
 
+const zcFoundConfig = (state = [], action) => {
+    switch (action.type) {
+        case 'GET_ZCFOUNDSTATUS':
+            return action.zcFoundConfig
+        default:
+            return state
+    }
+}
+
 // ues redux's combineReducers
 const rootReducer = combineReducers({
     msg,
@@ -170,7 +179,8 @@ const rootReducer = combineReducers({
     conferenceStatus,
     activeCallStatus,
     voiceMailStatus,
-    configReloadStatus
+    configReloadStatus,
+    zcFoundConfig
 })
 
 export default rootReducer

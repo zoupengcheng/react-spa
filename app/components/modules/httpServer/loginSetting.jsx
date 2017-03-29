@@ -119,8 +119,13 @@ class LoginSetting extends Component {
             type: 'json',
             async: false,
             success: function(res) {
-                let loginBannedList = res.response.login_banned
+                let loginBannedListTmp = res.response.login_banned
+                let loginBannedList = []
 
+                loginBannedListTmp.map(function(item, index) {
+                    let itemobj = _.extend(item, {id: index})
+                    loginBannedList.push(itemobj)
+                })
                 const pagination_banned = this.state.pagination_banned
                 // Read total count from server
                 pagination_banned.total = res.response.total_item
@@ -278,46 +283,52 @@ class LoginSetting extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldValue, setFieldsValue } = this.props.form
         const white_ip_addr = getFieldValue('white_ip_addr')
-        if (white_ip_addr && white_ip_addr !== '') {
-            let doAjax = true
-            this.state.whiteAddrNameList.map(function(item) {
-                if (white_ip_addr === item) {
-                    doAjax = false
-                }
-            })
-            if (doAjax === false) {
-
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
+            if (err && err.hasOwnProperty('white_ip_addr')) {
+                return
             } else {
-                $.ajax({
-                    url: api.apiHost,
-                    method: "post",
-                    data: {
-                        action: 'addLoginWhiteAddr',
-                        ip: white_ip_addr
-                    },
-                    type: 'json',
-                    async: false,
-                    error: function(e) {
-                        message.error(e.statusText)
-                    },
-                    success: function(data) {
-                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                        if (bool) {
-                            message.destroy()
-                            message.success(formatMessage({ id: "LANG815" }))
-                             this.setState({
-                                visible: false
-                            })
-                            setFieldsValue({
-                                'white_ip_addr': ''
-                            })
-                            this._listLoginWhiteAddr()
+                if (white_ip_addr && white_ip_addr !== '') {
+                    let doAjax = true
+                    this.state.whiteAddrNameList.map(function(item) {
+                        if (white_ip_addr === item) {
+                            doAjax = false
                         }
-                    }.bind(this)
-                })
+                    })
+                    if (doAjax === false) {
+
+                    } else {
+                        $.ajax({
+                            url: api.apiHost,
+                            method: "post",
+                            data: {
+                                action: 'addLoginWhiteAddr',
+                                ip: white_ip_addr
+                            },
+                            type: 'json',
+                            async: false,
+                            error: function(e) {
+                                message.error(e.statusText)
+                            },
+                            success: function(data) {
+                                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+                                const successMessage = <span dangerouslySetInnerHTML={{ __html: formatMessage({id: "LANG815"}) }} ></span>
+                                if (bool) {
+                                    message.destroy()
+                                    message.success(successMessage)
+                                     this.setState({
+                                        visible: false
+                                    })
+                                    setFieldsValue({
+                                        'white_ip_addr': ''
+                                    })
+                                    this._listLoginWhiteAddr()
+                                }
+                            }.bind(this)
+                        })
+                    }
+                }
             }
-        }
+        }) 
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -498,7 +509,7 @@ class LoginSetting extends Component {
                                         validator: this.state.visible ? this._checkName : ""
                                     }, {
                                         validator: (data, value, callback) => {
-                                            this.state.visible ? Validator.ipAddress(data, value, callback, formatMessage) : callback()
+                                            this.state.visible ? Validator.ipDnsSpecial(data, value, callback, formatMessage) : callback()
                                         }
                                     }],
                                 initialValue: ''
@@ -513,7 +524,7 @@ class LoginSetting extends Component {
                         <span>{ formatMessage({id: "LANG4791"}) }</span>
                     </div>
                     <Table
-                        rowKey="ip"
+                        rowKey="id"
                         columns={ columns_banned }
                         pagination={ this.state.pagination_banned }
                         dataSource={ this.state.loginBannedList }

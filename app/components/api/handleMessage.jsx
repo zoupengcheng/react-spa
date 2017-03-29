@@ -114,6 +114,8 @@ export const handleRequest = (msg, store) => {
             store.dispatch({type: 'GET_VOICEMAILSTATUS', voiceMailStatus: eventBody})
         } else if (msg.eventname === "ConfigReloadStatus") {
             store.dispatch({type: 'GET_CONFIGRELOADSTATUS', configReloadStatus: eventBody})
+        } else if (msg.eventname === "ZCFoundStatus") {
+            store.dispatch({type: 'GET_ZCFOUNDSTATUS', zcFoundConfig: eventBody})
         }
     }
 }

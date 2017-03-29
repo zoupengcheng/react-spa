@@ -359,7 +359,7 @@ class BarItem extends Component {
                                 width: 100,
                                 initialValue: privilegeItem.privilege_name ? privilegeItem.privilege_name : ""
                             })(
-                                <Input maxLength='32' />
+                                <Input maxLength='32' disabled={privilegeItem.privilege_id === 3} />
                             ) }
                         </FormItem>
                         <FormItem

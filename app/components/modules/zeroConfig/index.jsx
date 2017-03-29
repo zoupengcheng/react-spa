@@ -65,7 +65,7 @@ class ZeroConfig extends Component {
                 <Tabs defaultActiveKey="1" onChange={this.onChange}>
                     <TabPane tab={formatMessage({id: "LANG16"})} key="1">
                         <Devices 
-                            dataSource={this.state.SIPGenSettings} 
+                            dataSource={this.state.SIPGenSettings}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG3169"})} key="2">

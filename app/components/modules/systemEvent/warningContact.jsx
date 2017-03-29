@@ -373,7 +373,7 @@ class WarningContact extends Component {
                                         }],
                                         initialValue: superList[0] ? superList[0].value : ""
                                         })(
-                                            <Input />
+                                            <Input disabled={localStorage.username === "admin" ? false : true}/>
                                     )}
                                 </FormItem>
                             </Col>
@@ -381,7 +381,7 @@ class WarningContact extends Component {
                                 <Icon
                                     className="dynamic-plus-button"
                                     type="plus-circle-o"
-                                    onClick={ this._addSuperEmail }
+                                    onClick={ localStorage.username === "admin" ? this._addSuperEmail : ''}
                                 />
                             </Col>
                             <Col span={6} offset={1} >

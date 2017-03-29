@@ -10,9 +10,17 @@ import api from "../../api/api"
 import Validator from "../../api/validator"
 import UCMGUI from "../../api/ucmgui"
 
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import * as Actions from '../../../actions/'
+
 const FormItem = Form.Item
 const Option = Select.Option
 const confirm = Modal.confirm
+
+let bSocketInterval = false,
+    filter = 'res',
+    broadcastDiscover = false
 
 const zeroconfigErr = {
     "1": "LANG918",
@@ -22,21 +30,17 @@ const zeroconfigErr = {
     "5": "LANG4389"
 }
 
-let checkInterval = null
-
 class Devices extends Component {
     constructor(props) {
         super(props)
         this.state = {
             zeroConfigSettings: UCMGUI.isExist.getList("getZeroConfigSettings"),
             deviceList: [],
-            filter: this.props.filter ? this.props.filter : "all",
             selectedRowKeys: [],
             selectedRows: [],
             autoDiscoverVisible: false,
             modalType: null,
             zcScanProgress: false,
-            broadcastDiscover: false,
             networkInfo: {
                 LANAddr: null,
                 netSegFromAddr: null,
@@ -47,6 +51,36 @@ class Devices extends Component {
     componentDidMount() {
         // this._getAllDeviceExtensions()
         this._listZeroConfig()
+    }
+    componentDidUpdate() {
+        this._checkSocketScan()
+    }
+    _checkSocketScan = () => {
+        const { formatMessage } = this.props.intl
+
+        if (bSocketInterval && !broadcastDiscover) {
+            // check whether single ip scanning has done per second.
+            let zcFoundConfig = this.props.zcFoundConfig.zc_scan_progress,
+                _this = this
+
+            if (zcFoundConfig === '0') {
+                bSocketInterval = false
+
+                message.destroy()
+
+                confirm({
+                    title: '',
+                    content: formatMessage({ id: "LANG917" }, { 0: formatMessage({id: "LANG3"}) }),
+                    okText: formatMessage({id: "LANG727" }),
+                    cancelText: formatMessage({id: "LANG726" }),
+                    onOk() {
+                        filter = 'res'
+                        _this._listZeroConfig()
+                    },
+                    onCancel() {}
+                })
+            }
+        }
     }
     componentWillUnmount() {
 
@@ -107,7 +141,7 @@ class Devices extends Component {
             data: { 
                 action: 'listZeroConfig',
                 "options": "mac,ip,members,version,vendor,model,state,last_access",
-                "filter": this.state.filter
+                "filter": filter
             },
             type: 'json',
             error: function(e) {
@@ -127,9 +161,7 @@ class Devices extends Component {
         })         
     }
     _handleFilterChange = (e) => {
-        this.setState({
-            filter: e
-        })
+        filter = e
         this._listZeroConfig()
     }
     /**                          
@@ -142,9 +174,7 @@ class Devices extends Component {
             message.destroy()
             if (data && data.status === 0) {
                 const zcScanProgress = data.response.zc_scan_progress
-                _this.setState({
-                    zcScanProgress: zcScanProgress
-                })
+
                 if (zcScanProgress === '1') {
                     message.error(formatMessage({id: "LANG920"}))
                 } else {
@@ -241,20 +271,13 @@ class Devices extends Component {
                     if (data.status === 0) {                        
                         const res = data.response.scanDevices
                         if (res === "Scanning Device") {
-                            if (_this.state.broadcastDiscover) {
+                            if (broadcastDiscover) {
                                 message.success(formatMessage({id: "LANG3768"}))
                                 UCMGUI.triggerCheckInfo(formatMessage)
                             } else {
-                                message.loading(formatMessage({id: "LANG3769"}))
-                               
-                                // check whether single ip scanning has done per second.
-                                checkInterval = setInterval(function() {
-                                    IntervalForSingleIP()
-                                }, 1000)
-                            }                            
-                            _this.setState({
-                                zcScanProgress: '1'
-                            })
+                                bSocketInterval = true
+                                message.loading(formatMessage({id: "LANG3769"}), 0)
+                            }
                         } else {
                             const num = res.slice("ZCERROR_".length)
                             if (zeroconfigErr.hasOwnProperty(num)) {
@@ -266,35 +289,6 @@ class Devices extends Component {
                     }
                 }
             }) 
-        }
-
-        let IntervalForSingleIP = () => {
-            this._checkInfo().done(data => {
-                message.destroy()
-                if (data && data.status === 0) {
-                    let zcScanProgress = data.response.zc_scan_progress
-                    if (zcScanProgress === '0') {
-                        clearInterval(checkInterval)
-                        checkInterval = null
-                        _this.setState({
-                            zcScanProgress: zcScanProgress
-                        })
-                        confirm({
-                            title: '',
-                            content: formatMessage({ id: "LANG917" }, { 0: formatMessage({id: "LANG3"}) }),
-                            okText: formatMessage({id: "LANG727" }),
-                            cancelText: formatMessage({id: "LANG726" }),
-                            onOk() {
-                                _this.setState({
-                                    filter: "res"
-                                })
-                                _this._listZeroConfig()
-                            },
-                            onCancel() {}
-                        })                             
-                    }
-                }
-            })
         }
 
         this.props.form.validateFieldsAndScroll((err, values) => {
@@ -311,14 +305,13 @@ class Devices extends Component {
                         okText: formatMessage({id: "LANG727" }),
                         cancelText: formatMessage({id: "LANG726" }),
                         onOk() {
-                            _this.setState({
-                                broadcastDiscover: true
-                            })
+                            broadcastDiscover = true
                             scan_cgi(action)
                         },
                         onCancel() {}
                     })
                 } else {
+                    broadcastDiscover = false
                     scan_cgi(action)
                 }  
             }
@@ -439,7 +432,6 @@ class Devices extends Component {
             labelCol: { span: 8 },
             wrapperCol: { span: 16 }
         }
-        const filter = this.state.filter
         const networkInfo = this.state.networkInfo
 
         const columns = [
@@ -518,6 +510,7 @@ class Devices extends Component {
             onChange: this._onSelectChange,
             selectedRowKeys: this.state.selectedRowKeys
         }
+
         return (
             <div className="app-content-main" id="app-content-main">
                 <div className="content">
@@ -625,77 +618,7 @@ class Devices extends Component {
                                     </Tooltip>
                                 )}>
                                 { getFieldDecorator('targetAddr', {
-                                    rules: [{
-                                        required: true,
-                                        message: formatMessage({id: "LANG2150"})
-                                    }, { 
-                                        validator: (data, value, callback) => {
-                                            // Validator.ipAddress(data, value, callback, formatMessage)
-                                            if (!value || /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/i.test(value)) {
-                                                callback()
-                                            } else {
-                                                callback(formatMessage({id: "LANG2195"}))
-                                            }
-                                        }
-                                    }, { 
-                                        validator: (data, value, callback) => {
-                                            let errMsg = formatMessage({id: "LANG2176"})
-
-                                            if (!value) {
-                                                callback()
-                                            }
-                                            const targetAddrArry = value.split(".")
-                                            const fromAddrArry = networkInfo.netSegFromAddr.split(".")
-                                            const toAddrArry = networkInfo.netSegToAddr.split(".")
-                                            let ret = true
-                                            if (targetAddrArry.length === 4) {
-                                                for (let i = 0; i < 4; i++) {
-                                                    const target = Number(targetAddrArry[i]),
-                                                          min = Number(fromAddrArry[i]),
-                                                          max = Number(toAddrArry[i])
-                                                    if (target < min || target > max) {
-                                                        ret = false
-                                                        break
-                                                    }
-                                                }
-                                            } else {
-                                                ret = false
-                                            }
-                                            if (ret) {
-                                                callback()
-                                            } else {
-                                                callback(errMsg)
-                                            }                                            
-                                        }
-                                    }, { 
-                                        validator: (data, value, callback) => {
-                                            let errMsg = formatMessage({id: "LANG4822"})
-
-                                            if (!value) {
-                                                callback()
-                                            }
-
-                                            if (value !== networkInfo.netSegFromAddr) {
-                                                callback()
-                                            } else {
-                                                callback(errMsg)
-                                            }
-                                        }
-                                    }, { 
-                                        validator: (data, value, callback) => {
-                                            let errMsg = formatMessage({id: "LANG4823"})
-
-                                            if (!value) {
-                                                callback()
-                                            }
-
-                                            if (value !== networkInfo.LANAddr) {
-                                                callback()
-                                            } else {
-                                                callback(errMsg)
-                                            }
-                                        }
-                                    }]
+                                    rules: []
                                 })(
                                     <Input />
                                 )}
@@ -708,7 +631,12 @@ class Devices extends Component {
     }
 }
 
-Devices.propTypes = {
+const mapStateToProps = (state) => ({
+    zcFoundConfig: state.zcFoundConfig
+})
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Actions, dispatch)
 }
 
-export default Form.create()(injectIntl(Devices))
+export default Form.create()(connect(mapStateToProps, mapDispatchToProps)(injectIntl(Devices)))

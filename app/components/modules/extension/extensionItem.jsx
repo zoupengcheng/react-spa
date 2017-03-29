@@ -28,7 +28,9 @@ class ExtensionItem extends Component {
         this.state = {
             settings: {},
             languages: [],
+            activeTab: '1',
             userSettings: {},
+            editFollowme: false,
             add_method: 'single',
             autoEmailToUser: 'no',
             destinationDataSource: {
@@ -107,6 +109,17 @@ class ExtensionItem extends Component {
         }
 
         return ret.reverse().join('').replace(/0*(\d+)/, '$1')
+    }
+    _getFieldsIDs = () => {
+        let id = []
+        let form = this.props.form
+        let fieldsValue = form.getFieldsValue()
+
+        _.map(fieldsValue, (value, key) => {
+            id.push(key)
+        })
+
+        return id
     }
     _getInitData = () => {
         let extensionEnd
@@ -352,12 +365,15 @@ class ExtensionItem extends Component {
         const { formatMessage } = this.props.intl
         const getFieldInstance = form.getFieldInstance
 
-        form.validateFields({ force: true }, (err, values) => {
+        let validateFields = this._getFieldsIDs()
+
+        form.validateFields(_.without(validateFields, 'fm_member_local', 'fm_member_external'), { force: true }, (err, values) => {
             if (!err) {
                 let action = {
                         dndwhitelist: [],
                         fwdwhitelist: []
                     },
+                    fm_action = {},
                     add_method = this.state.add_method,
                     fax = values.faxmode ? values.faxmode : '',
                     type = values.extension_type ? values.extension_type : ''
@@ -400,6 +416,10 @@ class ExtensionItem extends Component {
                     }
 
                     if (key.indexOf('fm_') === 0) {
+                        if (key.indexOf('fm_member') !== 0 && key !== 'fm_destination_value') {
+                            fm_action[key.slice(3)] = (value !== undefined ? UCMGUI.transCheckboxVal(value) : '')
+                        }
+
                         return false
                     }
 
@@ -679,6 +699,16 @@ class ExtensionItem extends Component {
                         })
                     }
                 } else {
+                    // if (!values.fm_members.length) {
+                    //     message.error(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3391" })}}></span>)
+
+                    //     this.setState({
+                    //         activeTab: '5'
+                    //     })
+
+                    //     return false
+                    // }
+
                     message.loading(formatMessage({ id: "LANG826" }), 0)
 
                     $.ajax({
@@ -719,8 +749,8 @@ class ExtensionItem extends Component {
                                     }
 
                                     $.ajax({
-                                        type: 'json',
-                                        method: "post",
+                                        type: 'post',
+                                        async: false,
                                         url: api.apiHost,
                                         data: userAction,
                                         error: function(e) {
@@ -733,10 +763,10 @@ class ExtensionItem extends Component {
                                                 if ((this.state.importantValues !== newImportantValues) &&
                                                     (this.state.autoEmailToUser === 'yes') && userAction['email']) {
                                                     $.ajax({
-                                                        type: "post",
-                                                        async: false,
-                                                        url: api.apiHost,
-                                                        data: {
+                                                        'type': "post",
+                                                        'async': false,
+                                                        'url': api.apiHost,
+                                                        'data': {
                                                             'action': 'sendAccount2User',
                                                             'extension': action['extension']
                                                         },
@@ -747,8 +777,6 @@ class ExtensionItem extends Component {
 
                                                 message.destroy()
                                                 message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG815" })}}></span>, 2)
-
-                                                this._handleCancel()
                                             }
                                         }.bind(this)
                                     })
@@ -769,9 +797,85 @@ class ExtensionItem extends Component {
 
                                     message.destroy()
                                     message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4104" })}}></span>, 2)
-
-                                    this._handleCancel()
                                 }
+
+                                if (this.state.editFollowme) {
+                                    let fm_members = []
+                                    let destinationTypeList = ['voicemail', 'account', 'vmgroup', 'ivr', 'ringgroup', 'queue', 'external_number']
+                
+                                    if (fm_action.action === 'addFollowme') {
+                                        fm_action.extension = values.extension
+                                    } else {
+                                        fm_action.followme = values.extension
+                                    }
+                
+                                    for (let i = 0; i < destinationTypeList.length; i++) {
+                                        let destinationType = destinationTypeList[i]
+                
+                                        if (destinationType !== values.fm_destination_type) {
+                                            if (destinationType === 'queue') {
+                                                fm_action['queue_dest'] = ''
+                                            } else if (destinationType === 'voicemail') {
+                                                fm_action['vm_extension'] = ''
+                                            } else {
+                                                fm_action[destinationType] = ''
+                                            }
+                                        } else {
+                                            if (destinationType === 'queue') {
+                                                fm_action['queue_dest'] = values.fm_destination_value
+                                            } else if (destinationType === 'voicemail') {
+                                                fm_action['vm_extension'] = values.fm_destination_value
+                                            } else if (destinationType === 'external_number') {
+                                                fm_action[destinationType] = values.fm_external_number
+                                            } else {
+                                                fm_action[destinationType] = values.fm_destination_value
+                                            }
+                                        }
+                                    }
+                
+                                    _.map(values.fm_members, (data, key) => {
+                                        let obj = {
+                                                'local_extension': [],
+                                                'outside_extension': [],
+                                                'ringtime': data.ringtime
+                                            }
+                
+                                        let extensions = data.extension
+                
+                                        _.map(extensions, (value, index) => {
+                                            if (_.find(this.state.destinationDataSource.account, (data) => { return data.key === value })) {
+                                                obj['local_extension'].push(value)
+                                            } else {
+                                                obj['outside_extension'].push(value)
+                                            }
+                                        })
+                
+                                        fm_members.push(obj)
+                                    })
+                
+                                    fm_action['members'] = JSON.stringify(fm_members)
+                                } else {
+                                    if (!this.state.currentEditId) {
+                                        fm_action = {
+                                            action: 'addFollowme',
+                                            extension: values.extension
+                                        }
+                                    } else {
+                                        fm_action = {}
+                                    }
+                                }
+
+                                if (!_.isEmpty(fm_action)) {
+                                    $.ajax({
+                                        type: 'post',
+                                        data: fm_action,
+                                        url: api.apiHost,
+                                        error: function(e) {},
+                                        success: function(data) {}
+                                    })
+                                }
+
+                                this._handleCancel()
                             }
                         }.bind(this)
                     })
@@ -785,6 +889,16 @@ class ExtensionItem extends Component {
         //         return false
         //     }
         // })
+
+        if (activeKey === '5') {
+            this.setState({
+                editFollowme: true
+            })
+        }
+
+        this.setState({
+            activeTab: activeKey
+        })
     }
     _onAddMethodChange = (value) => {
         this.setState({
@@ -822,7 +936,7 @@ class ExtensionItem extends Component {
                     onSubmit={ this._handleSubmit.bind(this) }
                 />
                 <Form className="form-contain-tab">
-                    <Tabs defaultActiveKey="1" onChange={ this._onChangeTabs }>
+                    <Tabs activeKey={ this.state.activeTab } onChange={ this._onChangeTabs }>
                         <TabPane tab={ formatMessage({id: "LANG2217"}) } key="1">
                             <BasicSettings
                                 form={ form }
@@ -857,19 +971,22 @@ class ExtensionItem extends Component {
                                 destinationDataSource={ this.state.destinationDataSource }
                             />
                         </TabPane>
-                        {/* <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4">
+                        <TabPane tab={ formatMessage({id: "LANG3288"}) } key="4" disabled={ this.state.add_method === 'batch' }>
                             <SpecificTime
                                 form={ form }
                                 settings={ this.state.settings }
+                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }
+                                destinationDataSource={ this.state.destinationDataSource }
                             />
-                        </TabPane> */}
-                        <TabPane tab={ formatMessage({id: "LANG568"}) } key="5">
+                        </TabPane>
+                        <TabPane tab={ formatMessage({id: "LANG568"}) } key="5" disabled={ this.state.add_method === 'batch' }>
                             <FollowMe
                                 form={ form }
                                 settings={ this.state.settings }
+                                mohNameList={ this.state.mohNameList }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }

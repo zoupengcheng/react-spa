@@ -148,5 +148,23 @@ module.exports = {
                 "eventnames": ["CallQueueStatus"]
             }
         }]
-    }    
+    },
+    zeroConfig: {
+        "subscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "subscribe", 
+                "eventnames": ["ZCFoundStatus"]
+            }
+        }],
+        "unsubscribe": [{
+            "type": "request",
+            "message": {
+                "transactionid": "123456789zxc",
+                "action": "unsubscribe",
+                "eventnames": ["ZCFoundStatus"]
+            }
+        }]
+    }
 }

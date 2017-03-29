@@ -422,6 +422,10 @@ class SetupWizard extends Component {
 
         let value = network_settings.method
         let method = {}
+        let default_interface = {
+            lan1: 'hidden',
+            lan2: 'display-block'
+        }
 
         if (value === "0") {
             method = {
@@ -449,6 +453,18 @@ class SetupWizard extends Component {
                 lantitle: 'hidden',
                 lan2title: 'display-block',
                 wantitle: 'hidden'
+            }
+
+            if (network_settings.default_interface === "LAN1") {
+                default_interface = {
+                    lan1: 'display-block',
+                    lan2: 'hidden'
+                }
+            } else {
+                default_interface = {
+                    lan1: 'hidden',
+                    lan2: 'display-block'
+                }
             }
         }
 
@@ -494,20 +510,6 @@ class SetupWizard extends Component {
                 dhcp: 'hidden',
                 static: 'hidden',
                 pppoe: 'display-block'
-            }
-        }
-
-        value = network_settings.default_interface
-        let default_interface = {}
-        if (value === "LAN1") {
-            default_interface = {
-                lan1: 'display-block',
-                lan2: 'hidden'
-            }
-        } else {
-            default_interface = {
-                lan1: 'hidden',
-                lan2: 'display-block'
             }
         }
 
@@ -568,7 +570,12 @@ class SetupWizard extends Component {
         })
     }
     _networkMethodSwitch = (value) => {
+        const { form } = this.props
         let method = {}
+        let default_interface_calss = {
+            lan1: 'hidden',
+            lan2: 'display-block'
+        }
 
         if (value === "0") {
             method = {
@@ -597,12 +604,26 @@ class SetupWizard extends Component {
                 lan2title: 'display-block',
                 wantitle: 'hidden'
             }
+
+            let defaultInterface = form.getFieldValue("default_interface")
+            if (defaultInterface === "LAN1") {
+                default_interface_calss = {
+                    lan1: 'display-block',
+                    lan2: 'hidden'
+                }
+            } else {
+                default_interface_calss = {
+                    lan1: 'hidden',
+                    lan2: 'display-block'
+                }
+            }
         }
 
         // this.props.change8021x(value)
 
         this.setState({
-            method_change_calss: method
+            method_change_calss: method,
+            default_interface_calss: default_interface_calss
         })
     }
     _onChangeIPMethod = (key, value) => {

@@ -150,17 +150,107 @@ class DDNS extends Component {
 
                 message.loading(formatMessage({ id: "LANG826" }), 0)
 
-                let action = values
+                let action_inadyn = {}
+                let action_phddns = {}
 
-                action.action = 'setUpgradeValue'
+                action_inadyn['username'] = values.username
+                action_inadyn['password'] = values.password
+                action_inadyn['alias'] = values.alias
+                action_inadyn['dyndns_system'] = values.dyndns_system
 
-                action.gs_jbenable = (action.service_check_enable ? 'yes' : 'no')
+                if (values.dyndns_system === 'freedns.afraid.org') {
+                    action_inadyn['hash'] = values.hash
+                } else {
+                    action_inadyn['hash'] = ''
+                }
+
+                action_phddns['szHost'] = ''
+                action_phddns['szUserID'] = ''
+                action_phddns['szUserPWD'] = ''
+                action_phddns['conffile'] = ''
+
+                let enableInadyn = 'no'
+                let enablePhddns = 'no'
+
+                if (values.enable_inadyn && this.state.class.inadyn === 'display-block') {
+                    enableInadyn = 'yes'
+                }
+
+                if (values.enable_phddns && this.state.class.phddns === 'display-block') {
+                    enablePhddns = 'yes'
+                }
+
+                action_inadyn['action'] = 'confInadyn'
+                action_inadyn['enable_inadyn'] = enableInadyn
+
+                action_phddns['action'] = 'confPhddns'
+                action_phddns['enable_phddns'] = enablePhddns
+
+                let phddns_setting = () => {
+                    $.ajax({
+                        type: 'post',
+                        url: api.apiHost,
+                        data: {
+                            'type': 'phddns',
+                            'action': 'stopDdns'
+                        },
+                        error: function(e) {
+                            message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                            if (bool) {
+                                $.ajax({
+                                    type: 'post',
+                                    url: api.apiHost,
+                                    data: action_phddns,
+                                    error: function(e) {
+                                        message.error(e.statusText)
+                                    },
+                                    success: function(data) {
+                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                        if (bool) {
+                                            if (enablePhddns === 'yes') {
+                                                $.ajax({
+                                                    type: 'post',
+                                                    url: api.apiHost,
+                                                    data: {
+                                                        'type': 'phddns',
+                                                        'action': 'startDdns'
+                                                    },
+                                                    error: function(e) {
+                                                        message.error(e.statusText)
+                                                    },
+                                                    success: function(data) {
+                                                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                                        if (bool) {
+                                                            message.destroy()
+                                                            message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>)
+                                                        }
+                                                    }.bind(this)
+                                                })
+                                            } else {
+                                                message.destroy()
+                                                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG844" })}}></span>)
+                                            }
+                                        }
+                                    }.bind(this)
+                                })
+                            }
+                        }.bind(this)
+                    })
+                }
 
                 $.ajax({
+                    type: 'post',
                     url: api.apiHost,
-                    method: "post",
-                    data: action,
-                    type: 'json',
+                    data: {
+                        'type': 'inadyn',
+                        'action': 'stopDdns'
+                    },
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -168,8 +258,42 @@ class DDNS extends Component {
                         var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                         if (bool) {
-                            message.destroy()
-                            message.success(formatMessage({ id: "LANG815" }))
+                            $.ajax({
+                                type: 'post',
+                                url: api.apiHost,
+                                data: action_inadyn,
+                                error: function(e) {
+                                    message.error(e.statusText)
+                                },
+                                success: function(data) {
+                                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                    if (bool) {
+                                        if (enableInadyn === 'yes') {
+                                            $.ajax({
+                                                type: 'post',
+                                                url: api.apiHost,
+                                                data: {
+                                                    'type': 'inadyn',
+                                                    'action': 'startDdns'
+                                                },
+                                                error: function(e) {
+                                                    message.error(e.statusText)
+                                                },
+                                                success: function(data) {
+                                                    var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                                    if (bool) {
+                                                        phddns_setting()
+                                                    }
+                                                }.bind(this)
+                                            })
+                                        } else {
+                                            phddns_setting()
+                                        }
+                                    }
+                                }.bind(this)
+                            })
                         }
                     }.bind(this)
                 })
@@ -237,7 +361,10 @@ class DDNS extends Component {
         let szUserPWD = phddns_settings.szUserPWD
         let nicName = phddns_settings.nicName
 
-        document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG4040"})})
+        document.title = formatMessage({id: "LANG584"}, {
+                0: model_info.model_name,
+                1: formatMessage({id: "LANG4040"})
+            })
 
         return (
             <div className="app-content-main">
@@ -291,8 +418,12 @@ class DDNS extends Component {
                         <input type="text" name="username" className="hidden" />
                         { getFieldDecorator('username', {
                             rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBMax }
+                                this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
                             initialValue: username
                         })(
@@ -311,8 +442,12 @@ class DDNS extends Component {
                         <input type="password" name="password" className="hidden" />
                         { getFieldDecorator('password', {
                             rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBMax }
+                                this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
                             initialValue: password
                         })(
@@ -330,8 +465,12 @@ class DDNS extends Component {
                     >
                         { getFieldDecorator('hash', {
                             rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBMax }
+                                this.state.class.hash === 'display-block'
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
                             initialValue: hash
                         })(
@@ -349,8 +488,12 @@ class DDNS extends Component {
                     >
                         { getFieldDecorator('alias', {
                             rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBMax }
+                                this.state.enable_inadyn && this.state.class.inadyn === 'display-block'
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
                             initialValue: alias
                         })(
@@ -385,8 +528,12 @@ class DDNS extends Component {
                         <input type="text" name="szUserID" className="hidden" />
                         { getFieldDecorator('szUserID', {
                             rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBMax }
+                                this.state.enable_phddns && this.state.class.phddns === 'display-block'
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
                             initialValue: szUserID
                         })(
@@ -405,8 +552,12 @@ class DDNS extends Component {
                         <input type="password" name="szUserPWD" className="hidden" />
                         { getFieldDecorator('szUserPWD', {
                             rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) },
-                                { validator: this._checkJBMax }
+                                this.state.enable_phddns && this.state.class.phddns === 'display-block'
+                                    ? {
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }
+                                    : {}
                             ],
                             initialValue: szUserPWD
                         })(

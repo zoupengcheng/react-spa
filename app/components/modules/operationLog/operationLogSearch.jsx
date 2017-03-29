@@ -43,7 +43,11 @@ const CustomizedForm = injectIntl(Form.create({
                             <span>{formatMessage({id: "LANG1048"})}</span>
                         )}
                     >
-                        {getFieldDecorator('start_date')(
+                        {getFieldDecorator('start_date', {
+                            rules: [{
+                                validator: props._checkTimeStart
+                            }]
+                        })(
                             <DatePicker showTime format="YYYY-MM-DD HH:mm" />
                         )}
                     </FormItem>
@@ -55,7 +59,11 @@ const CustomizedForm = injectIntl(Form.create({
                             <span>{formatMessage({id: "LANG1049"})}</span>
                         )}
                     >
-                        {getFieldDecorator('end_date')(
+                        {getFieldDecorator('end_date', {
+                            rules: [{
+                                validator: props._checkTimeEnd
+                            }]
+                        })(
                             <DatePicker showTime format="YYYY-MM-DD HH:mm" />
                         )}
                     </FormItem>
@@ -111,6 +119,28 @@ class OperLogUsrSearch extends Component {
     _handleFormChange = (changedFields) => {
         _.extend(this.props.dataSource, changedFields)
     }
+    _checkTimeStart = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const endValue = getFieldValue('end_date')
+
+        if (value.valueOf() >= endValue.valueOf()) {
+            callback(formatMessage({id: "LANG2165"}, {0: formatMessage({id: "LANG1049"}), 1: formatMessage({id: "LANG1048"})}))
+        } else {
+            callback()
+        }
+    }
+    _checkTimeEnd = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const startValue = getFieldValue('start_date')
+
+        if (value.valueOf() <= startValue.valueOf()) {
+            callback(formatMessage({id: "LANG2142"}, {0: formatMessage({id: "LANG1049"}), 1: formatMessage({id: "LANG1048"})}))
+        } else {
+            callback()
+        }
+    }
     render() {
         let searchAction = this.props.dataSource
         let userLists = this.props.userLists || []
@@ -121,7 +151,9 @@ class OperLogUsrSearch extends Component {
                 onChange={ this._handleFormChange.bind(this) } 
                 dataSource={ searchAction }
                 _hideSearch = { this.props._hideSearch } 
-                isDisplaySearch={ this.props.isDisplaySearch } 
+                isDisplaySearch={ this.props.isDisplaySearch }
+                _checkTimeEnd = {this._checkTimeEnd}
+                _checkTimeStart = {this._checkTimeStart}
             />
         )
     }

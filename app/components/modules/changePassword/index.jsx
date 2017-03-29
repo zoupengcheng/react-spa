@@ -9,6 +9,7 @@ import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl, FormattedHTMLMessage } from 'react-intl'
 import { Button, message, Modal, Input, Tag, Select, Form, Row, Col, Tooltip, Checkbox } from 'antd'
+import Validator from "../../api/validator"
 
 const confirm = Modal.confirm
 const Option = Select.Option
@@ -69,42 +70,44 @@ class ChangePassword extends Component {
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
-                if (values.newpass_rep === values.user_password) {
-                    message.loading(formatMessage({ id: "LANG826" }), 0)
-
-                    let action = {}
-                    action.user_id = userid
-                    action.action = 'updateUser'
-
-                    action.old_password = values.old_password
-                    if (this.state.enablePassword) {
-                        action.user_password = values.user_password
-                    }
-                    if (this.state.enableEmail) {
-                        action.email = values.email
-                    }
-
-                    $.ajax({
-                        url: api.apiHost,
-                        method: "post",
-                        data: action,
-                        type: 'json',
-                        error: function(e) {
-                            message.error(e.statusText)
-                        },
-                        success: function(data) {
-                            var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
-
-                            if (bool) {
-                                message.destroy()
-                                message.success(formatMessage({ id: "LANG932" }))
-                                if (this.state.enablePassword) {
-                                    browserHistory.push('/login')
-                                }
-                            }
-                        }.bind(this)
-                    })
+                if (values.newpass_rep !== values.user_password) {
+                    message.error(formatMessage({ id: "LANG2159" }), 0)
+                    return
                 }
+                message.loading(formatMessage({ id: "LANG826" }), 0)
+
+                let action = {}
+                action.user_id = userid
+                action.action = 'updateUser'
+
+                action.old_password = values.old_password
+                if (this.state.enablePassword) {
+                    action.user_password = values.user_password
+                }
+                if (this.state.enableEmail) {
+                    action.email = values.email
+                }
+
+                $.ajax({
+                    url: api.apiHost,
+                    method: "post",
+                    data: action,
+                    type: 'json',
+                    error: function(e) {
+                        message.error(e.statusText)
+                    },
+                    success: function(data) {
+                        var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                        if (bool) {
+                            message.destroy()
+                            message.success(formatMessage({ id: "LANG932" }))
+                            if (this.state.enablePassword) {
+                                browserHistory.push('/login')
+                            }
+                        }
+                    }.bind(this)
+                })
             }
         })
     }
@@ -225,7 +228,11 @@ class ChangePassword extends Component {
                         { getFieldDecorator('user_password', {
                             rules: [{ required: this.state.enablePassword === true,
                                 message: formatMessage({id: "LANG2150"})
-                                }],
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.minlength(data, value, callback, formatMessage, 8)
+                                }
+                            }],
                             initialValue: ''
                         })(
                             <Input type="password" />
@@ -244,7 +251,11 @@ class ChangePassword extends Component {
                         { getFieldDecorator('newpass_rep', {
                             rules: [{ required: this.state.enablePassword === true,
                                 message: formatMessage({id: "LANG2150"})
-                                }],
+                            }, {
+                                validator: (data, value, callback) => {
+                                    Validator.minlength(data, value, callback, formatMessage, 8)
+                                }
+                            }],
                             initialValue: ''
                         })(
                             <Input type="password"/>

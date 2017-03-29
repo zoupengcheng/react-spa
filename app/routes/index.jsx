@@ -58,6 +58,8 @@ import IVR from '../components/modules/ivr'
 import IVRItem from '../components/modules/ivr/ivrItem'
 import Voicemail from '../components/modules/voicemail'
 import VoicemailEmailSettings from '../components/modules/voicemail/voicemailEmailSettings'
+import VoicemailGroup from '../components/modules/voicemail/voicemailGroupSettings'
+import VoicemailGroupItem from '../components/modules/voicemail/voicemailGroupItem'
 import RingGroup from '../components/modules/ringGroup'
 import RingGroupItem from '../components/modules/ringGroup/RingGroupItem'
 import PagingIntercom from '../components/modules/pagingIntercom'
@@ -284,7 +286,7 @@ const routes = (state, currentLocaleData) => {
                         <Route path="extension" onEnter={ requireAuth } component={ Extension } breadcrumbName={ currentLocaleData["LANG87"] } />
                         <Route path="add" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="import" onEnter={ requireAuth } component={ ImportExtension } breadcrumbName={ currentLocaleData["LANG2734"] } />
-                        <Route path="edit/:type/:id" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                        <Route path="edit/:type/:id" onEnter={ requireAuth } component={ ExtensionItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="editSelected/:type/:id" onEnter={ requireAuth } component={ EditSelectedExtensions } breadcrumbName={ currentLocaleData["LANG734"] } />
                     </Route>
                     <Route path="extensionGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG2800"] }>
@@ -358,8 +360,17 @@ const routes = (state, currentLocaleData) => {
                     </Route>
                     <Route path="voicemail" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
                         <IndexRoute component={ Voicemail } />
-                        <Route path="voicemail" onEnter={ requireAuth } component={ Voicemail } breadcrumbName={ currentLocaleData["LANG20"] } />
+                        <Route path=":id" onEnter={ requireAuth } component={ Voicemail } breadcrumbName={ currentLocaleData["LANG20"] } />
                         <Route path="voicemailEmailSettings" onEnter={ requireAuth } component={ VoicemailEmailSettings } breadcrumbName={ currentLocaleData["LANG767"] } />
+                    </Route>
+                    <Route path="voicemailEmailSettings" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
+                        <IndexRoute component={ Voicemail } />
+                        <Route path="email" onEnter={ requireAuth } component={ VoicemailEmailSettings } breadcrumbName={ currentLocaleData["LANG767"] } />
+                    </Route>
+                    <Route path="voicemailgroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG20"] }>
+                        <IndexRoute component={ VoicemailGroup } />
+                        <Route path="add" onEnter={ requireAuth } component={ VoicemailGroupItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ VoicemailGroupItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="ringGroup" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG22"] } >
                         <IndexRoute component={ RingGroup } />
@@ -557,11 +568,11 @@ const routes = (state, currentLocaleData) => {
                     <IndexRoute component={ ZeroConfig } />
                     <Route path="zeroConfig" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG16"] } >
                         <IndexRoute component={ ZeroConfig } />
-                        <Route path="showDevices/:filter:" onEnter={ requireAuth } component={ Devices } breadcrumbName={ currentLocaleData["LANG16"] } />
+                        <Route path="showDevices/:filter" onEnter={ requireAuth } component={ Devices } breadcrumbName={ currentLocaleData["LANG16"] } />
                         <Route path="createGlobalTemplate" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
-                        <Route path="editGlobalTemplate/:mode/:id" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                        <Route path="editGlobalTemplate/:mode/:id" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="createModelTemplate" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
-                        <Route path="editModelTemplate/:mode/:id" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } /> 
+                        <Route path="editModelTemplate/:mode/:id" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="ami" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3525"] } >
                     <IndexRoute component={ AMI } />

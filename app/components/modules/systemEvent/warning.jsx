@@ -39,6 +39,28 @@ class WarningLog extends Component {
     componentDidMount() {
         this._getWarningLog()
     }
+    _checkTimeFrom = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const endValue = getFieldValue('logstartto')
+
+        if (value.valueOf() >= endValue.valueOf()) {
+            callback(formatMessage({id: "LANG2165"}, {0: formatMessage({id: "LANG1049"}), 1: formatMessage({id: "LANG1048"})}))
+        } else {
+            callback()
+        }
+    }
+    _checkTimeTo = (rule, value, callback) => {
+        const { formatMessage } = this.props.intl
+        const { getFieldValue } = this.props.form
+        const startValue = getFieldValue('logstartfrom')
+
+        if (value.valueOf() <= startValue.valueOf()) {
+            callback(formatMessage({id: "LANG2142"}, {0: formatMessage({id: "LANG1049"}), 1: formatMessage({id: "LANG1048"})}))
+        } else {
+            callback()
+        }
+    }
     _showTotal = (total) => {
         const { formatMessage } = this.props.intl
 
@@ -630,7 +652,11 @@ class WarningLog extends Component {
                                     <span>{formatMessage({id: "LANG1048"})}</span>
                                 )}
                             >
-                                {getFieldDecorator('logstartfrom')(
+                                {getFieldDecorator('logstartfrom', {
+                                    rules: [{
+                                        validator: this._checkTimeFrom
+                                    }]
+                                })(
                                     <DatePicker showTime format="YYYY-MM-DD HH:mm" />
                                 )}
                             </FormItem>
@@ -644,7 +670,11 @@ class WarningLog extends Component {
                                     <span>{formatMessage({id: "LANG1049"})}</span>
                                 )}
                             >
-                                {getFieldDecorator('logstartto')(
+                                {getFieldDecorator('logstartto', {
+                                    rules: [{
+                                        validator: this._checkTimeTo
+                                    }]
+                                })(
                                     <DatePicker showTime format="YYYY-MM-DD HH:mm" />
                                 )}
                             </FormItem>

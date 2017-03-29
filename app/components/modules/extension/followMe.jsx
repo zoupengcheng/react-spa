@@ -22,35 +22,12 @@ class FollowMe extends Component {
 
         this.state = {
             followmeItem: {},
+            followmeMembers: [],
             memberAccountList: [],
-            destination_value: '',
+            fm_destination_value: '',
             fm_member_type: 'local',
-            destination_type: 'account',
             fm_enable_destination: false,
-            mohNameList: ['default', 'ringbacktone_default'],
-            followmeMembers: [{
-                'key': 0,
-                'ringtime': '30',
-                'number': ['1001', '1005']
-            }, {
-                'key': 1,
-                'ringtime': '30',
-                'number': ['1001']
-            }, {
-                'key': 2,
-                'ringtime': '30',
-                'number': ['123456']
-            }],
-            destinationListDataSource: {
-                'account': [],
-                'voicemail': [],
-                'queue': [],
-                'ringgroup': [],
-                'vmgroup': [],
-                'ivr': [],
-                'external_number': [],
-                'hangup': []
-            }
+            fm_destination_type: 'account'
         }
     }
     componentWillMount() {
@@ -58,18 +35,87 @@ class FollowMe extends Component {
     componentDidMount() {
         this._getInitData()
     }
-    _createNumber = (text, record, index) => {
-        let number
-        const { formatMessage } = this.props.intl
+    _addMembers = () => {
+        // e.preventDefault()
 
-        number = <div style={{ 'paddingLeft': '10px', 'textAlign': 'left' }}>
-                    <span>{ record.number.join(' & ') }</span>
+        const form = this.props.form
+        const { formatMessage } = this.props.intl
+        const fields = ['fm_member_type', 'fm_member_local', 'fm_member_external', 'fm_member_ringtime', 'fm_member_order']
+
+        form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
+            if (!err) {
+                let followmeMembers = _.clone(this.state.followmeMembers)
+
+                if (values.fm_member_order === 'after') {
+                    let obj = {
+                            key: followmeMembers.length,
+                            ringtime: values.fm_member_ringtime
+                        }
+
+                    if (values.fm_member_type === 'local') {
+                        obj.extension = [values.fm_member_local]
+                    } else {
+                        obj.extension = [values.fm_member_external]
+                    }
+
+                    followmeMembers.push(obj)
+                } else {
+                    let obj = followmeMembers[followmeMembers.length - 1]
+
+                    obj.ringtime = values.fm_member_ringtime
+
+                    if (values.fm_member_type === 'local') {
+                        obj.extension.push(values.fm_member_local)
+                    } else {
+                        obj.extension.push(values.fm_member_external)
+                    }
+
+                    followmeMembers[followmeMembers.length - 1] = obj
+                }
+
+                this.setState({
+                    fm_member_type: 'local',
+                    followmeMembers: followmeMembers
+                })
+
+                form.setFieldsValue({
+                    fm_members: followmeMembers
+                })
+
+                form.resetFields(fields)
+            }
+        })
+    }
+    _createExtension = (text, record, index) => {
+        let extension
+        const { formatMessage } = this.props.intl
+        const { getFieldDecorator, getFieldValue } = this.props.form
+
+        extension = <div style={{ 'paddingLeft': '10px', 'textAlign': 'left' }}>
+                    <span>{ record.extension.join(' & ') }</span>
                     <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
-                    <Input style={{ 'width': '50px' }} value={ record.ringtime } onChange={ this._onChangeRingtime.bind(this, record.key) } />
+                    <span style={{ 'padding': '0 5px' }}>{ record.ringtime }</span>
+                    {/* getFieldDecorator(`fm_member_ringtime_${record.key}`, {
+                        rules: [{
+                            required: true,
+                            message: formatMessage({id: "LANG2150"})
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.digits(data, value, callback, formatMessage)
+                            }
+                        }, {
+                            validator: (data, value, callback) => {
+                                Validator.range(data, value, callback, formatMessage, 10, 60)
+                            }
+                        }],
+                        initialValue: record.ringtime
+                    })(
+                        <Input style={{ 'width': '50px' }} onChange={ this._onChangeRingtime.bind(this, record.key) } />
+                    ) */}
                     <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
                 </div>
 
-        return number
+        return extension
     }
     _createOption = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -82,9 +128,14 @@ class FollowMe extends Component {
             </div>
     }
     _delete = (key) => {
+        let { form } = this.props
         let followmeMembers = _.clone(this.state.followmeMembers)
 
         followmeMembers = _.filter(followmeMembers, (data) => { return data.key !== key })
+
+        form.setFieldsValue({
+            fm_members: followmeMembers
+        })
 
         this.setState({
             followmeMembers: followmeMembers
@@ -93,133 +144,34 @@ class FollowMe extends Component {
     _getInitData = () => {
         const form = this.props.form
         const { formatMessage } = this.props.intl
-
-        const disabled = formatMessage({id: "LANG273"})
         const currentEditId = this.props.currentEditId
-        const extensionType = this.props.extensionType
 
-        let mohNameList = []
         let followmeItem = {}
-        let memberAccountList = []
-        let destination_value = ''
-        let destination_type = 'account'
+        let followmeMembers = []
+        let fm_destination_value = ''
         let fm_enable_destination = false
-        let destinationListDataSource = {}
+        let fm_destination_type = 'account'
         let extenion = form.getFieldValue('extension')
-
-        let account = UCMGUI.isExist.getList('getAccountList', formatMessage)
-        let voicemail = UCMGUI.isExist.getList('getVoicemailList', formatMessage)
-        let queue = UCMGUI.isExist.getList('getQueueList', formatMessage)
-        let ringgroup = UCMGUI.isExist.getList('getRinggroupList', formatMessage)
-        let vmgroup = UCMGUI.isExist.getList('getVMgroupList', formatMessage)
-        let ivr = UCMGUI.isExist.getList('getIVRList', formatMessage)
-
-        account = account.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            out_of_service: item.out_of_service,
-                            // disabled: (item.out_of_service === 'yes'),
-                            label: (item.extension +
-                                    (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                    (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                        }
-                })
-
-        memberAccountList = _.filter(account, (data) => { return data.value !== extenion })
-
-        voicemail = voicemail.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            out_of_service: item.out_of_service,
-                            // disabled: (item.out_of_service === 'yes'),
-                            label: (item.extension +
-                                    (item.fullname ? ' "' + item.fullname + '"' : '') +
-                                    (item.out_of_service === 'yes' ? ' <' + disabled + '>' : ''))
-                        }
-                })
-
-        queue = queue.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            label: item.queue_name
-                        }
-                })
-
-        ringgroup = ringgroup.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            label: item.ringgroup_name
-                        }
-                })
-
-        vmgroup = vmgroup.map(function(item) {
-                    return {
-                            key: item.extension,
-                            value: item.extension,
-                            label: item.vmgroup_name
-                        }
-                })
-
-        ivr = ivr.map(function(item) {
-                    return {
-                            key: item.ivr_id,
-                            value: item.ivr_id,
-                            label: item.ivr_name
-                        }
-                })
-
-        destinationListDataSource = {
-            account: account,
-            voicemail: voicemail,
-            queue: queue,
-            ringgroup: ringgroup,
-            vmgroup: vmgroup,
-            ivr: ivr,
-            external_number: []
-        }
-
-        $.ajax({
-            async: false,
-            type: 'json',
-            method: 'post',
-            url: api.apiHost,
-            data: {
-                action: 'getMohNameList'
-            },
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
-
-                if (bool) {
-                    const response = res.response || {}
-
-                    mohNameList = response.moh_name || []
-                }
-            }.bind(this),
-            error: function(e) {
-                message.error(e.statusText)
-            }
-        })
+        let destinationDataSource = this.props.destinationDataSource
+        let memberAccountList = _.filter(destinationDataSource.account, (data) => { return data.value !== extenion })
 
         if (currentEditId) {
             $.ajax({
                 async: false,
-                type: 'json',
-                method: 'post',
+                type: 'post',
                 url: api.apiHost,
                 data: {
                     action: 'getFollowme',
                     followme: currentEditId
                 },
                 success: function(res) {
-                    const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                    // const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                    if (bool) {
+                    // if (bool) {
+                    if (res.status === 0) {
                         const response = res.response || {}
                         const followme = res.response.followme || {}
+                        const members = followme.members
 
                         _.map(followme, (value, key) => {
                             if (value === null) {
@@ -229,37 +181,58 @@ class FollowMe extends Component {
                             }
                         })
 
-                        destination_type = followme.destination_type
+                        _.map(members, (data, key) => {
+                            let extension = data.extension ? data.extension.split(',') : []
+
+                            followmeMembers.push({
+                                key: key,
+                                extension: extension,
+                                ringtime: data.ringtime
+                            })
+                        })
+
+                        fm_destination_type = followme.destination_type
                         fm_enable_destination = followme.enable_destination === 'yes'
 
-                        if (destination_type === 'voicemail') {
-                            destination_value = followme['vm_extension']
-                        } else if (destination_type === 'queue') {
-                            destination_value = followme['queue_dest']
+                        if (fm_destination_type === 'voicemail') {
+                            fm_destination_value = followme['vm_extension']
+                        } else if (fm_destination_type === 'queue') {
+                            fm_destination_value = followme['queue_dest']
                         } else {
-                            destination_value = followme[destination_type]
+                            fm_destination_value = followme[fm_destination_type]
                         }
+
+                        form.setFieldsValue({
+                            fm_action: 'updateFollowme'
+                        })
+                    } else {
+                        form.setFieldsValue({
+                            fm_action: 'addFollowme'
+                        })
                     }
                 }.bind(this),
                 error: function(e) {
                     message.error(e.statusText)
                 }
             })
+        } else {
+            form.setFieldsValue({
+                fm_action: 'addFollowme'
+            })
         }
 
         this.setState({
             followmeItem: followmeItem,
+            followmeMembers: followmeMembers,
             memberAccountList: memberAccountList,
-            destination_value: destination_value,
+            fm_destination_value: fm_destination_value,
             fm_enable_destination: fm_enable_destination,
-            destinationListDataSource: destinationListDataSource,
-            destination_type: destination_type.replace(/_t/g, ''),
-            mohNameList: mohNameList ? mohNameList : ['default', 'ringbacktone_default']
+            fm_destination_type: fm_destination_type.replace(/_t/g, '')
         })
     }
     _onChangeDesType = (value) => {
         this.setState({
-            destination_type: value
+            fm_destination_type: value
         })
     }
     _onChangeEnableDes = (e) => {
@@ -281,26 +254,12 @@ class FollowMe extends Component {
             followmeMembers: followmeMembers
         })
     }
-    _renderItem = (item) => {
-        const customLabel = (
-                <span className={ item.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                    { item.label }
-                </span>
-            )
-
-        return {
-                label: customLabel,  // for displayed item
-                value: item.value   // for title and filter matching
-            }
-    }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, getFieldValue } = this.props.form
 
         const settings = this.state.followmeItem || {}
-        const currentEditId = this.props.currentEditId
-        const extensionType = this.props.extensionType
 
         const formItemLayout = {
             labelCol: { span: 8 },
@@ -318,13 +277,21 @@ class FollowMe extends Component {
             lineHeight: "30px"
         }
 
+        const orderRadio = this.state.followmeMembers.length
+                            ? <RadioGroup>
+                                    <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
+                                    <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
+                                </RadioGroup>
+                            : <RadioGroup>
+                                    <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
+                                </RadioGroup>
+
         const columns = [{
-                sorter: true,
-                key: 'number',
-                dataIndex: 'number',
+                key: 'key',
+                dataIndex: 'key',
                 title: formatMessage({id: "LANG85"}),
                 render: (text, record, index) => (
-                    this._createNumber(text, record, index)
+                    this._createExtension(text, record, index)
                 )
             }, { 
                 key: 'options',
@@ -332,8 +299,11 @@ class FollowMe extends Component {
                 title: formatMessage({id: "LANG74"}),
                 render: (text, record, index) => (
                     this._createOption(text, record, index)
-                ) 
+                )
             }]
+
+        getFieldDecorator('fm_members', { initialValue: [] })
+        getFieldDecorator('fm_action', { initialValue: '' })
 
         return (
             <div className="content">
@@ -353,7 +323,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_enable_followme', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.fm_enable_followme === 'yes'
+                                    initialValue: settings.enable_followme === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -373,7 +343,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_bypass_outrt_auth', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.fm_bypass_outrt_auth === 'yes'
+                                    initialValue: settings.bypass_outrt_auth === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -392,11 +362,11 @@ class FollowMe extends Component {
                             >
                                 { getFieldDecorator('fm_musicclass', {
                                     rules: [],
-                                    initialValue: settings.fm_musicclass ? settings.fm_musicclass : 'default'
+                                    initialValue: settings.musicclass ? settings.musicclass : 'default'
                                 })(
                                     <Select>
                                         {
-                                            this.state.mohNameList.map(function(value) {
+                                            this.props.mohNameList.map(function(value) {
                                                 return <Option
                                                             key={ value }
                                                             value={ value }
@@ -423,7 +393,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_enable_option', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.fm_enable_option === 'yes'
+                                    initialValue: settings.enable_option === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -462,8 +432,15 @@ class FollowMe extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('fm_destination_type', {
-                                        rules: [],
-                                        initialValue: this.state.destination_type
+                                        rules: [
+                                                this.state.fm_enable_destination
+                                                    ? {
+                                                            required: true,
+                                                            message: formatMessage({id: "LANG2150"})
+                                                        }
+                                                    : {}
+                                            ],
+                                        initialValue: this.state.fm_destination_type
                                     })(
                                         <Select
                                             onChange={ this._onChangeDesType }
@@ -482,27 +459,24 @@ class FollowMe extends Component {
                             </Col>
                             <Col
                                 span={ 6 }
-                                className={ this.state.destination_type !== 'external_number' && this.state.destination_type !== 'hangup'
-                                                ? 'display-block'
-                                                : 'hidden' }
+                                className={ this.state.fm_destination_type !== 'external_number' ? 'display-block' : 'hidden' }
                             >
                                 <FormItem>
                                     { getFieldDecorator('fm_destination_value', {
                                         rules: [
                                             this.state.fm_enable_destination &&
-                                            this.state.destination_type !== 'hangup' &&
-                                            this.state.destination_type !== 'external_number'
+                                            this.state.fm_destination_type !== 'external_number'
                                                 ? {
                                                         required: true,
                                                         message: formatMessage({id: "LANG2150"})
                                                     }
                                                 : {}
                                         ],
-                                        initialValue: this.state.destination_value
+                                        initialValue: this.state.fm_destination_value
                                     })(
                                         <Select disabled={ !this.state.fm_enable_destination }>
                                             {
-                                                this.state.destinationListDataSource[this.state.destination_type].map(function(obj) {
+                                                this.props.destinationDataSource[this.state.fm_destination_type].map(function(obj) {
                                                         return <Option
                                                                     key={ obj.key }
                                                                     value={ obj.value }
@@ -517,20 +491,23 @@ class FollowMe extends Component {
                             </Col>
                             <Col
                                 span={ 6 }
-                                className={ this.state.destination_type === 'external_number'
-                                                ? 'display-block'
-                                                : 'hidden' }
+                                className={ this.state.fm_destination_type === 'external_number' ? 'display-block' : 'hidden' }
                             >
                                 <FormItem>
                                     { getFieldDecorator('fm_external_number', {
                                         rules: [
-                                            this.state.fm_enable_destination &&
-                                            this.state.destination_type === 'external_number'
+                                            (this.state.fm_enable_destination &&
+                                            this.state.fm_destination_type === 'external_number'
                                                 ? {
                                                         required: true,
                                                         message: formatMessage({id: "LANG2150"})
                                                     }
-                                                : {}
+                                                : {}),
+                                            {
+                                                validator: (data, value, callback) => {
+                                                    Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                                }
+                                            }
                                         ],
                                         initialValue: settings.external_number
                                     })(
@@ -558,7 +535,7 @@ class FollowMe extends Component {
                                 )}
                             >
                                 { getFieldDecorator('fm_member_type', {
-                                    initialValue: this.state.fm_member_type
+                                    initialValue: 'local'
                                 })(
                                     <RadioGroup onChange={ this._onChangeMemberType }>
                                         <Radio value="local">{ formatMessage({id: "LANG1981"}) }</Radio>
@@ -577,8 +554,15 @@ class FollowMe extends Component {
                             >
                                 <FormItem>
                                     { getFieldDecorator('fm_member_local', {
-                                        rules: [],
-                                        initialValue: settings.queue_chairman
+                                        rules: [
+                                            this.state.fm_member_type === 'local'
+                                                ? {
+                                                        required: true,
+                                                        message: formatMessage({id: "LANG2150"})
+                                                    }
+                                                : {}
+                                        ],
+                                        initialValue: ''
                                     })(
                                         <Select>
                                             {
@@ -602,24 +586,51 @@ class FollowMe extends Component {
                             >
                                 <FormItem>
                                     { getFieldDecorator('fm_member_external', {
-                                        rules: [],
+                                        rules: [
+                                            (this.state.fm_member_type === 'external'
+                                                ? {
+                                                        required: true,
+                                                        message: formatMessage({id: "LANG2150"})
+                                                    }
+                                                : {}),
+                                            {
+                                                validator: (data, value, callback) => {
+                                                    Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                                }
+                                            }
+                                        ],
                                         initialValue: ''
                                     })(
                                         <Input />
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col
-                                span={ 4 }
-                            >
+                            <FormItem style={{ float: 'left', display: 'inline-block' }}>
+                                <span style={{ 'padding': '0 10px' }}>{ formatMessage({id: "LANG569"}) }</span>
+                            </FormItem>
+                            <Col span={ 3 }>
                                 <FormItem>
-                                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
                                     { getFieldDecorator('fm_member_ringtime', {
-                                        rules: [],
+                                        rules: [{
+                                            required: true,
+                                            message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.digits(data, value, callback, formatMessage)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.range(data, value, callback, formatMessage, 10, 60)
+                                            }
+                                        }],
                                         initialValue: '30'
                                     })(
-                                        <Input style={{ 'width': '50px' }} />
+                                        <Input />
                                     ) }
+                                </FormItem>
+                            </Col>
+                            <Col span={ 1 }>
+                                <FormItem>
                                     <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
                                 </FormItem>
                             </Col>
@@ -640,10 +651,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_member_order', {
                                     initialValue: 'after'
                                 })(
-                                    <RadioGroup>
-                                        <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
-                                        <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
-                                    </RadioGroup>
+                                    orderRadio
                                 ) }
                             </FormItem>
                         </Col>

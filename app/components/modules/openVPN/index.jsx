@@ -1,13 +1,15 @@
 'use strict'
 
+import $ from 'jquery'
+import _ from 'underscore'
+import api from "../../api/api"
+import UCMGUI from "../../api/ucmgui"
+import Title from '../../../views/title'
+import Validator from "../../api/validator"
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { Form, Input, Button, Checkbox, message, Popover, Select, Upload, Icon } from 'antd'
-import $ from 'jquery'
-import api from "../../api/api"
-import UCMGUI from "../../api/ucmgui"
-import Title from '../../../views/title'
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -15,6 +17,7 @@ const Option = Select.Option
 class OpenVPN extends Component {
     constructor(props) {
         super(props)
+
         this.state = {
             openVPN: {},
             enabled: false,
@@ -147,11 +150,19 @@ class OpenVPN extends Component {
     }
     _getOpenVPNSettings = () => {
         $.ajax({
-            url: api.apiHost,
-            method: 'post',
-            data: { action: 'getOpenVPNSettings' },
-            type: 'json',
+            type: 'post',
             async: false,
+            url: api.apiHost,
+            data: {
+                'comp': '',
+                'dev': '',
+                'remote': '',
+                'proto': '',
+                'cipher': '',
+                'enable': '',
+                'vpn_index': '0',
+                action: 'getOpenVPNSettings'
+            },
             success: function(res) {
                 let openVPN = res.response
 
@@ -173,7 +184,7 @@ class OpenVPN extends Component {
 
         const { formatMessage } = this.props.intl
 
-        this.props.form.validateFieldsAndScroll((err, values) => {
+        this.props.form.validateFieldsAndScroll({ force: true }, (err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values)
 
@@ -181,9 +192,10 @@ class OpenVPN extends Component {
 
                 let action = values
 
+                action.vpn_index = '0'
                 action.action = 'updateOpenVPNSettings'
                 action.comp = action.comp ? 'yes' : 'no'
-                action.enable = action.enable ? 'yes' : 'no'
+                action.enable = action.enable ? '1' : '0'
 
                 $.ajax({
                     url: api.apiHost,
@@ -227,11 +239,11 @@ class OpenVPN extends Component {
         }
 
         let openVPN = this.state.openVPN || {}
-        let proto = openVPN.proto
         let dev = openVPN.dev
-        let comp = (openVPN.comp === 'yes')
+        let proto = openVPN.proto
         let cipher = openVPN.cipher
-        let remote = openVPN.remote
+        let remote = $.trim(openVPN.remote)
+        let comp = (openVPN.comp === 'yes')
 
         document.title = formatMessage({id: "LANG584"}, {0: model_info.model_name, 1: formatMessage({id: "LANG3990"})})
 
@@ -264,7 +276,19 @@ class OpenVPN extends Component {
                             )}
                         >
                             { getFieldDecorator('remote', {
-                                rules: [],
+                                rules: [
+                                    (this.state.enabled
+                                        ? {
+                                                required: true,
+                                                message: formatMessage({id: "LANG2150"})
+                                            }
+                                        : {}),
+                                    {
+                                        validator: (data, value, callback) => {
+                                            Validator.host(data, value, callback, formatMessage, 'LANG5597')
+                                        }
+                                    }
+                                ],
                                 initialValue: remote
                             })(
                                 <Input />

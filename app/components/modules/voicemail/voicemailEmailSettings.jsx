@@ -11,7 +11,7 @@ import Title from '../../../views/title'
 
 const FormItem = Form.Item
 
-class Voicemail extends Component {
+class VoicemailItem extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -54,7 +54,7 @@ class Voicemail extends Component {
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/call-features/voicemail')
+        browserHistory.push('/call-features/voicemail/1')
     }
     _handleSubmit = () => {
         // e.preventDefault()
@@ -87,6 +87,8 @@ class Voicemail extends Component {
                         if (bool) {
                             message.destroy()
                             message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4764" })}} ></span>)
+
+                            this._handleCancel()
                         }
                     }.bind(this)
                 })
@@ -214,4 +216,4 @@ class Voicemail extends Component {
     }
 }
 
-export default Form.create()(injectIntl(Voicemail))
+export default Form.create()(injectIntl(VoicemailItem))
