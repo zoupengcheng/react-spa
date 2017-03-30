@@ -706,6 +706,10 @@ class WarningEventList extends Component {
             labelCol: { span: 3 },
             wrapperCol: { span: 9 }
         }
+        if (this.props.eventListPageReload) {
+            this._getInitData()
+            this.props.eventListPageReloadFunc(false)
+        }
         const warning_general = this.props.warning_general
         const columns = [{
                 key: 'id',

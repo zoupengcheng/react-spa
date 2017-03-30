@@ -59,7 +59,7 @@ class DataSync extends Component {
                 }
             }.bind(this)
         })
-        // this._readLog()
+        this._readLog()
     }
     _readLog = () => {
         const { formatMessage } = this.props.intl
@@ -67,8 +67,8 @@ class DataSync extends Component {
 
         $.ajax({
             type: "GET",
-            url: api.imageHost + "/html/userdefined/cleaner_results",
-            dataType: "json",
+            url: api.imageHost + "/html/userdefined/backup_results?_=" + Math.random().toString(),
+            dataType: "text",
             async: false,
             error: function(jqXHR, textStatus, errorThrown) {
                 if (jqXHR.status !== 404) {
@@ -89,7 +89,7 @@ class DataSync extends Component {
 
         $.ajax({
             type: "GET",
-            url: "../cgi?action=reloadCleanerLog&cleanerlog=",
+            url: "../cgi?action=reloadBackupLog&backuplog=",
             dataType: "json",
             async: false,
             error: function(jqXHR, textStatus, errorThrown) {
@@ -98,7 +98,7 @@ class DataSync extends Component {
                 const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
-                    message.success(formatMessage({ id: "LANG4831"}))
+                    message.success(formatMessage({ id: "LANG3903"}))
                     this._readLog()
                 }
             }.bind(this)
@@ -217,7 +217,16 @@ class DataSync extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-
+        let logList = this.state.log || []
+        const spanLogList = logList.map((item, index) => {
+            return (
+                <row>
+                    <Col>
+                        <span style={item.indexOf("success") > -1 ? { color: 'green' } : { color: 'red' }}>{item}</span>
+                    </Col>
+                </row>
+                )
+        })
         return (
             <div className="app-content-main" id="app-content-main">
                 <Form>
@@ -407,7 +416,7 @@ class DataSync extends Component {
                     </div>
                     <div>
                         <p > <span >
-                           { this.state.log }
+                            { spanLogList }
                         </span></p>
                     </div>
                 </Form>

@@ -324,6 +324,10 @@ class CallBackItem extends Component {
                                 rules: [{
                                     required: true,
                                     message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
                                 }],
                                 initialValue: callBackValues.name ? callBackValues.name : ''
                             })(
@@ -341,7 +345,11 @@ class CallBackItem extends Component {
                             )}
                         >
                             { getFieldDecorator('callerid_pattern', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.digitalAndQuote(data, value, callback, formatMessage)
+                                    }
+                                }],
                                 initialValue: callBackValues.callerid_pattern ? callBackValues.callerid_pattern : ''
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG2748"}) } maxLength="25" />
@@ -358,7 +366,11 @@ class CallBackItem extends Component {
                             )}
                         >
                             { getFieldDecorator('outside_pre', {
-                                rules: [],
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
+                                    }
+                                }],
                                 initialValue: callBackValues.outside_pre ? callBackValues.outside_pre : ''
                             })(
                                 <Input placeholder={ formatMessage({id: "LANG3824"}) } maxLength="25" />
@@ -376,12 +388,20 @@ class CallBackItem extends Component {
                         >
                             { getFieldDecorator('sleep_time', {
                                 rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 1, 60)
+                                        }
+                                }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                 }],
                                 initialValue: callBackValues.sleep_time ? callBackValues.sleep_time : '5'
                             })(
-                                <Input placeholder={ formatMessage({id: "LANG3747"}) } maxLength="25" />
+                                <Input placeholder={ formatMessage({id: "LANG3747"}) } maxLength="2" />
                             ) }
                         </FormItem>
 

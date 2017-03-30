@@ -729,7 +729,7 @@ class BasicSettings extends Component {
                                                 message: formatMessage({id: "LANG2150"})
                                             }, {
                                                 validator: (data, value, callback) => {
-                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.pppoe === 'display-block' ? Validator.keyboradNoSpace(data, value, callback, formatMessage) : callback()
+                                                    this.state.method_change_calss.lan1 === 'display-block' && this.state.lan2_ip_class.pppoe === 'display-block' ? Validator.keyboradNoSpaceSpecial(data, value, callback, formatMessage) : callback()
                                                 }
                                             }],
                                             initialValue: network_settings.lan2_username
@@ -974,7 +974,7 @@ class BasicSettings extends Component {
                                                 message: formatMessage({id: "LANG2150"})
                                             }, {
                                                 validator: (data, value, callback) => {
-                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.pppoe === 'display-block' ? Validator.keyboradNoSpace(data, value, callback, formatMessage) : callback()
+                                                    this.state.method_change_calss.lan2 === 'display-block' && this.state.lan1_ip_class.pppoe === 'display-block' ? Validator.keyboradNoSpaceSpecial(data, value, callback, formatMessage) : callback()
                                                 }
                                             }],
                                             initialValue: network_settings.lan1_username

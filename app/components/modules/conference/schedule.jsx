@@ -23,11 +23,11 @@ class Schedule extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'listMeetme'
             },
-            type: 'json',
+            dataType: 'json',
             success: function(res) {
                 const response = res.response || {}
                 const confoList = response.bookid || []
@@ -62,12 +62,12 @@ class Schedule extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 "action": "deleteMeetme",
                 "bookid": record.bookid
             },
-            type: 'json',
+            dataType: 'json',
             async: true,
             success: function(res) {
                 var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -77,6 +77,39 @@ class Schedule extends Component {
                     message.success(successMessage)
 
                     this._getConfoList()
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _refreshGoogle = () => {
+        const { formatMessage } = this.props.intl
+
+        message.loading(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG905" })}}></span>, 0)
+
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: {
+                "action": "manualUpdateState",
+                "updatestate": 'yes'
+            },
+            dataType: 'json',
+            async: true,
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    message.destroy()
+
+                    if (data.response.updatestate.match(/error|timeout/)) {
+                        message.error(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG2981" })}}></span>)
+                    } else {
+                        message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3795" })}}></span>)
+                        this._getConfoList()
+                    }
                 }
             }.bind(this),
             error: function(e) {
@@ -160,7 +193,11 @@ class Schedule extends Component {
                         <Button icon="setting" type="primary" size="default" onClick={ this._cleanSettings }>
                             { formatMessage({id: "LANG4277"}) }
                         </Button>
+                        <Button icon="setting" type="primary" size="default" onClick={ this._refreshGoogle }>
+                            { formatMessage({id: "LANG2740"}) }
+                        </Button>
                     </div>
+                    <div className="lite-desc">{ formatMessage({id: "LANG4467"}) }</div>
                     <Table
                         rowKey="extension"
                         columns={ columns }

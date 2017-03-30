@@ -191,8 +191,24 @@ Validator.prototype = {
             callback()
         }
     },
+    ipv4: function(data, value, callback, formatMessage) {
+        if (!value || (/^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])){3}$/i.test(value))) {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG5135"}))
+        }
+    },
     ipv6: function(data, value, callback, formatMessage) {
         const reg = /^\[?([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\]$|^\[:((:[0-9a-fA-F]{1,4}){1,6}|:)\]$|^\[[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:)\]$|^\[([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:)\]$|^\[([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:)\]$|^\[([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:)\]$|^\[([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?\]$|^\[([0-9a-fA-F]{1,4}:){6}:\]?$/
+
+        if (value && !reg.test(value)) {
+            callback(formatMessage({id: "LANG2196"}))
+        } else {
+            callback()
+        }
+    },
+    ipv6withcidr: function(data, value, callback, formatMessage) {
+        const reg = /^\[?((([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})|(:((:[0-9a-fA-F]{1,4}){1,6}|:))|([0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,5}|:))|(([0-9a-fA-F]{1,4}:){2}((:[0-9a-fA-F]{1,4}){1,4}|:))|(([0-9a-fA-F]{1,4}:){3}((:[0-9a-fA-F]{1,4}){1,3}|:))|(([0-9a-fA-F]{1,4}:){4}((:[0-9a-fA-F]{1,4}){1,2}|:))|(([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4})?)|(([0-9a-fA-F]{1,4}:){6}:))\]?(\/([1-9]|[1-9]\d|1[0-1]\d|12[0-8]?))?$/
 
         if (value && !reg.test(value)) {
             callback(formatMessage({id: "LANG2196"}))
@@ -442,6 +458,13 @@ Validator.prototype = {
             callback()
         } else {
             callback(formatMessage({id: "LANG5140"}))
+        }
+    },
+    userName: function(data, value, callback, formatMessage) {
+        if (!value || /^[a-zA-Z_0-9]+$/.test(value)) {
+            callback()
+        } else {
+            callback(formatMessage({id: "LANG2831"}))
         }
     }
 }

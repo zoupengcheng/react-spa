@@ -6,21 +6,107 @@ import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
 import Title from '../../../views/title'
 import Validator from "../../api/validator"
+
+import moment from 'moment'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, FormattedHTMLMessage, injectIntl } from 'react-intl'
-import { Button, Checkbox, Col, Form, Input, Icon, message, Radio, Row, Select, Table, Transfer, Tooltip } from 'antd'
+import { Button, Checkbox, Col, Form, Input, Icon, message, Radio, Row, Select, Table, TimePicker, Transfer, Tooltip } from 'antd'
 
+const TimeFormat = 'HH:mm'
 const FormItem = Form.Item
 const Option = Select.Option
 const RadioGroup = Radio.Group
+const RadioButton = Radio.Button
 const CheckboxGroup = Checkbox.Group
 
 class SpecificTime extends Component {
     constructor(props) {
         super(props)
 
+        let { formatMessage } = this.props.intl
+
+        let weekOptions = [{
+                    value: 'sun',
+                    label: formatMessage({id: "LANG250"})
+                }, {
+                    value: 'mon',
+                    label: formatMessage({id: "LANG251"})
+                }, {
+                    value: 'tue',
+                    label: formatMessage({id: "LANG252"})
+                }, {
+                    value: 'wed',
+                    label: formatMessage({id: "LANG253"})
+                }, {
+                    value: 'thu',
+                    label: formatMessage({id: "LANG254"})
+                }, {
+                    value: 'fri',
+                    label: formatMessage({id: "LANG255"})
+                }, {
+                    value: 'sat',
+                    label: formatMessage({id: "LANG256"})
+                }]
+
+        let monthOptions = [{
+                    value: 'jan',
+                    label: formatMessage({id: "LANG204"}, {0: ''})
+                }, {
+                    value: 'feb',
+                    label: formatMessage({id: "LANG205"}, {0: ''})
+                }, {
+                    value: 'mar',
+                    label: formatMessage({id: "LANG206"}, {0: ''})
+                }, {
+                    value: 'apr',
+                    label: formatMessage({id: "LANG207"}, {0: ''})
+                }, {
+                    value: 'may',
+                    label: formatMessage({id: "LANG208"}, {0: ''})
+                }, {
+                    value: 'jun',
+                    label: formatMessage({id: "LANG209"}, {0: ''})
+                }, {
+                    value: 'jul',
+                    label: formatMessage({id: "LANG210"}, {0: ''})
+                }, {
+                    value: 'aug',
+                    label: formatMessage({id: "LANG211"}, {0: ''})
+                }, {
+                    value: 'sep',
+                    label: formatMessage({id: "LANG212"}, {0: ''})
+                }, {
+                    value: 'oct',
+                    label: formatMessage({id: "LANG213"}, {0: ''})
+                }, {
+                    value: 'nov',
+                    label: formatMessage({id: "LANG214"}, {0: ''})
+                }, {
+                    value: 'dec',
+                    label: formatMessage({id: "LANG215"}, {0: ''})
+                }]
+
+        let dayOptions = []
+
+        for (let i = 1; i < 32; i++) {
+            let value = i.toString()
+
+            dayOptions.push({
+                    value: value,
+                    label: value
+                })
+        }
+
         this.state = {
+            tc_mode: 'byWeek',
+            tc_mode_date_type: 'week',
+            dayOptions: dayOptions,
+            weekOptions: weekOptions,
+            monthOptions: monthOptions,
+            dayOptionsSelected: [],
+            weekOptionsSelected: [],
+            monthOptionsSelected: [],
             timeConditionsOfficetime: this.props.timeConditionsOfficetime
         }
     }
@@ -33,82 +119,119 @@ class SpecificTime extends Component {
 
         const form = this.props.form
         const { formatMessage } = this.props.intl
-        const fields = ['fm_member_type', 'fm_member_local', 'fm_member_external', 'fm_member_ringtime', 'fm_member_order']
+        const fields = ['tc_start_time', 'tc_end_time', 'tc_mode']
 
         form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
             if (!err) {
-                let followmeMembers = _.clone(this.state.followmeMembers)
+                let timeConditionsOfficetime = _.clone(this.state.timeConditionsOfficetime)
 
-                if (values.fm_member_order === 'after') {
-                    let obj = {
-                            key: followmeMembers.length,
-                            ringtime: values.fm_member_ringtime
-                        }
-
-                    if (values.fm_member_type === 'local') {
-                        obj.extension = [values.fm_member_local]
-                    } else {
-                        obj.extension = [values.fm_member_external]
+                let obj = {
+                        mode: values.tc_mode,
+                        condition_index: this._getTCIndex()
                     }
 
-                    followmeMembers.push(obj)
+                if (!values.tc_start_time) {
+                    obj.start_hour = '00'
+                    obj.start_min = '00'
                 } else {
-                    let obj = followmeMembers[followmeMembers.length - 1]
+                    let startTime = values.tc_start_time.format(TimeFormat)
+                    let startTimeArray = startTime.split(':')
+                    let start_hour = startTimeArray[0]
+                    let start_min = startTimeArray[1]
 
-                    obj.ringtime = values.fm_member_ringtime
-
-                    if (values.fm_member_type === 'local') {
-                        obj.extension.push(values.fm_member_local)
-                    } else {
-                        obj.extension.push(values.fm_member_external)
-                    }
-
-                    followmeMembers[followmeMembers.length - 1] = obj
+                    obj.start_hour = start_hour
+                    obj.start_min = start_min
                 }
 
+                if (!values.tc_end_time) {
+                    obj.end_hour = '23'
+                    obj.end_min = '59'
+                } else {
+                    let endTime = values.tc_end_time.format(TimeFormat)
+                    let endTimeArray = endTime.split(':')
+                    let end_hour = endTimeArray[0]
+                    let end_min = endTimeArray[1]
+
+                    obj.end_hour = end_hour
+                    obj.end_min = end_min
+                }
+
+                if (!values.tc_start_time && !values.tc_end_time) {
+                    obj.time = '00:00-23:59'
+                } else {
+                    obj.time = obj.start_hour + ':' + obj.start_min + '-' + obj.end_hour + ':' + obj.end_min
+                }
+
+                if (this.state.dayOptionsSelected.length) {
+                    obj.day = this.state.dayOptionsSelected.join('&')
+                } else {
+                    obj.day = '*'
+                }
+
+                if (this.state.weekOptionsSelected.length) {
+                    obj.week_day = this.state.weekOptionsSelected.join('&')
+                } else {
+                    obj.week_day = '*'
+                }
+
+                if (this.state.monthOptionsSelected.length) {
+                    obj.month = this.state.monthOptionsSelected.join('&')
+                } else {
+                    obj.month = '*'
+                }
+
+                if (this.props.currentEditId) {
+                     obj.user_id = this.props.userSettings.user_id
+                }
+
+                timeConditionsOfficetime.push(obj)
+
                 this.setState({
-                    fm_member_type: 'local',
-                    followmeMembers: followmeMembers
+                    dayOptionsSelected: [],
+                    weekOptionsSelected: [],
+                    monthOptionsSelected: [],
+                    timeConditionsOfficetime: timeConditionsOfficetime
                 })
 
                 form.setFieldsValue({
-                    fm_members: followmeMembers
+                    tc_time_condition: timeConditionsOfficetime
                 })
 
                 form.resetFields(fields)
             }
         })
     }
-    _createExtension = (text, record, index) => {
-        let extension
+    _createDay = (text, record, index) => {
         const { formatMessage } = this.props.intl
-        const { getFieldDecorator, getFieldValue } = this.props.form
 
-        extension = <div style={{ 'paddingLeft': '10px', 'textAlign': 'left' }}>
-                    <span>{ record.extension.join(' & ') }</span>
-                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG569"}) }</span>
-                    <span style={{ 'padding': '0 5px' }}>{ record.ringtime }</span>
-                    {/* getFieldDecorator(`fm_member_ringtime_${record.key}`, {
-                        rules: [{
-                            required: true,
-                            message: formatMessage({id: "LANG2150"})
-                        }, {
-                            validator: (data, value, callback) => {
-                                Validator.digits(data, value, callback, formatMessage)
-                            }
-                        }, {
-                            validator: (data, value, callback) => {
-                                Validator.range(data, value, callback, formatMessage, 10, 60)
-                            }
-                        }],
-                        initialValue: record.ringtime
-                    })(
-                        <Input style={{ 'width': '50px' }} onChange={ this._onChangeRingtime.bind(this, record.key) } />
-                    ) */}
-                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
-                </div>
+        if (text === '*') {
+            return <span>{ formatMessage({id: "LANG257"}) }</span>
+        } else {
+            return text.replace(/&/g, ', ')
+        }
+    }
+    _createMonth = (text, record, index) => {
+        const { formatMessage } = this.props.intl
 
-        return extension
+        if (text === '*') {
+            return <span>{ formatMessage({id: "LANG257"}) }</span>
+        } else {
+            return this._parseMonth(text)
+        }
+    }
+    _createWeek = (text, record, index) => {
+        const { formatMessage } = this.props.intl
+
+        if (text === '*') {
+            return <span>{ formatMessage({id: "LANG257"}) }</span>
+        } else {
+            return this._parseWeek(text)
+        }
+    }
+    _createTime = (text, record, index) => {
+        const { formatMessage } = this.props.intl
+
+        return text || ''
     }
     _createOption = (text, record, index) => {
         const { formatMessage } = this.props.intl
@@ -116,58 +239,119 @@ class SpecificTime extends Component {
         return <div>
                 <span
                     className="sprite sprite-del"
-                    onClick={ this._delete.bind(this, record.key) }>
+                    onClick={ this._delete.bind(this, record.condition_index) }>
                 </span>
             </div>
     }
-    _delete = (key) => {
+    _delete = (index) => {
         let { form } = this.props
-        let followmeMembers = _.clone(this.state.followmeMembers)
+        let timeConditionsOfficetime = _.clone(this.state.timeConditionsOfficetime)
 
-        followmeMembers = _.filter(followmeMembers, (data) => { return data.key !== key })
+        timeConditionsOfficetime = _.filter(timeConditionsOfficetime, (data) => { return data.condition_index !== index })
 
         form.setFieldsValue({
-            fm_members: followmeMembers
+            tc_time_condition: timeConditionsOfficetime
         })
 
         this.setState({
-            followmeMembers: followmeMembers
+            timeConditionsOfficetime: timeConditionsOfficetime
         })
     }
-    _onChangeDesType = (value) => {
-        this.setState({
-            fm_destination_type: value
-        })
-    }
-    _onChangeEnableDes = (e) => {
-        this.setState({
-            fm_enable_destination: e.target.checked
-        })
-    }
-    _onChangeMemberType = (e) => {
-        this.setState({
-            fm_member_type: e.target.value
-        })
-    }
-    _onChangeRingtime = (key, event) => {
-        let followmeMembers = _.clone(this.state.followmeMembers)
+    _getTCIndex = () => {
+        let j,
+            i = 0,
+            length = 1000000,
+            timeConditionsOfficetime = this.state.timeConditionsOfficetime
 
-        followmeMembers[key].ringtime = event.target.value
+        for (i; i < length; i++) {
+            let exist = false
 
+            for (j = 0; j < timeConditionsOfficetime.length; j++) {
+                if (i === timeConditionsOfficetime[j]['condition_index']) {
+                    exist = true
+                    break
+                }
+            }
+
+            if (!exist) {
+                break
+            }
+        }
+
+        return i
+    }
+    _onChangeTCMode = (e) => {
         this.setState({
-            followmeMembers: followmeMembers
+            tc_mode: e.target.value
         })
+    }
+    _onChangeTCModeDayType = (e) => {
+        this.setState({
+            tc_mode_date_type: e.target.value
+        })
+    }
+    _onChangeSelectOptions = (type, checkedList) => {
+        let obj = {}
+
+        obj[type] = checkedList
+
+        this.setState(obj)
+    }
+    _parseMonth = (list) => {
+        let str = list.split('&'),
+            dictMonth = {},
+            tmpstr = []
+
+        const { formatMessage } = this.props.intl
+
+        dictMonth.jan = formatMessage({id: "LANG204"}, {0: ''})
+        dictMonth.feb = formatMessage({id: "LANG205"}, {0: ''})
+        dictMonth.mar = formatMessage({id: "LANG206"}, {0: ''})
+        dictMonth.apr = formatMessage({id: "LANG207"}, {0: ''})
+        dictMonth.may = formatMessage({id: "LANG208"}, {0: ''})
+        dictMonth.jun = formatMessage({id: "LANG209"}, {0: ''})
+        dictMonth.jul = formatMessage({id: "LANG210"}, {0: ''})
+        dictMonth.aug = formatMessage({id: "LANG211"}, {0: ''})
+        dictMonth.sep = formatMessage({id: "LANG212"}, {0: ''})
+        dictMonth.oct = formatMessage({id: "LANG213"}, {0: ''})
+        dictMonth.nov = formatMessage({id: "LANG214"}, {0: ''})
+        dictMonth.dec = formatMessage({id: "LANG215"}, {0: ''})
+
+        for (let i = 0; i < str.length; i++) {
+            tmpstr.push(dictMonth[str[i]])
+        }
+
+        return tmpstr.join('')
+    }
+    _parseWeek = (list) => {
+        let str = list.split('&'),
+            dictWeek = {},
+            tmpstr = []
+
+        const { formatMessage } = this.props.intl
+
+        dictWeek.sun = formatMessage({id: "LANG250"})
+        dictWeek.mon = formatMessage({id: "LANG251"})
+        dictWeek.tue = formatMessage({id: "LANG252"})
+        dictWeek.wed = formatMessage({id: "LANG253"})
+        dictWeek.thu = formatMessage({id: "LANG254"})
+        dictWeek.fri = formatMessage({id: "LANG255"})
+        dictWeek.sat = formatMessage({id: "LANG256"})
+
+        for (let i = 0; i < str.length; i++) {
+            tmpstr.push(dictWeek[str[i]])
+        }
+
+        return tmpstr.join(' ')
     }
     render() {
         const form = this.props.form
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, getFieldValue } = this.props.form
 
-        const settings = this.state.followmeItem || {}
-
         const formItemLayout = {
-            labelCol: { span: 8 },
-            wrapperCol: { span: 12 }
+            labelCol: { span: 4 },
+            wrapperCol: { span: 6 }
         }
 
         const formItemLayoutRow = {
@@ -181,23 +365,45 @@ class SpecificTime extends Component {
             lineHeight: "30px"
         }
 
-        const orderRadio = this.state.followmeMembers.length
-                            ? <RadioGroup>
-                                    <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
-                                    <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
-                                </RadioGroup>
-                            : <RadioGroup>
-                                    <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
-                                </RadioGroup>
+        const orderRadio = <RadioGroup>
+                                <Radio value="after">{ formatMessage({id: "LANG1983"}) }</Radio>
+                                <Radio value="alongWith">{ formatMessage({id: "LANG1984"}) }</Radio>
+                            </RadioGroup>
 
         const columns = [{
-                key: 'key',
-                dataIndex: 'key',
-                title: formatMessage({id: "LANG85"}),
+                width: 200,
+                key: 'time',
+                dataIndex: 'time',
+                title: formatMessage({id: "LANG247"}),
                 render: (text, record, index) => (
-                    this._createExtension(text, record, index)
+                    this._createTime(text, record, index)
                 )
-            }, { 
+            }, {
+                width: 400,
+                key: 'week_day',
+                dataIndex: 'week_day',
+                title: formatMessage({id: "LANG243"}),
+                render: (text, record, index) => (
+                    this._createWeek(text, record, index)
+                )
+            }, {
+                width: 400,
+                key: 'month',
+                dataIndex: 'month',
+                title: formatMessage({id: "LANG244"}),
+                render: (text, record, index) => (
+                    this._createMonth(text, record, index)
+                )
+            }, {
+                width: 400,
+                key: 'day',
+                dataIndex: 'day',
+                title: formatMessage({id: "LANG242"}),
+                render: (text, record, index) => (
+                    this._createDay(text, record, index)
+                )
+            }, {
+                width: 200,
                 key: 'options',
                 dataIndex: 'options',
                 title: formatMessage({id: "LANG74"}),
@@ -206,359 +412,118 @@ class SpecificTime extends Component {
                 )
             }]
 
-        getFieldDecorator('fm_members', { initialValue: [] })
-        getFieldDecorator('fm_action', { initialValue: '' })
+        getFieldDecorator('tc_time_condition', { initialValue: this.state.timeConditionsOfficetime })
 
         return (
             <div className="content">
                 <div className="ant-form">
                     <Row>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1980" /> }>
-                                            <span>{ formatMessage({id: "LANG274"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('fm_enable_followme', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: settings.enable_followme === 'yes'
-                                })(
-                                    <Checkbox />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4043" /> }>
-                                            <span>{ formatMessage({id: "LANG1142"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('fm_bypass_outrt_auth', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: settings.bypass_outrt_auth === 'yes'
-                                })(
-                                    <Checkbox />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1977" /> }>
-                                            <span>{ formatMessage({id: "LANG1976"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('fm_musicclass', {
-                                    rules: [],
-                                    initialValue: settings.musicclass ? settings.musicclass : 'default'
-                                })(
-                                    <Select>
-                                        {
-                                            this.props.mohNameList.map(function(value) {
-                                                return <Option
-                                                            key={ value }
-                                                            value={ value }
-                                                        >
-                                                            { value }
-                                                        </Option>
-                                            })
-                                        }
-                                    </Select>
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG4092" /> }>
-                                            <span>{ formatMessage({id: "LANG4091"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('fm_enable_option', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: settings.enable_option === 'yes'
-                                })(
-                                    <Checkbox />
-                                ) }
-                            </FormItem>
-                        </Col>
-                        <Col span={ 12 }>
-                            <FormItem
-                                { ...formItemLayout }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG2990" /> }>
-                                            <span>{ formatMessage({id: "LANG2990"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('fm_enable_destination', {
-                                    rules: [],
-                                    valuePropName: 'checked',
-                                    initialValue: this.state.fm_enable_destination
-                                })(
-                                    <Checkbox onChange={ this._onChangeEnableDes } />
-                                ) }
-                            </FormItem>
-                        </Col>
                         <Col span={ 24 }>
-                            <Col span={ 12 }>
-                                <FormItem
-                                    { ...formItemLayout }
-                                    label={(
-                                        <span>
-                                            <Tooltip title={ <FormattedHTMLMessage id="LANG4276" /> }>
-                                                <span>{ formatMessage({id: "LANG1558"}) }</span>
-                                            </Tooltip>
-                                        </span>
-                                    )}
-                                >
-                                    { getFieldDecorator('fm_destination_type', {
-                                        rules: [
-                                                this.state.fm_enable_destination
-                                                    ? {
-                                                            required: true,
-                                                            message: formatMessage({id: "LANG2150"})
-                                                        }
-                                                    : {}
-                                            ],
-                                        initialValue: this.state.fm_destination_type
-                                    })(
-                                        <Select
-                                            onChange={ this._onChangeDesType }
-                                            disabled={ !this.state.fm_enable_destination }
-                                        >
-                                            <Option value='account'>{ formatMessage({id: "LANG85"}) }</Option>
-                                            <Option value='voicemail'>{ formatMessage({id: "LANG90"}) }</Option>
-                                            <Option value='queue'>{ formatMessage({id: "LANG91"}) }</Option>
-                                            <Option value='ringgroup'>{ formatMessage({id: "LANG600"}) }</Option>
-                                            <Option value='vmgroup'>{ formatMessage({id: "LANG89"}) }</Option>
-                                            <Option value='ivr'>{ formatMessage({id: "LANG19"}) }</Option>
-                                            <Option value='external_number'>{ formatMessage({id: "LANG3458"}) }</Option>
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col
-                                span={ 6 }
-                                className={ this.state.fm_destination_type !== 'external_number' ? 'display-block' : 'hidden' }
+                            <FormItem
+                                { ...formItemLayoutRow }
+                                label={(
+                                    <span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG247" /> }>
+                                            <span>{ formatMessage({id: "LANG247"}) }</span>
+                                        </Tooltip>
+                                    </span>
+                                )}
                             >
-                                <FormItem>
-                                    { getFieldDecorator('fm_destination_value', {
-                                        rules: [
-                                            this.state.fm_enable_destination &&
-                                            this.state.fm_destination_type !== 'external_number'
-                                                ? {
-                                                        required: true,
-                                                        message: formatMessage({id: "LANG2150"})
-                                                    }
-                                                : {}
-                                        ],
-                                        initialValue: this.state.fm_destination_value
-                                    })(
-                                        <Select disabled={ !this.state.fm_enable_destination }>
-                                            {
-                                                this.props.destinationDataSource[this.state.fm_destination_type].map(function(obj) {
-                                                        return <Option
-                                                                    key={ obj.key }
-                                                                    value={ obj.value }
-                                                                    className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                                                                    { obj.label }
-                                                                </Option>
-                                                    })
-                                            }
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col
-                                span={ 6 }
-                                className={ this.state.fm_destination_type === 'external_number' ? 'display-block' : 'hidden' }
-                            >
-                                <FormItem>
-                                    { getFieldDecorator('fm_external_number', {
-                                        rules: [
-                                            (this.state.fm_enable_destination &&
-                                            this.state.fm_destination_type === 'external_number'
-                                                ? {
-                                                        required: true,
-                                                        message: formatMessage({id: "LANG2150"})
-                                                    }
-                                                : {}),
-                                            {
-                                                validator: (data, value, callback) => {
-                                                    Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
-                                                }
-                                            }
-                                        ],
-                                        initialValue: settings.external_number
-                                    })(
-                                        <Input disabled={ !this.state.fm_enable_destination } />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                        </Col>
-                        <Col span={ 24 }>
-                            <div className="section-title">
-                                <span>{ formatMessage({id: "LANG711"}) }</span>
-                            </div>
+                                { getFieldDecorator('tc_start_time', {
+                                    rules: []
+                                })(
+                                    <TimePicker
+                                        format={ TimeFormat }
+                                        placeholder={ formatMessage({id: "LANG169"}) }
+                                    />
+                                ) }
+                                <span style={{ 'padding': '0 10px' }}>{ '-' }</span>
+                                { getFieldDecorator('tc_end_time', {
+                                    rules: []
+                                })(
+                                    <TimePicker
+                                        format={ TimeFormat }
+                                        placeholder={ formatMessage({id: "LANG184"}) }
+                                    />
+                                ) }
+                            </FormItem>
                         </Col>
                         <Col
                             span={ 24 }
                         >
                             <FormItem
-                                { ...formItemLayoutRow }
+                                { ...formItemLayout }
                                 label={(
                                     <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1979" /> }>
-                                            <span>{ formatMessage({id: "LANG1978"}) }</span>
+                                        <Tooltip title={ <FormattedHTMLMessage id="LANG5598" /> }>
+                                            <span>{ formatMessage({id: "LANG5598"}) }</span>
                                         </Tooltip>
                                     </span>
                                 )}
                             >
-                                { getFieldDecorator('fm_member_type', {
-                                    initialValue: 'local'
+                                { getFieldDecorator('tc_mode', {
+                                    initialValue: 'byWeek'
                                 })(
-                                    <RadioGroup onChange={ this._onChangeMemberType }>
-                                        <Radio value="local">{ formatMessage({id: "LANG1981"}) }</Radio>
-                                        <Radio value="external">{ formatMessage({id: "LANG1982"}) }</Radio>
+                                    <RadioGroup onChange={ this._onChangeTCMode }>
+                                        <Radio value="byWeek">{ formatMessage({id: "LANG199"}) }</Radio>
+                                        <Radio value="byDay">{ formatMessage({id: "LANG200"}) }</Radio>
                                     </RadioGroup>
                                 ) }
                             </FormItem>
                         </Col>
                         <Col
                             span={ 24 }
+                            className={ this.state.tc_mode === 'byWeek' ? 'display-block' : 'hidden'}
                         >
-                            <Col
-                                span={ 4 }
-                                offset={ 4 }
-                                className={ this.state.fm_member_type === 'local' ? 'display-block' : 'hidden' }
-                            >
-                                <FormItem>
-                                    { getFieldDecorator('fm_member_local', {
-                                        rules: [
-                                            this.state.fm_member_type === 'local'
-                                                ? {
-                                                        required: true,
-                                                        message: formatMessage({id: "LANG2150"})
-                                                    }
-                                                : {}
-                                        ],
-                                        initialValue: ''
-                                    })(
-                                        <Select>
-                                            {
-                                                this.state.memberAccountList.map(function(obj) {
-                                                        return <Option
-                                                                    key={ obj.key }
-                                                                    value={ obj.value }
-                                                                    className={ obj.out_of_service === 'yes' ? 'out-of-service' : '' }>
-                                                                    { obj.label }
-                                                                </Option>
-                                                    })
-                                            }
-                                        </Select>
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col
-                                span={ 4 }
-                                offset={ 4 }
-                                className={ this.state.fm_member_type === 'external' ? 'display-block' : 'hidden' }
-                            >
-                                <FormItem>
-                                    { getFieldDecorator('fm_member_external', {
-                                        rules: [
-                                            (this.state.fm_member_type === 'external'
-                                                ? {
-                                                        required: true,
-                                                        message: formatMessage({id: "LANG2150"})
-                                                    }
-                                                : {}),
-                                            {
-                                                validator: (data, value, callback) => {
-                                                    Validator.phoneNumberOrExtension(data, value, callback, formatMessage)
-                                                }
-                                            }
-                                        ],
-                                        initialValue: ''
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <FormItem style={{ float: 'left', display: 'inline-block' }}>
-                                <span style={{ 'padding': '0 10px' }}>{ formatMessage({id: "LANG569"}) }</span>
-                            </FormItem>
-                            <Col span={ 3 }>
-                                <FormItem>
-                                    { getFieldDecorator('fm_member_ringtime', {
-                                        rules: [{
-                                            required: true,
-                                            message: formatMessage({id: "LANG2150"})
-                                        }, {
-                                            validator: (data, value, callback) => {
-                                                Validator.digits(data, value, callback, formatMessage)
-                                            }
-                                        }, {
-                                            validator: (data, value, callback) => {
-                                                Validator.range(data, value, callback, formatMessage, 10, 60)
-                                            }
-                                        }],
-                                        initialValue: '30'
-                                    })(
-                                        <Input />
-                                    ) }
-                                </FormItem>
-                            </Col>
-                            <Col span={ 1 }>
-                                <FormItem>
-                                    <span style={{ 'padding': '0 5px' }}>{ formatMessage({id: "LANG570"}) }</span>
-                                </FormItem>
+                            <Col span={ 8 } offset={ 4 }>
+                                <CheckboxGroup
+                                    options={ this.state.weekOptions }
+                                    value={ this.state.weekOptionsSelected }
+                                    onChange={ this._onChangeSelectOptions.bind(this, 'weekOptionsSelected') }
+                                />
                             </Col>
                         </Col>
                         <Col
                             span={ 24 }
+                            className={ this.state.tc_mode === 'byDay' ? 'display-block' : 'hidden'}
                         >
-                            <FormItem
-                                { ...formItemLayoutRow }
-                                label={(
-                                    <span>
-                                        <Tooltip title={ <FormattedHTMLMessage id="LANG1975" /> }>
-                                            <span>{ formatMessage({id: "LANG1974"}) }</span>
-                                        </Tooltip>
-                                    </span>
-                                )}
-                            >
-                                { getFieldDecorator('fm_member_order', {
-                                    initialValue: 'after'
-                                })(
-                                    orderRadio
-                                ) }
-                            </FormItem>
+                            <Col span={ 8 } offset={ 4 }>
+                                <CheckboxGroup
+                                    options={ this.state.monthOptions }
+                                    value={ this.state.monthOptionsSelected }
+                                    onChange={ this._onChangeSelectOptions.bind(this, 'monthOptionsSelected') }
+                                />
+                            </Col>
                         </Col>
+                        <Col
+                            span={ 24 }
+                            className={ this.state.tc_mode === 'byDay' ? 'display-block' : 'hidden'}
+                        >
+                            <Col span={ 8 } offset={ 4 }>
+                                <CheckboxGroup
+                                    options={ this.state.dayOptions }
+                                    value={ this.state.dayOptionsSelected }
+                                    onChange={ this._onChangeSelectOptions.bind(this, 'dayOptionsSelected') }
+                                />
+                            </Col>
+                        </Col>
+                        {/* <Col
+                            span={ 24 }
+                            className={ this.state.tc_mode === 'byDay' ? 'display-block' : 'hidden'}
+                        >
+                            <Col span={ 8 } offset={ 4 }>
+                                <FormItem>
+                                    { getFieldDecorator('tc_mode_date_type', {
+                                        initialValue: 'week'
+                                    })(
+                                        <RadioGroup onChange={ this._onChangeTCModeDayType }>
+                                            <Radio value="week">{ formatMessage({id: "LANG243"}) }</Radio>
+                                            <Radio value="date">{ formatMessage({id: "LANG242"}) }</Radio>
+                                        </RadioGroup>
+                                    ) }
+                                </FormItem>
+                            </Col>
+                        </Col> */}
                         <Col span={ 24 } style={{ 'padding': '10px 0' }}>
                             <Col
                                 span={ 4 }
@@ -575,10 +540,9 @@ class SpecificTime extends Component {
                         </Col>
                         <Col span={ 24 } style={{ 'margin': '10px 0 0 0' }}>
                             <Table
-                                rowKey="key"
                                 columns={ columns }
                                 pagination={ false }
-                                showHeader={ false }
+                                rowKey="condition_index"
                                 dataSource={ this.state.timeConditionsOfficetime }
                             />
                         </Col>

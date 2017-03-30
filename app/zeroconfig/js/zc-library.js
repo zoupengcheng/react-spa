@@ -159,7 +159,7 @@ function errorHandler (data, callback) {
             } else {
                 // top.dialog.dialogMessage({
                 //     type: 'error',
-                //     content: $.lang(UCMGUI.config.errorCodes[status] || 'LANG916'),
+                //     content: ZEROCONFIG.formatMessage({ id: UCMGUI.config.errorCodes[status] || 'LANG916' }),
                 //     callback: function() {
                 //         if (callback && typeof callback == "function") {
                 //             callback.call();
@@ -190,7 +190,7 @@ function errorHandler (data, callback) {
         } else {
             top.dialog.dialogMessage({
                 type: 'error',
-                content: $.lang(UCMGUI.config.errorCodes[data] || 'LANG916'),
+                content: ZEROCONFIG.formatMessage({ id: UCMGUI.config.errorCodes[data] || 'LANG916' }),
                 callback: function() {
                     if (callback && typeof callback == "function") {
                         callback.call();
@@ -1036,7 +1036,7 @@ function processCGIData(data) {
             initialized = 0;
             BLL.DataCollection.reset();
         },
-        init: function(callback) {
+        init: function(callback, formatMessage, message) {
             if (initialized === 1){
               if (typeof callback === "function")
                   callback.call({});
@@ -1044,6 +1044,8 @@ function processCGIData(data) {
             }
 
             console.log("Initialize...");
+            ZEROCONFIG["formatMessage"] = formatMessage
+            ZEROCONFIG["message"] = message
             // Initialize variables
             ZEROCONFIG._data.blocks = {};
             ZEROCONFIG._data.typeBlocks = {};
@@ -3462,9 +3464,9 @@ function processCGIData(data) {
                         });
                         if (bool) {
                             var response = result.response;
-                            response.warning_msg = "LANG4489";
-                            response.go_restore = "LANG4490";
-                            response.restore_here = "LANG4491";
+                            response.warning_msg = ZEROCONFIG.formatMessage({ id: "LANG4489" });
+                            response.go_restore = ZEROCONFIG.formatMessage({ id: "LANG4490" });
+                            response.restore_here = ZEROCONFIG.formatMessage({ id: "LANG4491" });
 
                             var numOfInvalidModel = response.models.length;
                             BLL.DataCollection.resetInvalidModel();
@@ -3489,7 +3491,7 @@ function processCGIData(data) {
                                     //         },
                                     //         cancel: function() {
                                     //             top.dialog.dialogConfirm({
-                                    //                 confirmStr: top.$.lang("LANG4466"),
+                                    //                 confirmStr: ZEROCONFIG.formatMessage({ id: "LANG4466" }),
                                     //                 buttons: {
                                     //                     ok: function() {
                                     //                       top.$.cookie('dismiss_zcmodel_missing_warning', 'yes');

@@ -22,7 +22,10 @@
             String.prototype.format = top.String.prototype.format;
         else
             String.prototype.format = function (str) {
-                // do nothing when no implementation
+                var args = arguments;
+                return this.replace(/{(\d+)}/g, function(match, number) {
+                    return typeof args[number] != 'undefined' ? args[number] : match;
+                });
             }
     }
 
@@ -48,7 +51,7 @@
 
     var translate = undefined;
     var createLabel = undefined;
-
+    debugger
     if (typeof $.lang === "function")
         translate = $.lang;
     else if (typeof $P === "function" && typeof $P.lang === "function")
@@ -1538,7 +1541,7 @@
                             value = '<B>' + header + '</B> ' + value;
                         }
 
-                        $P(this).qtip({
+                        $(this).qtip({
                             content: {
                                 text: value
                             },

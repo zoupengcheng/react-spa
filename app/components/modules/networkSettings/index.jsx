@@ -5,6 +5,7 @@ import {injectIntl} from 'react-intl'
 import BasicSettings from './basicSettings'
 import DHCPClient from './dhcpclient'
 import Network8021x from './8021x'
+import StaticRoute from './staticRoute'
 import PortForwarding from './portForwarding'
 import $ from 'jquery'
 import api from "../../api/api"
@@ -596,8 +597,12 @@ class NetWorkSettings extends Component {
                             setFirstLoad={ this._setFirstLoad.bind(this) }
                         />
                     </TabPane>
+                    <TabPane tab={formatMessage({id: "LANG3047"})} key="4">
+                            <StaticRoute
+                        />
+                    </TabPane>
                     { model_info.allow_nat !== "0"
-                        ? <TabPane tab={formatMessage({id: "LANG709"})} key="4">
+                        ? <TabPane tab={formatMessage({id: "LANG709"})} key="5">
                                 <PortForwarding
                             />
                     </TabPane>

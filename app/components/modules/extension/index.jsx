@@ -98,9 +98,10 @@ class Extension extends Component {
             type: 'post',
             url: api.apiHost,
             success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                // const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
-                if (bool) {
+                // if (bool) {
+                if (res.status === 0) {
                     let pager = this.state.pagination
                     const response = res.response || {}
 

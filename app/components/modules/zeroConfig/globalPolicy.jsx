@@ -22,7 +22,9 @@ class GlobalPolicy extends Component {
         }
     }
     componentWillMount() {
-        window.ZEROCONFIG.init()
+        const { formatMessage } = this.props.intl
+
+        window.ZEROCONFIG.init("", formatMessage, message)
     }
     componentDidMount() {
         // ZCCurConfig.resetStatus()

@@ -302,8 +302,8 @@ class FollowMe extends Component {
                 )
             }]
 
-        getFieldDecorator('fm_members', { initialValue: [] })
         getFieldDecorator('fm_action', { initialValue: '' })
+        getFieldDecorator('fm_members', { initialValue: this.state.followmeMembers })
 
         return (
             <div className="content">

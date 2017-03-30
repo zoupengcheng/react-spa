@@ -463,6 +463,10 @@ class AMIItem extends Component {
                                         Validator.minlength(data, value, callback, formatMessage, 8)
                                     }
                                 }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
+                                }, {
                                     validator: this._checkName
                                 }],
                                 width: 100,

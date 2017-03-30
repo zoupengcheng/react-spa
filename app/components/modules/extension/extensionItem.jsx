@@ -31,6 +31,7 @@ class ExtensionItem extends Component {
             activeTab: '1',
             userSettings: {},
             editFollowme: false,
+            editTimeCondition: false,
             add_method: 'single',
             autoEmailToUser: 'no',
             time_conditions_officetime: [],
@@ -51,9 +52,9 @@ class ExtensionItem extends Component {
         }
     }
     componentDidMount() {
-        this._getInitData()
     }
     componentWillMount() {
+        this._getInitData()
     }
     componentWillUnmount() {
     }
@@ -330,27 +331,27 @@ class ExtensionItem extends Component {
                                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
 
                                 if (bool) {
-                                    let response = res.response || {},
+                                    let ary = [],
+                                        response = res.response || {},
                                         time_condition = response.time_conditions_officetime,
-                                        translateTime = time_condition.sortBy('condition_index'),
-                                        ary = []
+                                        translateTime = _.sortBy(time_condition, function(item) { return item.condition_index })
 
                                     for (let i = 0; i < translateTime.length; i++) {
                                         let obj = translateTime[i]
 
+                                        obj.user_id = userSettings.user_id
                                         obj.start_hour = UCMGUI.addZero(obj.start_hour)
                                         obj.start_min = UCMGUI.addZero(obj.start_min)
                                         obj.end_hour = UCMGUI.addZero(obj.end_hour)
                                         obj.end_min = UCMGUI.addZero(obj.end_min)
 
-                                        let stime_hour = obj.start_hour
-                                            stime_minute = obj.start_min
-                                            ftime_hour = obj.end_hour
+                                        let stime_hour = obj.start_hour,
+                                            stime_minute = obj.start_min,
+                                            ftime_hour = obj.end_hour,
                                             ftime_minute = obj.end_min
 
                                         if (stime_hour === '' && stime_minute === '' &&
                                             ftime_hour === '' && ftime_minute === '') {
-
                                             obj.time = '00:00-23:59'
                                         } else {
                                             obj.time = stime_hour + ':' + stime_minute + '-' +
@@ -420,13 +421,16 @@ class ExtensionItem extends Component {
 
         let validateFields = this._getFieldsIDs()
 
-        form.validateFields(_.without(validateFields, 'fm_member_local', 'fm_member_external'), { force: true }, (err, values) => {
+        validateFields = _.without(validateFields, 'fm_member_local', 'fm_member_external', 'tc_start_time', 'tc_end_time')
+
+        form.validateFields(validateFields, { force: true }, (err, values) => {
             if (!err) {
                 let action = {
                         dndwhitelist: [],
                         fwdwhitelist: []
                     },
                     fm_action = {},
+                    time_condition = [],
                     add_method = this.state.add_method,
                     fax = values.faxmode ? values.faxmode : '',
                     type = values.extension_type ? values.extension_type : ''
@@ -480,6 +484,10 @@ class ExtensionItem extends Component {
                         return false
                     }
 
+                    if (key.indexOf('tc_') === 0) {
+                        return false
+                    }
+
                     if (key.indexOf('whitelist') === 0) {
                         if (value) {
                             action.dndwhitelist.push(value)
@@ -507,7 +515,25 @@ class ExtensionItem extends Component {
                     }
                 })
 
-                action['time_condition'] = JSON.stringify([])
+                if (this.state.editTimeCondition) {
+                    let time_condition = values.tc_time_condition,
+                        tcLength = time_condition.length
+
+                    for (let i = 0; i < tcLength; i++) {
+                        delete time_condition[i]['time']
+                        delete time_condition[i]['condition_index']
+
+                        time_condition[i]['sequence'] = 0
+                        // time_condition[i]['condition_index'] = i + 1
+                    }
+
+                    action.time_condition = JSON.stringify(time_condition)
+                } else {
+                    if (!this.state.currentEditId) {
+                        action.time_condition = JSON.stringify([])
+                    }
+                }
+
                 action.dndwhitelist = action.dndwhitelist.join()
                 action.fwdwhitelist = action.fwdwhitelist.join()
 
@@ -702,6 +728,7 @@ class ExtensionItem extends Component {
                         }
 
                         action.user_password = 'r'
+                        action.time_condition = JSON.stringify([])
                         action.extension = batchAddExtList.toString()
 
                         confirm({
@@ -949,6 +976,12 @@ class ExtensionItem extends Component {
             })
         }
 
+        if (activeKey === '4') {
+            this.setState({
+                editTimeCondition: true
+            })
+        }
+
         this.setState({
             activeTab: activeKey
         })
@@ -1028,6 +1061,7 @@ class ExtensionItem extends Component {
                             <SpecificTime
                                 form={ form }
                                 settings={ this.state.settings }
+                                userSettings={ this.state.userSettings }
                                 currentEditId={ this.state.currentEditId }
                                 extensionType={ this.state.extension_type }
                                 onExtensionTypeChange={ this._onExtensionTypeChange }

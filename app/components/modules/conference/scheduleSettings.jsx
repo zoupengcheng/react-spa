@@ -140,11 +140,12 @@ class ScheduleSettings extends Component {
                 message.error(e.statusText)
             },
             success: function(data) {
-                var res = data.response,
-                    calendarName = res.googlecalendar.calendar_name.slice(0, -1),
-                    oCandler = $('#open_calendar')
+                let res = data.response,
+                    calendarName = res.googlecalendar.calendar_name.slice(0, -1)
 
-                if (calendarName !== "anonymous@gmail.com" && calendarName !== "" && calendarName.match(/^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$/)) {
+                if (calendarName !== "anonymous@gmail.com" &&
+                    calendarName !== "" &&
+                    calendarName.match(/^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$/)) {
                     this.setState({
                         bCandler: false
                     })
@@ -289,7 +290,8 @@ class ScheduleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator(`remote_send_email${k}`, {
-                                    initialValue: meetList[`remote_send_email${k}`]
+                                    valuePropName: 'checked',
+                                    initialValue: meetList[`remote_send_email${k}`] === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -479,7 +481,8 @@ class ScheduleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('open_calendar', {
-                                    initialValue: meetList.open_calendar
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.open_calendar === 'yes'
                                 })(
                                     <Checkbox disabled={ this.state.bCandler } />
                                 ) }
@@ -531,7 +534,8 @@ class ScheduleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('locale_send_email', {
-                                    initialValue: meetList.locale_send_email
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.locale_send_email === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -583,7 +587,8 @@ class ScheduleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('remote_send_email', {
-                                    initialValue: meetList.remote_send_email
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.remote_send_email === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -639,7 +644,8 @@ class ScheduleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('remote_send_email', {
-                                    initialValue: meetList.remote_send_email
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.remote_send_email === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }

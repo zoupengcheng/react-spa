@@ -261,6 +261,18 @@ class UserItem extends Component {
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.maxlength(data, value, callback, formatMessage, 32)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.minlength(data, value, callback, formatMessage, 4)
+                                            }
+                                        }, {
+                                            validator: (data, value, callback) => {
+                                                Validator.userName(data, value, callback, formatMessage)
+                                            }
+                                        }, {
                                             validator: this._checkName
                                         }],
                                         width: 100,
@@ -285,6 +297,10 @@ class UserItem extends Component {
                                         rules: [{
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
+                                        }, {
+                                            validator: (data, value, callback, formatMessage) => {
+                                                Validator.keyboradNoSpacesemicolon(data, value, callback, formatMessage)
+                                            }
                                         }],
                                         width: 100,
                                         initialValue: userItem.user_password ? userItem.user_password : ""

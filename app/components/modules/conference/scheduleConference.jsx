@@ -17,12 +17,15 @@ const Option = Select.Option
 class ScheduleConference extends Component {
     constructor(props) {
         super(props)
+
+        let meetList = this.props.meetList || {}
+
         this.state = {
-            publicEnable: true,
-            waitAdminEnable: false,
-            quiteModeEnable: false,
-            announceCallers: false,
-            userInviteEnable: false,
+            publicEnable: meetList.public ? (meetList.public === 'yes') : true,
+            waitAdminEnable: meetList.wait_admin ? (meetList.wait_admin === 'yes') : false,
+            quiteModeEnable: meetList.quiet_mode ? (meetList.quiet_mode === 'yes') : false,
+            announceCallers: meetList.announce_callers ? (meetList.announce_callers === 'yes') : false,
+            userInviteEnable: meetList.user_invite ? (meetList.user_invite === 'yes') : false,
             musicclassHidden: 'hidden',
             mohNameList: [],
             conferenceRange: [],
@@ -206,7 +209,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('wait_admin', {
-                                    initialValue: meetList.wait_admin
+                                    valuePropName: 'checked',
+                                    initialValue: this.state.waitAdminEnable
                                 })(
                                     <Checkbox disabled={ this.state.publicEnable } onChange={ this._handleWaitAdminChange } />
                                 ) }
@@ -260,7 +264,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('quiet_mode', {
-                                    initialValue: meetList.quiet_mode
+                                    valuePropName: 'checked',
+                                    initialValue: this.state.quiteModeEnable
                                 })(
                                     <Checkbox disabled={ this.state.announceCallers } onChange={ this._handleQuiteModeChange } />
                                 ) }
@@ -278,7 +283,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('announce_callers', {
-                                    initialValue: meetList.announce_callers
+                                    valuePropName: 'checked',
+                                    initialValue: this.state.announceCallers
                                 })(
                                     <Checkbox disabled={ this.state.quiteModeEnable } onChange={ this._handleAnnounceChange } />
                                 ) }
@@ -296,7 +302,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('call_menu', {
-                                    initialValue: meetList.call_menu
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.call_menu === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -314,7 +321,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('recording', {
-                                    initialValue: meetList.recording
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.recording === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -332,7 +340,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('moh_firstcaller', {
-                                    initialValue: meetList.moh_firstcaller
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.moh_firstcaller === 'yes'
                                 })(
                                     <Checkbox onChange={ this._handleMusicclassChange } />
                                 ) }
@@ -350,7 +359,7 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('musicclass', {
-                                    initialValue: meetList.musicclass
+                                    initialValue: meetList.musicclass || 'default'
                                 })(
                                     <Select>
                                         {
@@ -374,7 +383,8 @@ class ScheduleConference extends Component {
                                 )}
                             >
                                 { getFieldDecorator('skipauth', {
-                                    initialValue: meetList.skipauth
+                                    valuePropName: 'checked',
+                                    initialValue: meetList.skipauth === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }

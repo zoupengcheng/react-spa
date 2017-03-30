@@ -18,11 +18,13 @@ class WarningIndex extends Component {
         super(props)
         this.state = {
             activeKey: this.props.params.id ? this.props.params.id : '1',
-            isDisplay: "hidden",
+            isDisplay: this.props.params.id === '1' ? "hidden" : 'display-block',
             has_contact: 0,
             itemId: "",
             warning_general: [],
-            enEmail: false
+            enEmail: false,
+            emailPageReload: false,
+            eventListPageReload: false
         }
     }
     componentDidMount() {
@@ -285,10 +287,37 @@ class WarningIndex extends Component {
             }
         })
     }
+    _handleCancel = () => {
+        const { resetFields } = this.props.form
+        if (this.state.activeKey === '2') {
+            resetFields(['Pmode_send_warningemail', 'email_circle', 'Ptype_send_warningemail'])
+            this.setState({
+                eventListPageReload: true
+            })
+        } else if (this.state.activeKey === '3') {
+            for (let i = 0; i <= 9; i++) {
+                resetFields([`super_${i}`])
+                resetFields([`manager_${i}`])
+            }
+            this.setState({
+                emailPageReload: true
+            })
+        }
+    }
     _setActiveKey = (key, id) => {
         this.setState({
             activeKey: key,
             itemId: id
+        })
+    }
+    _eventListPageReloadFunc = (key) => {
+        this.setState({
+            eventListPageReload: key
+        })
+    }
+    _emailPageReloadFunc = (key) => {
+        this.setState({
+            emailPageReload: key
         })
     }
     render() {
@@ -325,12 +354,16 @@ class WarningIndex extends Component {
                             setActiveKey={ this._setActiveKey }
                             getWarningGeneral={ this._getWarningGeneral }
                             changeEnEmail={this._changeEnEmail}
+                            eventListPageReload={this.state.eventListPageReload}
+                            eventListPageReloadFunc={this._eventListPageReloadFunc}
                         />
                     </TabPane>
                     <TabPane tab={formatMessage({id: "LANG2546"})} key="3">
                         <WarningContact
                             form={ this.props.form }
                             enEmail={this.state.enEmail}
+                            emailPageReload={this.state.emailPageReload}
+                            emailPageReloadFunc={this._emailPageReloadFunc}
                         />
                     </TabPane>
                 </Tabs>

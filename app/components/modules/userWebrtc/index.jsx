@@ -598,7 +598,7 @@ class UserWebrtc extends Component {
             if (state["oSipSessionCall"].call(txtPhoneNumberVal) !== 0) {
                 state["oSipSessionCall"] = null
                 this.setState({
-                    txtCallStatusMsg: 'Failed to make call',
+                    txtCallStatus: 'Failed to make call',
                     btnCall: false,
                     btnHangUp: true
                 })
@@ -607,7 +607,7 @@ class UserWebrtc extends Component {
             this._saveCallOptions()
         } else if (state["oSipSessionCall"]) {
             this.setState({
-                txtCallStatusMsg: 'Connecting...',
+                txtCallStatus: 'Connecting...',
                 btnCall: false,
                 btnHangUp: true
             })

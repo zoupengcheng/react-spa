@@ -156,9 +156,12 @@ class IvrItem extends Component {
         getList.push({"getNumberList": ""})
         getList.push({"getLanguage": ""})
         $.ajax({
-            url: api.apiHost + 'action=combineAction&data=' + JSON.stringify(getList),
-            method: 'GET',
-            type: 'json',
+            url: api.apiHost,
+            data: {
+                action: 'combineAction',
+                data: JSON.stringify(getList)
+            },
+            type: 'post',
             async: false,
             success: function(res) {
                 const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)

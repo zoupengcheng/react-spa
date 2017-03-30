@@ -23,7 +23,7 @@ class WarningContact extends Component {
         }
     }
     componentDidMount() {
-        this._getInitDate()
+        this._getInitData()
     }
     _checkRequire = (rule, value, callback) => {
         const { formatMessage } = this.props.intl
@@ -36,9 +36,9 @@ class WarningContact extends Component {
             callback()
         }
     }
-    _getInitDate = () => {
-        let superList = this.state.superList
-        let managerList = this.state.managerList
+    _getInitData = () => {
+        let superList = []
+        let managerList = []
 
         $.ajax({
             url: api.apiHost,
@@ -256,6 +256,11 @@ class WarningContact extends Component {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator, setFieldValue, getFieldValue } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        if (this.props.emailPageReload) {
+            this._getInitData()
+            this.props.emailPageReloadFunc(false)
+        }
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: model_info.model_name,

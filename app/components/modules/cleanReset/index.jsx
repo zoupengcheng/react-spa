@@ -1,7 +1,7 @@
 'use strict'
 
 import {injectIntl} from 'react-intl'
-import { Form, Input, Tabs, message } from 'antd'
+import { Form, Input, Tabs, message, Modal } from 'antd'
 import React, { Component, PropTypes } from 'react'
 
 import $ from 'jquery'
@@ -37,36 +37,45 @@ class CleanReset extends Component {
         // if ($P("#form", document).valid()) {
         //    message.loading(formatMessage({ id: "LANG904"}))
         // })
+        this.props.form.validateFieldsAndScroll({force: true}, (err, values) => {
+            if (!err) {
+                let all = values
+                if (values.Pen_auto_clean_vr && !values.Pen_auto_clean_monitor && !values.Pen_auto_clean_meetme && !values.Pen_auto_clean_queue && !values.Pen_auto_clean_vm && !values.Pen_auto_clean_fax && !values.Pen_auto_clean_backup) {
+                    Modal.warning({
+                        content: <span dangerouslySetInnerHTML={{__html: formatMessage({id: "LANG3456"})}} ></span>,
+                        okText: (formatMessage({id: "LANG727"}))
+                    })
+                } else {
+                    let data = {
+                        action: "setCleanerValue"
+                    }
 
-        let all = form.getFieldsValue() 
+                    _.each(all, function(num, key) {
+                        if (key === 'Phour_clean_cdr' || key === 'Pclean_cdr_interval' || key === 'Pclean_record_threshold' || key === 'Phour_clean_vr' || key === 'Pclean_record_interval') {
+                            data[key] = num
+                        } else {
+                            data[key] = num ? "1" : "0"
+                        }
+                    })
 
-        let data = {
-            action: "setCleanerValue"
-        }
-
-        _.each(all, function(num, key) {
-            if (key === 'Phour_clean_cdr' || key === 'Pclean_cdr_interval' || key === 'Pclean_record_threshold' || key === 'Phour_clean_vr' || key === 'Pclean_record_interval') {
-                data[key] = num
-            } else {
-                data[key] = num ? "1" : "0"
-            }
-        })
-
-        $.ajax({
-            url: api.apiHost,
-            method: "post",
-            data: data,
-            type: 'json',
-            error: function(e) {
-                // message.error(e.statusText)
-            },
-            success: function(data) {
-                const bool = UCMGUI.errorHandler(data, null, formatMessage)
-                
-                if (bool) {
-                    this._applyChanges()
+                    $.ajax({
+                        url: api.apiHost,
+                        method: "post",
+                        data: data,
+                        type: 'json',
+                        error: function(e) {
+                            // message.error(e.statusText)
+                        },
+                        success: function(data) {
+                            const bool = UCMGUI.errorHandler(data, null, formatMessage)
+                            
+                            if (bool) {
+                                this._applyChanges()
+                            }
+                        }.bind(this)
+                    })
                 }
-            }.bind(this)
+            }
         })
     }
     _applyChanges = () => {

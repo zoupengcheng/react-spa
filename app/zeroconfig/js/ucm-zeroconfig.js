@@ -1088,8 +1088,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                             if (tmp.length > 1 && tmp.lastIndexOf("@", 0) === 0) {
                                 tmp = tmp.substring(1);
                                 pvt.labelElement.attr("locale", tmp)
-                                // pvt.labelElement.text($.lang(tmp));
-                                pvt.labelElement.text(tmp);
+                                pvt.labelElement.text($.lang(tmp));
                             }
                             else
                                 pvt.labelElement.text(tmp);
@@ -1162,8 +1161,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                         var labelValue = error ? error.toString() : tooltip;
 
                         if (labelValue.length > 1 && labelValue.lastIndexOf("@", 0) === 0) {
-                            // labelValue = $.lang(labelValue.substring(1));
-                            labelValue = labelValue.substring(1)
+                            labelValue = $.lang(labelValue.substring(1));
                         }
 
                         if (error) {
@@ -1395,8 +1393,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                             if (labelValue.length > 1 && labelValue.lastIndexOf("@", 0) === 0) {
                                 var labelCode = labelValue.substring(1);
                                 widget.attr("locale", labelCode);
-                                // labelValue = $.lang(labelCode);
-                                labelValue = labelCode
+                                labelValue = $.lang(labelCode);
                             }
 
                             widget.text(labelValue);
@@ -1430,8 +1427,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                             if (tmp.length > 1 && tmp.lastIndexOf("@", 0) === 0) {
                                 tmp = tmp.substring(1);
                                 widget.attr("locale", tmp)
-                                // widget.text($.lang(tmp));
-                                widget.text(tmp);
+                                widget.text($.lang(tmp));
                             }
                             else
                                 widget.text(tmp);
@@ -1618,8 +1614,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                     if (text.length > 1 && text.lastIndexOf("@", 0) === 0) {
                         text = text.substring(1);
                         widget.attr("locale", text);
-                        // widget.text($.lang(text));
-                        widget.text(text);
+                        widget.text($.lang(text));
                     }
                     else
                         widget.text(text);
@@ -1695,8 +1690,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                     if (defaultOptionName.length > 1 && defaultOptionName.lastIndexOf("@", 0) === 0) {
                         defaultOptionName = defaultOptionName.substring(1);
                         defaultOption.attr("locale", defaultOptionName)
-                        // defaultOption.text($.lang(defaultOptionName));
-                        defaultOption.text(defaultOptionName);
+                        defaultOption.text($.lang(defaultOptionName));
                     }
 
                     selector.prepend(defaultOption);
@@ -1706,7 +1700,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                                             .attr("locale", "LANG3507")
                                             .attr("value", "-1")
                                             .addClass("highlight")
-                                            .text("LANG3507")); // text($.lang("LANG3507")));
+                                            .text($.lang("LANG3507"))); 
                     }
 
                     if (originalVal)
@@ -1883,7 +1877,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
 
                     pvt.removeButton = $("<span/>")
                         .attr("localeTitle", "LANG739")
-                        .attr("title", "LANG739") // .attr("title", $.lang("LANG739"))
+                        .attr("title", $.lang("LANG739")) 
                         .addClass("button delete")
                         .on("click", function (e) {
 
@@ -1941,7 +1935,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                     pvt.refreshButton = $("<span/>")
                         .addClass("button reload")
                         .attr("localeTitle", "LANG109")
-                        .attr("title", "LANG109") // .attr("title", $.lang("LANG109"))
+                        .attr("title", $.lang("LANG109"))
                         .appendTo(controlContainer)
                         .on("click", function (e) {
                             selector.attr("disabled", "disabled");
@@ -1954,7 +1948,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                     pvt.manageButton = $("<span/>")
                         .addClass("button manage")
                         .attr("localeTitle", "LANG3846")
-                        .attr("title", "LANG3846") // .attr("title", $.lang("LANG3846"))
+                        .attr("title", $.lang("LANG3846"))
                         .on("click", function (e) {
                             var path = "html/zc_filemanager_modal.html?type=" + pvt.fileType;
                             if (pvt.allowExtensionValue.length > 0)
@@ -1964,7 +1958,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                                 path += "&model=" + pvt.modelName;
 
                             // top.dialog.dialogInnerhtml({
-                            //     dialogTitle: "LANG3850".format(pvt.fileType), // $.lang("LANG3850").format(pvt.fileType),
+                            //     dialogTitle: $.lang("LANG3850").format(pvt.fileType),
                             //     displayPos: "editForm",
                             //     frameSrc: path,
                             //     closeCallback: function () {
@@ -2057,13 +2051,11 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                                     //    ptd.hasProcessError = response;
                                 } else {
                                     // ERROR
-                                    // ptd.hasProcessError = $.lang("LANG4483");
-                                    ptd.hasProcessError = "LANG4483";
+                                    ptd.hasProcessError = $.lang("LANG4483");
                                 }
                             } else {
                                 // ERROR
-                                // ptd.hasProcessError = $.lang("LANG4483");
-                                ptd.hasProcessError = "LANG4483";
+                                ptd.hasProcessError = $.lang("LANG4483");
                             }
 
                             pvt.uploading = false;
@@ -2111,8 +2103,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                     if (ptd.hasError === "")
                     {
                         if (this.type() != "directory" && pvt.allowUpload && pvt.allowExtension && !pvt.allowExtension.test(this.value())) {
-                          // ptd.hasError = $.lang("LANG4112^" + pvt.allowExtensionValue.split("|").join(", ")).replace("<br/>","");
-                          ptd.hasError = ("LANG4112^" + pvt.allowExtensionValue.split("|").join(", ")).replace("<br/>","");
+                          ptd.hasError = $.lang("LANG4112^" + pvt.allowExtensionValue.split("|").join(", ")).replace("<br/>","");
                         }
                     }
 
@@ -2289,8 +2280,7 @@ var baseServer = window.location.protocol + '//' + window.location.host + '/cgi?
                     if (text.length > 1 && text.lastIndexOf("@", 0) === 0) {
                         text = text.substring(1);
                         pvt.label.attr("locale", text);
-                        // pvt.label.text($.lang(text));
-                        pvt.label.text(text);
+                        pvt.label.text($.lang(text));
                     }
                     else
                         pvt.label.text(text);

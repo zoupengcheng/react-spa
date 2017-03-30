@@ -404,7 +404,7 @@ class DialByNameItem extends Component {
                                 }],
                                 initialValue: exten ? exten : ''
                             })(
-                                <Input placeholder={ formatMessage({id: "LANG85"}) } maxLength="25" />
+                                <Input disabled={ this.props.params.id ? true : false } placeholder={ formatMessage({id: "LANG85"}) } maxLength="25" />
                             ) }
                         </FormItem>
                         <FormItem
@@ -458,12 +458,20 @@ class DialByNameItem extends Component {
                         >
                             { getFieldDecorator('wait_time', {
                                 rules: [{
-                                    required: true,
-                                    message: formatMessage({id: "LANG2150"})
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.range(data, value, callback, formatMessage, 3, 60)
+                                        }
+                                }, {
+                                        validator: (data, value, callback) => {
+                                            Validator.digits(data, value, callback, formatMessage)
+                                        }
                                 }],
                                 initialValue: dialByNameItem.wait_time ? dialByNameItem.wait_time : '5'
                             })(
-                                <Input placeholder={ formatMessage({id: "LANG5346"}) } maxLength="25" />
+                                <Input placeholder={ formatMessage({id: "LANG5346"}) } maxLength="3" />
                             ) }
                         </FormItem>
 

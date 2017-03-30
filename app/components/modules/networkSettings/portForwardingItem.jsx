@@ -125,7 +125,7 @@ class PortForwardingItem extends Component {
         })
     }
     _handleCancel = () => {
-        browserHistory.push('/system-settings/networkSettings/4')
+        browserHistory.push('/system-settings/networkSettings/5')
     }
     _savePortForwarding = () => {
         let errorMessage = ''
@@ -376,7 +376,7 @@ class PortForwardingItem extends Component {
         })
 
         if (!res) {
-            callback(formatMessage({id: "LANG4081"}))
+            callback(formatMessage({id: "LANG4124"}))
         } else {
             callback()
         }

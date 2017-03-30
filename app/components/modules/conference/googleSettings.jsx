@@ -22,6 +22,7 @@ class GoogleSettings extends Component {
     }
     componentDidMount() {
         this._getGoogleAuthor()
+        this._getCalenderSettings()
     }
     _calendarSettings = () => {
         browserHistory.push('/call-features/conference/calendarSettings')
@@ -29,12 +30,11 @@ class GoogleSettings extends Component {
     _getGoogleAuthor = () => {
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'getGoogleAuthorizationInfo'
             },
-            type: 'json',
-            async: false,
+            dataType: 'json',
             success: function(res) {
                 const response = res.response.googlecalendar || {}
 
@@ -67,9 +67,9 @@ class GoogleSettings extends Component {
 
                 $.ajax({
                     url: api.apiHost,
-                    method: "POST",
+                    type: "POST",
                     data: action,
-                    type: 'json',
+                    dataType: 'json',
                     error: function(e) {
                         message.error(e.statusText)
                     },
@@ -88,17 +88,19 @@ class GoogleSettings extends Component {
     _resetAuth = () => {
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'resetOauthJsonFile'
             },
-            type: 'json',
-            async: false,
+            dataType: 'json',
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
-                    this.props.form.resetFields()
+                    this.props.form.setFieldsValue({
+                        client_id: '',
+                        client_secret: ''
+                    })
                 }
             }.bind(this),
             error: function(e) {
@@ -109,13 +111,12 @@ class GoogleSettings extends Component {
     _getAuthorUrl = () => {
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'updateOauthJsonFile',
                 client_name: 'calendar'
             },
-            type: 'json',
-            async: false,
+            dataType: 'json',
             success: function(data) {
                 var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
@@ -140,6 +141,31 @@ class GoogleSettings extends Component {
             }
         })
     }
+    _getCalenderSettings = () => {
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: {
+                action: 'getGoogleAccountCal'
+            },
+            dataType: 'json',
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    let res = data.response.googlecalendar,
+                        calendar = res.calendar_name.slice(0, -1)
+
+                    this.setState({
+                        google_host: calendar
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
     _updateCertificate = () => {
         let loadingMessage = ''
         let successMessage = ''
@@ -152,13 +178,13 @@ class GoogleSettings extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: "POST",
+            type: "POST",
             data: {
                 action: 'updateCertificate',
                 client_name: 'calendar',
                 request_code: this.state.requestCode
             },
-            type: 'json',
+            dataType: 'json',
             error: function(e) {
                 message.error(e.statusText)
             },
@@ -168,9 +194,10 @@ class GoogleSettings extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
-                    this.setState({
+                    this.props.form.setFieldsValue({
                         request_code: ''
                     })
+                    this._getCalenderSettings()
                 }
             }.bind(this)
         })
@@ -202,7 +229,9 @@ class GoogleSettings extends Component {
                         <Row>
                             <Col span={ 24 }>
                                 <div className="section-title">
-                                    <span>{ formatMessage({id: "LANG4390"}) }</span>
+                                    <Tooltip title={ <FormattedHTMLMessage id="LANG4391" /> }>
+                                        <span>{ formatMessage({id: "LANG4390"}) }</span>
+                                    </Tooltip>
                                 </div>
                             </Col>
                         </Row>
@@ -216,6 +245,10 @@ class GoogleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('client_id', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     initialValue: accountSettings.client_id
                                 })(
                                     <Input />
@@ -230,6 +263,10 @@ class GoogleSettings extends Component {
                                 )}
                             >
                                 { getFieldDecorator('client_secret', {
+                                    rules: [{
+                                        required: true,
+                                        message: formatMessage({id: "LANG2150"})
+                                    }],
                                     initialValue: accountSettings.client_secret
                                 })(
                                     <Input />
@@ -237,7 +274,7 @@ class GoogleSettings extends Component {
                             </FormItem>
                             <div>
                                 <Button type="primary" size="default" onClick={ this._handleSubmit }>
-                                    { formatMessage({id: "LANG3518"}) }
+                                    { formatMessage({id: "LANG728"}) }
                                 </Button>
                                 <Button type="Ghost" size="default" onClick={ this._resetAuth }>
                                     { formatMessage({id: "LANG750"}) }
@@ -275,14 +312,24 @@ class GoogleSettings extends Component {
                                 <span className="step">4</span>
                                 <span>{ formatMessage({id: "LANG4414"}) }</span>
                                 <div style={{ marginTop: 10 }}>
-                                    <span style={{ marginRight: 20, marginLeft: 50 }}>{ formatMessage({id: "LANG3794"}) }</span>
-                                    <Input style={{ width: 400, marginRight: 20 }} onChange={ this._requestCode } value={ this.state.requestCode } />
+                                    <span style={{ marginRight: 20, marginLeft: 50 }}>{ formatMessage({id: "LANG3520"}) }</span>
+                                    <Input
+                                        style={{ width: 400, marginRight: 20 }}
+                                        onChange={ this._requestCode }
+                                        value={ this.state.requestCode } />
                                     <Button type="primary" size="default" onClick={ this._updateCertificate }>
                                         { formatMessage({id: "LANG3518"}) }
                                     </Button>
                                 </div>
                             </div>
                         </div>
+                        <Row className={ this.state.google_host ? 'display-block' : 'hidden' }>
+                            <div>{ formatMessage({id: "LANG4201"}, {0: formatMessage({id: "LANG3518"})}) }</div>
+                            <div>
+                                <span>{ formatMessage({id: "LANG3517"}) }</span>
+                                <span>{ this.state.google_host }</span>
+                            </div>
+                        </Row>
                     </div>
                 </div>
             </div>

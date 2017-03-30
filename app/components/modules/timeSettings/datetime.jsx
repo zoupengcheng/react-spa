@@ -96,7 +96,11 @@ class DateTime extends Component {
                             </Tooltip>
                         }>
                         { getFieldDecorator('remote_ntp_server', {
-                            rules: [],
+                            rules: [{
+                                validator: (data, value, callback) => {
+                                    Validator.host(data, value, callback, formatMessage, 'host')
+                                }
+                            }],
                             initialValue: datetime.remote_ntp_server
                         })(
                             <Input />

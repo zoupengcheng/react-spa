@@ -32,6 +32,7 @@ class Room extends Component {
         this._getConfoList()
         this._getMembers()
         this._getLimit()
+        this._initCeiStatus()
     }
     _getLimit = () => {
         let model_info = JSON.parse(localStorage.getItem('model_info'))
@@ -84,12 +85,12 @@ class Room extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 "action": "deleteConference",
                 "conference": record.extension
             },
-            type: 'json',
+            dataType: 'json',
             async: true,
             success: function(res) {
                 var bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
@@ -113,15 +114,13 @@ class Room extends Component {
         browserHistory.push('/call-features/conference/conferenceSettings')
     }
     _getConfoList = () => {
-        const { formatMessage } = this.props.intl
-
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'listConfStatus'
             },
-            type: 'json',
+            dataType: 'json',
             success: function(res) {
                 const response = res.response || {}
                 const confoList = response.conference || []
@@ -133,18 +132,18 @@ class Room extends Component {
             error: function(e) {
                 message.error(e.statusText)
             }
-        }) 
+        })
     }
     _getMembers = (extension) => {
         let members
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 'action': 'getConfMemberStatusListSortByExten'
             },
-            type: 'json',
+            dataType: 'json',
             async: false,
             success: function(res) {
                 members = res.response || {}
@@ -163,11 +162,11 @@ class Room extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'checkInfo'
             },
-            type: 'json',
+            dataType: 'json',
             async: false,
             success: function(data) {
                 if (data && data.status === 0) {
@@ -215,6 +214,29 @@ class Room extends Component {
 
         return activity
     }
+    _initCeiStatus = () => {
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: {
+                action: 'getInitCeiStatus'
+            },
+            dataType: 'json',
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    var init_cei_status = data.response.initCeiStatus
+                    this.setState({
+                        init_cei_status: init_cei_status === '1'
+                    })
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
     _addMcb = (record) => {
         this.setState({
             visible: true,
@@ -251,9 +273,9 @@ class Room extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: action,
-            type: 'json',
+            dataType: 'json',
             async: false,
             success: function(data) {
             }.bind(this),
@@ -286,9 +308,9 @@ class Room extends Component {
 
                 $.ajax({
                     url: api.apiHost,
-                    method: 'post',
+                    type: 'post',
                     data: action,
-                    type: 'json',
+                    dataType: 'json',
                     async: false,
                     success: function(data) {
                         message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG922" })}}></span>)
@@ -319,13 +341,13 @@ class Room extends Component {
     _mutedRequest = (record) => {
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 'action': 'muteuser',
                 'conf-room': record.extension,
                 'conf-user': record.channel_name
             },
-            type: 'json',
+            dataType: 'json',
             success: function(data) {
             }.bind(this),
             error: function(e) {
@@ -336,13 +358,13 @@ class Room extends Component {
     _unMutedRequest = (record) => {
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 'action': 'unmuteuser',
                 'conf-room': record.extension,
                 'conf-user': record.channel_name
             },
-            type: 'json',
+            dataType: 'json',
             success: function(data) {
             }.bind(this),
             error: function(e) {
@@ -355,13 +377,13 @@ class Room extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 'action': 'kickuser',
                 'conf-room': record.extension,
                 'conf-user': record.channel_name
             },
-            type: 'json',
+            dataType: 'json',
             success: function(data) {
                 message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG819" })}}></span>)
             }.bind(this),
@@ -452,6 +474,81 @@ class Room extends Component {
                 { mute }
             </div>
         )
+    }
+    _checkRoomCount = () => {
+        let count = 0
+
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: {
+                "action": "listConfStatus",
+                "auto-refresh": Math.random()
+            },
+            dataType: 'json',
+            async: false,
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    var roomdata = data.response.conference,
+                        length = roomdata.length
+
+                    for (var i = 0; i < length; i++) {
+                        count += roomdata[i].attend_count
+                    }
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
+        return count
+    }
+    _ceiNotify = (action) => {
+        const { formatMessage } = this.props.intl
+
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: action,
+            dataType: 'json',
+            async: false,
+            success: function(data) {
+                var bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                message.success(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG3910" })}}></span>)
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _onChangeCeilStatus = (e) => {
+        const { formatMessage } = this.props.intl
+
+        let tragetChecked = e.target.checked
+
+        this.setState({
+            init_cei_status: tragetChecked
+        })
+
+        if (this._checkRoomCount() === 0) {
+            let action = {
+                'action': 'setInitCeiStatus'
+            }
+
+            if (tragetChecked) {
+                action.initCeiStatus = 1
+            } else {
+                action.initCeiStatus = 0
+            }
+
+            this._ceiNotify(action)
+        } else {
+            message.error(<span dangerouslySetInnerHTML={{__html: formatMessage({ id: "LANG4481" })}}></span>)
+        }
     }
     render() {
         const { formatMessage } = this.props.intl
@@ -596,6 +693,11 @@ class Room extends Component {
                         >
                             { formatMessage({id: "LANG5097"}) }
                         </Button>
+                        <span style={{ marginRight: 10 }}>{formatMessage({id: "LANG4480"})}</span>
+                        <Checkbox
+                            checked={ this.state.init_cei_status }
+                            onChange={ this._onChangeCeilStatus } 
+                            style={{ position: 'relative', top: -2 }} />
                     </div>
                     <Table
                         rowKey="extension"

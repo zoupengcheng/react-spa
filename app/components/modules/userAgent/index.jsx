@@ -42,12 +42,13 @@ class SwitchBoard extends Component {
         this.props.getQueueCallingWaiting(activeTabKey, this.state.currentUserName)
     }
     render() {
-        const { formatMessage } = this.props.intl
-        const queueMembers = this.props.queueMembers
-        const callQueueList = this.props.callQueueList
-        const answerCallings = this.props.answerCallings
-        const waitingCallings = this.props.waitingCallings
-        const activeTabKey = (callQueueList && callQueueList.length ? callQueueList[0].extension : '')
+        let { formatMessage } = this.props.intl
+        let queueMembers = this.props.queueMembers
+        let callQueueList = this.props.callQueueList
+        let answerCallings = this.props.answerCallings
+        let queueMemberRole = this.props.queueMemberRole
+        let waitingCallings = this.props.waitingCallings
+        let activeTabKey = (callQueueList && callQueueList.length ? callQueueList[0].extension : '')
 
         document.title = formatMessage({id: "LANG584"}, {
                     0: formatMessage({id: "LANG82"}),
@@ -61,7 +62,7 @@ class SwitchBoard extends Component {
                         waitingCallings={ waitingCallings }
                     />
 
-        if (activeTabKey) {
+        if (activeTabKey && queueMemberRole !== 'extension') {
             content = <Tabs
                         onChange={ this._onTabsChange }
                         activeKey={ this.state.activeTabKey ? this.state.activeTabKey : activeTabKey }
@@ -76,6 +77,7 @@ class SwitchBoard extends Component {
                                             queueDetail={ item }
                                             queueMembers={ queueMembers }
                                             answerCallings={ answerCallings }
+                                            queueMemberRole={ queueMemberRole }
                                             waitingCallings={ waitingCallings }
                                         />
                                     </TabPane>
@@ -100,6 +102,7 @@ const mapStateToProps = (state) => ({
     queueMembers: state.queueMembers,
     callQueueList: state.callQueueList,
     answerCallings: state.answerCallings,
+    queueMemberRole: state.queueMemberRole,
     waitingCallings: state.waitingCallings
 })
 

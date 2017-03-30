@@ -8,6 +8,7 @@ export const DIFF_RESOURCEUSAGE = 'DIFF_RESOURCEUSAGE'
 export const GET_INTERFACESTATUS = 'GET_INTERFACESTATUS'
 export const GET_QUEUEMEMBERS = 'GET_QUEUEMEMBERS'
 export const SET_CURRENTQUEUE = 'SET_CURRENTQUEUE'
+export const SET_QUEUEMEMBERROLE = 'SET_QUEUEMEMBERROLE'
 export const GET_QUEUEBYCHAIRMAN = 'GET_QUEUEBYCHAIRMAN'
 export const GET_QUEUECALLINGANSWERED = 'GET_QUEUECALLINGANSWERED'
 export const GET_QUEUECALLINGWAITING = 'GET_QUEUECALLINGWAITING'
@@ -259,20 +260,20 @@ export const getCallQueuesMessage = (chairman) => (dispatch) => {
         method: 'post',
         url: api.apiHost,
         success: function(res) {
-            const response = res.response || {}
-
+            let activeTabKey = ''
+            let response = res.response || {}
+            let queueMemberRole = response.MemberRole
             let callQueueList = response.CallQueuesMessage || []
 
             callQueueList = _.sortBy(callQueueList, function(item) { return item.extension })
+            activeTabKey = callQueueList.length ? callQueueList[0].extension : ''
 
-            let activeTabKey = callQueueList.length ? callQueueList[0].extension : ''
+            if (chairman) {
+                dispatch({type: 'SET_QUEUEMEMBERROLE', queueMemberRole: queueMemberRole})
+            }
 
             dispatch({type: 'SET_CURRENTQUEUE', currentQueue: activeTabKey})
             dispatch({type: 'GET_QUEUEBYCHAIRMAN', callQueueList: callQueueList})
-
-            // getQueueMembers(activeTabKey)
-            // getQueueCallingAnswered(activeTabKey)
-            // getQueueCallingWaiting(activeTabKey)
 
             // TODO: Optimization Later
             if (activeTabKey) {

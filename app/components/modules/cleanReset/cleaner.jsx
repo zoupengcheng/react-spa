@@ -62,7 +62,7 @@ class Cleaner extends Component {
                 }
             }.bind(this)
         })
-        // this._readLog()
+        this._readLog()
     }
     _readLog = () => {
         const { formatMessage } = this.props.intl
@@ -70,9 +70,8 @@ class Cleaner extends Component {
 
         $.ajax({
             type: "GET",
-            url: api.imageHost + "/html/userdefined/cleaner_results",
-            dataType: "json",
-            async: false,
+            url: "/html/userdefined/cleaner_results?_=" + Math.random().toString(),
+            dataType: "text",
             error: function(jqXHR, textStatus, errorThrown) {
                 if (jqXHR.status !== 404) {
                     message.error(formatMessage({ id: "LANG909"}))
@@ -80,7 +79,6 @@ class Cleaner extends Component {
             },
             success: function(data) {
                 let arr = data.split("\n").reverse()
-
                 this.setState({
                     log: arr
                 })
@@ -102,7 +100,7 @@ class Cleaner extends Component {
                 const bool = UCMGUI.errorHandler(data, null, formatMessage)
 
                 if (bool) {
-                    message.success(formatMessage({ id: "LANG4831"}))
+                    message.success(formatMessage({ id: "LANG3903"}))
 
                     this._readLog()
                 }
@@ -146,7 +144,16 @@ class Cleaner extends Component {
             labelCol: { span: 6 },
             wrapperCol: { span: 6 }
         }
-
+        let logList = this.state.log || []
+        const spanLogList = logList.map((item, index) => {
+            return (
+                <row>
+                    <Col>
+                        <span style={item.indexOf("done") > -1 ? { color: 'green' } : { color: 'red' }}>{item}</span>
+                    </Col>
+                </row>
+                )
+        })
         return (
             <div className="app-content-main" id="app-content-main">
                 <Form>
@@ -185,9 +192,18 @@ class Cleaner extends Component {
                         )}
                     >
                         { getFieldDecorator('Phour_clean_cdr', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: this.state.data.Pen_auto_clean_cdr,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_cdr ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_cdr ? Validator.range(data, value, callback, formatMessage, 0, 23) : callback()
+                                }
+                            }],
                             initialValue: this.state.data.Phour_clean_cdr
                         })(
                             <Input min={ 0 } max={ 23 } disabled={ !this.state.data.Pen_auto_clean_cdr } />
@@ -202,9 +218,18 @@ class Cleaner extends Component {
                         )}
                     >
                         { getFieldDecorator('Pclean_cdr_interval', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: this.state.data.Pen_auto_clean_cdr,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_cdr ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_cdr ? Validator.range(data, value, callback, formatMessage, 1, 30) : callback()
+                                }
+                            }],
                             initialValue: this.state.data.Pclean_cdr_interval
                         })(
                             <Input min={ 1 } max={ 30 } disabled={ !this.state.data.Pen_auto_clean_cdr } />
@@ -311,9 +336,18 @@ class Cleaner extends Component {
                         )}
                     >
                         { getFieldDecorator('Pclean_record_threshold', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: this.state.data.Pen_auto_clean_vr,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_vr ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_vr ? Validator.range(data, value, callback, formatMessage, 1, 99) : callback()
+                                }
+                            }],
                             initialValue: this.state.data.Pclean_record_threshold
                         })(
                             <Input min={ 1 } max={ 99 } disabled={ !this.state.data.Pen_auto_clean_vr } />
@@ -328,9 +362,18 @@ class Cleaner extends Component {
                         )}
                     >
                         { getFieldDecorator('Phour_clean_vr', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: this.state.data.Pen_auto_clean_vr,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_vr ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_vr ? Validator.range(data, value, callback, formatMessage, 0, 23) : callback()
+                                }
+                            }],
                             initialValue: this.state.data.Phour_clean_vr
                         })(
                             <Input min={ 0 } max={ 23 } disabled={ !this.state.data.Pen_auto_clean_vr } />
@@ -345,9 +388,18 @@ class Cleaner extends Component {
                         )}
                     >
                         { getFieldDecorator('Pclean_record_interval', {
-                            rules: [
-                                { /* type: 'integer', */ required: true, message: formatMessage({id: "LANG2150"}) }
-                            ],
+                            rules: [{
+                                required: this.state.data.Pen_auto_clean_vr,
+                                message: formatMessage({id: "LANG2150"})
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_vr ? Validator.digits(data, value, callback, formatMessage) : callback()
+                                }
+                            }, {
+                                validator: (data, value, callback) => {
+                                    this.state.data.Pen_auto_clean_vr ? Validator.range(data, value, callback, formatMessage, 1, 30) : callback()
+                                }
+                            }],
                             initialValue: this.state.data.Pclean_record_interval
                         })(
                             <Input min={ 1 } max={ 30 } disabled={ !this.state.data.Pen_auto_clean_vr } />
@@ -366,7 +418,7 @@ class Cleaner extends Component {
                     <div>
                         <p>
                             <span>
-                                { this.state.log }
+                                { spanLogList }
                             </span>
                         </p>
                     </div>

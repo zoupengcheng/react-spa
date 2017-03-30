@@ -106,6 +106,9 @@ import HTTPServer from '../components/modules/httpServer/index'
 import NetworkSettings from '../components/modules/networkSettings'
 import DHCPClient from '../components/modules/networkSettings/dhcpclient'
 import DHCPClientItem from '../components/modules/networkSettings/dhcpclientItem'
+import StaticRoute from '../components/modules/networkSettings/staticRoute'
+import StaticRouteItem from '../components/modules/networkSettings/staticRouteItem'
+import StaticRouteIpv6Item from '../components/modules/networkSettings/staticRouteIpv6Item'
 import PortForwarding from '../components/modules/networkSettings/portForwarding'
 import PortForwardingItem from '../components/modules/networkSettings/portForwardingItem'
 import OpenVPN from '../components/modules/openVPN'
@@ -469,7 +472,14 @@ const routes = (state, currentLocaleData) => {
                         <Route path="add" onEnter={ requireAuth } component={ DHCPClientItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ DHCPClientItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
-                    <Route path="PortForwarding" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG4858"] } >
+                    <Route path="StaticRoute" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3047"] } >
+                        <IndexRoute component={ StaticRoute } />
+                        <Route path="add" onEnter={ requireAuth } component={ StaticRouteItem } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="edit/:id/:name" onEnter={ requireAuth } component={ StaticRouteItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="addIpv6" onEnter={ requireAuth } component={ StaticRouteIpv6Item } breadcrumbName={ currentLocaleData["LANG769"] } />
+                        <Route path="editIpv6/:id/:name" onEnter={ requireAuth } component={ StaticRouteIpv6Item } breadcrumbName={ currentLocaleData["LANG738"] } />
+                    </Route>
+                    <Route path="PortForwarding" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG54"] } >
                         <IndexRoute component={ PortForwarding } />
                         <Route path="add" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG769"] } />
                         <Route path="edit/:id/:name" onEnter={ requireAuth } component={ PortForwardingItem } breadcrumbName={ currentLocaleData["LANG738"] } />

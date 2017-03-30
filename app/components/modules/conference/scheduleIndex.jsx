@@ -15,6 +15,8 @@ import ScheduleConference from './scheduleConference'
 
 const TabPane = Tabs.TabPane
 
+let editRecurringevent = ''
+
 class ScheduleIndex extends Component {
     constructor(props) {
         super(props)
@@ -46,6 +48,8 @@ class ScheduleIndex extends Component {
                 if (bool) {
                     const response = res.response || {}
                     let meetList = response.bookid
+
+                    editRecurringevent = meetList.recurringevent
 
                     this.setState({
                         meetList: meetList
@@ -87,6 +91,32 @@ class ScheduleIndex extends Component {
             }.bind(this)
         })
     }
+    _getRecurr = (startTime) => {
+        let myDate = new Date(),
+            repeatYear = parseInt(startTime.slice(0, 4), 10),
+            repeatMon = parseInt(startTime.slice(5, 7), 10) - 1,
+            repeatDay = parseInt(startTime.slice(8, 10), 10)
+
+        myDate.setFullYear(repeatYear, repeatMon, repeatDay)
+        var repeatData = myDate.getDay()
+
+        switch (repeatData) {
+            case 0:
+                return "Esunday"
+            case 1:
+                return "Fmonday"
+            case 2:
+                return "Gtuesday"
+            case 3:
+                return "Hwednesday"
+            case 4:
+                return "Ithursday"
+            case 5:
+                return "Jfriday"
+            case 6:
+                return "Ksaturday"
+        }
+    }
     _handleSubmit = () => {
         let errorMessage = ''
         let loadingMessage = ''
@@ -105,7 +135,9 @@ class ScheduleIndex extends Component {
 
                 let aList = [],
                     localeRightSelect = values.localeRightSelect,
-                    remoteRightSelect = values.remoteRightSelect
+                    remoteRightSelect = values.remoteRightSelect,
+                    sRemoteRoom = values.create_remote_room,
+                    sRemotePass = values.create_remote_pass
 
                 _.each(localeRightSelect, function(item, key) {
                     aList.push({
@@ -133,6 +165,22 @@ class ScheduleIndex extends Component {
                     })
                 })
 
+                if (sRemoteRoom) {
+                    let oMcb = {
+                        'member_name': sRemoteRoom,
+                        'member_extension': sRemoteRoom,
+                        'email': '',
+                        'send_email': 'no',
+                        'location': 'mcb',
+                        'is_admin': 'no',
+                        'state': 'needsAction',
+                        'comment': '',
+                        'private_data': sRemotePass
+                    }
+
+                    aList.push(oMcb)
+                }
+
                 let action = values
 
                 action.public = (action.public ? 'yes' : 'no')
@@ -152,16 +200,6 @@ class ScheduleIndex extends Component {
 
                 action.members = JSON.stringify(aList)
 
-                if (bookId) {
-                    action.action = 'updateMeetme'
-                    delete action.open_calendar
-                    action.bookid = bookId
-                } else {
-                    action.action = 'addMeetme'
-                    action.timezone = '+0800'
-                    action.bookid = new Date().getTime()
-                }
-
                 action.starttime = action.starttime.format('YYYY-MM-DD HH:mm:ss')
 
                 let sStartTime = action.starttime,
@@ -176,6 +214,30 @@ class ScheduleIndex extends Component {
 
                 action['endtime'] = sStartTime.slice(0, 11) + this._addZero(nEhour) + ':' + this._addZero(nEmin) + ':00'
 
+                action.closed = 'no'
+
+                if (bookId) {
+                    if (editRecurringevent !== 'COMMON' && editRecurringevent !== 'DAILY') {
+                        editRecurringevent = this._getRecurr(sStartTime)
+                    }
+
+                    action.action = 'updateMeetme'
+                    action.recurringevent = editRecurringevent
+                    delete action.open_calendar
+                    action.bookid = bookId
+                } else {
+                    let sRecurr = action.recurringevent
+
+                    if (sRecurr === 'WEEKLY') {
+                        sRecurr = this._getRecurr(sStartTime)
+                    }
+
+                    action.recurringevent = sRecurr
+                    action.action = 'addMeetme'
+                    action.timezone = '+0800'
+                    action.bookid = new Date().getTime()
+                }
+
                 delete action.extenLists
                 delete action.localeRightSelect
                 delete action.remoteRightSelect
@@ -184,6 +246,8 @@ class ScheduleIndex extends Component {
                 delete action.member_name
                 delete action.member_tel
                 delete action.remote_send_email
+                delete action.create_remote_room
+                delete action.create_remote_pass
 
                 $.ajax({
                     url: api.apiHost,

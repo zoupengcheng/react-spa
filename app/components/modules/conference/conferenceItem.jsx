@@ -82,7 +82,12 @@ class ConferenceItem extends Component {
                     const conferenceItem = response.conference || {}
 
                     this.setState({
-                        conferenceItem: conferenceItem
+                        conferenceItem: conferenceItem,
+                        publicEnable: conferenceItem.public ? (conferenceItem.public === 'yes') : true,
+                        waitAdminEnable: conferenceItem.wait_admin ? (conferenceItem.wait_admin === 'yes') : false,
+                        quiteModeEnable: conferenceItem.quiet_mode ? (conferenceItem.quiet_mode === 'yes') : false,
+                        announceCallers: conferenceItem.announce_callers ? (conferenceItem.announce_callers === 'yes') : false,
+                        userInviteEnable: conferenceItem.user_invite ? (conferenceItem.user_invite === 'yes') : false
                     })
                 }.bind(this),
                 error: function(e) {
@@ -359,7 +364,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('wait_admin', {
-                                        initialValue: conferenceItem.wait_admin
+                                        valuePropName: 'checked',
+                                        initialValue: this.state.waitAdminEnable
                                     })(
                                         <Checkbox disabled={ this.state.publicEnable } onChange={ this._handleWaitAdminChange } />
                                     ) }
@@ -413,7 +419,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('quiet_mode', {
-                                        initialValue: conferenceItem.quiet_mode
+                                        valuePropName: 'checked',
+                                        initialValue: this.state.quiteModeEnable
                                     })(
                                         <Checkbox disabled={ this.state.announceCallers } onChange={ this._handleQuiteModeChange } />
                                     ) }
@@ -431,7 +438,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('announce_callers', {
-                                        initialValue: conferenceItem.announce_callers
+                                        valuePropName: 'checked',
+                                        initialValue: this.state.announceCallers
                                     })(
                                         <Checkbox disabled={ this.state.quiteModeEnable } onChange={ this._handleAnnounceChange } />
                                     ) }
@@ -449,7 +457,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('call_menu', {
-                                        initialValue: conferenceItem.call_menu
+                                        valuePropName: 'checked',
+                                        initialValue: conferenceItem.call_menu === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -467,7 +476,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('recording', {
-                                        initialValue: conferenceItem.recording
+                                        valuePropName: 'checked',
+                                        initialValue: conferenceItem.recording === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }
@@ -485,7 +495,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('moh_firstcaller', {
-                                        initialValue: conferenceItem.moh_firstcaller
+                                        valuePropName: 'checked',
+                                        initialValue: conferenceItem.moh_firstcaller === 'yes'
                                     })(
                                         <Checkbox onChange={ this._handleMusicclassChange } />
                                     ) }
@@ -527,7 +538,8 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('skipauth', {
-                                        initialValue: conferenceItem.skipauth
+                                        valuePropName: 'checked',
+                                        initialValue: conferenceItem.skipauth === 'yes'
                                     })(
                                         <Checkbox />
                                     ) }

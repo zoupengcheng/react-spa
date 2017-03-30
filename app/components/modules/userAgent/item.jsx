@@ -207,7 +207,7 @@ class SwitchBoardItem extends Component {
         let membership = record.membership
         let enableAgentLogin = this.props.queueDetail.enable_agent_login
 
-        const { formatMessage } = this.props.intl
+        let { formatMessage } = this.props.intl
 
         if (membership === 'login') {
             option = <span
@@ -226,11 +226,13 @@ class SwitchBoardItem extends Component {
         return option
     }
     _createAnswerOptions = (text, record, index) => {
-        let status
-        const { formatMessage } = this.props.intl
-        const enableAgentLogin = this.props.queueDetail.enable_agent_login
+        let menu
+        let { formatMessage } = this.props.intl
+        let queueMemberRole = this.props.queueMemberRole
+        let enableAgentLogin = this.props.queueDetail.enable_agent_login
 
-        const menu = <Menu onClick={ this._handleAnwserMenuClick.bind(this, record) }>
+        if (queueMemberRole === 'queuechairman') {
+            menu = <Menu onClick={ this._handleAnwserMenuClick.bind(this, record) }>
                             <Menu.Item key="hangup">
                                 <span className="sprite sprite-callcenter-hangup"></span>{ formatMessage({ id: "LANG3007" }) }
                             </Menu.Item>
@@ -244,6 +246,16 @@ class SwitchBoardItem extends Component {
                                 <span className="sprite sprite-callcenter-transfer"></span>{ formatMessage({ id: "LANG3887" }) }
                             </Menu.Item>
                         </Menu>
+        } else {
+            menu = <Menu onClick={ this._handleAnwserMenuClick.bind(this, record) }>
+                            <Menu.Item key="hangup">
+                                <span className="sprite sprite-callcenter-hangup"></span>{ formatMessage({ id: "LANG3007" }) }
+                            </Menu.Item>
+                            <Menu.Item key="transfer">
+                                <span className="sprite sprite-callcenter-transfer"></span>{ formatMessage({ id: "LANG3887" }) }
+                            </Menu.Item>
+                        </Menu>
+        }
 
         return <Dropdown overlay={ menu } placement="bottomCenter">
                     <span
@@ -254,8 +266,8 @@ class SwitchBoardItem extends Component {
     }
     _createMemberShip = (text, record, index) => {
         let status
-        const { formatMessage } = this.props.intl
-        const enableAgentLogin = this.props.queueDetail.enable_agent_login
+        let { formatMessage } = this.props.intl
+        let enableAgentLogin = this.props.queueDetail.enable_agent_login
 
         // console.log(text)
         // console.log(enableAgentLogin)

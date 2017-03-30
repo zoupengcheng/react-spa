@@ -82,6 +82,15 @@ const currentQueue = (state = '', action) => {
     }
 }
 
+const queueMemberRole = (state = '', action) => {
+    switch (action.type) {
+        case Actions.SET_QUEUEMEMBERROLE:
+            return action.queueMemberRole
+        default:
+            return state
+    }
+}
+
 const answerCallings = (state = [], action) => {
     switch (action.type) {
         case Actions.GET_QUEUECALLINGANSWERED:
@@ -171,6 +180,7 @@ const rootReducer = combineReducers({
     account,
     interfaceStatus,
     callQueueList,
+    queueMemberRole,
     queueMembers,
     currentQueue,
     answerCallings,
