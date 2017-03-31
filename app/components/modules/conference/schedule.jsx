@@ -8,33 +8,91 @@ import React, { Component, PropTypes } from 'react'
 import { FormattedMessage, injectIntl } from 'react-intl'
 import { Badge, Button, message, Popconfirm, Popover, Table, Tag } from 'antd'
 
+let subMeetmeList = []
+
 class Schedule extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            confoList: []
+            confoList: [],
+            pagination: {            
+                showTotal: this._showTotal,
+                showSizeChanger: true,
+                showQuickJumper: true
+            }
         }
     }
     componentDidMount() {
         this._getConfoList()
     }
-    _getConfoList = () => {
+    _showTotal = (total) => {
         const { formatMessage } = this.props.intl
+
+        return formatMessage({ id: "LANG115" }) + total
+    }
+    _handleTableChange = (pagination, filters, sorter) => {
+        let params = {
+            page: pagination.current,
+            item_num: pagination.pageSize,
+            ...filters
+        }
+
+        if (sorter.field) {
+            params.sidx = sorter.field
+            params.sord = sorter.order === 'ascend' ? 'asc' : 'desc'
+        } else {
+            params.sidx = 'starttime'
+            params.sord = 'asc'
+        }
+
+        this._getConfoList(params)
+    }
+    _getConfoList = (
+        params = {
+            item_num: 10,
+            sidx: "starttime",
+            sord: "asc",
+            page: 1
+        }) => {
+        let data = {
+                    ...params,
+                    action: 'listMeetme'
+                }
 
         $.ajax({
             url: api.apiHost,
             type: 'post',
-            data: {
-                action: 'listMeetme'
-            },
+            data: data,
             dataType: 'json',
             success: function(res) {
-                const response = res.response || {}
-                const confoList = response.bookid || []
+                let response = res.response || {},
+                    confoList = response.bookid || []
+
+                const pagination = this.state.pagination
+                    pagination.total = res.response.total_item
 
                 this.setState({
-                    confoList: confoList
+                    confoList: confoList,
+                    pagination
                 })
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+    }
+    _getMeetme = (bookid) => {
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: {
+                action: 'getMeetme',
+                bookid: bookid
+            },
+            async: false,
+            dataType: 'json',
+            success: function(data) {
+                subMeetmeList = data.response.bookid.members || []
             }.bind(this),
             error: function(e) {
                 message.error(e.statusText)
@@ -139,49 +197,80 @@ class Schedule extends Component {
         const columns = [{
                 key: 'confno',
                 dataIndex: 'confno',
-                title: formatMessage({id: "LANG3784"})
+                title: formatMessage({id: "LANG3784"}),
+                sorter: true
             }, {
                 key: 'confname',
                 dataIndex: 'confname',
-                title: formatMessage({id: "LANG3783"})
+                title: formatMessage({id: "LANG3783"}),
+                sorter: true
             }, {
                 key: 'starttime',
                 dataIndex: 'starttime',
-                title: formatMessage({id: "LANG1048"})
+                title: formatMessage({id: "LANG1048"}),
+                sorter: true
             }, {
                 key: 'endtime',
                 dataIndex: 'endtime',
-                title: formatMessage({id: "LANG1049"})
+                title: formatMessage({id: "LANG1049"}),
+                sorter: true
             }, {
                 key: 'status',
                 dataIndex: 'status',
-                title: formatMessage({id: "LANG3802"})
+                title: formatMessage({id: "LANG3802"}),
+                sorter: false
             }, {
                 key: 'open_calendar',
                 dataIndex: 'open_calendar',
-                title: formatMessage({id: "LANG3791"})
+                title: formatMessage({id: "LANG3791"}),
+                sorter: true
             }, {
                 key: 'recurringevent',
                 dataIndex: 'recurringevent',
-                title: formatMessage({id: "LANG3803"})
+                title: formatMessage({id: "LANG3803"}),
+                sorter: true
             }, {
                 key: 'options',
                 dataIndex: 'options',
                 title: formatMessage({id: "LANG74"}),
                 render: (text, record, index) => {
                     return this._renderOptions(record)
-                }   
-            }]
-        const pagination = {
-                total: this.state.confoList.length,
-                showSizeChanger: true,
-                onShowSizeChange: (current, pageSize) => {
-                    console.log('Current: ', current, '; PageSize: ', pageSize)
                 },
-                onChange: (current) => {
-                    console.log('Current: ', current)
+                sorter: false
+            }]
+
+        const expandedRowRender = (e) => {
+            const columns = [
+                {
+                    title: formatMessage({id: "LANG186"}),
+                    dataIndex: 'state'
+                }, {
+                    title: formatMessage({id: "LANG2026"}),
+                    dataIndex: 'member_name'
+                }, {
+                    title: formatMessage({id: "LANG3781"}),
+                    dataIndex: 'member_extension'
+                }, {
+                    title: formatMessage({id: "LANG2032"}),
+                    dataIndex: 'email'
+                }, {
+                    title: formatMessage({id: "LANG3782"}),
+                    dataIndex: 'send_email'
+                }, {
+                    title: formatMessage({id: "LANG3792"}),
+                    dataIndex: 'comment'
                 }
-            }
+            ]
+
+            this._getMeetme(e.bookid)
+
+            return (
+                <Table
+                    columns={ columns }
+                    dataSource={ subMeetmeList }
+                    pagination={ false } />
+            )
+        }
 
         return (
             <div className="app-content-main">
@@ -199,13 +288,13 @@ class Schedule extends Component {
                     </div>
                     <div className="lite-desc">{ formatMessage({id: "LANG4467"}) }</div>
                     <Table
-                        rowKey="extension"
+                        rowKey={ record => record.bookid }
                         columns={ columns }
-                        pagination={ pagination }
+                        pagination={ this.state.pagination }
                         dataSource={ this.state.confoList }
                         showHeader={ !!this.state.confoList.length }
-                    >
-                    </Table>
+                        expandedRowRender = { expandedRowRender }
+                        onChange={ this._handleTableChange } />
                 </div>
             </div>
         )

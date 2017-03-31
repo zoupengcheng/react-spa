@@ -580,9 +580,9 @@ const routes = (state, currentLocaleData) => {
                         <IndexRoute component={ ZeroConfig } />
                         <Route path="showDevices/:filter" onEnter={ requireAuth } component={ Devices } breadcrumbName={ currentLocaleData["LANG16"] } />
                         <Route path="createGlobalTemplate" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
-                        <Route path="editGlobalTemplate/:mode/:id" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="editGlobalTemplate/:id/:name" onEnter={ requireAuth } component={ GlobalTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                         <Route path="createModelTemplate" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG3446"] } />
-                        <Route path="editModelTemplate/:mode/:id" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } />
+                        <Route path="editModelTemplate/:id/:name" onEnter={ requireAuth } component={ ModelTemplateItem } breadcrumbName={ currentLocaleData["LANG738"] } />
                     </Route>
                     <Route path="ami" onEnter={ requireAuth } breadcrumbName={ currentLocaleData["LANG3525"] } >
                     <IndexRoute component={ AMI } />

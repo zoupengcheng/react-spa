@@ -26,7 +26,7 @@ class ScheduleConference extends Component {
             quiteModeEnable: meetList.quiet_mode ? (meetList.quiet_mode === 'yes') : false,
             announceCallers: meetList.announce_callers ? (meetList.announce_callers === 'yes') : false,
             userInviteEnable: meetList.user_invite ? (meetList.user_invite === 'yes') : false,
-            musicclassHidden: 'hidden',
+            musicclassHidden: meetList.moh_firstcaller === 'yes',
             mohNameList: [],
             conferenceRange: [],
             existNumberList: []
@@ -116,15 +116,9 @@ class ScheduleConference extends Component {
         })
     }
     _handleMusicclassChange = (e) => {
-        if (e.target.checked) {
-            this.setState({
-                musicclassHidden: 'block'
-            })
-        } else {
-            this.setState({
-                musicclassHidden: 'hidden'
-            })
-        }
+        this.setState({
+            musicclassHidden: e.target.checked
+        })
     }
     _handleUserInviteChange = (e) => {
         const {formatMessage} = this.props.intl,
@@ -347,7 +341,7 @@ class ScheduleConference extends Component {
                                 ) }
                             </FormItem>
                         </Col>
-                        <Col span={ 12 } className={ this.state.musicclassHidden }>
+                        <Col span={ 12 } className={ this.state.musicclassHidden ? 'display-block' : 'hidden' }>
                             <FormItem
                                 { ...formItemLayout }
                                 label={(

@@ -1011,6 +1011,46 @@ class SetupWizard extends Component {
             checkedFXOList: checkedFXOList
         })
     }
+    _onInputBatchNumberChange = (val) => {
+        const value = val.target.value
+        if (!value) {
+            return
+        }
+        if (!(/^\d+$/i.test(value))) {
+            return
+        }
+        let popValue = ''
+        let popValueList = []
+        const { getFieldValue } = this.props.form
+        const numberList = this.state.numberList
+        let batch_number = parseInt(value)
+        let batch_extension = parseInt(getFieldValue('batch_extension'))
+
+        for (let i = 0; i < batch_number; i++) {
+            let num = batch_extension + i
+            if (($.inArray((num + ''), numberList) > -1)) {
+                batch_number++
+            } else {
+                popValueList.push(num)
+            }
+        }
+        popValueList.map(function(item, index) {
+            if (index > 0) {
+                if (item - popValueList[index - 1] === 1) {
+                    popValue += ' ' + item
+                } else {
+                    popValue += ' ' + '<font color="green"><b>' + item + '</b></font>'
+                }
+            } else {
+                popValue += ' ' + item
+            }
+        })
+
+        this.setState({
+            popValue: popValue,
+            popValueList: popValueList
+        })
+    }
     _onInputExtenChange = (val) => {
         const value = val.target.value
         if (!value || value.length < 2) {
@@ -3871,7 +3911,7 @@ class SetupWizard extends Component {
                                         }],
                                         initialValue: '5'
                                     })(
-                                        <Input maxLength='18' />
+                                        <Input maxLength='18' onChange={this._onInputBatchNumberChange} />
                                     ) }
                                 </Col>
                             </FormItem>

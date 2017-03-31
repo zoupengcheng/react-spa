@@ -21,7 +21,7 @@ class DISAItem extends Component {
             disaNameList: [],
             disaItem: {
                 permission: 'internal',
-                digit_timeout: 3,
+                digit_timeout: 5,
                 response_timeout: 10
             }
         }

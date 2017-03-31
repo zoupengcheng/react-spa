@@ -174,10 +174,10 @@ class FollowMe extends Component {
                         const members = followme.members
 
                         _.map(followme, (value, key) => {
-                            if (value === null) {
-                                followmeItem['fm_' + key] = ''
-                            } else {
+                            if (value) {
                                 followmeItem['fm_' + key] = value
+                            } else {
+                                followmeItem['fm_' + key] = ''
                             }
                         })
 
@@ -323,7 +323,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_enable_followme', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_followme === 'yes'
+                                    initialValue: settings.fm_enable_followme === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -343,7 +343,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_bypass_outrt_auth', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.bypass_outrt_auth === 'yes'
+                                    initialValue: settings.fm_bypass_outrt_auth === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -362,7 +362,7 @@ class FollowMe extends Component {
                             >
                                 { getFieldDecorator('fm_musicclass', {
                                     rules: [],
-                                    initialValue: settings.musicclass ? settings.musicclass : 'default'
+                                    initialValue: settings.fm_musicclass ? settings.fm_musicclass : 'default'
                                 })(
                                     <Select>
                                         {
@@ -393,7 +393,7 @@ class FollowMe extends Component {
                                 { getFieldDecorator('fm_enable_option', {
                                     rules: [],
                                     valuePropName: 'checked',
-                                    initialValue: settings.enable_option === 'yes'
+                                    initialValue: settings.fm_enable_option === 'yes'
                                 })(
                                     <Checkbox />
                                 ) }
@@ -509,7 +509,7 @@ class FollowMe extends Component {
                                                 }
                                             }
                                         ],
-                                        initialValue: settings.external_number
+                                        initialValue: settings.fm_external_number
                                     })(
                                         <Input disabled={ !this.state.fm_enable_destination } />
                                     ) }

@@ -4,11 +4,13 @@ import $ from 'jquery'
 import _ from 'underscore'
 import api from "../../api/api"
 import UCMGUI from "../../api/ucmgui"
-import { injectIntl } from 'react-intl'
 import Title from '../../../views/title'
-import { Form, Input, message, Tabs } from 'antd'
+import Validator from "../../api/validator"
+
+import { injectIntl } from 'react-intl'
 import { browserHistory } from 'react-router'
 import React, { Component, PropTypes } from 'react'
+import { Checkbox, Col, Form, Input, message, Popover, Row, Select, Transfer } from 'antd'
 
 import ZEROCONFIG from './parser/ZCDataSource'
 import { ZCCurConfig, ValueDelegationObj, PrepareSubmitConfigurations } from './parser/ZCController.jsx'
@@ -119,10 +121,206 @@ class GlobalTemplateItem extends Component {
         const { formatMessage } = this.props.intl
     }
     render() {
-        const {formatMessage} = this.props.intl
+        const { formatMessage } = this.props.intl
+        const { getFieldDecorator } = this.props.form
+        const model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        const formItemLayout = {
+            labelCol: { span: 4 },
+            wrapperCol: { span: 6 }
+        }
+
+        const formItemTransferLayout = {
+            labelCol: { span: 4 },
+            wrapperCol: { span: 8 }
+        }
+
+        const title = (this.props.params.id
+                ? formatMessage({id: "LANG222"}, {
+                    0: formatMessage({id: "LANG3444"}),
+                    1: this.props.params.name
+                })
+                : formatMessage({id: "LANG3446"}))
+
+        document.title = formatMessage({id: "LANG584"}, {
+                    0: model_info.model_name,
+                    1: title
+                })
+
         return (
-            <div className="app-content-main" id="app-content-main">
-                {"GlobalTemplateItem"}
+            <div className="app-content-main">
+                <Title
+                    headerTitle={ title }
+                    onSubmit={ this._handleSubmit }
+                    onCancel={ this._handleCancel }
+                    isDisplay='display-block'
+                />
+                <div className="content">
+                    <Form>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>{ formatMessage({id: "LANG3228"}) }</span>
+                            )}
+                        >
+                            { getFieldDecorator('station_name', {
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.minlength(data, value, callback, formatMessage, 2)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.letterDigitUndHyphen(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: this._checkExistence
+                                }],
+                                initialValue: station_name
+                            })(
+                                <Input placeholder={ formatMessage({id: "LANG3228"}) } />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover
+                                        title={ formatMessage({id: "LANG3229"}) }
+                                        content={ formatMessage({id: "LANG3237"}) }
+                                    >
+                                            <span>{ formatMessage({id: "LANG3229"}) }</span>
+                                    </Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('sla_station', {
+                                rules: [{
+                                    required: true,
+                                    message: formatMessage({id: "LANG2150"})
+                                }],
+                                initialValue: sla_station
+                            })(
+                                <Select disabled={ !!this.props.params.id }>
+                                    {
+                                        this.state.accountList.map(function(item) {
+                                            return <Option
+                                                    key={ item.key }
+                                                    value={ item.value }
+                                                    className={ item.out_of_service === 'yes' }
+                                                >
+                                                    { item.label }
+                                                </Option>
+                                            }
+                                        ) 
+                                    }
+                                </Select>
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemTransferLayout }
+                            label={(
+                                <span>{ formatMessage({id: "LANG3230"}) }</span>
+                            )}
+                        >
+                            <Transfer
+                                showSearch
+                                render={ this._renderItem }
+                                targetKeys={ this.state.targetKeys }
+                                onChange={ this._handleTransferChange }
+                                dataSource={ this.state.slaTrunkNameList }
+                                filterOption={ this._filterTransferOption }
+                                notFoundContent={ formatMessage({id: "LANG133"}) }
+                                onSelectChange={ this._handleTransferSelectChange }
+                                searchPlaceholder={ formatMessage({id: "LANG803"}) }
+                                titles={ [formatMessage({id: "LANG5121"}), formatMessage({id: "LANG3475"})] }
+                            />
+                        </FormItem>
+                        <div className="section-title">
+                            <span>{ formatMessage({id: "LANG3233"}) }</span>
+                        </div>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover
+                                        title={ formatMessage({id: "LANG1598"}) }
+                                        content={ formatMessage({id: "LANG3234"}) }
+                                    >
+                                        <span>{ formatMessage({id: "LANG1598"}) }</span>
+                                    </Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('ringtimeout', {
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 0, 300)
+                                    }
+                                }],
+                                initialValue: ringtimeout
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover
+                                        title={ formatMessage({id: "LANG3235"}) }
+                                        content={ formatMessage({id: "LANG3236"}) }
+                                    >
+                                        <span>{ formatMessage({id: "LANG3235"}) }</span>
+                                    </Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('ringdelay', {
+                                rules: [{
+                                    validator: (data, value, callback) => {
+                                        Validator.digits(data, value, callback, formatMessage)
+                                    }
+                                }, {
+                                    validator: (data, value, callback) => {
+                                        Validator.range(data, value, callback, formatMessage, 0, 300)
+                                    }
+                                }],
+                                initialValue: ringdelay
+                            })(
+                                <Input />
+                            ) }
+                        </FormItem>
+                        <FormItem
+                            { ...formItemLayout }
+                            label={(
+                                <span>
+                                    <Popover
+                                        title={ formatMessage({id: "LANG3222"}) }
+                                        content={ formatMessage({id: "LANG3243"}) }
+                                    >
+                                            <span>{ formatMessage({id: "LANG3222"}) }</span>
+                                    </Popover>
+                                </span>
+                            )}
+                        >
+                            { getFieldDecorator('holdaccess', {
+                                initialValue: holdaccess ? holdaccess : 'open'
+                            })(
+                                <Select>
+                                    <Option key="open" value="open">{ "Open" }</Option>
+                                    <Option key="private" value="private">{ "Private" }</Option>
+                                </Select>
+                            ) }
+                        </FormItem>
+                    </Form>
+                </div>
             </div>
         )
     }

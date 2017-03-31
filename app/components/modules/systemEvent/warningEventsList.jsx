@@ -154,7 +154,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
-        this._warningStop()
+        // this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = 1
@@ -180,7 +180,7 @@ class WarningEventList extends Component {
                     this.setState({
                         selectedRows: selectedRows
                     })
-                    this._warningStart()
+                    // this._warningStart()
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
@@ -210,7 +210,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
-        this._warningStop()
+        // this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = 0
@@ -236,7 +236,7 @@ class WarningEventList extends Component {
                     this.setState({
                         selectedRows: selectedRows
                     })
-                    this._warningStart()
+                    // this._warningStart()
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
@@ -253,7 +253,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
-        this._warningStop()
+        // this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = ""
@@ -273,7 +273,7 @@ class WarningEventList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
-                    this._warningStart()
+                    // this._warningStart()
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
@@ -290,7 +290,7 @@ class WarningEventList extends Component {
         rowList.map(function(item) {
             ids.push(item.id)
         })
-        this._warningStop()
+        // this._warningStop()
         let action = {}
         action.action = "warningUpdateGeneralSettings"
         action.enable = ""
@@ -310,7 +310,7 @@ class WarningEventList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
-                    this._warningStart()
+                    // this._warningStart()
                 }
                 this.props.getWarningGeneral()
                 this._getInitData()
@@ -449,7 +449,7 @@ class WarningEventList extends Component {
         action.enable = value === true ? 1 : 0
         action.enable_email = ""
         action.id = id
-        this._warningStop()
+        // this._warningStop()
         $.ajax({
             url: api.apiHost,
             method: "post",
@@ -464,7 +464,7 @@ class WarningEventList extends Component {
                 if (bool) {
                     message.destroy()
                     message.success(successMessage)
-                    this._warningStart()
+                    // this._warningStart()
                 }
                 if (id === 16 && value === true) { /* 16 is sip peer trunk status */
                     confirm({
@@ -509,7 +509,7 @@ class WarningEventList extends Component {
                 cancelText: formatMessage({id: "LANG726"})
             })
         } else {
-            this._warningStop()
+            // this._warningStop()
             let action = {}
             action.action = "warningUpdateGeneralSettings"
             action.enable = ""
@@ -529,7 +529,7 @@ class WarningEventList extends Component {
                     if (bool) {
                         message.destroy()
                         message.success(successMessage)
-                        this._warningStart()
+                        // this._warningStart()
                     }
                     this.props.getWarningGeneral()
                     this._getInitData()

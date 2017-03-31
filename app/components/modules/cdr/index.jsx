@@ -21,7 +21,7 @@ class CDR extends Component {
             isDisplaySearch: 'hidden',
             cdrData: [],
             cdrSearchDownload: {},
-            pagination: {            
+            pagination: {
                 showTotal: this._showTotal,
                 showSizeChanger: true,
                 showQuickJumper: true

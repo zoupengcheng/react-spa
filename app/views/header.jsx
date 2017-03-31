@@ -1,17 +1,18 @@
 'use strict'
 
+import $ from 'jquery'
+import cookie from 'react-cookie'
+import api from "../components/api/api"
+import UCMGUI from "../components/api/ucmgui"
+
 import React from 'react'
-import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import * as Actions from '../actions/'
+import { injectIntl } from 'react-intl'
+import { bindActionCreators } from 'redux'
 import { browserHistory } from 'react-router'
 import { Icon, Menu, Dropdown, Select, Button, message, Spin, Modal } from 'antd'
-import { injectIntl } from 'react-intl'
 import SubscribeEvent from '../components/api/subscribeEvent'
-import api from "../components/api/api"
-import $ from 'jquery'
-import UCMGUI from "../components/api/ucmgui"
-import cookie from 'react-cookie'
 
 const Option = Select.Option
 
@@ -21,8 +22,8 @@ let Header = React.createClass({
     },
     getInitialState() {
         return {
-            countryArr: JSON.parse(localStorage.getItem('countryArr')),
-            visible: true
+            visible: true,
+            countryArr: JSON.parse(localStorage.getItem('countryArr'))
         }
     },
     componentDidMount: function() {
@@ -39,17 +40,22 @@ let Header = React.createClass({
     },
     // 跳转登录页
     handleLogout: function(e) {
-        message.destroy()
         e.preventDefault()
+
+        message.destroy()
+
         cookie.remove('adminId')
         cookie.remove('username')
+
         localStorage.removeItem('adminId')
         localStorage.removeItem('username')
         localStorage.removeItem('password')
         // localStorage.clear()
+
         if (window.socket) {
             window.socket.send(SubscribeEvent.logout)
         }
+
         browserHistory.push('/login')
     },
     triggerParentCollapseChange() {
@@ -57,6 +63,7 @@ let Header = React.createClass({
     },
     _applyChanges() {
         const { formatMessage } = this.props.intl
+
         this.props.setSpinLoading({loading: true, tip: formatMessage({id: "LANG806"})})
 
         $.ajax({
@@ -67,6 +74,7 @@ let Header = React.createClass({
                     settings = data.response.hasOwnProperty('settings') ? data.response.settings : ''
 
                 this.props.setSpinLoading({loading: false})
+
                 if (status === 0 && settings === '0') {
                     // this.setState({
                     //     visible: false
@@ -106,16 +114,22 @@ let Header = React.createClass({
         browserHistory.push('/setup-wizard')
     },
     render: function () {
+        let { formatMessage } = this.props.intl
+        let role = localStorage.getItem('role')
         let username = localStorage.getItem('username')
-        const { formatMessage } = this.props.intl
-        const model_info = JSON.parse(localStorage.getItem('model_info'))
-        const menu = (
-            <Menu>
-                <Menu.Item key="1"><a className="u-ml-10" href="#" >重 启</a></Menu.Item>
-                <Menu.Item key="2" onClick={ this.handleLogout }><a className="u-ml-10" href="#" onClick={ this.handleLogout }>注 销</a></Menu.Item>             
-            </Menu>
-        )
-     
+        let model_info = JSON.parse(localStorage.getItem('model_info'))
+
+        let menu = <Menu>
+                    <Menu.Item key="1"><a className="u-ml-10" href="#" >重 启</a></Menu.Item>
+                    <Menu.Item key="2" onClick={ this.handleLogout }><a className="u-ml-10" href="#" onClick={ this.handleLogout }>注 销</a></Menu.Item>             
+                </Menu>
+
+        let userbanner = <div className="header-user-banner">
+                            <span className="sprite sprite-user-availiable" />
+                            <span className="username">{ username }</span>
+                            <Icon type="down" />
+                        </div>
+
         return (
             <header className="app-header clearfix">
                 <div className="header-inner">
@@ -137,27 +151,27 @@ let Header = React.createClass({
                     </nav> */}
                     <nav className="right-nav">
                         <Dropdown overlay={ menu }>
-                            <a className="ant-dropdown-link" href="#">
-                                {<span><Icon type="user" />{ username }</span>}<Icon type="down" />
-                            </a>
+                            { userbanner }
                         </Dropdown>
                     </nav>
                     <nav className="right-nav">
                         <Select defaultValue={ localStorage.getItem('locale') || "en-US" } style={{ width: 100 }} size="small" onChange={ this.handleChange }>
                             {
                                 this.state.countryArr.map(function(it) {
-                                const lang = it.languages
-                                return <Option key={ lang } value={ lang }>
-                                       { it.localName }
-                                    </Option>
-                            })}
+                                    const lang = it.languages
+
+                                    return <Option key={ lang } value={ lang }>
+                                           { it.localName }
+                                        </Option>
+                                })
+                            }
                         </Select>
                     </nav>
                     <nav className="right-nav">
-                        <a type="primary" size="small" onClick={this._gotoSetupWizard} className={username === 'admin' ? "display-inline" : "hidden"}>{formatMessage({id: "LANG4283"})}</a>
+                        <a type="primary" size="small" onClick={ this._gotoSetupWizard } className={ username === 'admin' ? "display-inline" : "hidden" }>{ formatMessage({id: "LANG4283"}) }</a>
                     </nav>
                     <nav className="right-nav">
-                        <Button type="primary" size="small" onClick={this._applyChanges} className={this.state.visible ? "display-inline" : "hidden"}>{formatMessage({id: "LANG260"})}</Button>
+                        <Button type="primary" size="small" onClick={ this._applyChanges } className={ this.state.visible ? "display-inline" : "hidden" }>{ formatMessage({id: "LANG260"}) }</Button>
                     </nav>
                     {/* <div className="nav-phone-icon"></div> */}
                 </div>

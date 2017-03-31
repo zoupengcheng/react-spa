@@ -285,6 +285,12 @@ class WarningIndex extends Component {
                     }.bind(this)
                 })
             }
+
+            this._warningStop()
+            setTimeout(this._warningStart, 1000)
+            this.setState({
+                reloadWarning: false
+            })
         })
     }
     _handleCancel = () => {

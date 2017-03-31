@@ -24,12 +24,12 @@ class CDRList extends Component {
     _getSubCDR = (session) => {
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 'action': 'getSubCDR',
                 'session': session
             },
-            type: 'json',
+            dataType: 'json',
             async: false,
             success: function(res) {
                 subCDRList = res.response.sub_cdr || []

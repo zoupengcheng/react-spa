@@ -23,10 +23,8 @@ class ConferenceItem extends Component {
             quiteModeEnable: false,
             announceCallers: false,
             userInviteEnable: false,
-            musicclassHidden: 'hidden',
-            conferenceItem: {
-                musicclass: 'defalut'
-            },
+            musicclassHidden: false,
+            conferenceItem: {},
             mohNameList: [],
             conferenceRange: [],
             existNumberList: []
@@ -87,7 +85,8 @@ class ConferenceItem extends Component {
                         waitAdminEnable: conferenceItem.wait_admin ? (conferenceItem.wait_admin === 'yes') : false,
                         quiteModeEnable: conferenceItem.quiet_mode ? (conferenceItem.quiet_mode === 'yes') : false,
                         announceCallers: conferenceItem.announce_callers ? (conferenceItem.announce_callers === 'yes') : false,
-                        userInviteEnable: conferenceItem.user_invite ? (conferenceItem.user_invite === 'yes') : false
+                        userInviteEnable: conferenceItem.user_invite ? (conferenceItem.user_invite === 'yes') : false,
+                        musicclassHidden: conferenceItem.moh_firstcaller === 'yes'
                     })
                 }.bind(this),
                 error: function(e) {
@@ -150,15 +149,9 @@ class ConferenceItem extends Component {
         })
     }
     _handleMusicclassChange = (e) => {
-        if (e.target.checked) {
-            this.setState({
-                musicclassHidden: 'block'
-            })
-        } else {
-            this.setState({
-                musicclassHidden: 'hidden'
-            })
-        }
+        this.setState({
+            musicclassHidden: e.target.checked
+        })
     }
     _handleUserInviteChange = (e) => {
         const {formatMessage} = this.props.intl,
@@ -502,7 +495,7 @@ class ConferenceItem extends Component {
                                     ) }
                                 </FormItem>
                             </Col>
-                            <Col span={ 12 } className={ this.state.musicclassHidden }>
+                            <Col span={ 12 } className={ this.state.musicclassHidden ? 'display-block' : 'hidden' }>
                                 <FormItem
                                     { ...formItemLayout }
                                     label={(
@@ -514,7 +507,7 @@ class ConferenceItem extends Component {
                                     )}
                                 >
                                     { getFieldDecorator('musicclass', {
-                                        initialValue: conferenceItem.musicclass
+                                        initialValue: conferenceItem.musicclass || 'default'
                                     })(
                                         <Select>
                                             {

@@ -247,7 +247,7 @@
     "userPortalMenus": [{
         "name": "user-basic-information",
         "title": "LANG4101",
-        "icon": "sprite-menu-user-basic-information",
+        "icon": "sprite-menu-system-status",
         "items": [{
             "name": "LANG2802",
             "path": "userInformation"
@@ -264,7 +264,7 @@
     }, {
         "name": "user-personal-data",
         "title": "LANG5582",
-        "icon": "sprite-menu-user-personal-data",
+        "icon": "sprite-menu-personal-data",
         "items": [{
             "name": "LANG568",
             "path": "userFollowMe"

@@ -444,7 +444,11 @@ class UserItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('first_name', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.cidName(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         width: 100,
                                         initialValue: userItem.first_name ? userItem.first_name : ""
                                     })(
@@ -463,7 +467,11 @@ class UserItem extends Component {
                                         </Tooltip>
                                     )}>
                                     { getFieldDecorator('last_name', {
-                                        rules: [],
+                                        rules: [{
+                                            validator: (data, value, callback) => {
+                                                Validator.cidName(data, value, callback, formatMessage)
+                                            }
+                                        }],
                                         width: 100,
                                         initialValue: userItem.last_name ? userItem.last_name : ""
                                     })(

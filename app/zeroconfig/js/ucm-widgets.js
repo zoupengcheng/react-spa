@@ -51,7 +51,6 @@
 
     var translate = undefined;
     var createLabel = undefined;
-    debugger
     if (typeof $.lang === "function")
         translate = $.lang;
     else if (typeof $P === "function" && typeof $P.lang === "function")

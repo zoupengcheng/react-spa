@@ -20,17 +20,20 @@ class CallBackItem extends Component {
         this.state = {
             disaList: [],
             ivrList: [],
-            fileList: [],
+            displayIvrList: [],
+            displayDisaList: [],
+            displayDestinationList: [],
             callBackValues: {},
-            defaultDestination: ''
+            destinationValues: {name: '', id: ''}
         }
     }
     componentWillMount() {
         this._getDisaList()
         this._getIvrList()
+        this._getCallBack()
     }
     componentDidMount() {
-        this._getInitData()
+        this._handleDisplayDestination()
     }
 
     _getDisaList = () => {
@@ -86,51 +89,11 @@ class CallBackItem extends Component {
         })
     }
 
-    _handleSelectValues = (callback) => {
-        let displayList = []
-        let defaultDestination = ''
-        if (callback.destination_type === 'disa') {
-            let DisaList = this.state.disaList
-            defaultDestination = callback.disa
-            for (let i = 0; i < DisaList.length; i++) {
-                let disaName = DisaList[i]["display_name"]
-                let disaId = DisaList[i]["disa_id"]
-                if (disaName && disaId) {
-                    let obj = {
-                        key: String(disaId),
-                        val: disaName
-                    }
-                    displayList.push(obj)
-                }
-            }
-        } else if (callback.destination_type === 'ivr') {
-            let IvrList = this.state.ivrList
-            defaultDestination = callback.ivr
-            for (let i = 0; i < IvrList.length; i++) {
-                let IvrName = IvrList[i]["ivr_name"]
-                let ivrId = IvrList[i]["ivr_id"]
-                if (IvrName && ivrId) {
-                    let obj = {
-                        key: String(ivrId),
-                        val: IvrName
-                    }
-                    displayList.push(obj)
-                }
-            }
-        }
-
-        this.setState({
-            fileList: displayList,
-            defaultDestination: defaultDestination
-        })
-        console.log('distination value is: ', displayList)
-    }
-
-    _getInitData = () => {
+    _getCallBack = () => {
         const callBackIndex = this.props.params.id
         const callBackName = this.props.params.name
 
-        if (callBackName) {
+        if (callBackIndex && callBackName) {
             $.ajax({
                 url: api.apiHost,
                 method: 'post',
@@ -147,7 +110,6 @@ class CallBackItem extends Component {
                         const response = res.response || {}
                         let callBackValues = response.callback
 
-                        this._handleSelectValues(callBackValues)
                         this.setState({
                             callBackValues: callBackValues
                         })
@@ -158,6 +120,80 @@ class CallBackItem extends Component {
                 }
             })
         }
+    }
+
+    _handleDisplayDestination = () => {
+        const callBackIndex = this.props.params.id
+        const callBackName = this.props.params.name
+
+        let displayIvrList = []
+        let displayDisaList = []
+        let displayDestinationList = []
+        let destinationValues = {name: '', id: ''}
+
+        let IvrList = this.state.ivrList
+        let DisaList = this.state.disaList
+
+        for (let i = 0; i < IvrList.length; i++) {
+            let IvrName = IvrList[i]["ivr_name"]
+            let ivrId = String(IvrList[i]["ivr_id"])
+            if (IvrName && ivrId) {
+                let obj = {
+                    key: ivrId,
+                    val: IvrName
+                }
+                displayIvrList.push(obj)
+            }
+        }
+        for (let i = 0; i < DisaList.length; i++) {
+            let disaName = DisaList[i]["display_name"]
+            let disaId = String(DisaList[i]["disa_id"])
+            if (disaName && disaId) {
+                let obj = {
+                    key: disaId,
+                    val: disaName
+                }
+                displayDisaList.push(obj)
+            }
+        }
+
+        if (callBackIndex && callBackName) {
+            let callback = this.state.callBackValues
+            if (callback.destination_type === 'ivr') {
+                displayDestinationList = displayIvrList
+                displayIvrList.map(function(item) {
+                    if (item.key === callback.ivr) {
+                        destinationValues['name'] = item.val
+                        destinationValues['id'] = item.key
+                    }
+                })
+            } else {
+                displayDestinationList = displayDisaList
+                displayDisaList.map(function(item) {
+                    if (item.key === callback.disa) {
+                        destinationValues['name'] = item.val
+                        destinationValues['id'] = item.key
+                    }
+                })
+            }
+        } else {
+            displayDestinationList = displayDisaList
+            if (displayDisaList.length) {
+                destinationValues['name'] = displayDisaList[0].val
+                destinationValues['id'] = displayDisaList[0].key
+            } else {
+                destinationValues['name'] = ''
+                destinationValues['id'] = ''
+            }
+        }
+
+        this.setState({
+            displayIvrList: displayIvrList,
+            displayDisaList: displayDisaList,
+            displayDestinationList: displayDestinationList,
+            destinationValues: destinationValues
+        })
+        console.log('distination value is: ', destinationValues)
     }
 
     _handleCancel = () => {
@@ -185,18 +221,11 @@ class CallBackItem extends Component {
                 message.loading(loadingMessage)
 
                 let action = values
+                let destinationValues = this.state.destinationValues
                 if (values.destination_type === 'disa') {
-                    this.state.disaList.map(function(item) {
-                        if (item.display_name === values.external_number) {
-                            action.disa = item.disa_id
-                        }
-                    })
+                    action.disa = destinationValues['id']
                 } else if (values.destination_type === 'ivr') {
-                    this.state.ivrList.map(function(item) {
-                        if (item.ivr_name === values.external_number) {
-                            action.ivr = item.ivr_id
-                        }
-                    })
+                    action.ivr = destinationValues['id']
                 }
                 delete action.external_number
 
@@ -232,52 +261,50 @@ class CallBackItem extends Component {
     }
 
     _onChangeMode = (e) => {
-        let displayList = []
-        let defaultDestination = ''
+        let displayDestinationList = []
+        let destinationValues = {name: '', id: ''}
         if (e === 'disa') {
-            let DisaList = this.state.disaList
-            for (let i = 0; i < DisaList.length; i++) {
-                let disaName = DisaList[i]["display_name"]
-                let disaId = DisaList[i]["disa_id"]
-                if (disaName && disaId) {
-                    let obj = {
-                        key: String(disaId),
-                        val: disaName
-                    }
-                    displayList.push(obj)
-                }
-            }
+            displayDestinationList = this.state.displayDisaList
         } else if (e === 'ivr') {
-            let IvrList = this.state.ivrList
-            for (let i = 0; i < IvrList.length; i++) {
-                let IvrName = IvrList[i]["ivr_name"]
-                let ivrId = IvrList[i]["ivr_id"]
-                if (IvrName && ivrId) {
-                    let obj = {
-                        key: String(ivrId),
-                        val: IvrName
-                    }
-                    displayList.push(obj)
-                }
-            }
+            displayDestinationList = this.state.displayIvrList
+        } else {
+            displayDestinationList = this.state.displayDisaList
         }
 
-        if (displayList.length > 0) {
-            defaultDestination = displayList[0].key
+        if (displayDestinationList.length > 0) {
+            destinationValues['name'] = displayDestinationList[0].val
+            destinationValues['id'] = displayDestinationList[0].key
+        } else {
+            destinationValues['name'] = ''
+            destinationValues['id'] = ''
         }
-
         this.setState({
-            fileList: displayList,
-            defaultDestination: defaultDestination
+            displayDestinationList: displayDestinationList,
+            destinationValues: destinationValues
         })
     }
 
+    _onChangeDestination = (e) => {
+        console.log('destination is ', e)
+        let destinationValues = {name: '', id: ''}
+        let displayDestinationList = this.state.displayDestinationList
+        displayDestinationList.map(function(item) {
+            if (item.key === e) {
+                destinationValues['name'] = item.val
+                destinationValues['id'] = item.key
+            }
+        })
+        this.setState({
+            destinationValues: destinationValues
+        })
+    }
     render() {
         const { formatMessage } = this.props.intl
         const { getFieldDecorator } = this.props.form
         const model_info = JSON.parse(localStorage.getItem('model_info'))
         const callBackValues = this.state.callBackValues
-        const fileList = this.state.fileList
+        const displayDestinationList = this.state.displayDestinationList
+        const destinationValues = this.state.destinationValues
 
         const formItemLayout = {
             labelCol: { span: 3 },
@@ -434,11 +461,11 @@ class CallBackItem extends Component {
                                             required: true,
                                             message: formatMessage({id: "LANG2150"})
                                         }],
-                                        initialValue: this.state.defaultDestination
+                                        initialValue: destinationValues['name']
                                     })(
-                                         <Select>
+                                         <Select onChange={ this._onChangeDestination }>
                                             {
-                                                fileList.map(function(item) {
+                                                displayDestinationList.map(function(item) {
                                                     return <Option value={ item.key }>{ item.val }</Option>
                                                     }
                                                 )

@@ -22,7 +22,7 @@ class EmailSettings extends Component {
 
         this.state = {
             web_https: 1,
-            isDisplay: 'display-block',
+            isDisplay: this.props.params.tab === 'settings' || !this.props.params.tab ? 'display-block' : 'hidden',
             activeKey: this.props.params.tab ? this.props.params.tab : 'settings'
         }
     }

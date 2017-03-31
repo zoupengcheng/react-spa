@@ -87,10 +87,33 @@ class CallBack extends Component {
                 </div>
     }
 
-    _createDestination = (text, record, index) => {
-        let destType = record.destination_type
-        let displayDestination = destType.toUpperCase() + '--' + record.name
+    _displayOutsidePre = (text, record, index) => {
+        if (text !== null) {
+            return text
+        } else {
+            return '--'
+        }
+    }
 
+    _createDestination = (text, record, index) => {
+        const { formatMessage } = this.props.intl
+        let destType = formatMessage({ id: "LANG2886" })
+
+        if (text === 'disa') {
+            this.state.disaList.map(function(item) {
+                if (String(item.disa_id) === record.disa) {
+                    destType = item.display_name
+                }
+            })
+        } else if (text === 'ivr') {
+            this.state.ivrList.map(function(item) {
+                if (item.ivr_id === record.ivr) {
+                    destType = item.ivr_name
+                }
+            })
+        }
+
+        let displayDestination = text.toUpperCase() + '--' + destType
         return displayDestination
     }
 
@@ -193,7 +216,10 @@ class CallBack extends Component {
             }, {
                 key: 'outside_pre',
                 dataIndex: 'outside_pre',
-                title: formatMessage({id: "LANG3824"})
+                title: formatMessage({id: "LANG3824"}),
+                render: (text, record, index) => (
+                    this._displayOutsidePre(text, record, index)
+                )
             }, {
                 key: 'sleep_time',
                 dataIndex: 'sleep_time',

@@ -11,6 +11,10 @@ import { Badge, Button, message, Modal, Popconfirm, Popover, Table, Tag } from '
 
 const confirm = Modal.confirm
 
+let firstload = true,
+    lastLink = '',
+    currentLink = ''
+
 class ConferenceRecord extends Component {
     constructor(props) {
         super(props)
@@ -20,14 +24,100 @@ class ConferenceRecord extends Component {
         }
     }
     componentDidMount() {
+        this._checkDevice()
+    }
+    _checkDevice = () => {
+        let _this = this
+
+        $.ajax({
+            url: api.apiHost,
+            type: 'post',
+            data: {
+                'action': 'getInterfaceStatus',
+                'auto-refresh': Math.random()
+            },
+            dataType: 'json',
+            async: false,
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                if (bool) {
+                    var sdcard_info = data.response['interface-sdcard'],
+                        usbdisk_info = data.response['interface-usbdisk'],
+                        store_msg = ""
+
+                    if (sdcard_info === "true" || usbdisk_info === "true") {
+                        $.ajax({
+                            url: api.apiHost,
+                            type: 'post',
+                            data: {
+                                'action': 'getRecordingLink',
+                                'auto-refresh': Math.random()
+                            },
+                            dataType: 'json',
+                            async: false,
+                            success: function(data) {
+                                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                if (bool) {
+                                    var link_info = data.response['body']
+
+                                    currentLink = link_info
+
+                                    if (link_info === "local") {
+                                        store_msg = "LANG1072"
+                                    } else if (link_info === "USB") {
+                                        store_msg = "LANG263"
+                                    } else if (link_info === "SD") {
+                                        store_msg = "LANG262"
+                                    }
+                                }
+                            }.bind(this),
+                            error: function(e) {
+                                message.error(e.statusText)
+                            }
+                        })
+                    } else {
+                        $.ajax({
+                            url: api.apiHost,
+                            type: 'post',
+                            data: {
+                                'action': 'getRecordingLink',
+                                'auto-refresh': Math.random()
+                            },
+                            dataType: 'json',
+                            async: false,
+                            success: function(data) {
+                                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
+
+                                if (bool) {
+                                    var link_info = data.response['body']
+
+                                    currentLink = link_info
+                                }
+                            }.bind(this),
+                            error: function(e) {
+                                message.error(e.statusText)
+                            }
+                        })
+                    }
+                }
+            }.bind(this),
+            error: function(e) {
+                message.error(e.statusText)
+            }
+        })
+
         this._getConferenceRecord()
+
+        setTimeout(_this._checkDevice, 5000)
     }
     _getConferenceRecord = () => {
         const { formatMessage } = this.props.intl
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 action: 'listFile',
                 type: 'conference_recording',
@@ -35,13 +125,13 @@ class ConferenceRecord extends Component {
                 sidx: 'd',
                 sord: 'desc'
             },
-            type: 'json',
+            dataType: 'json',
             async: false,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
-                    const response = res.response || {}
+                    const response = data.response || {}
                     const conferenceRecord = response.conference_recording || []
 
                     this.setState({
@@ -67,28 +157,28 @@ class ConferenceRecord extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 "action": "checkFile",
                 "type": "conference_recording",
                 "data": fileName
             },
-            type: 'json',
+            dataType: 'json',
             async: true,
             success: function(data) {
                 if (data && data.hasOwnProperty("status") && (data.status === 0)) {
                     $.ajax({
                         url: api.apiHost,
-                        method: 'post',
+                        type: 'post',
                         data: {
                             "action": "removeFile",
                             "type": "conference_recording",
                             "data": fileName
                         },
-                        type: 'json',
+                        dataType: 'json',
                         async: true,
-                        success: function(res) {
-                            const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+                        success: function(data) {
+                            const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                             if (bool) {
                                 message.destroy()
@@ -124,13 +214,13 @@ class ConferenceRecord extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 "action": "checkFile",
                 "type": "conference_recording",
                 "data": fileName
             },
-            type: 'json',
+            dataType: 'json',
             async: true,
             success: function(data) {
                 if (data && data.hasOwnProperty("status") && (data.status === 0)) {
@@ -184,16 +274,16 @@ class ConferenceRecord extends Component {
                 message.loading(loadingMessage, 0)
                 $.ajax({
                     url: api.apiHost,
-                    method: 'post',
+                    type: 'post',
                     data: {
                         "action": "removeFile",
                         "type": "conference_recording",
                         "data": selectedRowKeys.join(',,')
                     },
-                    type: 'json',
+                    dataType: 'json',
                     async: true,
-                    success: function(res) {
-                        const bool = UCMGUI.errorHandler(res, null, self.props.intl.formatMessage)
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, self.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()
@@ -242,16 +332,16 @@ class ConferenceRecord extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 "action": "packFile",
                 "type": actionType,
                 "data": selectedRowKeys.join(',')
             },
-            type: 'json',
+            dataType: 'json',
             async: true,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()
@@ -293,16 +383,16 @@ class ConferenceRecord extends Component {
                 message.loading(loadingMessage, 0)
                 $.ajax({
                     url: api.apiHost,
-                    method: 'post',
+                    type: 'post',
                     data: {
                         "action": "removeFile",
                         "type": "conference_recording",
                         "data": '*'
                     },
-                    type: 'json',
+                    dataType: 'json',
                     async: true,
-                    success: function(res) {
-                        const bool = UCMGUI.errorHandler(res, null, self.props.intl.formatMessage)
+                    success: function(data) {
+                        const bool = UCMGUI.errorHandler(data, null, self.props.intl.formatMessage)
 
                         if (bool) {
                             message.destroy()
@@ -340,16 +430,16 @@ class ConferenceRecord extends Component {
 
         $.ajax({
             url: api.apiHost,
-            method: 'post',
+            type: 'post',
             data: {
                 "action": "packFile",
                 "type": actionType,
                 "data": 'allMeetmeFiles.tgz'
             },
-            type: 'json',
+            dataType: 'json',
             async: true,
-            success: function(res) {
-                const bool = UCMGUI.errorHandler(res, null, this.props.intl.formatMessage)
+            success: function(data) {
+                const bool = UCMGUI.errorHandler(data, null, this.props.intl.formatMessage)
 
                 if (bool) {
                     message.destroy()

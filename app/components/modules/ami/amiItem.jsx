@@ -159,7 +159,7 @@ class AMIItem extends Component {
 
                         userItem = res.response.user || {}
 
-                        let ipallList = userItem.permit.split(';')
+                        let ipallList = userItem.permit ? userItem.permit.split(';') : []
                         for (let i = 0; i < ipallList.length; i++) {
                             let tmp = ipallList[i]
                             let tmpList = tmp.split('/')
